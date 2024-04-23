@@ -330,7 +330,7 @@ public class AlertExpressionASTParser {
         }
 
         @Override
-        public IExpression visitSimpleFilterExpression(AlertExpressionParser.SimpleFilterExpressionContext ctx) {
+        public IExpression visitComparisonExpression(AlertExpressionParser.ComparisonExpressionContext ctx) {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
             IExpression expected = ctx.literalExpression().accept(this);
 
@@ -360,31 +360,71 @@ public class AlertExpressionASTParser {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '=' operator must be type of literal.");
                     return new ComparisonExpression.EQ(identifier, expected);
 
-                case AlertExpressionParser.IN:
-                    checkIfTrue(expected instanceof ExpressionList, "The expected value of 'in' operator must be type of literal list.");
-                    return new ConditionalExpression.In(identifier, (ExpressionList) expected);
-
-                case AlertExpressionParser.LIKE:
-                    checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'LIKE' operator must be type of literal.");
-                    checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of LIKE operator must be type of String.");
-                    return new ConditionalExpression.Like(identifier, expected);
-
-                case AlertExpressionParser.NOT:
-                    TerminalNode notPredicate = ctx.predicateExpression().getChild(TerminalNode.class, 1);
-                    if (notPredicate.getSymbol().getType() == AlertExpressionParser.IN) {
-                        checkIfTrue(expected instanceof ExpressionList, "The expected value of 'NOT IN' operator must be type of literal list.");
-                        return new ConditionalExpression.NotIn(identifier, (ExpressionList) expected);
-                    }
-                    if (notPredicate.getSymbol().getType() == AlertExpressionParser.LIKE) {
-                        checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'LIKE' operator must be type of literal.");
-                        checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of LIKE operator must be type of String.");
-                        return new ConditionalExpression.NotLike(identifier, expected);
-                    }
-                    // Unsupported
-
                 default:
                     throw new RuntimeException("Unsupported predicate type: " + predicate.getSymbol().getText());
             }
+        }
+
+        @Override
+        public IExpression visitInFilterExpression(AlertExpressionParser.InFilterExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+            IExpression expected = ctx.literalListExpression().accept(this);
+
+            checkIfTrue(expected instanceof ExpressionList, "The expected value of 'in' operator must be type of literal list.");
+            return new ConditionalExpression.In(identifier, (ExpressionList) expected);
+        }
+
+        @Override
+        public IExpression visitNotInFilterExpression(AlertExpressionParser.NotInFilterExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+            IExpression expected = ctx.literalListExpression().accept(this);
+
+            checkIfTrue(expected instanceof ExpressionList, "The expected value of 'not in' operator must be type of literal list.");
+            return new ConditionalExpression.NotIn(identifier, (ExpressionList) expected);
+        }
+
+        @Override
+        public IExpression visitNotLikeFilterExpression(AlertExpressionParser.NotLikeFilterExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+            IExpression expected = ctx.literalExpression().accept(this);
+
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'not like' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'not like' operator must be type of String.");
+            return new ConditionalExpression.NotLike(identifier, expected);
+        }
+
+        @Override
+        public IExpression visitLikeExpression(AlertExpressionParser.LikeExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+            IExpression expected = ctx.literalExpression().accept(this);
+
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'like' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'like' operator must be type of String.");
+            return new ConditionalExpression.Like(identifier, expected);
+        }
+
+        @Override
+        public IExpression visitEndwithExpression(AlertExpressionParser.EndwithExpressionContext ctx) {
+            //TODO:
+            return super.visitEndwithExpression(ctx);
+        }
+
+        @Override
+        public IExpression visitStartwithExpression(AlertExpressionParser.StartwithExpressionContext ctx) {
+            //TODO:
+            return super.visitStartwithExpression(ctx);
+        }
+
+        @Override
+        public IExpression visitContainsExpression(AlertExpressionParser.ContainsExpressionContext ctx) {
+            //TODO:
+            return super.visitContainsExpression(ctx);
+        }
+
+        @Override
+        public IExpression visitHasExpression(AlertExpressionParser.HasExpressionContext ctx) {
+            //TODO:
+            return super.visitHasExpression(ctx);
         }
     }
 

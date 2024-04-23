@@ -47,14 +47,19 @@ durationExpression
   ;
 
 filterExpression
-  : IDENTIFIER predicateExpression literalExpression #simpleFilterExpression
+  : IDENTIFIER predicateExpression literalExpression #comparisonExpression
+  | IDENTIFIER HAS literalExpression #hasExpression
+  | IDENTIFIER CONTAINS literalExpression #containsExpression
+  | IDENTIFIER STARTWITH literalExpression #startwithExpression
+  | IDENTIFIER ENDWITH literalExpression #endwithExpression
+  | IDENTIFIER LIKE literalExpression #likeExpression
   | IDENTIFIER IN literalListExpression #inFilterExpression
   | IDENTIFIER NOT IN literalListExpression #notInFilterExpression
   | IDENTIFIER NOT LIKE literalExpression #notLikeFilterExpression
   ;
 
 predicateExpression
-  : LT|LTE|GT|GTE|NE|EQ|LIKE|HAS|CONTAINS|STARTWITH|ENDWITH
+  : LT|LTE|GT|GTE|NE|EQ
   ;
 
 alertPredicateExpression

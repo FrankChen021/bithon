@@ -23,6 +23,7 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
+import org.bithon.server.alerting.evaluator.evaluator.AlertExpressionEvaluator;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -103,10 +104,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -125,10 +126,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -147,10 +148,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -169,10 +170,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
 
@@ -192,10 +193,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -214,10 +215,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -241,10 +242,11 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true,
+                            new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                    CONSOLE_LOGGER,
+                                                                                                    alertRule,
+                                                                                                    dataSourceProvider)));
     }
 
     @Test
@@ -268,10 +270,10 @@ public class AlertRuleEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -298,10 +300,10 @@ public class AlertRuleEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is < 50%, Not triggered
-        Assert.assertEquals(false, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                             CONSOLE_LOGGER,
-                                                                             alertRule,
-                                                                             dataSourceProvider)));
+        Assert.assertEquals(false, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                           CONSOLE_LOGGER,
+                                                                                                           alertRule,
+                                                                                                           dataSourceProvider)));
     }
 
     @Test
@@ -328,10 +330,10 @@ public class AlertRuleEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -359,10 +361,10 @@ public class AlertRuleEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 
     @Test
@@ -390,9 +392,9 @@ public class AlertRuleEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertEquals(true, expression.evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                            CONSOLE_LOGGER,
-                                                                            alertRule,
-                                                                            dataSourceProvider)));
+        Assert.assertEquals(true, new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                          CONSOLE_LOGGER,
+                                                                                                          alertRule,
+                                                                                                          dataSourceProvider)));
     }
 }
