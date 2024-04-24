@@ -71,6 +71,7 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
     public void updateAlertStatus(String id, AlertStatus alertStatus) {
         dslContext.update(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, alertStatus.statusCode())
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .where(Tables.BITHON_ALERT_STATE.ALERT_ID.eq(id))
                   .execute();
     }
@@ -103,9 +104,11 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
                       .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
+                      .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
                       .onDuplicateKeyUpdate()
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
+                      .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                       .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
                       .execute();

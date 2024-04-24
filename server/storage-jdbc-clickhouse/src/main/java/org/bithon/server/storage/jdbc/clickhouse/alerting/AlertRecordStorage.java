@@ -76,6 +76,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
         // TODO: Get the last alert time and last record id
         dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   //.set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                   //.set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.RESOLVED.statusCode())
@@ -98,6 +99,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
 
         dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())

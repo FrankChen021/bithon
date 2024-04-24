@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
 import org.jooq.Field;
-import org.jooq.Record4;
-import org.jooq.Row4;
+import org.jooq.Record5;
+import org.jooq.Row5;
 import org.jooq.impl.TableRecordImpl;
 
 
@@ -17,9 +17,9 @@ import org.jooq.impl.TableRecordImpl;
  * Alerting State
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record4<String, Integer, LocalDateTime, String> {
+public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record5<String, Integer, LocalDateTime, String, LocalDateTime> {
 
-    private static final long serialVersionUID = 581042835;
+    private static final long serialVersionUID = -1538762754;
 
     /**
      * Setter for <code>bithon_alert_state.alert_id</code>.
@@ -77,18 +77,32 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
         return (String) get(3);
     }
 
+    /**
+     * Setter for <code>bithon_alert_state.update_at</code>. when the record is updated
+     */
+    public void setUpdateAt(LocalDateTime value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_state.update_at</code>. when the record is updated
+     */
+    public LocalDateTime getUpdateAt() {
+        return (LocalDateTime) get(4);
+    }
+
     // -------------------------------------------------------------------------
-    // Record4 type implementation
+    // Record5 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<String, Integer, LocalDateTime, String> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row5<String, Integer, LocalDateTime, String, LocalDateTime> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 
     @Override
-    public Row4<String, Integer, LocalDateTime, String> valuesRow() {
-        return (Row4) super.valuesRow();
+    public Row5<String, Integer, LocalDateTime, String, LocalDateTime> valuesRow() {
+        return (Row5) super.valuesRow();
     }
 
     @Override
@@ -112,6 +126,11 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
+    public Field<LocalDateTime> field5() {
+        return BithonAlertState.BITHON_ALERT_STATE.UPDATE_AT;
+    }
+
+    @Override
     public String component1() {
         return getAlertId();
     }
@@ -132,6 +151,11 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
+    public LocalDateTime component5() {
+        return getUpdateAt();
+    }
+
+    @Override
     public String value1() {
         return getAlertId();
     }
@@ -149,6 +173,11 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     @Override
     public String value4() {
         return getLastRecordId();
+    }
+
+    @Override
+    public LocalDateTime value5() {
+        return getUpdateAt();
     }
 
     @Override
@@ -176,11 +205,18 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     @Override
-    public BithonAlertStateRecord values(String value1, Integer value2, LocalDateTime value3, String value4) {
+    public BithonAlertStateRecord value5(LocalDateTime value) {
+        setUpdateAt(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertStateRecord values(String value1, Integer value2, LocalDateTime value3, String value4, LocalDateTime value5) {
         value1(value1);
         value2(value2);
         value3(value3);
         value4(value4);
+        value5(value5);
         return this;
     }
 
@@ -198,12 +234,13 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     /**
      * Create a detached, initialised BithonAlertStateRecord
      */
-    public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId) {
+    public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId, LocalDateTime updateAt) {
         super(BithonAlertState.BITHON_ALERT_STATE);
 
         set(0, alertId);
         set(1, alertStatus);
         set(2, lastAlertAt);
         set(3, lastRecordId);
+        set(4, updateAt);
     }
 }
