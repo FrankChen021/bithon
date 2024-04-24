@@ -47,7 +47,7 @@ durationExpression
   ;
 
 filterExpression
-  : IDENTIFIER predicateExpression literalExpression #comparisonExpression
+  : IDENTIFIER (LT|LTE|GT|GTE|NE|EQ) literalExpression #comparisonExpression
   | IDENTIFIER HAS literalExpression #hasExpression
   | IDENTIFIER CONTAINS literalExpression #containsExpression
   | IDENTIFIER STARTWITH literalExpression #startwithExpression
@@ -56,10 +56,6 @@ filterExpression
   | IDENTIFIER IN literalListExpression #inFilterExpression
   | IDENTIFIER NOT IN literalListExpression #notInFilterExpression
   | IDENTIFIER NOT LIKE literalExpression #notLikeFilterExpression
-  ;
-
-predicateExpression
-  : LT|LTE|GT|GTE|NE|EQ
   ;
 
 alertPredicateExpression

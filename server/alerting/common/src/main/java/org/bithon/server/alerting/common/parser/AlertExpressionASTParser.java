@@ -334,8 +334,8 @@ public class AlertExpressionASTParser {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
             IExpression expected = ctx.literalExpression().accept(this);
 
-            TerminalNode predicate = ctx.predicateExpression().getChild(TerminalNode.class, 0);
-            switch (predicate.getSymbol().getType()) {
+            TerminalNode operator = ctx.getChild(TerminalNode.class, 1);
+            switch (operator.getSymbol().getType()) {
                 case AlertExpressionParser.LT:
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '<' operator must be type of literal.");
                     return new ComparisonExpression.LT(identifier, expected);
@@ -361,7 +361,7 @@ public class AlertExpressionASTParser {
                     return new ComparisonExpression.EQ(identifier, expected);
 
                 default:
-                    throw new RuntimeException("Unsupported predicate type: " + predicate.getSymbol().getText());
+                    throw new RuntimeException("Unsupported operator type: " + operator.getSymbol().getText());
             }
         }
 
