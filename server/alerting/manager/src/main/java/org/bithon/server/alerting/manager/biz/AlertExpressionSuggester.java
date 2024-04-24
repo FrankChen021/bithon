@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.manager.biz;
 
+import com.google.common.collect.ImmutableSet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
@@ -29,6 +30,7 @@ import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,6 +50,20 @@ public class AlertExpressionSuggester {
 
     private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
+    private final Set<Integer> predicateOperators = ImmutableSet.of(
+        AlertExpressionParser.LT,
+        AlertExpressionParser.LTE,
+        AlertExpressionParser.GT,
+        AlertExpressionParser.GTE,
+        AlertExpressionParser.NE,
+        AlertExpressionParser.EQ,
+        AlertExpressionParser.IS,
+        AlertExpressionParser.NOT,
+        AlertExpressionParser.LIKE,
+        AlertExpressionParser.HAS,
+        AlertExpressionParser.CONTAINS,
+        AlertExpressionParser.STARTWITH,
+        AlertExpressionParser.ENDWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
@@ -131,7 +147,8 @@ public class AlertExpressionSuggester {
 
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
-                return false;
+                // So that operators can be suggested automatically
+                return true;
             }
 
             // Find the datasource token
@@ -168,6 +185,36 @@ public class AlertExpressionSuggester {
             //) {
             //    suggestions.add(Suggestion.of(expectedToken.expectedTokenType, "NULL"));
             //}
+            if (expectedToken.tokenType == AlertExpressionParser.STRING_LITERAL) {
+                int index = inputs.size() - 1;
+                while (index > 0 && this.predicateOperators.contains(inputs.get(index).getType())) {
+                    index--;
+                }
+
+                if (index <= 0 || inputs.get(index).getType() != AlertExpressionParser.IDENTIFIER) {
+                    return false;
+                }
+                String identifier = inputs.get(index).getText();
+
+                // Make sure the literal is in the filter expression
+                while (index > 0 && inputs.get(index).getType() != AlertExpressionParser.LEFT_CURLY_BRACE) {
+                    if (inputs.get(index).getType() == AlertExpressionParser.RIGHT_CURLY_BRACE) {
+                        return false;
+                    }
+
+                    index--;
+                }
+                if (index <= 0) {
+                    return false;
+                }
+
+                // Load suggestion for filter
+                // TODO:
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + identifier + "'", SuggestionTag.of("String")));
+
+                return false;
+            }
+
             return false;
         });
 

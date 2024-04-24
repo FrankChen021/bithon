@@ -64,11 +64,6 @@ class AlertEditComponent {
         container.prepend(component);
 
         // Bind event handler
-        $('#expression').keydown((e)=>{
-            if (e.keyCode === 13) {
-                this.#renderExpression(true);
-            }
-        });
         $('#parse').click(() => {
             this.#renderExpression(true);
         });
@@ -310,51 +305,35 @@ class AlertEditComponent {
             },
             events: {
                 input: {
-                    input: (evt) => {
-                        // Override the input event to disable the suggestion on key in
-                        console.log(evt);
+                    beforeinput: (evt) => {
                     },
-                    keydown: (evt) => {
-                        if (evt.ctrlKey || evt.altKey || evt.metaKey) {
-                            return;
-                        }
-
-                        if (evt.key === 'ArrowDown') {
-                            const input = autoCompleteJS.input;
-                            const current = input.value.substring(0, input.selectionStart)
-                            autoCompleteJS.start(current);
-                            return;
-                        }
-
-                        // Check if the input is part of the identifier
-                        const ascii = evt.key.charCodeAt(0);
-                        if (ascii >= 0x30 && ascii <= 0x39
+                    input: (evt) => {
+                        const inputAscii = autoCompleteJS.input.value.substring(autoCompleteJS.input.selectionStart - 1).charCodeAt(0);
+                        if (inputAscii >= 0x30 && inputAscii <= 0x39
                             // A-Z
-                            || (ascii >= 65 && ascii < 65 + 26)
+                            || (inputAscii >= 65 && inputAscii < 65 + 26)
                             // a-z
-                            || (ascii >= 97 && ascii < 97 + 26)
-                            || (ascii === '_'.charCodeAt(0))
-                            || (ascii === '-'.charCodeAt(0))
-                            || (ascii === '$'.charCodeAt(0))) {
+                            || (inputAscii >= 97 && inputAscii < 97 + 26)
+                            || (inputAscii === '_'.charCodeAt(0))
+                            || (inputAscii === '-'.charCodeAt(0))
+                            || (inputAscii === '$'.charCodeAt(0))) {
                             // For letter and digits input, disable the suggestion
-                            return;
+                            return false;
                         }
 
-                        if (evt.key.length === 1) {
-                            // Other printable characters, start the suggestion
-                            autoCompleteJS.start(autoCompleteJS.input.value + evt.key);
-                            return;
-                        }
+                        autoCompleteJS.start(autoCompleteJS.input.value);
+                        autoCompleteJS.suggestionPosition = autoCompleteJS.input.selectionStart;
+                    },
+                    selection: (evt) => {
+                        const feedback = evt.detail;
+
+                        // match is the value returned from 'searchEngine' above
+                        autoCompleteJS.input.value = autoCompleteJS.input.value.substring(0, autoCompleteJS.suggestionPosition)
+                            + feedback.selection.match;
+                        autoCompleteJS.input.focus();
                     }
                 }
             }
-        });
-        autoCompleteJS.input.addEventListener("selection", (event) => {
-            const feedback = event.detail;
-
-            // match is the value returned from 'searchEngine' above
-            autoCompleteJS.input.value += feedback.selection.match;
-            autoCompleteJS.input.focus();
         });
     }
 }
