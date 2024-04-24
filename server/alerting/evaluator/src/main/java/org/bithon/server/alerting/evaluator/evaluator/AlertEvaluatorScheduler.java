@@ -22,7 +22,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -72,14 +72,14 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Update all alert status
-            Map<String, AlertStatus> alertStatus = alertRepository.loadStatus();
+            Map<String, AlertStateObject> alertState = alertRepository.loadStatus();
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
                 executor.execute(() -> alertEvaluator.evaluate(now,
                                                                alertRule,
-                                                               alertStatus.getOrDefault(alertRule.getId(), AlertStatus.PENDING)
-                                                               ));
+                                                               alertState.get(alertRule.getId())
+                                                              ));
             }
         } finally {
             Thread.currentThread().setName(name);
@@ -92,7 +92,7 @@ public class AlertEvaluatorScheduler {
     private void evaluate(String alertId) {
         AlertRule alertRule = alertRepository.getLoadedAlerts().get(alertId);
         if (alertRule != null) {
-            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule, AlertStatus.PENDING);
+            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule, null);
         }
     }
 }

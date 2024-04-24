@@ -26,8 +26,10 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,6 +49,7 @@ public class EvaluationContext implements IEvaluationContext {
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
     private final Map<String, EvaluationResult> evaluationResults = new HashMap<>();
     private final IDataSourceApi dataSourceApi;
+    private final @Nullable AlertStateObject prevState;
 
     /**
      * current condition id that is under evaluation
@@ -61,11 +64,13 @@ public class EvaluationContext implements IEvaluationContext {
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
                              AlertRule alertRule,
-                             IDataSourceApi dataSourceApi) {
+                             IDataSourceApi dataSourceApi,
+                             AlertStateObject prevState) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
+        this.prevState = prevState;
 
         this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {
             evaluationResults.put(id, EvaluationResult.UNEVALUATED);

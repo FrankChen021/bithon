@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -68,9 +69,9 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
     }
 
     @Override
-    public void updateAlertStatus(String id, AlertStatus alertStatus) {
+    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
         dslContext.update(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, alertStatus.statusCode())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .where(Tables.BITHON_ALERT_STATE.ALERT_ID.eq(id))
                   .execute();

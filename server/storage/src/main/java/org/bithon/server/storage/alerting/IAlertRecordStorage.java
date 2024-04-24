@@ -18,6 +18,7 @@ package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.IStorage;
@@ -50,5 +51,5 @@ public interface IAlertRecordStorage extends IStorage, IExpirable {
 
     void initialize();
 
-    void updateAlertStatus(String id, AlertStatus alertStatus);
+    void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus);
 }

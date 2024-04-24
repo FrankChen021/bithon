@@ -26,6 +26,7 @@ import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
@@ -342,9 +343,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public Map<String, AlertStatus> getAlertStatus() {
+    public Map<String, AlertStateObject> getAlertStates() {
         return dslContext.selectFrom(this.quotedStateTableSelectName)
-                         .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
+                         .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> {
+                             AlertStateObject obj = new AlertStateObject();
+                             obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
+                             obj.setLastAlertAt(record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT));
+                             obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
+                             return obj;
+                         });
     }
 
     protected String getAlertListSql(Select<?> selectQuery) {

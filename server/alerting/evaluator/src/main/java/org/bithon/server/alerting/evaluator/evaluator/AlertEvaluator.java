@@ -41,6 +41,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -93,11 +94,12 @@ public class AlertEvaluator implements SmartLifecycle {
         this.notificationApi = createNotificationApi(applicationContext);
     }
 
-    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStatus prevStatus) {
+    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevStatus) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
-                                                          dataSourceApi);
+                                                          dataSourceApi,
+                                                          prevStatus);
 
         Duration interval = alertRule.getEvery().getDuration();
         try {
@@ -117,9 +119,7 @@ public class AlertEvaluator implements SmartLifecycle {
             if (evaluate(context)) {
                 fireAlert(alertRule, context);
             } else {
-                if (prevStatus == AlertStatus.FIRING) {
-                    resolveAlert(alertRule, context);
-                }
+                resolveAlert(alertRule, context);
             }
         } catch (Exception e) {
             log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
@@ -197,9 +197,12 @@ public class AlertEvaluator implements SmartLifecycle {
     }
 
     private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
-        context.log(AlertEvaluator.class, "Alert is resolved.");
+        if (context.getPrevState() == null || context.getPrevState().getStatus() != AlertStatus.FIRING) {
+            return;
+        }
 
-        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), AlertStatus.RESOLVED);
+        context.log(AlertEvaluator.class, "Alert is resolved.");
+        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), AlertStatus.RESOLVED);
     }
 
     private void fireAlert(AlertRule alertRule, EvaluationContext context) {

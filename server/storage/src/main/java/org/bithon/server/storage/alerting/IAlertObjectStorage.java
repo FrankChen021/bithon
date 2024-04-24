@@ -18,7 +18,7 @@ package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
@@ -73,7 +73,7 @@ public interface IAlertObjectStorage {
                                     OrderBy orderBy,
                                     Limit limit);
 
-    Map<String, AlertStatus> getAlertStatus();
+    Map<String, AlertStateObject> getAlertStates();
 
     ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize);
 
