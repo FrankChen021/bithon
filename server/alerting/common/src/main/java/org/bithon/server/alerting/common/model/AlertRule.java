@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -110,6 +111,9 @@ public class AlertRule {
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
         this.evaluationExpression = build(this.appName, this.expr);
+        if (StringUtils.isBlank(this.appName)) {
+            this.appName = new ApplicationNameExtractor().extract(this.evaluationExpression);
+        }
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
@@ -143,6 +147,7 @@ public class AlertRule {
             return astExpression;
         }
 
+        // Add appName to the AST
         astExpression.accept((IAlertExpressionVisitor) expression -> {
             // Add appName filter to the AST
             IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(appName));
@@ -170,5 +175,34 @@ public class AlertRule {
         });
 
         return astExpression;
+    }
+
+    static class ApplicationNameExtractor {
+        private String applicationName;
+
+        public String extract(IExpression astExpression) {
+            astExpression.accept(((IAlertExpressionVisitor) expression -> {
+                IExpression whereExpression = expression.getWhereExpression();
+                if (whereExpression == null) {
+                    return;
+                }
+                whereExpression.accept(new IExpressionVisitor() {
+                    @Override
+                    public boolean visit(ConditionalExpression expression) {
+                        if (expression instanceof ComparisonExpression.EQ
+                            && (expression.getLeft() instanceof IdentifierExpression)
+                            && expression.getRight() instanceof LiteralExpression
+                            && ((IdentifierExpression) expression.getLeft()).getIdentifier().equals("appName")) {
+
+                            applicationName = ((IdentifierExpression) expression.getLeft()).getIdentifier();
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+            }));
+
+            return applicationName;
+        }
     }
 }
