@@ -231,7 +231,9 @@ class AlertEditComponent {
                 element: (list, data) => {
                 },
                 maxResults: 100,
-                noResults: true,
+
+                // Since we control the auto suggestion by special char keyed in, no need to set this property
+                noResults: false,
                 tabSelect: true
             },
             resultItem: {

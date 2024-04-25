@@ -423,7 +423,6 @@
     }
   };
   var navigate = function navigate(event, ctx) {
-    if (!ctx.isOpen) return;
     switch (event.keyCode) {
       case 40:
       case 38:
@@ -432,8 +431,8 @@
         break;
       case 13:
         if (!ctx.submit) event.preventDefault();
+        event.preventDefault();
         if (ctx.cursor >= 0) {
-            event.preventDefault();
             select(ctx, event);
         }
         break;
@@ -502,6 +501,7 @@
           run();
         },
         keydown: function keydown(event) {
+          if (!ctx.isOpen) return;
           navigate(event, ctx);
         },
         blur: function blur() {
