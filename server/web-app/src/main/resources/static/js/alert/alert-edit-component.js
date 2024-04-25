@@ -217,9 +217,7 @@ class AlertEditComponent {
                             body: JSON.stringify({expression: query})
                         });
                         const data = await source.json();
-                        return data.suggestions.sort((a, b) => {
-                            return a.text.localeCompare(b.text);
-                        });
+                        return data.suggestions;
                     } catch (error) {
                         return error;
                     }

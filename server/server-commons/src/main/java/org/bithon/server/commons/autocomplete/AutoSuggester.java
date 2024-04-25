@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +51,23 @@ public class AutoSuggester {
     private List<? extends Token> inputTokens;
     private String untokenizedText = "";
     private String input;
-    private final Set<Suggestion> collectedSuggestions = new HashSet<>();
+    private final Set<Suggestion> collectedSuggestions = new TreeSet<>((o1, o2) -> {
+
+        // Customized comparator makes sure alphabetic tokens are ahead of non-alphabetic tokens
+        if (Character.isAlphabetic(o1.getText().charAt(0))) {
+            if (Character.isAlphabetic(o2.getText().charAt(0))) {
+                return o1.getText().compareTo(o2.getText());
+            } else {
+                return -1;
+            }
+        } else {
+            if (Character.isAlphabetic(o2.getText().charAt(0))) {
+                return 1;
+            } else {
+                return o1.getText().compareTo(o2.getText());
+            }
+        }
+    });
 
     // Configuration
     private final CasePreference casePreference;

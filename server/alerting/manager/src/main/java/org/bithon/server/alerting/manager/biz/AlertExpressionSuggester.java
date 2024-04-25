@@ -83,7 +83,7 @@ public class AlertExpressionSuggester {
         );
         this.suggesterBuilder = AutoSuggesterBuilder.builder()
                                                     .factory(factory)
-                                                    .casePreference(CasePreference.UPPER);
+                                                    .casePreference(CasePreference.LOWER);
 
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType == AlertExpressionParser.IDENTIFIER) {
@@ -157,7 +157,12 @@ public class AlertExpressionSuggester {
         this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
                 // So that operators can be suggested automatically
-                return true;
+                return expectedToken.tokenType != AlertExpressionParser.STRING_LITERAL
+                       && expectedToken.tokenType != AlertExpressionParser.DECIMAL_LITERAL
+                       && expectedToken.tokenType != AlertExpressionParser.DURATION_LITERAL
+                       && expectedToken.tokenType != AlertExpressionParser.INTEGER_LITERAL
+                       && expectedToken.tokenType != AlertExpressionParser.PERCENTAGE_LITERAL
+                       && expectedToken.tokenType != AlertExpressionParser.SIZE_LITERAL;
             }
 
             // Find the filter starter
