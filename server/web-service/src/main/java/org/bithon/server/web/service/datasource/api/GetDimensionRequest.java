@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import lombok.Builder;
 import lombok.Data;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
@@ -31,6 +32,7 @@ import java.util.List;
  * @date 2021/3/7 5:29 下午
  */
 @Data
+@Builder
 public class GetDimensionRequest {
 
     @NotEmpty
@@ -43,7 +45,7 @@ public class GetDimensionRequest {
     private String dataSource;
 
     @Valid
-    private List<IColumnFilter> filters = Collections.emptyList();
+    private List<IColumnFilter> filters;
 
     @Nullable
     private String filterExpression;

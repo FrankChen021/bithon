@@ -267,14 +267,15 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);
-        return records.stream().map(record -> {
-            Field<?>[] fields = record.fields();
-            Map<String, String> mapObject = new HashMap<>(fields.length);
-            for (Field<?> field : fields) {
-                mapObject.put("value", record.get(field).toString());
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
+        return records.stream()
+                      .map(record -> {
+                          Field<?>[] fields = record.fields();
+                          Map<String, String> mapObject = new HashMap<>(fields.length);
+                          for (Field<?> field : fields) {
+                              mapObject.put("value", record.get(field).toString());
+                          }
+                          return mapObject;
+                      }).collect(Collectors.toList());
     }
 
     @Override

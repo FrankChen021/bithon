@@ -19,23 +19,32 @@ package org.bithon.server.alerting.manager.biz;
 import com.google.common.collect.ImmutableSet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.Token;
 import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
 import org.bithon.server.alerting.common.parser.AlertExpressionParser;
 import org.bithon.server.commons.autocomplete.AutoSuggesterBuilder;
 import org.bithon.server.commons.autocomplete.CasePreference;
 import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/4/14 12:33
  */
+@Slf4j
 public class AlertExpressionSuggester {
 
     @Data
@@ -151,27 +160,23 @@ public class AlertExpressionSuggester {
                 return true;
             }
 
-            // Find the datasource token
+            // Find the filter starter
             int i = inputs.size() - 1;
             while (i > 0 && inputs.get(i).getType() != AlertExpressionParser.LEFT_CURLY_BRACE) {
                 --i;
             }
 
-            // Now the 'i' points to the LEFT_CURLY_BRACE,
-            // -1 to get the metric name
-            // -1 to get the DOT
-            // -1 to get the data source name
-            i -= 3;
+            String dataSource = getDataSource(inputs, i);
+            if (dataSource == null) {
+                return false;
+            }
 
-            if (i > 0) {
-                String dataSource = inputs.get(i).getText();
-                ISchema schema = dataSourceApi.getSchemaByName(dataSource);
-                if (schema != null) {
-                    schema.getColumns()
-                          .stream()
-                          .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
-                }
+            ISchema schema = dataSourceApi.getSchemaByName(dataSource);
+            if (schema != null) {
+                schema.getColumns()
+                      .stream()
+                      .filter((col) -> (col instanceof StringColumn))
+                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
             }
 
             return false;
@@ -196,7 +201,7 @@ public class AlertExpressionSuggester {
                 }
                 String identifier = inputs.get(index).getText();
 
-                // Make sure the literal is in the filter expression
+                // Make sure the literal is in the filter expression by finding the filter expression start
                 while (index > 0 && inputs.get(index).getType() != AlertExpressionParser.LEFT_CURLY_BRACE) {
                     if (inputs.get(index).getType() == AlertExpressionParser.RIGHT_CURLY_BRACE) {
                         return false;
@@ -204,13 +209,31 @@ public class AlertExpressionSuggester {
 
                     index--;
                 }
-                if (index <= 0) {
+
+                // Get the data source for further search
+                String dataSource = getDataSource(inputs, index);
+                if (dataSource == null) {
                     return false;
                 }
 
                 // Load suggestion for filter
-                // TODO:
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + identifier + "'", SuggestionTag.of("String")));
+                if ("appName".equals(identifier)) {
+                    try {
+                        // TODO: cache the search result
+                        Collection<Map<String, String>> dims = dataSourceApi.getDimensions(GetDimensionRequest.builder()
+                                                                                                              .dataSource(dataSource)
+                                                                                                              .name(identifier)
+                                                                                                              .startTimeISO8601(TimeSpan.now().floor(Duration.ofDays(1)).toISO8601())
+                                                                                                              .endTimeISO8601(TimeSpan.now().ceil(Duration.ofHours(1)).toISO8601())
+                                                                                                              .build());
+                        for (Map<String, String> dim : dims) {
+                            suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + dim.get("value") + "'", SuggestionTag.of("Value")));
+                        }
+                    } catch (IOException e) {
+                        log.error("Error to get dimensions", e);
+                    }
+                    return false;
+                }
 
                 return false;
             }
@@ -222,6 +245,19 @@ public class AlertExpressionSuggester {
             // No suggestion for duration expression
             return false;
         });
+    }
+
+    private String getDataSource(List<? extends Token> inputs, int filterExpressionIndex) {
+        // -1 to get the metric name
+        // -1 to get the DOT
+        // -1 to get the data source name
+        int dataSourceIndex = filterExpressionIndex - 3;
+
+        if (dataSourceIndex > 0) {
+            return inputs.get(dataSourceIndex).getText();
+        } else {
+            return null;
+        }
     }
 
     public Collection<Suggestion> suggest(String expression) {

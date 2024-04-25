@@ -240,7 +240,7 @@ public class DataSourceApi implements IDataSourceApi {
             return reader.distinct(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                    TimeSpan.fromISO8601(request.getEndTimeISO8601()),
                                    schema,
-                                   FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
+                                   FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), CollectionUtils.emptyOrOriginal(request.getFilters())),
                                    column.getName());
         }
     }
