@@ -28,7 +28,6 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -110,7 +109,7 @@ public class AlertRule {
 
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = build(this.appName, this.expr);
+        this.evaluationExpression = AlertExpressionASTParser.parse(this.expr);
         if (StringUtils.isBlank(this.appName)) {
             this.appName = new ApplicationNameExtractor().extract(this.evaluationExpression);
         }
@@ -140,43 +139,6 @@ public class AlertRule {
         return rule;
     }
 
-    public static IExpression build(String appName, String expressionText) {
-        IExpression astExpression = AlertExpressionASTParser.parse(expressionText);
-
-        if (StringUtils.isBlank(appName)) {
-            return astExpression;
-        }
-
-        // Add appName to the AST
-        astExpression.accept((IAlertExpressionVisitor) expression -> {
-            // Add appName filter to the AST
-            IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(appName));
-            IExpression whereExpression = expression.getWhereExpression();
-            if (whereExpression == null) {
-                expression.setWhereExpression(appNameFilter);
-            } else {
-                if (whereExpression instanceof ConditionalExpression) {
-                    IdentifierExpression identifierExpression = (IdentifierExpression) ((ConditionalExpression) whereExpression).getLeft();
-                    if (!identifierExpression.getIdentifier().equals("appName")) {
-                        expression.setWhereExpression(new LogicalExpression.AND(appNameFilter, whereExpression));
-                    }
-                } else { // Can only be LogicalExpression.AND
-                    boolean hasAppName = ((LogicalExpression) whereExpression).getOperands()
-                                                                              .stream()
-                                                                              .anyMatch((comparison) -> ((IdentifierExpression) ((ComparisonExpression) comparison).getLeft()).getIdentifier().equals("appName"));
-                    if (!hasAppName) {
-                        ((LogicalExpression) whereExpression).getOperands().add(0, appNameFilter);
-
-                        // Notify the update of the expression
-                        expression.setWhereExpression(whereExpression);
-                    }
-                }
-            }
-        });
-
-        return astExpression;
-    }
-
     static class ApplicationNameExtractor {
         private String applicationName;
 
@@ -193,8 +155,7 @@ public class AlertRule {
                             && (expression.getLeft() instanceof IdentifierExpression)
                             && expression.getRight() instanceof LiteralExpression
                             && ((IdentifierExpression) expression.getLeft()).getIdentifier().equals("appName")) {
-
-                            applicationName = ((IdentifierExpression) expression.getLeft()).getIdentifier();
+                            applicationName = ((LiteralExpression) expression.getRight()).asString();
                             return false;
                         }
                         return true;

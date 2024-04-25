@@ -15,13 +15,6 @@ class AlertEditComponent {
             '        </div>\n' +
             '        <div class="input-group">\n' +
             '            <div class="input-group-prepend">\n' +
-            '                <span class="input-group-text" style="width: 160px"><b>application</b></span>\n' +
-            '            </div>\n' +
-            '            <select class="form-control" id="appName">\n' +
-            '            </select>\n' +
-            '        </div>\n' +
-            '        <div class="input-group">\n' +
-            '            <div class="input-group-prepend">\n' +
             '                <span class="input-group-text" style="width: 160px"><b>expression</b></span>\n' +
             '            </div>\n' +
             '            <div class="custom-file"\n' +
@@ -68,20 +61,6 @@ class AlertEditComponent {
             this.#renderExpression(true);
         });
 
-        // UI Initialization
-        $('#appName').select2({
-            theme: 'bootstrap4',
-            allowClear: true,
-            dropdownAutoWidth: true,
-            placeholder: '(optional) select application',
-        }).on('change', () => {
-            const expr = $('#expression').val();
-            if (expr === '') {
-                return;
-            }
-            this.#renderExpression(false);
-        });
-
         $('#notifications').select2({
             theme: 'bootstrap4',
             allowClear: true,
@@ -90,14 +69,23 @@ class AlertEditComponent {
             placeholder: 'select notification channel'
         });
 
-        this.#loadApplicationList();
         this.#loadNotificationChannels();
         this.#initializeAutocomplete();
+
+        // Must be after the autocomplete
+        $('#expression').keydown((e)=>{
+            if (!e.isDefaultPrevented() && e.keyCode === 13) {
+                this.#renderExpression(true);
+            }
+        }).focus((e) => {
+            if (!this._autoCompleteJS.isOpen && this._autoCompleteJS.input.value.trim() === '') {
+                this._autoCompleteJS.start('');
+            }
+        });
     }
 
     getAlertObject() {
         const name = $("#name").val().trim();
-        const appName = $("#appName").val().trim();
         const expression = $("#expression").val().trim();
         const every = $("#every").val().trim();
         const forValue = $("#for").val().trim();
@@ -145,7 +133,6 @@ class AlertEditComponent {
         }
         return {
             name: name,
-            appName: appName,
             expr: expression,
             every: every + $('#everyUnit').val(),
             for: forValue,
@@ -155,10 +142,8 @@ class AlertEditComponent {
 
     setAlertObject(alert) {
         $('#name').val(alert.name);
-        $('#appName').val(alert.appName);
         $('#expression').val(alert.payload.expr);
         $('#for').val(alert.payload.for);
-
         $('#every').val(alert.payload.every.substring(0, alert.payload.every.length - 1));
         $('#everyUnit').val(alert.payload.every.substring(alert.payload.every.length - 1));
 
@@ -169,7 +154,6 @@ class AlertEditComponent {
 
     #renderExpression(checkApp) {
         const expr = $('#expression').val();
-        const appName = $('#appName').val();
         if (checkApp && expr === '') {
             bootbox.alert({
                 backdrop: true,
@@ -179,41 +163,7 @@ class AlertEditComponent {
             return;
         }
 
-        this.expressionDashboard.renderExpression(
-            expr,
-            appName,
-        );
-    }
-
-    #loadApplicationList() {
-        $.ajax({
-            url: '/api/meta/getMetadataList',
-            method: 'POST',
-            dataType: 'json',
-            data: JSON.stringify({type: 'APPLICATION'}),
-            async: true,
-            contentType: "application/json",
-            success: (data) => {
-                const applicationList = data.map(app => {
-                    return {
-                        "id": app.applicationName,
-                        "text": app.applicationName,
-                        "search": app.applicationName.toLowerCase()
-                    };
-                });
-                $('#appName').select2({
-                    data: applicationList
-                });
-            },
-
-            error: (data) => {
-                bootbox.alert({
-                    backdrop: true,
-                    title: "Error",
-                    message: data.responseText
-                });
-            }
-        });
+        this.expressionDashboard.renderExpression(expr);
     }
 
     #loadNotificationChannels() {
@@ -248,9 +198,10 @@ class AlertEditComponent {
     }
 
     #initializeAutocomplete() {
-        const autoCompleteJS = new autoComplete({
+        this._autoCompleteJS = new autoComplete({
             selector: "#expression",
             debounce: 100,
+            submit: true, // Allow ENTER key take effect in INPUT
             trigger: (query) => {
                 return true;
             },
@@ -275,7 +226,7 @@ class AlertEditComponent {
                 },
                 cache: false
             },
-            placeHolder: "Use SPACE or ARROW DOWN to suggest",
+            placeHolder: "",
             resultsList: {
                 element: (list, data) => {
                 },
@@ -292,7 +243,7 @@ class AlertEditComponent {
       <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
         ${data.match}
       </span>
-      <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.2);">
+      <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100;">
         ${data.value.tag === null ? '' : data.value.tag.tagText}
       </span>`;
                 },
@@ -308,7 +259,7 @@ class AlertEditComponent {
                     beforeinput: (evt) => {
                     },
                     input: (evt) => {
-                        const inputAscii = autoCompleteJS.input.value.substring(autoCompleteJS.input.selectionStart - 1).charCodeAt(0);
+                        const inputAscii = this._autoCompleteJS.input.value.substring(this._autoCompleteJS.input.selectionStart - 1).charCodeAt(0);
                         if (inputAscii >= 0x30 && inputAscii <= 0x39
                             // A-Z
                             || (inputAscii >= 65 && inputAscii < 65 + 26)
@@ -321,16 +272,16 @@ class AlertEditComponent {
                             return false;
                         }
 
-                        autoCompleteJS.start(autoCompleteJS.input.value);
-                        autoCompleteJS.suggestionPosition = autoCompleteJS.input.selectionStart;
+                        this._autoCompleteJS.start(this._autoCompleteJS.input.value);
+                        this._autoCompleteJS.suggestionPosition = this._autoCompleteJS.input.selectionStart;
                     },
                     selection: (evt) => {
                         const feedback = evt.detail;
 
                         // match is the value returned from 'searchEngine' above
-                        autoCompleteJS.input.value = autoCompleteJS.input.value.substring(0, autoCompleteJS.suggestionPosition)
+                        this._autoCompleteJS.input.value = this._autoCompleteJS.input.value.substring(0, this._autoCompleteJS.suggestionPosition)
                             + feedback.selection.match;
-                        autoCompleteJS.input.focus();
+                        this._autoCompleteJS.input.focus();
                     }
                 }
             }

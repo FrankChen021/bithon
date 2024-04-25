@@ -22,8 +22,8 @@ import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
+import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
@@ -120,7 +120,7 @@ public class AlertQueryApi {
     public ApiResponse<ParseAlertExpressionResponse> parseAlertExpression(@Valid @RequestBody ParseAlertExpressionRequest request) {
         try {
             // Parse expression first
-            IExpression alertExpression = AlertRule.build(request.getAppName(), request.getExpression());
+            IExpression alertExpression = AlertExpressionASTParser.parse(request.getExpression());
 
             // Get Schema for validation
             Map<String, ISchema> schemas = dataSourceApi.getSchemas();

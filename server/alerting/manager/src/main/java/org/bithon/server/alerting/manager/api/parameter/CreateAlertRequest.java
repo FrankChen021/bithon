@@ -48,8 +48,6 @@ public class CreateAlertRequest {
      */
     private String id;
 
-    private String appName;
-
     @NotEmpty
     private String name;
 
@@ -82,7 +80,6 @@ public class CreateAlertRequest {
     public AlertRule toAlert() {
         AlertRule alertRule = new AlertRule();
         alertRule.setId(this.id);
-        alertRule.setAppName(this.appName == null ? "" : this.appName.trim());
         alertRule.setExpr(this.expr.trim());
         alertRule.setName(this.name.trim());
         alertRule.setNotifications(this.notifications);
