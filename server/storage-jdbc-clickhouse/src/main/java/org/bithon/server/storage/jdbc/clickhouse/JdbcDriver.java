@@ -16,11 +16,10 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
-
+import com.clickhouse.client.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseNode;
+import com.clickhouse.client.ClickHouseVersion;
 import com.clickhouse.client.config.ClickHouseClientOption;
-import com.clickhouse.data.ClickHouseColumn;
-import com.clickhouse.data.ClickHouseVersion;
 import com.clickhouse.jdbc.ClickHouseConnection;
 import com.clickhouse.jdbc.ClickHouseDriver;
 import com.clickhouse.jdbc.JdbcConfig;
