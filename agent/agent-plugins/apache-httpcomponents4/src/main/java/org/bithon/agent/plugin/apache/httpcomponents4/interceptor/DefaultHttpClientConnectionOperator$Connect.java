@@ -46,9 +46,10 @@ public class DefaultHttpClientConnectionOperator$Connect extends AroundIntercept
 
         HttpHost httpHost = aopContext.getArgAs(1);
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                               // Since this span does not propagate the tracing context to next hop,
-                               // it's not marked as SpanKind.CLIENT
-                               .tag(Tags.Http.CLIENT, "apache")
+                               // Even if this span does not propagate the tracing context to next hop,
+                               // it's still marked as SpanKind.CLIENT
+                               // so that the visualization knows how to visualize this span and its remote
+                               .tag(Tags.Http.CLIENT, "apache-httpcomponents-4")
                                .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
                                .start());
 
