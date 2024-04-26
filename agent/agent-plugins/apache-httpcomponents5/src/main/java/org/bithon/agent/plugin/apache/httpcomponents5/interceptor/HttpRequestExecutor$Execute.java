@@ -47,18 +47,18 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        ClassicHttpRequest httpRequest = (ClassicHttpRequest) aopContext.getArgs()[0];
+
+        ITraceSpan span = TraceContextFactory.newSpan("http-client", httpRequest, HttpMessage::addHeader);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ClassicHttpRequest httpRequest = (ClassicHttpRequest) aopContext.getArgs()[0];
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .kind(SpanKind.CLIENT)
                                .tag(Tags.Http.CLIENT, "apache-httpcomponents-5")
                                .tag(Tags.Http.URL, httpRequest.getRequestUri())
                                .tag(Tags.Http.METHOD, httpRequest.getMethod())
-                               .propagate(httpRequest, HttpMessage::addHeader)
                                .start());
 
         return InterceptionDecision.CONTINUE;
