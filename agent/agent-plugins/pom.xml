@@ -33,6 +33,7 @@
     <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>
     <module>httpclient-apache</module>
+    <module>httpclient-apache-5.x</module>
     <module>httpclient-jetty</module>
     <module>httpclient-netty3</module>
     <module>redis-jedis</module>
@@ -178,6 +179,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-apache</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-apache-5.x</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
