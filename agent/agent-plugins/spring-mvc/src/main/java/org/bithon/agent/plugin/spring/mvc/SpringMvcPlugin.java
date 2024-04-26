@@ -47,29 +47,18 @@ public class SpringMvcPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("invoke")
                                                    .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
-                )
-
-            /*
-            forClass(
-                "org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs(
-                                                       "registerHandlerMethod",
-                                                       "java.lang.Object",
-                                                       "java.lang.reflect.Method",
-                                                       "T")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.MethodMatchingInterceptor")
                 ),
 
             forClass("org.springframework.web.client.RestTemplate")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(
-                                                       "execute")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplateExecuteInterceptor")
+                                                   .onAllMethods("doExecute")
+                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("handleResponse")
+                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
                 )
-             */
         );
     }
 }

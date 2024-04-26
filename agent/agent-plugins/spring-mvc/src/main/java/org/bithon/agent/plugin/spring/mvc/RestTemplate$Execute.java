@@ -21,31 +21,39 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-
-import java.net.URI;
+import org.springframework.http.HttpMethod;
 
 /**
+ * {@link org.springframework.web.client.RestTemplate#doExecute}
+ *
  * @author frankchen
  * @date 2021-02-16 14:36
  */
-public class RestTemplateExecuteInterceptor extends AroundInterceptor {
+public class RestTemplate$Execute extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceContextFactory.newSpan("rest-template");
+        ITraceSpan span = TraceContextFactory.newSpan("spring");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        String uri = null;
-        Object obj = aopContext.getArgs()[0];
-        if (obj instanceof String) {
-            uri = (String) obj;
-        } else if (obj instanceof URI) {
-            uri = obj.toString();
+        String uri = aopContext.getArgs()[0].toString();
+
+        String method;
+        if (aopContext.getArgs().length == 5) {
+            // SpringBoot 3.x
+            method = ((HttpMethod) aopContext.getArgs()[2]).name();
+        } else {
+            // SpringBoot 2.x
+            method = ((HttpMethod) aopContext.getArgs()[1]).name();
         }
 
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               // Set the kind to CLIENT in case the underlying lib is not instrumented
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Http.METHOD, method)
                                .tag(Tags.Http.URL, uri)
                                .start());
 
@@ -56,6 +64,8 @@ public class RestTemplateExecuteInterceptor extends AroundInterceptor {
     @Override
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getSpan();
-        span.finish();
+        span.tag(aopContext.getException())
+
+            .finish();
     }
 }
