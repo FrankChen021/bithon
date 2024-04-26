@@ -79,7 +79,7 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestAfterAggregatorExpression() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
-        Assert.assertEquals(Stream.of("!=", "<", "<=", "<>", "=", ">", ">=", "BY", "IS")
+        Assert.assertEquals(Stream.of("!=", "<", "<=", "<>", "=", ">", ">=", "by", "is")
                                   .sorted()
                                   .collect(Collectors.toList()),
                             suggest(suggester, "sum (event.count) "));
@@ -165,7 +165,32 @@ public class AlertExpressionSuggesterTest {
 
         // dimensions and end-of-filter are suggested
         Assert.assertEquals(Arrays.asList("appName", "instanceName", "}"), suggestions);
+    }
 
+    @Test
+    public void testSuggestFilterOperator() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(eventSchema);
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+        Collection<String> suggestions = suggest(suggester, "sum(event.count{app");
+
+        // dimensions and end-of-filter are suggested
+        Assert.assertEquals(Arrays.asList("!=", "<", "<=", "<>", "=", ">", ">=", "endwith", "has", "in", "like", "not"), suggestions);
+    }
+
+    @Test
+    public void testSuggestFilterNOTOperator() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(eventSchema);
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+        Collection<String> suggestions = suggest(suggester, "sum(event.count{app not");
+
+        // dimensions and end-of-filter are suggested
+        Assert.assertEquals(Arrays.asList("in", "like"), suggestions);
     }
 
     @Test
@@ -201,7 +226,7 @@ public class AlertExpressionSuggesterTest {
     public void testSuggestPredicate() {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'})");
-        Assert.assertEquals(Stream.of("!=", "<>", "=", ">", "<", ">=", "<=", "BY", "IS")
+        Assert.assertEquals(Stream.of("!=", "<>", "=", ">", "<", ">=", "<=", "by", "is")
                                   .sorted()
                                   .collect(Collectors.toList()),
                             suggestions);
@@ -230,7 +255,7 @@ public class AlertExpressionSuggesterTest {
         System.out.println(AdaptiveTransitionNetworkFormatter.format(new AlertExpressionParser(null)));
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) > 5 ");
-        Assert.assertEquals(Arrays.asList("AND", "OR"),
+        Assert.assertEquals(Arrays.asList("and", "or"),
                             suggestions);
     }
 }
