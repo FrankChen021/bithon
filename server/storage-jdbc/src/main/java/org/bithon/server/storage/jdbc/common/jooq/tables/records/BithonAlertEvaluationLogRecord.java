@@ -14,12 +14,12 @@ import org.jooq.impl.TableRecordImpl;
 
 
 /**
- * Running logs of alert
+ * Evaluation logs of alert
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertEvaluationLogRecord> implements Record6<LocalDateTime, String, Long, String, String, String> {
 
-    private static final long serialVersionUID = -161480040;
+    private static final long serialVersionUID = -1531642153;
 
     /**
      * Setter for <code>bithon_alert_evaluation_log.timestamp</code>.

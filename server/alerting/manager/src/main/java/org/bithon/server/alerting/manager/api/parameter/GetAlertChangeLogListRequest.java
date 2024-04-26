@@ -31,6 +31,13 @@ public class GetAlertChangeLogListRequest {
     @Size(max = 32)
     private String alertId;
 
+    /**
+     * The format of payload.
+     * One of: json/yaml
+     */
+    @NotBlank
+    private String format = "yaml";
+
     private Integer pageSize = 25;
 
     private Integer pageNumber = 0;

@@ -25,12 +25,12 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Running logs of alert
+ * Evaluation logs of alert
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLogRecord> {
 
-    private static final long serialVersionUID = 784566948;
+    private static final long serialVersionUID = 1283160472;
 
     /**
      * The reference instance of <code>bithon_alert_evaluation_log</code>
@@ -101,7 +101,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     }
 
     private BithonAlertEvaluationLog(Name alias, Table<BithonAlertEvaluationLogRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Running logs of alert"));
+        super(alias, null, aliased, parameters, DSL.comment("Evaluation logs of alert"));
     }
 
     public <O extends Record> BithonAlertEvaluationLog(Table<O> child, ForeignKey<O, BithonAlertEvaluationLogRecord> key) {

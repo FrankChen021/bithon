@@ -19,6 +19,7 @@ package org.bithon.server.alerting.manager.api.parameter;
 import lombok.Data;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -32,5 +33,6 @@ public class GetEvaluationLogsRequest {
     private String alertId;
 
     @NotNull
+    @Valid
     private IntervalRequest interval;
 }

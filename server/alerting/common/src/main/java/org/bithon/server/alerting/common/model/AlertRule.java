@@ -23,10 +23,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -72,8 +73,11 @@ public class AlertRule {
     @JsonProperty
     private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
 
+    /**
+     * How many consecutive times the evaluation should be true before notifying the alert
+     */
     @JsonProperty("for")
-    private HumanReadableDuration forDuration = HumanReadableDuration.DURATION_3_MINUTE;
+    private int forTimes = 3;
 
     /**
      * silence period in minute
@@ -95,7 +99,7 @@ public class AlertRule {
 
     @JsonIgnore
     public int getExpectedMatchCount() {
-        return (int) (this.forDuration.getDuration().toMinutes() / this.every.getDuration().toMinutes());
+        return this.forTimes;
     }
 
     public AlertRule initialize() throws InvalidExpressionException {
@@ -105,7 +109,10 @@ public class AlertRule {
 
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = build(this.appName, this.expr);
+        this.evaluationExpression = AlertExpressionASTParser.parse(this.expr);
+        if (StringUtils.isBlank(this.appName)) {
+            this.appName = new ApplicationNameExtractor().extract(this.evaluationExpression);
+        }
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
@@ -127,44 +134,36 @@ public class AlertRule {
         rule.setEvery(alertObject.getPayload().getEvery());
         rule.setExpr(alertObject.getPayload().getExpr());
         rule.setSilence(alertObject.getPayload().getSilence());
-        rule.setForDuration(alertObject.getPayload().getForDuration());
+        rule.setForTimes(alertObject.getPayload().getForTimes());
         rule.setNotifications(alertObject.getPayload().getNotifications());
         return rule;
     }
 
-    public static IExpression build(String appName, String expressionText) {
-        IExpression astExpression = AlertExpressionASTParser.parse(expressionText);
+    static class ApplicationNameExtractor {
+        private String applicationName;
 
-        if (StringUtils.isBlank(appName)) {
-            return astExpression;
-        }
-
-        astExpression.accept((IAlertExpressionVisitor) expression -> {
-            // Add appName filter to the AST
-            IExpression appNameFilter = new ComparisonExpression.EQ(new IdentifierExpression("appName"), LiteralExpression.create(appName));
-            IExpression whereExpression = expression.getWhereExpression();
-            if (whereExpression == null) {
-                expression.setWhereExpression(appNameFilter);
-            } else {
-                if (whereExpression instanceof ComparisonExpression) {
-                    IdentifierExpression identifierExpression = (IdentifierExpression) ((ComparisonExpression) whereExpression).getLeft();
-                    if (!identifierExpression.getIdentifier().equals("appName")) {
-                        expression.setWhereExpression(new LogicalExpression.AND(appNameFilter, whereExpression));
-                    }
-                } else { // Can only be LogicalExpression.AND
-                    boolean hasAppName = ((LogicalExpression) whereExpression).getOperands()
-                                                                              .stream()
-                                                                              .anyMatch((comparison) -> ((IdentifierExpression) ((ComparisonExpression) comparison).getLeft()).getIdentifier().equals("appName"));
-                    if (!hasAppName) {
-                        ((LogicalExpression) whereExpression).getOperands().add(0, appNameFilter);
-
-                        // Notify the update of the expression
-                        expression.setWhereExpression(whereExpression);
-                    }
+        public String extract(IExpression astExpression) {
+            astExpression.accept(((IAlertExpressionVisitor) expression -> {
+                IExpression whereExpression = expression.getWhereExpression();
+                if (whereExpression == null) {
+                    return;
                 }
-            }
-        });
+                whereExpression.accept(new IExpressionVisitor() {
+                    @Override
+                    public boolean visit(ConditionalExpression expression) {
+                        if (expression instanceof ComparisonExpression.EQ
+                            && (expression.getLeft() instanceof IdentifierExpression)
+                            && expression.getRight() instanceof LiteralExpression
+                            && ((IdentifierExpression) expression.getLeft()).getIdentifier().equals("appName")) {
+                            applicationName = ((LiteralExpression) expression.getRight()).asString();
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+            }));
 
-        return astExpression;
+            return applicationName;
+        }
     }
 }

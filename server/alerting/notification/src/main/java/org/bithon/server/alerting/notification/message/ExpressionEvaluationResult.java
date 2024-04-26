@@ -14,20 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.notification.message;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-
-import java.util.List;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2020/12/31
+ * @author Frank Chen
+ * @date 19/3/22 8:00 PM
  */
 @Data
-@AllArgsConstructor
-public class GetAlertListResponse {
-    private Integer total;
-    private List<ListAlertVO> rows;
+public class ExpressionEvaluationResult {
+    private EvaluationResult result;
+    private OutputMessage outputs;
+
+    @JsonCreator
+    public ExpressionEvaluationResult(@JsonProperty("result") EvaluationResult result,
+                                      @JsonProperty("outputs") OutputMessage outputs) {
+        this.result = result;
+        this.outputs = outputs;
+    }
 }

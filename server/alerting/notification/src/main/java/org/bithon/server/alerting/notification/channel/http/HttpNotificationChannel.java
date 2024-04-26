@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -40,6 +41,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
+import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import javax.validation.constraints.NotBlank;
@@ -47,6 +49,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Notification via HTTP POST
@@ -58,7 +61,7 @@ import java.util.Map;
 public class HttpNotificationChannel implements INotificationChannel {
 
     @JsonIgnore
-    private final NotificationProperties notificationProperties;
+    protected final NotificationProperties notificationProperties;
 
     @Data
     @Builder
@@ -93,7 +96,7 @@ public class HttpNotificationChannel implements INotificationChannel {
     }
 
     @Getter
-    private final HttpChannelProps props;
+    protected final HttpChannelProps props;
 
     @JsonCreator
     public HttpNotificationChannel(@JsonProperty("props") HttpChannelProps props,
@@ -109,31 +112,40 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     @Override
     public void send(NotificationMessage message) throws IOException {
-        StringBuilder defaultMessage = new StringBuilder(512);
-        message.getConditionEvaluation()
-               .forEach((id, result) -> {
-                   AlertExpression evaluatedExpression = message.getExpressions()
-                                                                .stream()
-                                                                .filter((expr) -> expr.getId().equals(id))
-                                                                .findFirst()
-                                                                .orElse(null);
+        String defaultMessage;
+        if (message.getExpressions().size() == 1) {
+            ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+            defaultMessage = StringUtils.format("expected: %s, current: %s",
+                                                result.getOutputs().getThreshold(),
+                                                result.getOutputs().getCurrent());
+        } else {
+            defaultMessage = message.getConditionEvaluation()
+                                    .entrySet()
+                                    .stream()
+                                    .map((entry) -> {
+                                        AlertExpression evaluatedExpression = message.getExpressions()
+                                                                                     .stream()
+                                                                                     .filter((expr) -> expr.getId().equals(entry.getKey()))
+                                                                                     .findFirst()
+                                                                                     .orElse(null);
 
-                   defaultMessage.append(StringUtils.format("expr: %s, expected: %s, current: %s\n",
-                                                            evaluatedExpression.serializeToText(),
-                                                            result.getOutputs().getThreshold(),
-                                                            result.getOutputs().getCurrent()));
-               });
-
+                                        ExpressionEvaluationResult result = entry.getValue();
+                                        return StringUtils.format("expr: %s, expected: %s, current: %s",
+                                                                  evaluatedExpression.serializeToText(),
+                                                                  result.getOutputs().getThreshold(),
+                                                                  result.getOutputs().getCurrent());
+                                    })
+                                    .collect(Collectors.joining("\n"));
+        }
         String body = this.props.body.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
                                      .replace("{alert.name}", message.getAlertRule().getName())
                                      .replace("{alert.expr}", message.getAlertRule().getExpr())
-                                     .replace("{alert.url}", notificationProperties.getManagerURL() + StringUtils.format("/web/alerting/record/%s", message.getAlertRecordId()))
-                                     .replace("{alert.message}", defaultMessage.toString());
+                                     .replace("{alert.url}", getURL(message))
+                                     .replace("{alert.message}", defaultMessage);
+        AbstractHttpEntity bodyEntity = serializeRequestBody(body);
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpPost request = new HttpPost(this.props.url);
-            // Mandatory header
-            request.setHeader("Content-Type", props.contentType);
 
             // Custom headers
             request.setHeaders(this.props
@@ -143,8 +155,11 @@ public class HttpNotificationChannel implements INotificationChannel {
                                    .map(k -> new BasicHeader(k, this.props.headers.get(k)))
                                    .toArray(Header[]::new));
 
+            // Mandatory header after custom header
+            request.setHeader("Content-Type", props.contentType);
+
             // Body
-            request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
+            request.setEntity(bodyEntity);
 
             HttpResponse response = client.execute(request);
             if (response.getStatusLine().getStatusCode() >= 400) {
@@ -161,5 +176,21 @@ public class HttpNotificationChannel implements INotificationChannel {
         return "HttpNotificationChannel{" +
                "url='" + this.props.url + '\'' +
                '}';
+    }
+
+    protected AbstractHttpEntity serializeRequestBody(String body) throws IOException {
+        return new StringEntity(body, StandardCharsets.UTF_8);
+    }
+
+    private String getURL(NotificationMessage message) {
+        String url = notificationProperties.getManagerURL();
+        if (StringUtils.isBlank(url)) {
+            return "";
+        }
+
+        return url
+               + (url.endsWith("/") ? "" : "/")
+               + "web/alerting/record/detail?id="
+               + message.getAlertRecordId();
     }
 }

@@ -74,7 +74,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
                                                                                                 Tables.BITHON_ALERT_CHANGE_LOG.CREATED_AT.getName()))
                                                       .createIfNotExist(Tables.BITHON_ALERT_CHANGE_LOG);
 
-        new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT.getName())
+        new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_STATE.UPDATE_AT.getName())
                                                       .partitionByExpression(null)
                                                       .createIfNotExist(Tables.BITHON_ALERT_STATE);
     }

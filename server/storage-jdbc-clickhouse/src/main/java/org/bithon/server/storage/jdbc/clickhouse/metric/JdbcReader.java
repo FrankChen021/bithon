@@ -76,10 +76,11 @@ public class JdbcReader extends MetricJdbcReader {
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);
-        return records.stream().map(record -> {
-            Map<String, String> mapObject = new HashMap<>();
-            mapObject.put("value", record.get(0).toString());
-            return mapObject;
-        }).collect(Collectors.toList());
+        return records.stream()
+                      .map(record -> {
+                          Map<String, String> mapObject = new HashMap<>();
+                          mapObject.put("value", record.get(0).toString());
+                          return mapObject;
+                      }).collect(Collectors.toList());
     }
 }

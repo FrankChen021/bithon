@@ -34,12 +34,6 @@
                     </div>
                     <span class="form-control" id="alertName"></span>
                 </div>
-                <div class="input-group" style="width: 100%;">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Application</span>
-                    </div>
-                    <span class="form-control" id="appName"></span>
-                </div>
             </div>
 
             <h5 class="sub-content-title">Expressions</h5>
@@ -63,7 +57,7 @@
         if (window.parent != null) {
             window.queryParams = toQueryParameters(window.location.href);
         }
-        const recordId = window.queryParams['recordId'];
+        const recordId = window.queryParams['id'];
 
         function loadRecord(recordId, callback) {
             $.ajax({
@@ -104,7 +98,6 @@
         }
 
         function renderRecord(alert) {
-            $("#appName").text(alert.appName);
             $("#alertName").text(alert.alertName);
             $("#expressions").text(alert.expression);
 

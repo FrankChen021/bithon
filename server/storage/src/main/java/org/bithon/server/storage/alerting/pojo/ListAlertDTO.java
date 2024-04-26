@@ -14,26 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.message;
+package org.bithon.server.storage.alerting.pojo;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+
+import java.sql.Timestamp;
 
 /**
- * @author Frank Chen
- * @date 19/3/22 8:00 PM
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/6
  */
 @Data
-public class ConditionEvaluationResult {
-    private EvaluationResult result;
-    private OutputMessage outputs;
+public class ListAlertDTO {
+    private String alertId;
+    private String alertName;
+    private String appName;
+    private String namespace;
+    private boolean disabled;
+    private boolean deleted;
+    private String payload;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private String lastOperator;
 
-    @JsonCreator
-    public ConditionEvaluationResult(@JsonProperty("result") EvaluationResult result,
-                                     @JsonProperty("outputs") OutputMessage outputs) {
-        this.result = result;
-        this.outputs = outputs;
-    }
+    // From bithon_alert_state
+    private Timestamp lastAlertAt;
+    private String lastRecordId;
+    private AlertStatus alertStatus;
 }

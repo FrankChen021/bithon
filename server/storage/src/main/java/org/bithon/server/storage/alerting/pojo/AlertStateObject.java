@@ -14,20 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.storage.alerting.pojo;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/25
+ * @date 24/4/24 8:28 pm
  */
 @Data
-public class ChangeLogBo {
-    private String alertId;
-    private String action;
-    private String payloadBefore;
-    private String payloadAfter;
-    private String editor;
-    private long timestamp;
+public class AlertStateObject {
+    private AlertStatus status;
+    private LocalDateTime lastAlertAt;
+    private String lastRecordId;
 }

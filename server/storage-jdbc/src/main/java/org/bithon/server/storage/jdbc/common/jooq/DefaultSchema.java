@@ -36,7 +36,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 1454280474;
+    private static final long serialVersionUID = -1484089505;
 
     /**
      * The reference instance of <code></code>
@@ -54,7 +54,7 @@ public class DefaultSchema extends SchemaImpl {
     public final BithonAlertChangeLog BITHON_ALERT_CHANGE_LOG = org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertChangeLog.BITHON_ALERT_CHANGE_LOG;
 
     /**
-     * Running logs of alert
+     * Evaluation logs of alert
      */
     public final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
 

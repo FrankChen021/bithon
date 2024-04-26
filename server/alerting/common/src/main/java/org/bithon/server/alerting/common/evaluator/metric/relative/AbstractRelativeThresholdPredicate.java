@@ -72,7 +72,8 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
     @Override
     public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
-                                      QueryField metric, TimeSpan start,
+                                      QueryField metric,
+                                      TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
                                       List<String> groupBy, EvaluationContext context) throws IOException {
@@ -146,6 +147,8 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         output.setBase(baseValue);
         output.setThreshold(threshold);
         output.setMatches(matches(delta, threshold.doubleValue()));
+        output.setStart(start);
+        output.setEnd(end);
         output.setMetric(this);
         return output;
     }

@@ -16,28 +16,42 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
-import lombok.Data;
-
-import java.sql.Timestamp;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/6
+ * @date 2024/4/9 21:09
  */
-@Data
-public class ListAlertDO {
-    private String alertId;
-    private String alertName;
-    private String appName;
-    private String namespace;
-    private boolean disabled;
-    private boolean deleted;
-    private String payload;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
-    private String lastOperator;
+public enum AlertStatus {
+    /**
+     * PENDING for evaluation
+     */
+    PENDING(0),
 
-    // From bithon_alert_state
-    private Timestamp lastAlertAt;
-    private String lastRecordId;
+    /**
+     * An alert is firing
+     */
+    FIRING(10),
+
+    /**
+     * A fired alert is resolved
+     */
+    RESOLVED(20);
+
+    private final int statusCode;
+
+    AlertStatus(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public static AlertStatus fromCode(int statusCode) {
+        for (AlertStatus status : AlertStatus.values()) {
+            if (status.statusCode == statusCode) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    public int statusCode() {
+        return statusCode;
+    }
 }

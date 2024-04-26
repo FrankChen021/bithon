@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
@@ -29,14 +28,13 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
-import org.bithon.server.alerting.notification.message.ConditionEvaluationResult;
+import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.alerting.notification.message.format.NotificationContent;
 import org.bithon.server.alerting.notification.message.format.NotificationTextSection;
 import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
 import org.bithon.server.alerting.notification.message.format.TextLine;
-import org.bithon.server.commons.time.TimeSpan;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -72,29 +70,21 @@ public class DingNotificationChannel implements INotificationChannel {
         String title = StringUtils.format("[%s]Application Alert", StringUtils.format("MM-dd HH:mm:ss", alertAt));
         NotificationContent notificationContent = new NotificationContent();
         NotificationTextSection section = notificationContent.getDefaultSection();
-        section.add("Name", alertRule.getName())
-               .add("Time Window",
-                    StringUtils.format("%s ~ %s",
-                                       DateTime.formatDateTime("MM-dd HH:mm",
-                                                               new TimeSpan(message.getEnd()).before(alertRule.getForDuration())
-                                                                                             .getMilliseconds()),
-                                       DateTime.formatDateTime("MM-dd HH:mm", message.getEnd())));
-
+        section.add("Name", alertRule.getName());
         if (message.getLastAlertAt() != null) {
             section.add("Last alert at", StringUtils.format("MM-dd HH:mm:ss", message.getLastAlertAt()));
         }
         section.add("Alert at", StringUtils.format("MM-dd HH:mm:ss", alertAt));
 
         for (AlertExpression expression : message.getExpressions()) {
-            ConditionEvaluationResult result = message.getConditionEvaluation().get(expression.getId());
+            ExpressionEvaluationResult result = message.getConditionEvaluation().get(expression.getId());
             if (result == null || result.getResult() != EvaluationResult.MATCHED || result.getOutputs() != null) {
                 continue;
             }
 
             StringBuilder text = new StringBuilder("Expression");
             text.append(expression.getId());
-            text.append(StringUtils.format(": %d minutes", alertRule.getForDuration().getDuration().toMinutes()));
-            text.append(expression.getWhere());
+            text.append(expression.serializeToText());
 
             OutputMessage output = result.getOutputs();
             text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",

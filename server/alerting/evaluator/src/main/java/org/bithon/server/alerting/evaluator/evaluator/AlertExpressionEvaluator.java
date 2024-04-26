@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.evaluator;
+package org.bithon.server.alerting.evaluator.evaluator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.commons.time.TimeSpan;
@@ -39,16 +39,6 @@ public class AlertExpressionEvaluator {
 
     public boolean evaluate(EvaluationContext context) {
         context.log(AlertExpressionEvaluator.class, "Evaluating expression: %s", expression.serializeToText());
-
-        EvaluationResult result = context.getConditionEvaluationResult(expression.getId());
-        if (EvaluationResult.MATCHED.equals(result)) {
-            context.log(AlertExpressionEvaluator.class, "Expression satisfied");
-            return true;
-        }
-        if (EvaluationResult.UNMATCHED.equals(result)) {
-            context.log(AlertExpressionEvaluator.class, "Expression NOT Satisfied");
-            return false;
-        }
 
         IMetricEvaluator metricEvaluator = expression.getMetricEvaluator();
         context.setEvaluatingExpression(this.expression);

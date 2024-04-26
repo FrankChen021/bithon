@@ -47,14 +47,15 @@ durationExpression
   ;
 
 filterExpression
-  : IDENTIFIER predicateExpression literalExpression #simpleFilterExpression
+  : IDENTIFIER (LT|LTE|GT|GTE|NE|EQ) literalExpression #comparisonExpression
+  | IDENTIFIER HAS literalExpression #hasExpression
+  | IDENTIFIER CONTAINS literalExpression #containsExpression
+  | IDENTIFIER STARTWITH literalExpression #startwithExpression
+  | IDENTIFIER ENDWITH literalExpression #endwithExpression
+  | IDENTIFIER LIKE literalExpression #likeExpression
   | IDENTIFIER IN literalListExpression #inFilterExpression
   | IDENTIFIER NOT IN literalListExpression #notInFilterExpression
   | IDENTIFIER NOT LIKE literalExpression #notLikeFilterExpression
-  ;
-
-predicateExpression
-  : LT|LTE|GT|GTE|NE|EQ|LIKE
   ;
 
 alertPredicateExpression
@@ -101,6 +102,10 @@ IS: I S;
 IN: I N;
 NOT: N O T;
 LIKE: L I K E;
+HAS: H A S;
+CONTAINS: C O N T A I N S;
+STARTWITH: S T A R T W I T H;
+ENDWITH: E N D W I T H;
 
 DURATION_LITERAL: INTEGER_LITERAL [smhd];
 

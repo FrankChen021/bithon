@@ -431,14 +431,21 @@
         break;
       case 13:
         if (!ctx.submit) event.preventDefault();
-        if (ctx.cursor >= 0) select(ctx, event);
+        event.preventDefault();
+        if (ctx.cursor >= 0) {
+            select(ctx, event);
+        }
         break;
       case 9:
-        if (ctx.resultsList.tabSelect && ctx.cursor >= 0) select(ctx, event);
+        if (ctx.resultsList.tabSelect && ctx.cursor >= 0) {
+            // cancel the event propagation so that the FOCUS is still on the INPUT
+            event.preventDefault();
+            select(ctx, event);
+        }
         break;
       case 27:
-        ctx.input.value = "";
         close(ctx);
+        event.preventDefault();
         break;
     }
   };
@@ -494,6 +501,7 @@
           run();
         },
         keydown: function keydown(event) {
+          if (!ctx.isOpen) return;
           navigate(event, ctx);
         },
         blur: function blur() {

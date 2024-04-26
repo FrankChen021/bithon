@@ -1,4 +1,4 @@
-class DataSourceSchemaManager {
+class SchemaManager {
     constructor() {
         this.m_schemas = null;
     }

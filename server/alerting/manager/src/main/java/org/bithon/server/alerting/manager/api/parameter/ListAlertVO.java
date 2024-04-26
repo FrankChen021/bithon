@@ -16,18 +16,29 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 /**
+ * Note: the field name here must be the camel cases of the names in the database,
+ * or the frontend sort requests might fail
+ *
  * @author frank.chen021@outlook.com
- * @date 2020/12/31
+ * @date 2021/1/5
  */
 @Data
-@AllArgsConstructor
-public class GetAlertListResponse {
-    private Integer total;
-    private List<ListAlertVO> rows;
+public class ListAlertVO {
+    private String alertId;
+    private String appName;
+    private String name;
+    private boolean enabled;
+
+    private long createdAt;
+    private long updatedAt;
+
+    private Long lastAlertAt;
+    private String lastRecordId;
+    private AlertStatus alertStatus;
+
+    private String lastOperator;
 }

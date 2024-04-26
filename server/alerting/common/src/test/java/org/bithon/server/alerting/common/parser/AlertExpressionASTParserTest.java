@@ -23,6 +23,8 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -140,24 +142,24 @@ public class AlertExpressionASTParserTest {
     @Test
     public void testCompoundExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <> 1 " +
-                                                                    "AND " +
-                                                                    "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
+                                                                "AND " +
+                                                                "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
         Assert.assertTrue(expression instanceof LogicalExpression.AND);
         Assert.assertEquals("1", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(0)).getId());
         Assert.assertEquals("2", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(1)).getId());
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
-                                                        "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
+                                                    "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
+                                                    "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
-                                                        "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
+                                                    "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
+                                                    "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3 " +
-                                                        "AND (" +
-                                                        "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
-                                                        ")");
+                                                    "AND (" +
+                                                    "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
+                                                    ")");
 
     }
 
@@ -256,5 +258,28 @@ public class AlertExpressionASTParserTest {
             Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
                                 expression.serializeToText());
         }
+    }
+
+    @Test
+    public void testInvalidMetricName() {
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm)[5m] > 1[-7m]"));
+    }
+
+
+    @Test
+    public void testMultipleFilters() {
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(http-metrics{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1[-7m]"));
+    }
+
+    @Test
+    public void testByExpression() {
+        AlertExpression expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance) > 1");
+        Assert.assertEquals(Collections.singletonList("instance"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url) > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url, method) > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
     }
 }

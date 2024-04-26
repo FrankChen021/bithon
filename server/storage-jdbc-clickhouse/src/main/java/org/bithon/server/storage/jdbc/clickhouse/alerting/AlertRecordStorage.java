@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
@@ -71,6 +73,17 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     }
 
     @Override
+    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
+        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState.getLastAlertAt())
+                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState.getLastRecordId())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.RESOLVED.statusCode())
+                  .execute();
+    }
+
+    @Override
     public void addAlertRecord(AlertRecordObject record) {
         dslContext.insertInto(Tables.BITHON_ALERT_RECORD)
                   .set(Tables.BITHON_ALERT_RECORD.APP_NAME, record.getAppName())
@@ -86,8 +99,10 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
 
         dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
                   .execute();
     }
 

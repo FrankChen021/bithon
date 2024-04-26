@@ -5,14 +5,13 @@ class ExpressionDashboardComponent {
         this.siblingId = siblingId;
     }
 
-    renderExpression(expr, appName) {
+    renderExpression(expr) {
         $.ajax({
             type: "POST",
             url: "/api/alerting/alert/parse",
             async: true,
             data: JSON.stringify({
-                expression: expr,
-                appName: appName
+                expression: expr
             }),
             dataType: "json",
             contentType: "application/json",
@@ -96,6 +95,7 @@ class ExpressionDashboardComponent {
 
             dataSourceName: expression.from,
             filterExpression: expression.where,
+            groupBy: expression.groupBy,
             metric: expression.select,
             window: window,
             start: start,
