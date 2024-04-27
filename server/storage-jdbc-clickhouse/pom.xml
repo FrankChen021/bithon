@@ -48,6 +48,7 @@
           <ignoredUnusedDeclaredDependencies>
             <!--The driver is loaded by JDBC reflection, its classes are not directly referenced in our project-->
             <dependency>com.clickhouse:clickhouse-jdbc</dependency>
+            <dependency>org.apache.httpcomponents.client5:httpclient5</dependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
