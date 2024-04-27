@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.apache.httpcomponents5.interceptor;
 
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -26,6 +27,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -58,30 +60,28 @@ public class InternalHttpClient$DoExecute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        HttpOutgoingMetrics metrics;
-
         ClassicHttpRequest httpRequest = aopContext.getArgAs(1);
-        String requestUri = httpRequest.getRequestUri();
-        String requestMethod = httpRequest.getMethod();
+        try {
+            String httpPath = httpRequest.getUri().toString();
+            String httpMethod = httpRequest.getMethod();
 
-        if (aopContext.hasException()) {
-            metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getExecutionTime());
-        } else {
-            metrics = metricRegistry.addRequest(requestUri,
-                                                requestMethod,
-                                                ((CloseableHttpResponse) aopContext.getReturning()).getCode(),
-                                                aopContext.getExecutionTime());
-        }
-
-        /*
-        HttpContext httpContext = aopContext.getArgAs(2);
-        HttpConnection httpConnection = (HttpConnection) (httpContext == null ? null : httpContext.getAttribute("http.connection"));
-        if (httpConnection != null) {
-            try {
-                HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
-            } catch (ConnectionShutdownException ignored) {
+            HttpOutgoingMetrics metrics;
+            if (aopContext.hasException()) {
+                metrics = metricRegistry.addExceptionRequest(httpPath, httpMethod, aopContext.getExecutionTime());
+            } else {
+                metrics = metricRegistry.addRequest(httpPath,
+                                                    httpMethod,
+                                                    ((CloseableHttpResponse) aopContext.getReturning()).getCode(),
+                                                    aopContext.getExecutionTime());
             }
-        }*/
+
+            HttpContext httpContext = aopContext.getArgAs(2);
+            EndpointDetails endpointDetails = (EndpointDetails) (httpContext == null ? null : httpContext.getAttribute("http.connection-endpoint"));
+            if (endpointDetails != null) {
+                metrics.addByteSize(endpointDetails.getSentBytesCount(),
+                                    endpointDetails.getReceivedBytesCount());
+            }
+        } catch (URISyntaxException ignored) {
+        }
     }
 }

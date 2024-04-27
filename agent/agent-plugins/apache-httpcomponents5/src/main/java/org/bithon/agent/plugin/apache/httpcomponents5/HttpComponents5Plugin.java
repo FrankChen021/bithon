@@ -41,6 +41,13 @@ public class HttpComponents5Plugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.InternalHttpClient$DoExecute")
                         ),
 
+            forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("getBytesTransferred")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
+                        ),
+
             // Tracing http request
             forClass("org.apache.hc.core5.http.impl.io.HttpRequestExecutor")
                 .methods(
