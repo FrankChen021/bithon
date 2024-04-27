@@ -34,12 +34,6 @@ public class HttpComponents5Plugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            forClass("org.apache.hc.client5.http.impl.classic.InternalHttpClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("doExecute"))
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.InternalHttpClient$DoExecute")
-                        ),
 
             forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
                 .methods(

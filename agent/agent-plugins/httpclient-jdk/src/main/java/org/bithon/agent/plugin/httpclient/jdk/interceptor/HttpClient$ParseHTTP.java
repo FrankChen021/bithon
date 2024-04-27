@@ -66,8 +66,8 @@ public class HttpClient$ParseHTTP extends AfterInterceptor {
                                       httpMethod,
                                       statusCode,
                                       System.nanoTime() - clientContext.getWriteAt())
-                          .addByteSize(clientContext.getSentBytes().get(),
-                                       clientContext.getReceiveBytes().get());
+                          .updateIOMetrics(clientContext.getSentBytes().get(),
+                                           clientContext.getReceiveBytes().get());
         }
 
         ITraceContext ctx = TraceContextHolder.current();

@@ -83,7 +83,7 @@ public class InternalHttpClient$DoExecute extends AroundInterceptor {
         if (httpConnection != null) {
             try {
                 HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+                metrics.updateIOMetrics(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
             } catch (ConnectionShutdownException ignored) {
             }
         }

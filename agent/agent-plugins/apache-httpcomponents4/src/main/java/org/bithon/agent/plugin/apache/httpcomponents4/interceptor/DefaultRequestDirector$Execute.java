@@ -82,7 +82,7 @@ public class DefaultRequestDirector$Execute extends AroundInterceptor {
         if (httpConnection != null) {
             try {
                 HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+                metrics.updateIOMetrics(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
             } catch (ConnectionShutdownException ignored) {
                 /**
                  * This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
