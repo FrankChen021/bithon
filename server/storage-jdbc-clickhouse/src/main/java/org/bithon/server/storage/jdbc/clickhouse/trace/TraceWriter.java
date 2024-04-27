@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.trace;
 
-import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.tracing.writer.SpanTableJdbcWriter;
 import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
