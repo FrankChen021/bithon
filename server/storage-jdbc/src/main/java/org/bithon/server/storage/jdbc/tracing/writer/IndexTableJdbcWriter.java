@@ -33,14 +33,14 @@ import java.util.function.Predicate;
  * @author Frank Chen
  * @date 16/1/24 8:02 pm
  */
-class IndexTableWriter implements IOnceTableWriter {
+class IndexTableJdbcWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final Collection<Object[]> tagIndices;
     private final Predicate<Exception> isExceptionRetryable;
 
-    public IndexTableWriter(DSLContext dslContext,
-                            Collection<Object[]> tagIndices,
-                            Predicate<Exception> isExceptionRetryable) {
+    public IndexTableJdbcWriter(DSLContext dslContext,
+                                Collection<Object[]> tagIndices,
+                                Predicate<Exception> isExceptionRetryable) {
         this.insertStatement = dslContext.render(dslContext.insertInto(Tables.BITHON_TRACE_SPAN_TAG_INDEX,
                                                                        Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP,
                                                                        Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1,

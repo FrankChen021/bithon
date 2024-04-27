@@ -33,14 +33,14 @@ import java.util.function.Predicate;
  * @author Frank Chen
  * @date 16/1/24 8:01 pm
  */
-class MappingTableWriter implements IOnceTableWriter {
+class MappingTableJdbcWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final Collection<TraceIdMapping> mappings;
     private final Predicate<Exception> isExceptionRetryable;
 
-    public MappingTableWriter(DSLContext dslContext,
-                              Collection<TraceIdMapping> mappings,
-                              Predicate<Exception> isRetryableException) {
+    public MappingTableJdbcWriter(DSLContext dslContext,
+                                  Collection<TraceIdMapping> mappings,
+                                  Predicate<Exception> isRetryableException) {
         insertStatement = dslContext.render(dslContext.insertInto(Tables.BITHON_TRACE_MAPPING,
                                                                   Tables.BITHON_TRACE_MAPPING.TRACE_ID,
                                                                   Tables.BITHON_TRACE_MAPPING.USER_TX_ID,

@@ -63,17 +63,23 @@ public class TraceJdbcWriter implements ITraceWriter {
         return true;
     }
 
+    protected boolean isWriteSummaryTable() {
+        return true;
+    }
+
     @Override
     public void write(List<TraceSpan> spans,
                       List<TraceIdMapping> mappings,
                       List<TagIndex> tagIndices) {
 
         TransactionalRunnable runnable = (configuration) -> {
-            List<TraceSpan> summary = spans.stream()
-                                           .filter((span) -> SpanKind.isRootSpan(span.getKind()))
-                                           .collect(Collectors.toList());
+            if (isWriteSummaryTable()) {
+                List<TraceSpan> summary = spans.stream()
+                                               .filter((span) -> SpanKind.isRootSpan(span.getKind()))
+                                               .collect(Collectors.toList());
 
-            this.writeSpans(summary, Tables.BITHON_TRACE_SPAN_SUMMARY);
+                this.writeSpans(summary, Tables.BITHON_TRACE_SPAN_SUMMARY);
+            }
             this.writeSpans(spans, Tables.BITHON_TRACE_SPAN);
             this.writeMappings(mappings);
             this.writeTagIndices(tagIndices);
@@ -192,7 +198,7 @@ public class TraceJdbcWriter implements ITraceWriter {
     }
 
     protected IOnceTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
-        return new SpanTableWriter(table, insertStatement, spans, isRetryableException) {
+        return new SpanTableJdbcWriter(table, insertStatement, spans, isRetryableException) {
             private final ObjectMapper objectMapper = new ObjectMapper();
 
             @Override
@@ -207,10 +213,10 @@ public class TraceJdbcWriter implements ITraceWriter {
     }
 
     private IOnceTableWriter createInsertMappingRunnable(DSLContext dslContext, List<TraceIdMapping> mappings) {
-        return new MappingTableWriter(dslContext, mappings, this.isRetryableException);
+        return new MappingTableJdbcWriter(dslContext, mappings, this.isRetryableException);
     }
 
     private IOnceTableWriter createInsertIndexRunnable(DSLContext dslContext, Collection<Object[]> indice) {
-        return new IndexTableWriter(dslContext, indice, this.isRetryableException);
+        return new IndexTableJdbcWriter(dslContext, indice, this.isRetryableException);
     }
 }
