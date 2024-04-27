@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -35,22 +36,17 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
-import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
-import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
-import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
-import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.Table;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,6 +57,7 @@ import java.util.Map;
 @JsonTypeName("clickhouse")
 public class TraceStorage extends TraceJdbcStorage {
 
+    @Getter
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
@@ -140,27 +137,7 @@ public class TraceStorage extends TraceJdbcStorage {
         if (this.clickHouseConfig.isOnDistributedTable()) {
             return new LoadBalancedTraceWriter(this.clickHouseConfig, this.storageConfig, this.dslContext);
         } else {
-            return new TraceJdbcWriter(dslContext, storageConfig, RetryableExceptions::isExceptionRetryable) {
-                @Override
-                protected boolean isTransactionSupported() {
-                    return false;
-                }
-
-                @Override
-                protected SpanTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
-                    return new SpanTableWriter(table, insertStatement, spans, this.isRetryableException) {
-                        /**
-                         * The map object is supported by ClickHouse JDBC, uses it directly
-                         */
-                        @Override
-                        protected Object toTagStore(Map<String, String> tag) {
-                            // TagMap is an instance of java.util.Map,
-                            // can be directly returned since ClickHouse JDBC supports such a type
-                            return tag;
-                        }
-                    };
-                }
-            };
+            return new TraceWriter(this);
         }
     }
 
