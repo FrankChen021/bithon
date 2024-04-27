@@ -70,8 +70,6 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext context) {
-        collectMetrics(context);
-
         ITraceSpan thisSpan = context.getSpan();
         if (thisSpan != null) {
             ClassicHttpResponse response = context.getReturningAs();
@@ -89,6 +87,10 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
             }
             thisSpan.tag(context.getException()).finish();
         }
+
+        // collect metrics after trace span processing
+        // so that any exceptions during this processing will not break the trace
+        collectMetrics(context);
     }
 
     private void collectMetrics(AopContext aopContext) {
