@@ -57,10 +57,16 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
 
         ITraceSpan span = TraceContextFactory.newSpan("http-client", httpRequest, HttpMessage::addHeader);
         if (span != null) {
+            String url;
+            try {
+                url = httpRequest.getUri().toString();
+            } catch (URISyntaxException e) {
+                url = httpRequest.getRequestUri();
+            }
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                    .kind(SpanKind.CLIENT)
                                    .tag(Tags.Http.CLIENT, "apache-httpcomponents-5")
-                                   .tag(Tags.Http.URL, httpRequest.getRequestUri())
+                                   .tag(Tags.Http.URL, url)
                                    .tag(Tags.Http.METHOD, httpRequest.getMethod())
                                    .start());
         }
