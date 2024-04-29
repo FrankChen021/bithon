@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
@@ -50,7 +51,7 @@ public class UriNormalizationTransformer implements ITransformer {
         UriNormalizer.NormalizedResult result = normalizer.normalize(row.getColAsString("appName"),
                                                                      row.getColAsString(this.field));
         if (result.getUri() == null) {
-            throw new TransformException();
+            throw new TransformException(StringUtils.format("Unable to normalize null uri: [%s]", row.toString()));
         }
         row.updateColumn(field, result.getUri());
 

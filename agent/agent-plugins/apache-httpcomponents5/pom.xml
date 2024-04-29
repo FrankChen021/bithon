@@ -7,7 +7,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-httpclient-apache</artifactId>
+  <artifactId>agent-plugin-apache-httpcomponents5</artifactId>
 
   <dependencies>
     <dependency>
@@ -15,9 +15,9 @@
       <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.2</version>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.2.3</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

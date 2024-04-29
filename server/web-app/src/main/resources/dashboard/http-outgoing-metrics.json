@@ -69,7 +69,7 @@
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },
@@ -127,7 +127,7 @@
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },
@@ -180,7 +180,7 @@
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },

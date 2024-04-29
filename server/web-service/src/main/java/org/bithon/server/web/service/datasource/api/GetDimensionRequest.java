@@ -16,8 +16,10 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.filter.IColumnFilter;
 
 import javax.annotation.Nullable;
@@ -32,6 +34,8 @@ import java.util.List;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GetDimensionRequest {
 
     @NotEmpty

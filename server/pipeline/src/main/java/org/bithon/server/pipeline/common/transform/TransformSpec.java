@@ -102,7 +102,8 @@ public class TransformSpec {
                         if (transformer.transform(inputRow) == TransformResult.DROP) {
                             return false;
                         }
-                    } catch (ITransformer.TransformException ignored) {
+                    } catch (ITransformer.TransformException e) {
+                        LOG.error(e.getMessage());
                         return false;
                     }
                 }

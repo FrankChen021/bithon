@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.interceptor;
+package org.bithon.agent.plugin.apache.httpcomponents4.interceptor;
 
 
 import org.apache.http.Header;
@@ -52,7 +52,7 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client", httpRequest, HttpMessage::setHeader);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -69,10 +69,9 @@ public class HttpRequestExecutor$Execute extends AroundInterceptor {
         // create a span and save it in user-context
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .kind(SpanKind.CLIENT)
-                               .tag(Tags.Http.CLIENT, "apache")
+                               .tag(Tags.Http.CLIENT, "apache-httpcomponents-4")
                                .tag(Tags.Http.URL, uri)
                                .tag(Tags.Http.METHOD, httpRequest.getRequestLine().getMethod())
-                               .propagate(httpRequest, HttpMessage::setHeader)
                                .start());
 
         return InterceptionDecision.CONTINUE;

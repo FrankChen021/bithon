@@ -75,6 +75,10 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 public interface ITransformer {
 
     class TransformException extends RuntimeException {
+
+        public TransformException(String message) {
+            super(message);
+        }
     }
 
     TransformResult transform(IInputRow inputRow) throws TransformException;

@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.impl.TracingContext;
+import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -82,8 +83,20 @@ public class TraceContextFactory {
      * Create a span based on current span on current thread
      */
     public static ITraceSpan newSpan(String name) {
+        return newSpan(name, null, null);
+    }
+
+    public static <T> ITraceSpan newSpan(String name, T injectedTo, PropagationSetter<T> setter) {
         ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null || traceContext.traceMode().equals(TraceMode.LOGGING)) {
+        if (traceContext == null) {
+            return null;
+        }
+
+        if (traceContext.traceMode().equals(TraceMode.LOGGING)) {
+            // No need to create SPAN under logging mode but only propagate context
+            if (injectedTo != null && setter != null) {
+                traceContext.propagate(injectedTo, setter);
+            }
             return null;
         }
 
@@ -93,15 +106,22 @@ public class TraceContextFactory {
         }
 
         // create a span and save it in user-context
-        return parentSpan.newChildSpan(name);
+        ITraceSpan span = parentSpan.newChildSpan(name);
+        if (injectedTo != null && setter != null) {
+            traceContext.propagate(injectedTo, setter);
+        }
+        return span;
     }
 
     /**
      * This method copies the current trace context so that it can be used in another thread.
      * Even current trace mode is {@link TraceMode#LOGGING}, it's still copied.
-     *
      */
     public static ITraceSpan newAsyncSpan(String name) {
+        return newAsyncSpan(name, null, null);
+    }
+
+    public static <T> ITraceSpan newAsyncSpan(String name, T injectedTo, PropagationSetter<T> setter) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return null;
@@ -112,10 +132,13 @@ public class TraceContextFactory {
             return null;
         }
 
-        return traceContext.copy()
-                           .reporter(traceContext.reporter())
-                           .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
-                           .component(name);
-
+        ITraceSpan span = traceContext.copy()
+                                      .reporter(traceContext.reporter())
+                                      .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
+                                      .component(name);
+        if (injectedTo != null && setter != null) {
+            span.context().propagate(injectedTo, setter);
+        }
+        return span;
     }
 }

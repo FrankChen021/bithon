@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache;
+package org.bithon.agent.plugin.apache.httpcomponents4;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -28,7 +28,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class ApacheHttpClientPlugin implements IPlugin {
+public class HttpComponents4Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -43,7 +43,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.InternalHttpClient$DoExecute")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.InternalHttpClient$DoExecute")
                         ),
 
             //
@@ -57,7 +57,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.RedirectExec$Execute")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.RedirectExec$Execute")
                         ),
 
             //
@@ -71,7 +71,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.client.methods.HttpRequestWrapper",
                                                                     "org.apache.http.client.protocol.HttpClientContext",
                                                                     "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.MinimalClientExec$Execute")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.MinimalClientExec$Execute")
                         ),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
@@ -81,11 +81,11 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$Execute"),
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("releaseConnection")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultRequestDirector$ReleaseConnection")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$ReleaseConnection")
                         ),
 
             //
@@ -98,7 +98,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.HttpClientConnection",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpRequestExecutor$Execute")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.HttpRequestExecutor$Execute")
                         ),
 
             // 4.3 and before
@@ -106,7 +106,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("openConnection")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultClientConnectionOperator$OpenConnection")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultClientConnectionOperator$OpenConnection")
                         ),
 
             // Since 4.4
@@ -114,7 +114,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("connect")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultHttpClientConnectionOperator$Connect")
                         )
                             );
     }

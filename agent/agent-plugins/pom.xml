@@ -32,7 +32,8 @@
     <module>jdk-thread</module>
     <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>
-    <module>httpclient-apache</module>
+    <module>apache-httpcomponents4</module>
+    <module>apache-httpcomponents5</module>
     <module>httpclient-jetty</module>
     <module>httpclient-netty3</module>
     <module>redis-jedis</module>
@@ -177,7 +178,12 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-apache</artifactId>
+      <artifactId>agent-plugin-apache-httpcomponents4</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-httpcomponents5</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

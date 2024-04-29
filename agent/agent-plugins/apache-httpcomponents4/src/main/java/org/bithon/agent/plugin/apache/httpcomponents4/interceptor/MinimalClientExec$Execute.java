@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.interceptor;
+package org.bithon.agent.plugin.apache.httpcomponents4.interceptor;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
@@ -66,7 +66,7 @@ public class MinimalClientExec$Execute extends AroundInterceptor {
         if (httpConnection != null) {
             try {
                 HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+                metrics.updateIOMetrics(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
             } catch (ConnectionShutdownException ignored) {
             }
         }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc;
+package org.bithon.agent.plugin.apache.httpcomponents5;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
@@ -29,36 +29,33 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class SpringMvcPlugin implements IPlugin {
+public class HttpComponents5Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-
         return Arrays.asList(
-            forClass("feign.SynchronousMethodHandler$Factory")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("create")
-                                                                     .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
-                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
-                ),
-            forClass("feign.SynchronousMethodHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("invoke")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
-                ),
 
-            forClass("org.springframework.web.client.RestTemplate")
+            forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("doExecute")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute"),
+                                                   .onMethodAndNoArgs("getBytesTransferred")
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
+                        ),
 
+            // Tracing http request
+            forClass("org.apache.hc.core5.http.impl.io.HttpRequestExecutor")
+                .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("handleResponse")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
-                )
-        );
+                                                   .onMethod(Matchers.withName("execute").and(Matchers.takesArguments(4)))
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
+                        ),
+
+            // Tracing http connection connect
+            forClass("org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("connect").and(Matchers.takesArguments(7)))
+                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                        ));
     }
 }

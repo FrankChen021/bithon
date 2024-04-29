@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.interceptor;
+package org.bithon.agent.plugin.apache.httpcomponents4.interceptor;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
@@ -22,69 +22,72 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.conn.ConnectionShutdownException;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 /**
- * Apache http component(client) interceptor for
- * {@link org.apache.http.impl.client.InternalHttpClient#doExecute(HttpHost, HttpRequest, HttpContext)}
+ * Old http client 4.0.1~4.2.5
+ * See {@link org.apache.http.impl.client.DefaultRequestDirector#execute(HttpHost, HttpRequest, HttpContext)}
  *
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/3/15
  */
-public class InternalHttpClient$DoExecute extends AroundInterceptor {
-    /**
-     * TODO: changed to configuration
-     */
-    private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
-    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
+public class DefaultRequestDirector$Execute extends AroundInterceptor {
 
-    public static boolean shouldExclude(String uri) {
-        if (IGNORED_SUFFIXES.isEmpty()) {
-            return false;
-        }
-        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase(Locale.ENGLISH);
-        return IGNORED_SUFFIXES.contains(suffix);
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        HttpRequest httpRequest = aopContext.getArgAs(1);
+        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         String requestUri = httpRequest.getRequestLine().getUri();
-        return shouldExclude(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+        if (InternalHttpClient$DoExecute.shouldExclude(requestUri)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        } else {
+            InterceptorContext.set("apache-http-client.httpRequest", httpRequest);
+            return InterceptionDecision.CONTINUE;
+        }
     }
 
     @Override
     public void after(AopContext aopContext) {
-        HttpOutgoingMetrics metrics;
+        InterceptorContext.remove("apache-http-client.httpRequest");
 
-        HttpRequest httpRequest = aopContext.getArgAs(1);
+        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         String requestUri = httpRequest.getRequestLine().getUri();
         String requestMethod = httpRequest.getRequestLine().getMethod();
 
+        HttpOutgoingMetrics metrics;
         if (aopContext.hasException()) {
             metrics = metricRegistry.addExceptionRequest(requestUri, requestMethod, aopContext.getExecutionTime());
         } else {
+            HttpResponse httpResponse = aopContext.getReturningAs();
             metrics = metricRegistry.addRequest(requestUri,
                                                 requestMethod,
-                                                ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                                                httpResponse.getStatusLine().getStatusCode(),
                                                 aopContext.getExecutionTime());
         }
 
         HttpContext httpContext = aopContext.getArgAs(2);
-        HttpConnection httpConnection = (HttpConnection) (httpContext == null ? null : httpContext.getAttribute("http.connection"));
+        if (httpContext == null) {
+            return;
+        }
+
+        HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute(ExecutionContext.HTTP_CONNECTION);
         if (httpConnection != null) {
             try {
                 HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                metrics.addByteSize(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
+                metrics.updateIOMetrics(connectionMetrics.getSentBytesCount(), connectionMetrics.getReceivedBytesCount());
             } catch (ConnectionShutdownException ignored) {
+                /**
+                 * This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
+                 * See {@link DefaultRequestDirector$ReleaseConnection}
+                 */
             }
         }
     }

@@ -16,7 +16,6 @@
 
 package org.bithon.agent.observability.tracing.context;
 
-import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Executable;
@@ -142,9 +141,4 @@ public interface ITraceSpan {
      * The implementation should guarantee that multiple calls on this method are safe.
      */
     void finish();
-
-    default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
-        context().propagate(injectedTo, setter);
-        return this;
-    }
 }

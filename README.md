@@ -147,7 +147,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Eclipse Glassfish      | 2.34        |             |                                                | &check; |
 | GRPC                   | 1.6.0       |             | &check;                                        |         |
 | Google Guice           | 4.1.0       |             |                                                | &check; |
-| HTTP Client - Apache   | 4.5.2       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
+| HTTP Client - Apache   | 4.5.2       | 5.x         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - Jetty    | 9.4.6       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - Netty    | 3.10.6      | < 4.0       | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - okhttp3  | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |

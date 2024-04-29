@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.interceptor;
+package org.bithon.agent.plugin.apache.httpcomponents5.interceptor;
 
-import org.apache.http.HttpHost;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ManagedHttpClientConnection;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Timeout;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -30,7 +31,7 @@ import org.bithon.component.commons.tracing.Tags;
 import java.net.InetSocketAddress;
 
 /**
- * {@link org.apache.http.impl.conn.DefaultHttpClientConnectionOperator#connect(ManagedHttpClientConnection, HttpHost, InetSocketAddress, int, SocketConfig, HttpContext)}
+ * {@link org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator#connect(ManagedHttpClientConnection, HttpHost, InetSocketAddress, Timeout, SocketConfig, Object, HttpContext)}
  *
  * @author frank.chen021@outlook.com
  * @date 2023/10/25 17:42
@@ -46,9 +47,7 @@ public class DefaultHttpClientConnectionOperator$Connect extends AroundIntercept
 
         HttpHost httpHost = aopContext.getArgAs(1);
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                               // Since this span does not propagate the tracing context to next hop,
-                               // it's not marked as SpanKind.CLIENT
-                               .tag(Tags.Http.CLIENT, "apache")
+                               .tag(Tags.Http.CLIENT, "apache-httpcomponents-5")
                                .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
                                .start());
 
