@@ -47,7 +47,7 @@ public class Command$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), operation)
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .kind(SpanKind.CLIENT)
                                .tag(Tags.Net.PEER, connectionContext.endpoint)
                                .tag(Tags.Database.SYSTEM, "redis")
