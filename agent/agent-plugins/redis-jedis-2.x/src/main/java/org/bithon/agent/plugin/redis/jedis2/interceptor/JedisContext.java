@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.redis.jedis.interceptor;
+package org.bithon.agent.plugin.redis.jedis2.interceptor;
 
 import org.bithon.agent.observability.metric.domain.redis.RedisClientMetrics;
 

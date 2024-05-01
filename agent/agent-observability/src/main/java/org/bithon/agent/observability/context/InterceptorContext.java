@@ -45,10 +45,12 @@ public class InterceptorContext {
         return (T) HOLDER.get().get(key);
     }
 
-    public static void remove(String key) {
+    public static <T> T remove(String key) {
         try {
-            HOLDER.get().remove(key);
+            //noinspection unchecked
+            return (T) HOLDER.get().remove(key);
         } catch (Exception ignored) {
+            return null;
         }
     }
 }

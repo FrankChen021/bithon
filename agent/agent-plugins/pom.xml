@@ -36,7 +36,9 @@
     <module>apache-httpcomponents5</module>
     <module>httpclient-jetty</module>
     <module>httpclient-netty3</module>
-    <module>redis-jedis</module>
+    <module>redis-jedis-2.x</module>
+    <module>redis-jedis-3.x</module>
+    <module>redis-jedis-4.x</module>
     <module>redis-lettuce-5.x</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
@@ -206,7 +208,17 @@
     <!-- Redis -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-redis-jedis</artifactId>
+      <artifactId>x</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-jedis-3.x</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-jedis-4.x</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

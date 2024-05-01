@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-redis-jedis</artifactId>
+  <artifactId>x</artifactId>
 
   <dependencies>
     <dependency>
