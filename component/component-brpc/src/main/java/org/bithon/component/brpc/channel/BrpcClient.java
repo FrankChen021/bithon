@@ -53,6 +53,7 @@ import org.bithon.shaded.io.netty.util.concurrent.Future;
 
 import java.io.Closeable;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -88,45 +89,45 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     /**
      * Use {@link BrpcClientBuilder} to create instance.
-     *
-     * @param nWorkerThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
      */
-    BrpcClient(IEndPointProvider server,
-               int nWorkerThreads,
-               int maxRetry,
-               Duration retryInterval,
-               String appName,
-               String clientId,
-               Duration connectionTimeout) {
+    BrpcClient(BrpcClientBuilder builder) {
         Preconditions.checkIfTrue(StringUtils.hasText("appName"), "appName can't be blank.");
-        Preconditions.checkIfTrue(maxRetry > 0, "maxRetry must be at least 1.");
+        Preconditions.checkIfTrue(builder.maxRetry > 0, "maxRetry must be at least 1.");
 
-        this.server = Preconditions.checkArgumentNotNull("server", server);
-        this.maxRetry = maxRetry;
-        this.retryInterval = retryInterval;
-        this.appName = appName;
+        this.server = Preconditions.checkArgumentNotNull("server", builder.server);
+        this.maxRetry = builder.maxRetry;
+        this.retryInterval = builder.retryInterval;
+        this.appName = builder.appName;
 
         this.invocationManager = new InvocationManager();
-        this.bossGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.of("brpc-c-work-" + clientId));
-        this.bootstrap = new Bootstrap();
-        this.bootstrap.group(this.bossGroup)
-                      .channel(NioSocketChannel.class)
-                      .option(ChannelOption.SO_KEEPALIVE, true)
-                      .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(WriteBufferWaterMark.DEFAULT.low(), 1024 * 1024))
-                      .handler(new ChannelInitializer<SocketChannel>() {
-                          @Override
-                          public void initChannel(SocketChannel ch) {
-                              ChannelPipeline pipeline = ch.pipeline();
-                              pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                              pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                              pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                              pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
-                              pipeline.addLast(new ClientChannelManager());
-                              pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
-                          }
-                      });
+        this.bossGroup = new NioEventLoopGroup(builder.workerThreads, NamedThreadFactory.of("brpc-c-work-" + builder.clientId));
+        this.bootstrap = new Bootstrap().group(this.bossGroup)
+                                        .channel(NioSocketChannel.class)
+                                        .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)
+                                        .option(ChannelOption.SO_SNDBUF, builder.sendBufferSize)
+                                        .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark))
+                                        .handler(new ChannelInitializer<SocketChannel>() {
+                                            @Override
+                                            public void initChannel(SocketChannel ch) {
+                                                ChannelPipeline pipeline = ch.pipeline();
+                                                pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                                                pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+                                                pipeline.addLast("decoder", new ServiceMessageInDecoder());
+                                                pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
+                                                pipeline.addLast(new ClientChannelManager());
+                                                pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
+                                            }
+                                        });
 
-        this.connectionTimeout = connectionTimeout;
+        this.connectionTimeout = Duration.ofMillis(builder.connectionTimeout);
+
+        if (builder.headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+                this.setHeader(k, v);
+            }
+        }
     }
 
     @Override

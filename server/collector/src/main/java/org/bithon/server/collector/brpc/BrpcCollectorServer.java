@@ -19,11 +19,11 @@ package org.bithon.server.collector.brpc;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.component.brpc.channel.BrpcServerBuilder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,14 +44,15 @@ public class BrpcCollectorServer {
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-
     public synchronized ServiceGroup addService(String name, Object implementation, int port) {
         ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());
         serviceGroup.getServices().put(name, implementation);
 
         if (serviceGroup.brpcServer == null) {
             // Create a server with the first service name as the server id
-            serviceGroup.brpcServer = new BrpcServer(name);
+            serviceGroup.brpcServer = BrpcServerBuilder.builder()
+                                                       .serverId(name)
+                                                       .build();
             serviceGroup.start(port);
             log.info("Started Brpc services [{}] at port {}",
                      String.join(",", serviceGroup.services.keySet()),
@@ -60,14 +61,6 @@ public class BrpcCollectorServer {
             serviceGroup.brpcServer.bindService(implementation);
         }
         return serviceGroup;
-    }
-
-    public BrpcServer findServer(String serviceName) {
-        Optional<ServiceGroup> serviceGroup = this.serviceGroups.values()
-                                                                .stream()
-                                                                .filter((sg -> sg.getServices().containsKey(serviceName)))
-                                                                .findFirst();
-        return serviceGroup.map(ServiceGroup::getBrpcServer).orElse(null);
     }
 
     @Getter
