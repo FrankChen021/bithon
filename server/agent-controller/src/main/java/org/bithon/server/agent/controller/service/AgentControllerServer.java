@@ -19,6 +19,7 @@ package org.bithon.server.agent.controller.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.component.brpc.channel.BrpcServerBuilder;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
@@ -53,8 +54,10 @@ public class AgentControllerServer implements SmartLifecycle {
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
 
         this.port = config.getPort();
-        this.brpcServer = new BrpcServer("ctrl");
-        this.brpcServer.bindService(new AgentSettingFetcher(storage.createReader(), jsonFormatter));
+        this.brpcServer = BrpcServerBuilder.builder()
+                                           .serverId("ctrl")
+                                           .build()
+                                           .bindService(new AgentSettingFetcher(storage.createReader(), jsonFormatter));
     }
 
     public BrpcServer getBrpcServer() {
