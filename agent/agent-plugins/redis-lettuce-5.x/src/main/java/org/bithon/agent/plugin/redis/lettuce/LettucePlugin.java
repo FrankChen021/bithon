@@ -136,6 +136,85 @@ public class LettucePlugin implements IPlugin {
                                                                      .and(Matchers.takesArgument(0, "io.netty.buffer.ByteBuf"))
                                                                      .and(Matchers.takesArgument(1, "io.lettuce.core.protocol.RedisCommand")))
                                                    .to("org.bithon.agent.plugin.redis.lettuce.interceptor.CommandHandler$Decode")
-                        ));
+                        ),
+
+            // Trace Support for Lettuce
+            // Only works on Spring Data Redis
+            // because this layer is a synchronized interface while the lettuce provides async operations
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceConnection")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(Matchers.takesArguments(4).and(Matchers.takesArgument(0, "io.lettuce.core.api.StatefulConnection")))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.LettuceConnection$Ctor")
+                        ),
+
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceGeoCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisGeoCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceHashCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisHashCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceHyperLogLogCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisHyperLogLogCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceKeyCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisKeyCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceListCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisListCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceScriptingCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisScriptingCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceSetCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisSetCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceServerCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisServerCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceStreamCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisStreamCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceStringCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisStringCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        ),
+
+            forClass("org.springframework.data.redis.connection.lettuce.LettuceZSetCommands")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.implement("org.springframework.data.redis.connection.RedisZSetCommands"))
+                                                   .to("org.bithon.agent.plugin.redis.lettuce.interceptor.Command$Execute")
+                        )
+                            );
     }
 }
