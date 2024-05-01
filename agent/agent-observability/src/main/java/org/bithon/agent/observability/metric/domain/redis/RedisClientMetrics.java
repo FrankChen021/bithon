@@ -45,20 +45,23 @@ public class RedisClientMetrics implements IMetricSet {
         requestBytes
     };
 
-    public void addResponseBytes(int responseBytes) {
+    public RedisClientMetrics addResponseBytes(int responseBytes) {
         this.responseBytes.update(responseBytes);
+        return this;
     }
 
-    public void addRequestBytes(int requestBytes) {
+    public RedisClientMetrics addRequestBytes(int requestBytes) {
         this.requestBytes.update(requestBytes);
+        return this;
     }
 
-    public void addRequest(long responseTime, int exceptionCount) {
+    public RedisClientMetrics addRequest(long responseTime, int exceptionCount) {
         this.responseTime.update(responseTime);
         this.minResponseTime.update(responseTime);
         this.maxResponseTime.update(responseTime);
         this.exceptionCount.update(exceptionCount);
         this.totalCount.incr();
+        return this;
     }
 
     @Override

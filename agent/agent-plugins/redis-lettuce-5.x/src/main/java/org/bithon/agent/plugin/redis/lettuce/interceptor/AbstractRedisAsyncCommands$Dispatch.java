@@ -16,34 +16,37 @@
 
 package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
-import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.protocol.RedisCommand;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.utils.HostAndPort;
+import org.bithon.agent.plugin.redis.lettuce.LettuceAsyncContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-
 /**
+ * {@link io.lettuce.core.AbstractRedisAsyncCommands#dispatch(RedisCommand)}
+ *
  * @author frankchen
  */
-public class RedisClientConnect extends AfterInterceptor {
+public class AbstractRedisAsyncCommands$Dispatch extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        if (aopContext.hasException()) {
+        if (!(aopContext.getReturning() instanceof IBithonObject)) {
             return;
         }
+        IBithonObject result = (IBithonObject) aopContext.getReturning();
 
-        Object connection = aopContext.getReturning();
+        LettuceAsyncContext asyncContext = new LettuceAsyncContext();
+        asyncContext.setStartTime(System.nanoTime());
+        result.setInjectedObject(asyncContext);
+
+        StatefulConnection<?, ?> connection = ((StatefulConnection<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
+                                                                                                        "connection"));
         if (connection instanceof IBithonObject) {
-            // forward endpoint to connection
-            RedisURI uri = ((RedisURI) ReflectionUtils.getFieldValue(aopContext.getTarget(), "redisURI"));
-
-            // Since RedisClient allows passing RedisURI to connect method
-            // it's a little bit complex to intercept this method to keep HostAndPort on RedisClient
-            // So, we always construct a HostAndPort string here
-            ((IBithonObject) connection).setInjectedObject(HostAndPort.of(uri.getHost(), uri.getPort()));
+            String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
+            asyncContext.setEndpoint(endpoint);
         }
     }
 }
