@@ -208,7 +208,7 @@
     <!-- Redis -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>x</artifactId>
+      <artifactId>agent-plugin-redis-jedis-2.x</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

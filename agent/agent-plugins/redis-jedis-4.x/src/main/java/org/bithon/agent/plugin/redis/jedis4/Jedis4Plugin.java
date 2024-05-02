@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCu
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,40 +35,30 @@ public class Jedis4Plugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        //not "redis.clients.jedis.Client"
-        return IInterceptorPrecondition.hasClass("redis.clients.jedis.Connection");
+        return
+            IInterceptorPrecondition.and(
+                // Both 3.x and 4.x has this class
+                IInterceptorPrecondition.isClassDefined("redis.clients.jedis.Connection"),
+                // 4.x does not have this class
+                IInterceptorPrecondition.not(IInterceptorPrecondition.isClassDefined("redis.clients.jedis.Client")));
     }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
+
         return Arrays.asList(
+
+            forClass("redis.clients.jedis.Connection")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
+                        ),
 
             forClass("redis.clients.jedis.Jedis")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.implement(
-                                                       "redis.clients.jedis.commands.ServerCommands",
-                                                       "redis.clients.jedis.commands.DatabaseCommands",
-
-                                                       // JedisCommands
-                                                       "redis.clients.jedis.commands.KeyCommands",
-                                                       "redis.clients.jedis.commands.StringCommands",
-                                                       "redis.clients.jedis.commands.ListCommands",
-                                                       "redis.clients.jedis.commands.HashCommands",
-                                                       "redis.clients.jedis.commands.SetCommands",
-                                                       "redis.clients.jedis.commands.SortedSetCommands",
-                                                       "redis.clients.jedis.commands.GeoCommands",
-                                                       "redis.clients.jedis.commands.HyperLogLogCommands",
-                                                       "redis.clients.jedis.commands.StreamCommands",
-                                                       "redis.clients.jedis.commands.ScriptingKeyCommands",
-
-                                                       "redis.clients.jedis.commands.ControlCommands",
-                                                       "redis.clients.jedis.commands.ControlBinaryCommands",
-                                                       "redis.clients.jedis.commands.ClusterCommands",
-                                                       "redis.clients.jedis.commands.ModuleCommands",
-                                                       "redis.clients.jedis.commands.GenericControlCommands",
-                                                       "redis.clients.jedis.commands.SentinelCommands"
-                                                       ))
+                                                   .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
                                                    .to("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
                         ),
 

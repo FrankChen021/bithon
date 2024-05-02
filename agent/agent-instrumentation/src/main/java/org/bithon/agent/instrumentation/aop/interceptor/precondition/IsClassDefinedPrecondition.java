@@ -16,33 +16,28 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
-import org.bithon.agent.instrumentation.logging.LoggerFactory;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 8:14 下午
  */
-class HasClassPrecondition implements IInterceptorPrecondition {
+class IsClassDefinedPrecondition implements IInterceptorPrecondition {
 
     private final String className;
 
-    public HasClassPrecondition(String className) {
+    public IsClassDefinedPrecondition(String className) {
         this.className = className;
     }
 
     @Override
-    public boolean canInstall(String providerName,
-                              ClassLoader classLoader,
-                              TypeDescription typeDescription) {
-        boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
-        if (!resolved) {
-            LoggerFactory.getLogger(HasClassPrecondition.class)
-                         .info("Required class [{}] not found to install interceptor for [{}] in [{}]",
-                               this.className,
-                               typeDescription.getName(),
-                               providerName);
-        }
-        return resolved;
+    public boolean matches(ClassLoader classLoader,
+                           TypeDescription typeDescription) {
+        return TypeResolver.getInstance().isResolved(classLoader, this.className);
+    }
+
+    @Override
+    public String toString() {
+        return "isClassDefined('" + this.className + "')";
     }
 }

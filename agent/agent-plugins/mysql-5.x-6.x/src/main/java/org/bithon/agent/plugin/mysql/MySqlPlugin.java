@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
-import static org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition.hasClass;
+import static org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition.isClassDefined;
 import static org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition.or;
 
 /**
@@ -71,9 +71,9 @@ public class MySqlPlugin implements IPlugin {
     public IInterceptorPrecondition getPreconditions() {
         return or(
             // mysql 5
-            hasClass("org.gjt.mm.mysql.Driver"),
+            isClassDefined("org.gjt.mm.mysql.Driver"),
             // mysql 6
-            hasClass("com.mysql.cj.x.package-info")
+            isClassDefined("com.mysql.cj.x.package-info")
         );
     }
 

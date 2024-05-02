@@ -34,7 +34,7 @@ public class MongoDb38Plugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        return IInterceptorPrecondition.hasClass("com.mongodb.internal.connection.DefaultServerConnection");
+        return IInterceptorPrecondition.isClassDefined("com.mongodb.internal.connection.DefaultServerConnection");
     }
 
     @Override

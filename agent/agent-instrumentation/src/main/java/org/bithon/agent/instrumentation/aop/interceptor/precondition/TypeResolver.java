@@ -18,8 +18,8 @@ package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
 import org.bithon.shaded.net.bytebuddy.pool.TypePool;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,7 +28,7 @@ import java.util.Map;
 public class TypeResolver {
 
     private static final TypeResolver INSTANCE = new TypeResolver();
-    private final Map<ClassLoader, TypePool> pools = new HashMap<>();
+    private final Map<ClassLoader, TypePool> pools = new WeakHashMap<>();
 
     public static TypeResolver getInstance() {
         return INSTANCE;
@@ -42,9 +42,7 @@ public class TypeResolver {
             synchronized (pools) {
                 // double check
                 if (!pools.containsKey(classLoader)) {
-                    TypePool pool = classLoader == BootstrapClassLoader.INSTANCE
-                                    ? TypePool.Default.ofBootLoader()
-                                    : TypePool.Default.of(classLoader);
+                    TypePool pool = classLoader == BootstrapClassLoader.INSTANCE ? TypePool.Default.ofBootLoader() : TypePool.Default.of(classLoader);
                     pools.put(classLoader, pool);
                 }
             }

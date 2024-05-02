@@ -38,7 +38,7 @@ public class MySql8Plugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        return IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor");
+        return IInterceptorPrecondition.isClassDefined("com.mysql.cj.interceptors.QueryInterceptor");
     }
 
     @Override

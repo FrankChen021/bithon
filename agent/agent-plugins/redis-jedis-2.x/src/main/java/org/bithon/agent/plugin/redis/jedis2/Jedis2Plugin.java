@@ -35,7 +35,7 @@ public class Jedis2Plugin implements IPlugin {
     @Override
     public IInterceptorPrecondition getPreconditions() {
         // 2.x specified class
-        return IInterceptorPrecondition.hasClass("redis.clients.util.RedisInputStream");
+        return IInterceptorPrecondition.isClassDefined("redis.clients.util.RedisInputStream");
     }
 
     @Override

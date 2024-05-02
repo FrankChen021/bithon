@@ -67,6 +67,7 @@ public class OnCommand extends AroundInterceptor {
             aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), command)
                                    .kind(SpanKind.CLIENT)
                                    .tag(Tags.Net.PEER, redisClient.getHost() + ":" + redisClient.getPort())
+                                   .tag(Tags.Database.REDIS_DB_INDEX, db)
                                    .tag(Tags.Database.SYSTEM, "redis")
                                    .start());
         }

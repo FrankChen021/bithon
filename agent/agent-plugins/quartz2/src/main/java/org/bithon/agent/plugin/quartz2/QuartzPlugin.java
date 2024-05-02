@@ -33,7 +33,7 @@ public class QuartzPlugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        return IInterceptorPrecondition.hasClass("org.quartz.JobKey");
+        return IInterceptorPrecondition.isClassDefined("org.quartz.JobKey");
     }
 
     @Override

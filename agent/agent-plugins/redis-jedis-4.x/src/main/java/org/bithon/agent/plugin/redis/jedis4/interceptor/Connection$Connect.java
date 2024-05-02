@@ -20,39 +20,31 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.agent.observability.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-import redis.clients.jedis.Jedis;
+import org.bithon.component.commons.utils.ReflectionUtils;
+import redis.clients.jedis.Connection;
+import redis.clients.jedis.DefaultJedisSocketFactory;
+import redis.clients.jedis.JedisSocketFactory;
 
-import java.util.Locale;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 22/1/22 5:52 PM
+ * @date 2/5/24 3:50 pm
  */
-public class OnCommand extends AroundInterceptor {
-
-    private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
+public class Connection$Connect extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        Jedis jedis = aopContext.getTargetAs();
-
-        IBithonObject connection = (IBithonObject) jedis.getConnection();
-        String hostAndPort = (String) connection.getInjectedObject();
-        if (hostAndPort == null) {
+        Connection conn = aopContext.getTargetAs();
+        if (conn.isConnected()) {
             return InterceptionDecision.SKIP_LEAVE;
         }
-        long db = jedis.getDB();
-
-        String command = aopContext.getMethod().toUpperCase(Locale.ENGLISH);
-
-        // Keep the metrics in current thread local so that Input and Output stream can access them
-        InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 
         ITraceSpan span = TraceContextFactory.newSpan("jedis");
         if (span == null) {
@@ -61,10 +53,7 @@ public class OnCommand extends AroundInterceptor {
 
         aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), aopContext.getMethod())
                                .kind(SpanKind.CLIENT)
-                               .tag(Tags.Net.PEER, hostAndPort)
                                .tag(Tags.Database.SYSTEM, "redis")
-                               .tag(Tags.Database.OPERATION, command)
-                               .tag(Tags.Database.REDIS_DB_INDEX, db)
                                .start());
 
         return InterceptionDecision.CONTINUE;
@@ -72,14 +61,34 @@ public class OnCommand extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        String hostAndPort = getRemoteAddress(aopContext.getTargetAs());
+
+        // Update the address
+        ((IBithonObject) aopContext.getTargetAs()).setInjectedObject(hostAndPort);
+
         ITraceSpan span = aopContext.getSpan();
         if (span != null) {
-            span.tag(aopContext.getException()).finish();
+            span.tag(aopContext.getException())
+                .tag(Tags.Net.PEER, hostAndPort)
+                .finish();
+        }
+    }
+
+    private String getRemoteAddress(Connection connection) {
+        JedisSocketFactory socketFactory = (JedisSocketFactory) ReflectionUtils.getFieldValue(connection, "socketFactory");
+        if (socketFactory instanceof DefaultJedisSocketFactory) {
+            return ((DefaultJedisSocketFactory) socketFactory).getHostAndPort().toString();
         }
 
-        JedisContext ctx = InterceptorContext.remove("redis-command");
-        if (ctx != null) {
-            ctx.getMetrics().addRequest(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
+        Socket socket = (Socket) ReflectionUtils.getFieldValue(connection, "socket");
+        if (socket == null) {
+            return null;
         }
+        SocketAddress socketAddress = socket.getRemoteSocketAddress();
+        if (socketAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) socketAddress).getHostString() + ":" + ((InetSocketAddress) socketAddress).getPort();
+        }
+
+        return socketAddress.toString();
     }
 }
