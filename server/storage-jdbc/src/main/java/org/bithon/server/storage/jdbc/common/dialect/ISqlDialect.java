@@ -103,6 +103,9 @@ public interface ISqlDialect {
         return false;
     }
 
+    /**
+     * Transform expressions for the target dialect
+     */
     default IExpression transform(IExpression expression) {
         return expression;
     }

@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.jdbc.clickhouse.common.optimizer.HasTokenFunctionOptimizer;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 /**
@@ -104,5 +105,10 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     @Override
     public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
         return StringUtils.format("fromUnixTimestamp64Milli(%d)", expression.getValue());
+    }
+
+    @Override
+    public IExpression transform(IExpression expression) {
+        return expression.accept(new HasTokenFunctionOptimizer());
     }
 }

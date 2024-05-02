@@ -30,9 +30,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Frank Chen
@@ -41,8 +39,7 @@ import java.util.List;
 public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
-        return expression.accept(new HasTokenFunctionOptimizer())
-                         .accept(new ConstantFoldingOptimizer())
+        return expression.accept(new ConstantFoldingOptimizer())
                          .accept(new LogicalExpressionOptimizer());
     }
 
@@ -172,93 +169,6 @@ public class ExpressionOptimizer {
                 return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;
-        }
-    }
-
-    /**
-     * TODO: Move this to CK dialect
-     */
-    static class HasTokenFunctionOptimizer extends AbstractOptimizer {
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(FunctionExpression expression) {
-            if (!"hasToken".equals(expression.getName())) {
-                return expression;
-            }
-
-            // The hasToken already checks the parameter is a type of Literal
-            IExpression haystack = expression.getParameters().get(0);
-            String needle = ((LiteralExpression) expression.getParameters().get(1)).asString();
-
-            int i = 0;
-            int needleLength = needle.length();
-            while (i < needleLength && isTokenSeparator(needle.charAt(i))) {
-                i++;
-            }
-
-            int j = needleLength - 1;
-            while (j >= 0 && isTokenSeparator(needle.charAt(j))) {
-                j--;
-            }
-            if (i > 0 && j < needleLength - 1) {
-                // This is the case that the needle is surrounded by token separators,
-                // CK can use index for such LIKE expression.
-                return new ConditionalExpression.Like(haystack,
-                                                      LiteralExpression.create("%" + needle + "%"));
-            }
-
-            // Otherwise, we try to extract tokens from the needle to turn this function as
-            // hasToken() AND xxx LIKE '%needle%'
-            List<IExpression> subExpressions = new ArrayList<>();
-            int tokenStart = 0;
-            for (i = 0; i < needleLength; i++) {
-                char chr = needle.charAt(i);
-                if (isTokenSeparator(chr)) {
-                    if (i > tokenStart) {
-                        IExpression literal = LiteralExpression.create(needle.substring(tokenStart, i));
-                        subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
-                    }
-
-                    // Since the current character is a token separator,
-                    // let's start with the next character
-                    tokenStart = i + 1;
-                }
-            }
-            if (tokenStart > 0 && tokenStart < needleLength) {
-                IExpression literal = LiteralExpression.create(needle.substring(tokenStart));
-                subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
-            }
-            if (subExpressions.isEmpty()) {
-                // No token separator in the needle, no need to optimize
-                return expression;
-            }
-
-            subExpressions.add(new ConditionalExpression.Like(haystack,
-                                                              LiteralExpression.create("%" + needle + "%")));
-
-            return new LogicalExpression.AND(subExpressions);
-        }
-
-        /**
-         * ALWAYS_INLINE static bool isTokenSeparator(const uint8_t c)
-         * {
-         * return !(isAlphaNumericASCII(c) || !isASCII(c));
-         * }
-         */
-        private boolean isTokenSeparator(char chr) {
-            return !(Character.isLetterOrDigit(chr) || (chr > 127));
         }
     }
 

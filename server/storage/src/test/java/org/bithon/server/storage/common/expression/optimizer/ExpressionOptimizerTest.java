@@ -170,50 +170,10 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
-    public void testHasTokenReplacer_NotReplaced() {
+    public void test_NotReplaced() {
         IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'ab')");
 
         Assert.assertEquals("hasToken(a, 'ab')", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_ReplaceToLIKEDirectly() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, '_ab_')");
-
-        Assert.assertEquals("a like '%_ab_%'", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .functions(Functions.getInstance())
-                                               .build("hasToken(a, 'SERVER_ERROR')");
-
-        Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%')",
-                            expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced_TokeSeparatorAhead() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, '_SERVER')");
-
-        Assert.assertEquals("(hasToken(a, 'SERVER') AND a like '%_SERVER%')", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced_TokeSeparatorAfter() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'ERROR_')");
-
-        Assert.assertEquals("(hasToken(a, 'ERROR') AND a like '%ERROR_%')", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced_In_CompoundExpression() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .functions(Functions.getInstance())
-                                               .build("hasToken(a, 'SERVER_ERROR') AND hasToken(a, 'EXCEPTION_CODE')");
-
-        Assert.assertEquals("((hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%') AND (hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND a like '%EXCEPTION_CODE%'))", expr.serializeToText(null));
     }
 
     @Test
