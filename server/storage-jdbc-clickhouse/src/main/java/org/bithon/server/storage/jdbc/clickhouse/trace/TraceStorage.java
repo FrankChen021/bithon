@@ -88,8 +88,8 @@ public class TraceStorage extends TraceJdbcStorage {
 
         getDefaultTableCreator(Tables.BITHON_TRACE_SPAN)
             .secondaryIndex(Tables.BITHON_TRACE_SPAN.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 1))
-            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_keys"))
-            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_vals"))
+            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_keys"))
+            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_vals"))
             .createIfNotExist(Tables.BITHON_TRACE_SPAN);
 
         getDefaultTableCreator(Tables.BITHON_TRACE_MAPPING)
