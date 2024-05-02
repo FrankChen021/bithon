@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.redis.jedis2.interceptor;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -55,9 +54,6 @@ public class RedisOutputStream$Ctor extends BeforeInterceptor {
                 JedisContext ctx = InterceptorContext.getAs("redis-command");
                 if (ctx != null) {
                     ctx.getMetrics().addRequestBytes(len);
-                } else {
-                    // log the stack trace to help get known which command is not instrumented
-                    LoggerFactory.getLogger(RedisOutputStream$Ctor.class).warn("Redis command is not instrumented.", new RuntimeException());
                 }
             } catch (Throwable ignored) {
             }
