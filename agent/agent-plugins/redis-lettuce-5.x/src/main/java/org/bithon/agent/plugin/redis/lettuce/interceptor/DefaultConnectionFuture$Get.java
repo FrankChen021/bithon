@@ -22,9 +22,13 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 
 /**
+ * {@link io.lettuce.core.DefaultConnectionFuture#get}
+ *
+ * Copy the target information to the returned object
+ *
  * @author frankchen
  */
-public class DefaultConnectionFutureGet extends AfterInterceptor {
+public class DefaultConnectionFuture$Get extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {

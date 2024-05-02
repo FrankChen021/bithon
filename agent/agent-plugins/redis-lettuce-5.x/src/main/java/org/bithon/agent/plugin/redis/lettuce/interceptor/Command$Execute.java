@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.jdk.interceptor;
+package org.bithon.agent.plugin.redis.lettuce.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -24,39 +25,34 @@ import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Locale;
 
 /**
- * {@link HttpURLConnection#connect()}
- *
- * @author Frank Chen
- * @date 25/10/23 4:49 pm
+ * @author frank.chen021@outlook.com
+ * @date 1/5/24 11:11 am
  */
-public class HttpURLConnection$Connect extends AroundInterceptor {
+public class Command$Execute extends AroundInterceptor {
+
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        ConnectionContext connectionContext = (ConnectionContext) ((IBithonObject) aopContext.getTargetAs()).getInjectedObject();
+        if (connectionContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        // Use to UpperCase to comply with the name in Lettuce's AsynCommand
+        String operation = aopContext.getMethod().toUpperCase(Locale.ENGLISH);
+        ITraceSpan span = TraceContextFactory.newSpan("spring-redis");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        HttpURLConnection connection = aopContext.getTargetAs();
-        URL url = connection.getURL();
-
-        /*
-         * starts a span which will be finished after HttpClient.parseHttp
-         */
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                               // Even if this span does not propagate the tracing context to next hop,
-                               // it's still marked as SpanKind.CLIENT
-                               // so that the visualization knows how to visualize this span and its remote
                                .kind(SpanKind.CLIENT)
-                               .tag(Tags.Http.CLIENT, "jdk")
-                               .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
-                               // No need to write URL and method to avoid repetition
-                               //.tag(Tags.Http.URL, connection.getURL().toString())
-                               //.tag(Tags.Http.METHOD, connection.getRequestMethod())
+                               .tag(Tags.Net.PEER, connectionContext.endpoint)
+                               .tag(Tags.Database.SYSTEM, "redis")
+                               .tag(Tags.Database.REDIS_DB_INDEX, connectionContext.dbIndex)
+                               .tag(Tags.Database.OPERATION, operation)
                                .start());
 
         return InterceptionDecision.CONTINUE;
@@ -68,3 +64,4 @@ public class HttpURLConnection$Connect extends AroundInterceptor {
         span.tag(aopContext.getException()).finish();
     }
 }
+

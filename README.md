@@ -156,7 +156,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | MySQL                  | 5.x         | 8.x         | &check;                                        |         |
 | Quartz                 | 2.x         |             | &check;                                        | &check; |
 | Redis - Jedis          | 2.9         |             | &check;                                        |         |
-| Redis - Lettuce        | 5.1.2       |             | &check;                                        |         |
+| Redis - Lettuce        | 5.1.2       | 6.x         | &check;                                        | &check; |
 | Spring Boot            | 1.5         | 3.0+        |                                                | &check; |
 | Spring Bean            | 4.3.12      |             |                                                | &check; |
 | Spring Open Feign      | 10.8        |             |                                                | &check; |

@@ -25,6 +25,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.InetSocketAddress;
@@ -49,6 +50,7 @@ public class DefaultHttpClientConnectionOperator$Connect extends AroundIntercept
                                // Even if this span does not propagate the tracing context to next hop,
                                // it's still marked as SpanKind.CLIENT
                                // so that the visualization knows how to visualize this span and its remote
+                               .kind(SpanKind.CLIENT)
                                .tag(Tags.Http.CLIENT, "apache-httpcomponents-4")
                                .tag(Tags.Net.PEER, httpHost.getPort() == -1 ? httpHost.getHostName() : httpHost.getHostName() + ":" + httpHost.getPort())
                                .start());
