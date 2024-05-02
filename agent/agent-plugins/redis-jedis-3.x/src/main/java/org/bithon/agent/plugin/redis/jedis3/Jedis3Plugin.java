@@ -35,7 +35,7 @@ public class Jedis3Plugin implements IPlugin {
     @Override
     public IInterceptorPrecondition getPreconditions() {
         // Only exists in Jedis 3.x
-        return IInterceptorPrecondition.isClassDefined("redis.clients.jedis.ClusterRest");
+        return IInterceptorPrecondition.isClassDefined("redis.clients.jedis.ClusterReset");
     }
 
     @Override
