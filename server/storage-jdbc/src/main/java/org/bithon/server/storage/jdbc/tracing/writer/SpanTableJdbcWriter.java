@@ -33,16 +33,16 @@ import java.util.function.Predicate;
  * @author Frank Chen
  * @date 16/1/24 8:04 pm
  */
-public abstract class SpanTableWriter implements IOnceTableWriter {
+public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
     private final String insertStatement;
     private final List<TraceSpan> spans;
     private final String table;
     private final Predicate<Exception> isRetryableException;
 
-    public SpanTableWriter(String table,
-                           String insertStatement,
-                           List<TraceSpan> spans,
-                           Predicate<Exception> isRetryableException) {
+    public SpanTableJdbcWriter(String table,
+                               String insertStatement,
+                               List<TraceSpan> spans,
+                               Predicate<Exception> isRetryableException) {
         this.table = table;
         this.insertStatement = insertStatement;
         this.spans = spans;

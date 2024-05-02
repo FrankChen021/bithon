@@ -21,12 +21,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -35,22 +37,17 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
-import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
-import org.bithon.server.storage.jdbc.tracing.writer.SpanTableWriter;
-import org.bithon.server.storage.jdbc.tracing.writer.TraceJdbcWriter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
-import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.Table;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,6 +58,7 @@ import java.util.Map;
 @JsonTypeName("clickhouse")
 public class TraceStorage extends TraceJdbcStorage {
 
+    @Getter
     private final ClickHouseConfig clickHouseConfig;
 
     @JsonCreator
@@ -81,28 +79,49 @@ public class TraceStorage extends TraceJdbcStorage {
             return;
         }
 
+
         getDefaultTableCreator(Tables.BITHON_TRACE_SPAN_SUMMARY)
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_keys"))
-            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_vals"))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_keys"))
+            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_vals"))
             .createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY);
 
         getDefaultTableCreator(Tables.BITHON_TRACE_SPAN)
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_keys"))
-            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN_SUMMARY.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 4096, "idx_attr_vals"))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(StringUtils.format("mapKeys(%s)", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_keys"))
+            .secondaryIndex(StringUtils.format("mapValues(%s)", Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), new SecondaryIndex("bloom_filter", 1, "idx_attr_vals"))
             .createIfNotExist(Tables.BITHON_TRACE_SPAN);
 
         getDefaultTableCreator(Tables.BITHON_TRACE_MAPPING)
             .createIfNotExist(Tables.BITHON_TRACE_MAPPING);
 
         getDefaultTableCreator(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F2.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F3.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F4.getName(), new SecondaryIndex("bloom_filter", 4096))
-            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F5.getName(), new SecondaryIndex("bloom_filter", 4096))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F2.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F3.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F4.getName(), new SecondaryIndex("bloom_filter", 1))
+            .secondaryIndex(Tables.BITHON_TRACE_SPAN_TAG_INDEX.F5.getName(), new SecondaryIndex("bloom_filter", 1))
             .createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX);
+
+        createMaterializedView();
+    }
+
+    private void createMaterializedView() {
+        String ddl = StringUtils.format("CREATE MATERIALIZED VIEW IF NOT EXISTS %s.%s %s TO %s.%s AS\n",
+                                        this.clickHouseConfig.getDatabase(),
+                                        Tables.BITHON_TRACE_SPAN_SUMMARY.getName() + "_mv",
+                                        this.clickHouseConfig.getOnClusterExpression(),
+                                        this.clickHouseConfig.getDatabase(),
+                                        this.clickHouseConfig.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName())) +
+                     StringUtils.format("SELECT * FROM %s.%s\n", this.clickHouseConfig.getDatabase(), this.clickHouseConfig.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName())) +
+                     // See SpanKind.isRootSpan
+                     StringUtils.format("WHERE kind in ('%s')",
+                                        String.join("', '",
+                                                    SpanKind.TIMER.name(),
+                                                    SpanKind.SERVER.name(),
+                                                    SpanKind.CONSUMER.name()));
+
+        this.dslContext.execute(ddl);
     }
 
     private TableCreator getDefaultTableCreator(Table<?> table) {
@@ -140,27 +159,7 @@ public class TraceStorage extends TraceJdbcStorage {
         if (this.clickHouseConfig.isOnDistributedTable()) {
             return new LoadBalancedTraceWriter(this.clickHouseConfig, this.storageConfig, this.dslContext);
         } else {
-            return new TraceJdbcWriter(dslContext, storageConfig, RetryableExceptions::isExceptionRetryable) {
-                @Override
-                protected boolean isTransactionSupported() {
-                    return false;
-                }
-
-                @Override
-                protected SpanTableWriter createInsertSpanRunnable(String table, String insertStatement, List<TraceSpan> spans) {
-                    return new SpanTableWriter(table, insertStatement, spans, this.isRetryableException) {
-                        /**
-                         * The map object is supported by ClickHouse JDBC, uses it directly
-                         */
-                        @Override
-                        protected Object toTagStore(Map<String, String> tag) {
-                            // TagMap is an instance of java.util.Map,
-                            // can be directly returned since ClickHouse JDBC supports such a type
-                            return tag;
-                        }
-                    };
-                }
-            };
+            return new TraceWriter(this.storageConfig, this.dslContext);
         }
     }
 
