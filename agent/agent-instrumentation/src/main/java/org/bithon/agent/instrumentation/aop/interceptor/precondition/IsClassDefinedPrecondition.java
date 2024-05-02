@@ -18,33 +18,26 @@ package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/15
+ * @date 2021/1/17 8:14 下午
  */
-class OrPrecondition implements IInterceptorPrecondition {
-    private final IInterceptorPrecondition[] conditions;
+class IsClassDefinedPrecondition implements IInterceptorPrecondition {
 
-    public OrPrecondition(IInterceptorPrecondition... conditions) {
-        this.conditions = conditions;
+    private final String className;
+
+    public IsClassDefinedPrecondition(String className) {
+        this.className = className;
     }
 
     @Override
-    public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-        for (IInterceptorPrecondition checker : conditions) {
-            if (checker.matches(classLoader, typeDescription)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean matches(ClassLoader classLoader,
+                           TypeDescription typeDescription) {
+        return TypeResolver.getInstance().isResolved(classLoader, this.className);
     }
-
 
     @Override
     public String toString() {
-        return Stream.of(conditions).map((cond) -> "(" + cond.toString() + ")").collect(Collectors.joining(" OR "));
+        return "isClassDefined('" + this.className + "')";
     }
 }

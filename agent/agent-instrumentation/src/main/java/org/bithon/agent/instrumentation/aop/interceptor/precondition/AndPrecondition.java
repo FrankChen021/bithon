@@ -23,28 +23,27 @@ import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/15
+ * @date 2/5/24 4:19 pm
  */
-class OrPrecondition implements IInterceptorPrecondition {
+class AndPrecondition implements IInterceptorPrecondition {
     private final IInterceptorPrecondition[] conditions;
 
-    public OrPrecondition(IInterceptorPrecondition... conditions) {
+    public AndPrecondition(IInterceptorPrecondition... conditions) {
         this.conditions = conditions;
     }
 
     @Override
     public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
         for (IInterceptorPrecondition checker : conditions) {
-            if (checker.matches(classLoader, typeDescription)) {
-                return true;
+            if (!checker.matches(classLoader, typeDescription)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
-
 
     @Override
     public String toString() {
-        return Stream.of(conditions).map((cond) -> "(" + cond.toString() + ")").collect(Collectors.joining(" OR "));
+        return Stream.of(conditions).map((cond) -> "(" + cond.toString() + ")").collect(Collectors.joining(" AND "));
     }
 }

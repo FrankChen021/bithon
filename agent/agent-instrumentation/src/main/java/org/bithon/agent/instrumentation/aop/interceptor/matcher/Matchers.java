@@ -41,6 +41,20 @@ import java.util.function.Function;
 public class Matchers {
     private static final ILogger log = LoggerFactory.getLogger(Matchers.class);
 
+    public static <T extends NamedElement> ElementMatcher.Junction<T> endsWith(String name) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return target.getActualName().endsWith(name);
+            }
+
+            @Override
+            public String toString() {
+                return "endsWith('" + name + "')";
+            }
+        };
+    }
+
     public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
@@ -283,6 +297,12 @@ public class Matchers {
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String... interfaceNames) {
         return ElementMatchers.isPublic()
                               .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(interfaceNames)))
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> declared(String... interfaceNames) {
+        return ElementMatchers.isPublic()
+                              .and(ElementMatchers.isDeclaredBy(ElementMatchers.namedOneOf(interfaceNames)))
                               .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
     }
 }
