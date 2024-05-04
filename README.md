@@ -156,7 +156,8 @@ If the target application runs under JDK 11 and above, the following arguments s
 | MySQL                  | 5.x         | 8.x         | &check;                                        |         |
 | Quartz                 | 2.x         |             | &check;                                        | &check; |
 | Redis - Jedis          | 2.9         | 5.x         | &check;                                        | &check; |
-| Redis - Lettuce        | 5.1.2       | 6.x         | &check;                                        | &check; |
+| Redis - Lettuce(1)     | 5.1.2       | 6.x         | &check;                                        | &check; |
+| Redis - Redisson(2)    | 3.29.0      |             | &check;                                        | &check; |
 | Spring Boot            | 1.5         | 3.0+        |                                                | &check; |
 | Spring Bean            | 4.3.12      |             |                                                | &check; |
 | Spring Open Feign      | 10.8        |             |                                                | &check; |
@@ -168,6 +169,10 @@ If the target application runs under JDK 11 and above, the following arguments s
 | HTTP Server - Tomcat   | 8.5.20      |             | &check;                                        | &check; |
 | HTTP Server - Undertow | 1.4.12      |             | &check;                                        | &check; |
 | xxl-job                | 2.3.0       |             |                                                | &check; |
+
+> NOTE:
+> 1. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API
+> 2. For Redisson, the metrics and tracing support is only available when it's used with Spring Data Redis API
 
 
 # User Doc
