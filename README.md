@@ -170,9 +170,10 @@ If the target application runs under JDK 11 and above, the following arguments s
 | HTTP Server - Undertow | 1.4.12      |             | &check;                                        | &check; |
 | xxl-job                | 2.3.0       |             |                                                | &check; |
 
-> NOTE:
-> 1. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API
->
+## Restrictions
+1. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API.
+2. For Redisson, metrics and tracing only work when connections are successfully established between the client and redis servers.
+
 
 
 # User Doc
