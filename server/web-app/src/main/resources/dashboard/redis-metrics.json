@@ -14,7 +14,8 @@
           "command"
         ]
       }
-    ]
+    ],
+    "showFilterInput": true
   },
   "charts": [
     {
