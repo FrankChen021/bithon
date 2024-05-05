@@ -110,5 +110,5 @@ public interface ISqlDialect {
         return expression;
     }
 
-    String formatDateTime(LiteralExpression.DateTime3Literal expression);
+    String formatDateTime(LiteralExpression.TimestampLiteral expression);
 }

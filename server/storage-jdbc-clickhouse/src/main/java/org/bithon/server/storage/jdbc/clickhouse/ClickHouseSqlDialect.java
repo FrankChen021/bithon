@@ -103,7 +103,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
+    public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
         return StringUtils.format("fromUnixTimestamp64Milli(%d)", expression.getValue());
     }
 

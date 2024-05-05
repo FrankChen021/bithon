@@ -122,7 +122,7 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
-        return "'" + DateTime.toISO8601((Long) expression.getValue()) + "'";
+    public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
+        return "'" + DateTime.toISO8601((long) expression.getValue()) + "'";
     }
 }

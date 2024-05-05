@@ -134,7 +134,7 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String formatDateTime(LiteralExpression.DateTime3Literal expression) {
+    public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
         return "'" + DateTime.toISO8601((Long) expression.getValue()) + "'";
     }
 }
