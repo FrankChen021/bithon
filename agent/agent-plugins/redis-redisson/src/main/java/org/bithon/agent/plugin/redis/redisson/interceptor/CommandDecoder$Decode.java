@@ -23,7 +23,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.redisson.client.protocol.CommandData;
 import org.redisson.client.protocol.QueueCommand;
-import org.redisson.client.protocol.RedisCommand;
 
 /**
  * Hook
@@ -42,8 +41,7 @@ public class CommandDecoder$Decode extends BeforeInterceptor {
             return;
         }
 
-        RedisCommand<?> redisCommand = ((CommandData<?, ?>) command).getCommand();
-        CommandContext commandContext = (CommandContext) ((IBithonObject) redisCommand).getInjectedObject();
+        CommandContext commandContext = (CommandContext) ((IBithonObject) command).getInjectedObject();
         if (commandContext == null) {
             return;
         }

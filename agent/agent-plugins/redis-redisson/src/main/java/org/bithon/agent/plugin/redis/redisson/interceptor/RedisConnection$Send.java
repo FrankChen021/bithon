@@ -19,8 +19,9 @@ package org.bithon.agent.plugin.redis.redisson.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.redisson.client.RedisClientConfig;
+import org.redisson.client.RedisConnection;
 import org.redisson.client.protocol.CommandData;
-import org.redisson.client.protocol.RedisCommand;
 
 /**
  * {@link org.redisson.client.RedisConnection#send(CommandData)}
@@ -32,12 +33,15 @@ public class RedisConnection$Send extends BeforeInterceptor {
 
     @Override
     public void before(AopContext aopContext) {
+        RedisConnection connection = aopContext.getTargetAs();
         CommandData<?, ?> commandData = aopContext.getArgAs(0);
 
-        RedisCommand<?> redisCommand = commandData.getCommand();
-        CommandContext commandContext = (CommandContext) ((IBithonObject) redisCommand).getInjectedObject();
-        if (commandContext != null) {
-            commandContext.begin(redisCommand.getName());
-        }
+        RedisClientConfig clientConfig = connection.getRedisClient().getConfig();
+        String endpoint = clientConfig.getAddress().getHost() + ":" + clientConfig.getAddress().getPort();
+        int dbIndex = clientConfig.getDatabase();
+        CommandContext commandContext = new CommandContext(endpoint, dbIndex);
+        commandContext.begin(commandData.getCommand().getName());
+
+        ((IBithonObject) commandData).setInjectedObject(commandContext);
     }
 }

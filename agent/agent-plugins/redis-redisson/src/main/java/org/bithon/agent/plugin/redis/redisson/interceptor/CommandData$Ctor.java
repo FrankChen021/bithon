@@ -17,7 +17,8 @@
 package org.bithon.agent.plugin.redis.redisson.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.component.commons.utils.ReflectionUtils;
 import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommand;
 import org.redisson.client.protocol.decoder.MultiDecoder;
@@ -32,9 +33,9 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 2024/5/5 10:47
  */
-public class CommandData$Ctor extends BeforeInterceptor {
+public class CommandData$Ctor extends AfterInterceptor {
     @Override
-    public void before(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         CompletableFuture<?> promise = aopContext.getArgAs(0);
         if (promise instanceof CommandCompletionPromise) {
             return;
@@ -44,6 +45,9 @@ public class CommandData$Ctor extends BeforeInterceptor {
             return;
         }
 
-        aopContext.getArgs()[0] = new CommandCompletionPromise<>(promise, redisCommand);
+        try {
+            ReflectionUtils.setFieldValue(aopContext.getTarget(), "promise", new CommandCompletionPromise<>(promise, aopContext.getTargetAs()));
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        }
     }
 }

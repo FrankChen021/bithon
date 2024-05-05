@@ -23,7 +23,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.redisson.client.protocol.CommandData;
-import org.redisson.client.protocol.RedisCommand;
 
 /**
  * Hook on
@@ -52,8 +51,7 @@ public class CommandEncoder$Encode extends AroundInterceptor {
         }
 
         CommandData<?, ?> commandData = aopContext.getArgAs(1);
-        RedisCommand<?> redisCommand = commandData.getCommand();
-        CommandContext commandContext = (CommandContext) ((IBithonObject) redisCommand).getInjectedObject();
+        CommandContext commandContext = (CommandContext) ((IBithonObject) commandData).getInjectedObject();
         if (commandContext != null) {
             commandContext.requestBytes = size;
         }

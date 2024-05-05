@@ -16,12 +16,10 @@
 
 package org.bithon.agent.plugin.redis.redisson;
 
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.redisson.client.protocol.RedisCommand;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,16 +31,6 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  * @date 2024-05-04 20:45:01
  */
 public class RedissonPlugin implements IPlugin {
-
-    /**
-     * Since {@link org.redisson.connection.ConnectionsHolder#acquireConnection(RedisCommand)} accepts the RedisCommand object,
-     * we need to attach the context to the RedisCommand object
-     * instead of attaching the context to the {@link org.redisson.client.protocol.CommandData}
-     */
-    @Override
-    public BithonClassDescriptor getBithonClassDescriptor() {
-        return BithonClassDescriptor.of("org.redisson.client.protocol.RedisCommand");
-    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -73,13 +61,6 @@ public class RedissonPlugin implements IPlugin {
                                                    .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
                                                                           .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
                                                    .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
-                        ),
-
-            forClass("org.redisson.connection.ConnectionsHolder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndRawArgs("acquireConnection", "org.redisson.client.protocol.RedisCommand")
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.ConnectionsHolder$AcquireConnection")
                         ),
 
             forClass("org.redisson.client.RedisConnection")

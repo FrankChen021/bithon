@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.redis.redisson.interceptor;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
+import org.redisson.client.protocol.CommandData;
 import org.redisson.client.protocol.QueueCommand;
-import org.redisson.client.protocol.RedisCommand;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
  * @date 2024/5/5 10:49
  */
 public class CommandCompletionPromise<T> extends CompletableFuture<T> {
-    public CommandCompletionPromise(CompletableFuture<T> delegate, RedisCommand<?> command) {
+    public CommandCompletionPromise(CompletableFuture<T> delegate, CommandData<?, ?> command) {
         this.whenComplete((result, error) -> {
             try {
                 CommandContext commandContext = (CommandContext) ((IBithonObject) command).getInjectedObject();
