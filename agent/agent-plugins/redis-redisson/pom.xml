@@ -21,12 +21,6 @@
       <version>3.29.0</version>
       <scope>provided</scope>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.redisson</groupId>-->
-<!--      <artifactId>redisson-spring-data-32</artifactId>-->
-<!--      <version>3.29.0</version>-->
-<!--      <scope>provided</scope>-->
-<!--    </dependency>-->
   </dependencies>
 
   <build>
