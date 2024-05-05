@@ -242,7 +242,7 @@ class ChartComponent {
 
                 let message = data.responseText;
                 if (data.responseJSON !== undefined && data.responseJSON.message !== undefined) {
-                    message = data.responseJSON.message;
+                    message = '<pre style="margin:0 !important">' + data.responseJSON.message.htmlEncode() + '</pre>';
                 }
 
                 // Open popover
