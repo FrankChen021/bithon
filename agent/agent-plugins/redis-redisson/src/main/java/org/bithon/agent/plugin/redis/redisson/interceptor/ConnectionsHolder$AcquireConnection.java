@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.redis.redisson.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.redis.redisson.ConnectionContext;
 import org.redisson.client.RedisClientConfig;
 import org.redisson.client.RedisConnection;
 import org.redisson.client.protocol.RedisCommand;
@@ -53,6 +52,6 @@ public class ConnectionsHolder$AcquireConnection extends AfterInterceptor {
         RedisClientConfig clientConfig = connection.getRedisClient().getConfig();
         String endpoint = clientConfig.getAddress().getHost() + ":" + clientConfig.getAddress().getPort();
         int dbIndex = clientConfig.getDatabase();
-        ((IBithonObject) redisCommand).setInjectedObject(new ConnectionContext(endpoint, dbIndex));
+        ((IBithonObject) redisCommand).setInjectedObject(new CommandContext(endpoint, dbIndex));
     }
 }

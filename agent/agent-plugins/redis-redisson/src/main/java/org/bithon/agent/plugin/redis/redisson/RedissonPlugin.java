@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.redisson.client.protocol.RedisCommand;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,11 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  */
 public class RedissonPlugin implements IPlugin {
 
+    /**
+     * Since {@link org.redisson.connection.ConnectionsHolder#acquireConnection(RedisCommand)} accepts the RedisCommand object,
+     * we need to attach the context to the RedisCommand object
+     * instead of attaching the context to the {@link org.redisson.client.protocol.CommandData}
+     */
     @Override
     public BithonClassDescriptor getBithonClassDescriptor() {
         return BithonClassDescriptor.of("org.redisson.client.protocol.RedisCommand");
@@ -61,6 +67,14 @@ public class RedissonPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
                         ),
 
+            forClass("org.redisson.client.protocol.CommandData")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
+                                                                          .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
+                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
+                        ),
+
             forClass("org.redisson.connection.ConnectionsHolder")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -68,14 +82,12 @@ public class RedissonPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.redis.redisson.interceptor.ConnectionsHolder$AcquireConnection")
                         ),
 
-            forClass("org.redisson.spring.data.connection.RedissonConnection")
+            forClass("org.redisson.client.RedisConnection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("read")
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.RedissonConnection$Read")
+                                                   .onMethodAndRawArgs("send", "org.redisson.client.protocol.CommandData")
+                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
                         )
-
-
                             );
     }
 }

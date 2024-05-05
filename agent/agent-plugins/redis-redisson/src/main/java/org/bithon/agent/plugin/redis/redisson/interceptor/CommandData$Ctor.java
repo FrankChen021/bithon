@@ -16,41 +16,34 @@
 
 package org.bithon.agent.plugin.redis.redisson.interceptor;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.redisson.client.protocol.CommandData;
-import org.redisson.client.protocol.QueueCommand;
+import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommand;
+import org.redisson.client.protocol.decoder.MultiDecoder;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Hook
- * {@link org.redisson.client.handler.CommandDecoder#decode(ChannelHandlerContext, ByteBuf, QueueCommand, int)}
- * to get the response size
+ * Hook the constructor
+ * {@link org.redisson.client.protocol.CommandData#CommandData(CompletableFuture, MultiDecoder, Codec, RedisCommand, Object[])}
+ * so that we wrap the promise to get notified when the command is completed
  *
  * @author frank.chen021@outlook.com
- * @date 2024/5/4 22:01
+ * @date 2024/5/5 10:47
  */
-public class CommandDecoder$Decode extends BeforeInterceptor {
-
+public class CommandData$Ctor extends BeforeInterceptor {
     @Override
     public void before(AopContext aopContext) {
-        QueueCommand command = aopContext.getArgAs(2);
-        if (!(command instanceof CommandData)) {
+        CompletableFuture<?> promise = aopContext.getArgAs(0);
+        if (promise instanceof CommandCompletionPromise) {
+            return;
+        }
+        RedisCommand<?> redisCommand = aopContext.getArgAs(3);
+        if (redisCommand == null) {
             return;
         }
 
-        RedisCommand<?> redisCommand = ((CommandData<?, ?>) command).getCommand();
-        CommandContext commandContext = (CommandContext) ((IBithonObject) redisCommand).getInjectedObject();
-        if (commandContext == null) {
-            return;
-        }
-
-        ByteBuf buf = aopContext.getArgAs(1);
-        aopContext.setUserContext(buf.readerIndex());
-        commandContext.responseBuf = buf;
-        commandContext.responseBufStartIndex = buf.readerIndex();
+        aopContext.getArgs()[0] = new CommandCompletionPromise<>(promise, redisCommand);
     }
 }

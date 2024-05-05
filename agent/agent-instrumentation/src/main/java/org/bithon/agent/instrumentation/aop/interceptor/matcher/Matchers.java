@@ -69,7 +69,11 @@ public class Matchers {
         };
     }
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> withNames(Set<String> names) {
+    public static <T extends NamedElement> ElementMatcher.Junction<T> names(String... names) {
+        return names(new HashSet<>(Arrays.asList(names)));
+    }
+
+    public static <T extends NamedElement> ElementMatcher.Junction<T> names(Set<String> names) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {
