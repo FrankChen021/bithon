@@ -40,6 +40,7 @@
     <module>redis-jedis-3.x</module>
     <module>redis-jedis-4.x</module>
     <module>redis-lettuce-5.x</module>
+    <module>redis-redisson</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
     <module>logging-log4j2</module>
@@ -224,6 +225,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-redis-redisson</artifactId>
       <version>${project.version}</version>
     </dependency>
 
