@@ -40,9 +40,9 @@ public class Command$Execute extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // Use to UpperCase to comply with the name in Lettuce's AsynCommand
+        // Use to UpperCase to comply with the name in Lettuce's AsyncCommand
         String operation = aopContext.getMethod().toUpperCase(Locale.ENGLISH);
-        ITraceSpan span = TraceContextFactory.newSpan("spring-redis");
+        ITraceSpan span = TraceContextFactory.newSpan("lettuce");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
