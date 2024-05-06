@@ -340,7 +340,7 @@ class TableComponent {
                 onLoadError: (status, jqXHR) => {
                     let message = jqXHR.responseText;
                     if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.message !== undefined) {
-                        message = jqXHR.responseJSON.message;
+                        message = '<pre style="margin:0 !important">' + jqXHR.responseJSON.message.htmlEncode() + '</pre>';
                     }
 
                     // Show Popover

@@ -18,6 +18,7 @@ package org.bithon.component.commons.expression.optimzer;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -248,25 +249,64 @@ public class ExpressionOptimizer {
             }
 
             IExpression subExpression = expression.getOperands().get(0);
-            if (!(subExpression instanceof LiteralExpression)) {
-                return expression;
+            if ((subExpression instanceof LiteralExpression)) {
+                if (((LiteralExpression) subExpression).isNumber()) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is false
+                        return LiteralExpression.create(false);
+                    } else {
+                        return LiteralExpression.create(true);
+                    }
+                } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is false
+                        return LiteralExpression.create(false);
+                    } else {
+                        return LiteralExpression.create(true);
+                    }
+                }
+            } else if (subExpression instanceof ConditionalExpression.NotIn) {
+                // Turn the expression: 'NOT a not in ('xxx')' into 'a in (xxx)'
+                return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLeft(),
+                                                    (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.NotLike) {
+                // Turn the expression: 'NOT a not like 'xxx'' into 'a like (xxx)'
+                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLeft(),
+                                                      ((ConditionalExpression.NotLike) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.In) {
+                // Turn into In into NotIn
+                return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLeft(),
+                                                       (ExpressionList) ((ConditionalExpression.In) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.Like) {
+                // Turn into Like into NotLike
+                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLeft(),
+                                                         ((ConditionalExpression.Like) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.EQ) {
+                // Turn '=' into '<>'
+                return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLeft(),
+                                                   ((ComparisonExpression.EQ) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.NE) {
+                // Turn '<>' into '='
+                return new ComparisonExpression.EQ(((ComparisonExpression.NE) subExpression).getLeft(),
+                                                   ((ComparisonExpression.NE) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.LT) {
+                // Turn '<' into '>='
+                return new ComparisonExpression.GTE(((ComparisonExpression.LT) subExpression).getLeft(),
+                                                    ((ComparisonExpression.LT) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.GT) {
+                // Turn '>' into '<='
+                return new ComparisonExpression.LTE(((ComparisonExpression.GT) subExpression).getLeft(),
+                                                    ((ComparisonExpression.GT) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.LTE) {
+                // Turn '<= into '>'
+                return new ComparisonExpression.GT(((ComparisonExpression.LTE) subExpression).getLeft(),
+                                                  ((ComparisonExpression.LTE) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.GTE) {
+                // Turn '>= into '<'
+                return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLeft(),
+                                                  ((ComparisonExpression.GTE) subExpression).getRight());
             }
 
-            if (((LiteralExpression) subExpression).isNumber()) {
-                if (((LiteralExpression) subExpression).asBoolean()) {
-                    // the sub expression is true, the whole expression is false
-                    return LiteralExpression.create(false);
-                } else {
-                    return LiteralExpression.create(true);
-                }
-            } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                if (((LiteralExpression) subExpression).asBoolean()) {
-                    // the sub expression is true, the whole expression is false
-                    return LiteralExpression.create(false);
-                } else {
-                    return LiteralExpression.create(true);
-                }
-            }
             return expression;
         }
 

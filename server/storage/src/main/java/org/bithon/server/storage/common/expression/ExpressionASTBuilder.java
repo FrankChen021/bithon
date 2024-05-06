@@ -98,7 +98,7 @@ public class ExpressionASTBuilder {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
             }
         });
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -112,7 +112,7 @@ public class ExpressionASTBuilder {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
             }
         });
 
