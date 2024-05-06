@@ -14,7 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.utils;
+package org.bithon.server.commons.utils;
+
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.StringUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

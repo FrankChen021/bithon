@@ -19,9 +19,9 @@ package org.bithon.server.alerting.manager.api.parameter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.HumanReadableDurationConstraint;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
+import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;

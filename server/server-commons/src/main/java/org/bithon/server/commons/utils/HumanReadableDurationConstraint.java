@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.utils;
+package org.bithon.server.commons.utils;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
