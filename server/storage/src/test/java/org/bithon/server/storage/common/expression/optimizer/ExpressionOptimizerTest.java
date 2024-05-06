@@ -170,24 +170,10 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
-    public void testHasTokenReplacer_NotReplaced() {
+    public void test_NotReplaced() {
         IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'ab')");
 
         Assert.assertEquals("hasToken(a, 'ab')", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'a_b')");
-
-        Assert.assertEquals("a like '%a_b%'", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced_In_CompoundExpression() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'a_b') AND hasToken(a, 'c_d')");
-
-        Assert.assertEquals("(a like '%a_b%' AND a like '%c_d%')", expr.serializeToText(null));
     }
 
     @Test

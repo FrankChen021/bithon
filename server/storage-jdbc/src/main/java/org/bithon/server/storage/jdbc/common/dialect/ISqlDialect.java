@@ -103,9 +103,12 @@ public interface ISqlDialect {
         return false;
     }
 
+    /**
+     * Transform expressions for the target dialect
+     */
     default IExpression transform(IExpression expression) {
         return expression;
     }
 
-    String formatDateTime(LiteralExpression.DateTime3Literal expression);
+    String formatDateTime(LiteralExpression.TimestampLiteral expression);
 }

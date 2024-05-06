@@ -40,8 +40,7 @@ import java.util.Iterator;
 public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
-        return expression.accept(new HasTokenFunctionOptimizer())
-                         .accept(new ConstantFoldingOptimizer())
+        return expression.accept(new ConstantFoldingOptimizer())
                          .accept(new LogicalExpressionOptimizer());
     }
 
@@ -171,51 +170,6 @@ public class ExpressionOptimizer {
                 return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;
-        }
-    }
-
-    static class HasTokenFunctionOptimizer extends AbstractOptimizer {
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(FunctionExpression expression) {
-            if (!"hasToken".equals(expression.getName())) {
-                return expression;
-            }
-
-            // The hasToken already checks the parameter is a type of Literal
-            String needle = ((LiteralExpression) expression.getParameters().get(1)).asString();
-
-            for (int i = 0, size = needle.length(); i < size; i++) {
-                char chr = needle.charAt(i);
-                if (isTokenSeparator(chr)) {
-                    // replace this function into a LIKE expression
-                    return new ConditionalExpression.Like(expression.getParameters().get(0),
-                                                          LiteralExpression.create("%" + needle + "%"));
-                }
-            }
-            return expression;
-        }
-
-        /**
-         * ALWAYS_INLINE static bool isTokenSeparator(const uint8_t c)
-         * {
-         * return !(isAlphaNumericASCII(c) || !isASCII(c));
-         * }
-         */
-        private boolean isTokenSeparator(char chr) {
-            return !(Character.isLetterOrDigit(chr) || (chr > 127));
         }
     }
 
