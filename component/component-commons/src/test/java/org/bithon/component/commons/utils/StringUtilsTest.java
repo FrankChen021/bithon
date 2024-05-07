@@ -58,16 +58,16 @@ public class StringUtilsTest {
 
     @Test
     public void testEscapeSingleQuote() {
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuote("'"));
-        Assert.assertEquals("\\'a", StringUtils.escapeSingleQuote("'a"));
-        Assert.assertEquals("a\\'", StringUtils.escapeSingleQuote("a'"));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("''"));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuote("Frank's"));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuote("Frank\\'s"));
-        Assert.assertEquals("\\t", StringUtils.escapeSingleQuote("\\t"));
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuote("\\'"));
-        Assert.assertEquals("b\\'", StringUtils.escapeSingleQuote("b\\'"));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("\\''"));
-        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuote("a\\\\\\\\'"));
+        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("'"));
+        Assert.assertEquals("\\'a", StringUtils.escapeSingleQuoteIfNecessary("'a"));
+        Assert.assertEquals("a\\'", StringUtils.escapeSingleQuoteIfNecessary("a'"));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("''"));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank's"));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank\\'s"));
+        Assert.assertEquals("\\t", StringUtils.escapeSingleQuoteIfNecessary("\\t"));
+        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("\\'"));
+        Assert.assertEquals("b\\'", StringUtils.escapeSingleQuoteIfNecessary("b\\'"));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("\\''"));
+        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuoteIfNecessary("a\\\\\\\\'"));
     }
 }

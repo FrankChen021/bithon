@@ -185,7 +185,7 @@ public class StringUtils {
      *              the escaped character will not be escaped again.
      * @param escapeChar The character that is used to escape the single quote. Like ' or \
      */
-    public static String escapeSingleQuote(String input, char escapeChar) {
+    public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
         int i = input.indexOf('\'');
         if (i < 0) {
             // If no single quote found, no escape is needed
