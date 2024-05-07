@@ -180,23 +180,19 @@ public class StringUtils {
     public static String escapeSingleQuote(String pattern) {
         StringBuilder s = new StringBuilder(pattern.length());
 
-        boolean isEscaped = false;
         for (int i = 0, size = pattern.length(); i < size; i++) {
             char c = pattern.charAt(i);
-            if (isEscaped) {
+            if (c == '\\') {
                 s.append(c);
-                isEscaped = false;
-            } else {
-                if (c == '\\') {
-                    s.append(c);
-                    isEscaped = true;
-                } else if (c == '\'') {
-                    // Encounter a single quote, needs to escape
-                    s.append('\\');
-                    s.append('\'');
-                } else {
-                    s.append(c);
+                if (i + 1 < size) {
+                    s.append(pattern.charAt(++i));
                 }
+            } else if (c == '\'') {
+                // Escape the single quote
+                s.append('\\');
+                s.append(c);
+            } else {
+                s.append(c);
             }
         }
 
