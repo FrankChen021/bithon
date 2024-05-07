@@ -55,4 +55,16 @@ public class StringUtilsTest {
         Assert.assertEquals("print_io", StringUtils.camelToSnake("printIO"));
         Assert.assertEquals("print_io_and", StringUtils.camelToSnake("printIOAnd"));
     }
+
+    @Test
+    public void testEscapeSingleQuote() {
+        Assert.assertEquals("\\'", StringUtils.escapeSingleQuote("'"));
+        Assert.assertEquals("\\'a", StringUtils.escapeSingleQuote("'a"));
+        Assert.assertEquals("a\\'", StringUtils.escapeSingleQuote("a'"));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("''"));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuote("Frank's"));
+        Assert.assertEquals("\\t", StringUtils.escapeSingleQuote("\\t"));
+        Assert.assertEquals("\\'", StringUtils.escapeSingleQuote("\\'"));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("\\''"));
+    }
 }
