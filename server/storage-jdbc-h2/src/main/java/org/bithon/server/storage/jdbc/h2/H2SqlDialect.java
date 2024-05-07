@@ -142,7 +142,7 @@ public class H2SqlDialect implements ISqlDialect {
      * The H2 uses single quote to escape
      */
     @Override
-    public char getSingleQuoteEscapeCharacter() {
+    public char getEscapeCharacter4SingleQuote() {
         return '\'';
     }
 }

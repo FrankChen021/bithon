@@ -115,5 +115,5 @@ public interface ISqlDialect {
     /**
      * The escape character that is used to escape the single quote character in SQL
      */
-    char getSingleQuoteEscapeCharacter();
+    char getEscapeCharacter4SingleQuote();
 }

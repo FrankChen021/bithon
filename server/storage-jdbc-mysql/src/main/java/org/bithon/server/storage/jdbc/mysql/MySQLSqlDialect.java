@@ -127,7 +127,7 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public char getSingleQuoteEscapeCharacter() {
+    public char getEscapeCharacter4SingleQuote() {
         return '\\';
     }
 }

@@ -108,7 +108,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public char getSingleQuoteEscapeCharacter() {
+    public char getEscapeCharacter4SingleQuote() {
         return '\\';
     }
 

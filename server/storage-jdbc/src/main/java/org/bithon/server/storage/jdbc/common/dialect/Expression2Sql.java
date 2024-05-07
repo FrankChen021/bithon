@@ -56,7 +56,7 @@ public class Expression2Sql extends ExpressionSerializer {
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
-            sb.append(StringUtils.escapeSingleQuote((String) value, sqlDialect.getSingleQuoteEscapeCharacter()));
+            sb.append(StringUtils.escapeSingleQuote((String) value, sqlDialect.getEscapeCharacter4SingleQuote()));
             sb.append('\'');
         } else if (expression instanceof LiteralExpression.LongLiteral || expression instanceof LiteralExpression.DoubleLiteral) {
             sb.append(value);
