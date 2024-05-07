@@ -111,4 +111,9 @@ public interface ISqlDialect {
     }
 
     String formatDateTime(LiteralExpression.TimestampLiteral expression);
+
+    /**
+     * The escape character that is used to escape the single quote character in SQL
+     */
+    char getSingleQuoteEscapeCharacter();
 }

@@ -108,6 +108,11 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
+    public char getSingleQuoteEscapeCharacter() {
+        return '\\';
+    }
+
+    @Override
     public IExpression transform(IExpression expression) {
         return expression.accept(new HasTokenFunctionOptimizer());
     }

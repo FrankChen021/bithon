@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.utils;
 
+import org.bithon.component.commons.exception.HttpMappableException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -177,33 +179,46 @@ public class StringUtils {
         return snakeCase.toString();
     }
 
-    public static String escapeSingleQuote(String pattern) {
-        int i = pattern.indexOf('\'');
+    /**
+     * @param input The input string that needs to be escaped.
+     *              If the input has escaped character by using leading \ character,
+     *              the escaped character will not be escaped again.
+     * @param escapeChar The character that is used to escape the single quote. Like ' or \
+     */
+    public static String escapeSingleQuote(String input, char escapeChar) {
+        int i = input.indexOf('\'');
         if (i < 0) {
             // If no single quote found, no escape is needed
-            return pattern;
+            return input;
         }
 
-        StringBuilder escaped = new StringBuilder(pattern.length() + 1);
+        StringBuilder escaped = new StringBuilder(input.length() + 1);
         {
             // Processing from non-escape character
-            while (i > 0 && pattern.charAt(--i) == '\\') {
+            while (i > 0 && input.charAt(--i) == '\\') {
             }
             if (i > 0) {
                 // Before the slash character, there're characters
-                escaped.append(pattern, 0, i);
+                escaped.append(input, 0, i);
             }
 
-            for (int size = pattern.length(); i < size; i++) {
-                char c = pattern.charAt(i);
+            for (int size = input.length(); i < size; i++) {
+                char c = input.charAt(i);
                 if (c == '\\') {
-                    escaped.append(c);
-                    if (i + 1 < size) {
-                        escaped.append(pattern.charAt(++i));
+                    if (i + 1 == size) {
+                        throw new HttpMappableException(400,
+                                                        StringUtils.format("The string literal[%s] has ill-format escaping at the end of the string."));
                     }
+                    char next = input.charAt(++i);
+                    if (next == '\'') {
+                        escaped.append(escapeChar);
+                    } else {
+                        escaped.append('\\');
+                    }
+                    escaped.append(next);
                 } else if (c == '\'') {
                     // Escape the single quote
-                    escaped.append('\\');
+                    escaped.append(escapeChar);
                     escaped.append(c);
                 } else {
                     escaped.append(c);

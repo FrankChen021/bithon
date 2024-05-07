@@ -125,4 +125,9 @@ public class MySQLSqlDialect implements ISqlDialect {
     public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
         return "'" + DateTime.toISO8601((long) expression.getValue()) + "'";
     }
+
+    @Override
+    public char getSingleQuoteEscapeCharacter() {
+        return '\\';
+    }
 }
