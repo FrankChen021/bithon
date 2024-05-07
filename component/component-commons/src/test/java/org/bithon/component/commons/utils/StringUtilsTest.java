@@ -63,8 +63,11 @@ public class StringUtilsTest {
         Assert.assertEquals("a\\'", StringUtils.escapeSingleQuote("a'"));
         Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("''"));
         Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuote("Frank's"));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuote("Frank\\'s"));
         Assert.assertEquals("\\t", StringUtils.escapeSingleQuote("\\t"));
         Assert.assertEquals("\\'", StringUtils.escapeSingleQuote("\\'"));
+        Assert.assertEquals("b\\'", StringUtils.escapeSingleQuote("b\\'"));
         Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuote("\\''"));
+        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuote("a\\\\\\\\'"));
     }
 }

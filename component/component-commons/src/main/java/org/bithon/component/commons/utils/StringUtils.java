@@ -178,24 +178,38 @@ public class StringUtils {
     }
 
     public static String escapeSingleQuote(String pattern) {
-        StringBuilder s = new StringBuilder(pattern.length());
-
-        for (int i = 0, size = pattern.length(); i < size; i++) {
-            char c = pattern.charAt(i);
-            if (c == '\\') {
-                s.append(c);
-                if (i + 1 < size) {
-                    s.append(pattern.charAt(++i));
-                }
-            } else if (c == '\'') {
-                // Escape the single quote
-                s.append('\\');
-                s.append(c);
-            } else {
-                s.append(c);
-            }
+        int i = pattern.indexOf('\'');
+        if (i < 0) {
+            // If no single quote found, no escape is needed
+            return pattern;
         }
 
-        return s.toString();
+        StringBuilder escaped = new StringBuilder(pattern.length() + 1);
+        {
+            // Processing from non-escape character
+            while (i > 0 && pattern.charAt(--i) == '\\') {
+            }
+            if (i > 0) {
+                // Before the slash character, there're characters
+                escaped.append(pattern, 0, i);
+            }
+
+            for (int size = pattern.length(); i < size; i++) {
+                char c = pattern.charAt(i);
+                if (c == '\\') {
+                    escaped.append(c);
+                    if (i + 1 < size) {
+                        escaped.append(pattern.charAt(++i));
+                    }
+                } else if (c == '\'') {
+                    // Escape the single quote
+                    escaped.append('\\');
+                    escaped.append(c);
+                } else {
+                    escaped.append(c);
+                }
+            }
+        }
+        return escaped.toString();
     }
 }
