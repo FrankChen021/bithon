@@ -55,7 +55,7 @@ public class Matchers {
         };
     }
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
+    public static <T extends NamedElement> ElementMatcher.Junction<T> name(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {

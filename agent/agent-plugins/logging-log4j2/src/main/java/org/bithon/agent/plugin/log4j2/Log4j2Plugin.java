@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.log4j2;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
@@ -35,35 +34,33 @@ public class Log4j2Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.logging.log4j.core.Logger")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("logMessage")
-                                                                     .and(Matchers.takesArgument(1,
-                                                                                                 "org.apache.logging.log4j.Level"))
-                                                                     .and(Matchers.takesArgument(4,
-                                                                                                 "java.lang.Throwable")))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.Logger$LogMessage")
-                ),
+                .hook()
+                .onMethod(Matchers.name("logMessage")
+                                  .and(Matchers.takesArgument(1,
+                                                              "org.apache.logging.log4j.Level"))
+                                  .and(Matchers.takesArgument(4,
+                                                              "java.lang.Throwable")))
+                .to("org.bithon.agent.plugin.log4j2.interceptor.Logger$LogMessage")
+                .build(),
 
             forClass("org.apache.logging.log4j.core.pattern.PatternParser")
-                .methods(
-                    /**
-                     * {@link org.apache.logging.log4j.core.pattern.PatternParser#PatternParser(org.apache.logging.log4j.core.config.Configuration, String, Class, Class)}
-                     */
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesArguments(4))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Ctor"),
+                /**
+                 * {@link org.apache.logging.log4j.core.pattern.PatternParser#PatternParser(org.apache.logging.log4j.core.config.Configuration, String, Class, Class)}
+                 */
+                .hook()
+                .onConstructor(Matchers.takesArguments(4))
+                .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Ctor")
 
-                    /**
-                     * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
-                     */
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("parse")
-                                                                     .and(Matchers.takesArgument(0,
-                                                                                                 "java.lang.String"))
-                                                                     .and(Matchers.takesArguments(6)))
-                                                   .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Parse")
-                )
+                /**
+                 * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
+                 */
+                .hook()
+                .onMethod(Matchers.name("parse")
+                                  .and(Matchers.takesArgument(0,
+                                                              "java.lang.String"))
+                                  .and(Matchers.takesArguments(6)))
+                .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Parse")
+                .build()
         );
     }
 }

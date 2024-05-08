@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.alibaba.druid;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -38,61 +37,59 @@ public class DruidPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("com.alibaba.druid.pool.DruidDataSource")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("init")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init"),
+                .hook()
+                .onMethodAndNoArgs("init")
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close"),
+                .hook()
+                .onMethodAndNoArgs("close")
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("restart")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart"),
+                .hook()
+                .onMethodAndNoArgs("restart")
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("getStatValueAndReset")
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
-                ),
+                .hook()
+                .onMethodName("getStatValueAndReset")
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
+                .build(),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                .hook()
+                .onMethodAndNoArgs(METHOD_EXECUTE)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                .hook()
+                .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                .hook()
+                .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
-                ),
+                .hook()
+                .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                .build(),
+
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
+                .hook()
+                .onMethodName(METHOD_EXECUTE)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
+                .hook()
+                .onMethodName(METHOD_EXECUTE_QUERY)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
+                .hook()
+                .onMethodName(METHOD_EXECUTE_UPDATE)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(METHOD_EXECUTE_BATCH)
-                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
-                )
+                .hook()
+                .onMethodName(METHOD_EXECUTE_BATCH)
+                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
+                .build()
         );
     }
 }

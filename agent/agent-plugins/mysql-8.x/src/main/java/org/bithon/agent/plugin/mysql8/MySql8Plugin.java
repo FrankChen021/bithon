@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.mysql8;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
@@ -48,74 +47,59 @@ public class MySql8Plugin implements IPlugin {
 
             // mysql-connector 8
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("execute")
-                                                   .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
+                .hook()
+                .onMethodName("execute")
+                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("executeQuery")
-                                                   .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
+                .hook()
+                .onMethodName("executeQuery")
+                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("executeUpdate")
-                                                   .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
-                ),
+                .hook()
+                .onMethodName("executeUpdate")
+                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .build(),
 
             //
             // IO
             //
             forClass("com.mysql.cj.protocol.a.NativeProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
+                .hook()
+                .onMethodAndArgs("sendCommand",
+                                 "com.mysql.cj.protocol.Message", "boolean", "int")
+                .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
 
-                                                   .onMethodAndArgs("sendCommand",
-                                                                    "com.mysql.cj.protocol.Message",
-                                                                    "boolean",
-                                                                    "int")
-                                                   .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor"),
-
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("readAllResults",
-                                                                    "int",
-                                                                    "boolean",
-                                                                    "com.mysql.cj.protocol.a.NativePacketPayload",
-                                                                    "boolean",
-                                                                    "com.mysql.cj.protocol.ColumnDefinition",
-                                                                    "com.mysql.cj.protocol.ProtocolEntityFactory")
-                                                   .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
-                ),
-
+                .hook()
+                .onMethodAndArgs("readAllResults",
+                                 "int", "boolean", "com.mysql.cj.protocol.a.NativePacketPayload", "boolean",
+                                 "com.mysql.cj.protocol.ColumnDefinition",
+                                 "com.mysql.cj.protocol.ProtocolEntityFactory")
+                .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
+                .build(),
 
             //
             // statement
             //
             forClass("com.mysql.cj.jdbc.StatementImpl")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
+                .hook()
+                .onMethodAndArgs("executeInternal", "java.lang.String", "boolean")
+                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                                                   .onMethodAndArgs("executeInternal",
-                                                                    "java.lang.String", "boolean")
-                                                   .to("org.bithon.agent.plugin.mysql8.StatementInterceptor"),
+                .hook()
+                .onMethodAndArgs("executeQuery",
+                                 "java.lang.String")
+                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("executeQuery",
-                                                                    "java.lang.String")
-                                                   .to("org.bithon.agent.plugin.mysql8.StatementInterceptor"),
+                .hook()
+                .onMethodAndArgs("executeUpdate",
+                                 "java.lang.String", "boolean", "boolean")
+                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("executeUpdate",
-                                                                    "java.lang.String",
-                                                                    "boolean",
-                                                                    "boolean")
-                                                   .to("org.bithon.agent.plugin.mysql8.StatementInterceptor"),
-
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("executeUpdateInternal",
-                                                                    "java.lang.String",
-                                                                    "boolean",
-                                                                    "boolean")
-                                                   .to("org.bithon.agent.plugin.mysql8.StatementInterceptor"))
+                .hook()
+                .onMethodAndArgs("executeUpdateInternal",
+                                 "java.lang.String", "boolean", "boolean")
+                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .build()
         );
     }
 }

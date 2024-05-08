@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.jersey;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -34,11 +33,10 @@ public class JerseyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("com.sun.jersey.server.impl.model.method.dispatch.ResourceJavaMethodDispatcher")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.jersey.interceptor.ResourceJavaMethodDispatcher$Ctor")
-                )
+                .hook()
+                .onAllConstructor()
+                .to("org.bithon.agent.plugin.jersey.interceptor.ResourceJavaMethodDispatcher$Ctor")
+                .build()
         );
     }
 }

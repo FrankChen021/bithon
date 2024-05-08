@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.xxl.job;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
@@ -43,39 +42,35 @@ public class XxlJobPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("com.xxl.job.core.server.EmbedServer$EmbedHttpServerHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("process").and(Matchers.takesArguments(4)))
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.EmbedHttpServerHandler$Process")
-                        ),
+                .hook()
+                .onMethod(Matchers.name("process").and(Matchers.takesArguments(4)))
+                .to("org.bithon.agent.plugin.xxl.job.interceptor.EmbedHttpServerHandler$Process")
+                .build(),
 
             // Inject the tracing context to the internal queue for tracing context restoring
             forClass("com.xxl.job.core.thread.JobThread")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor("int", "com.xxl.job.core.handler.IJobHandler")
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.JobThread$Ctor")
-                        ),
+                .hook()
+                .onConstructor("int", "com.xxl.job.core.handler.IJobHandler")
+                .to("org.bithon.agent.plugin.xxl.job.interceptor.JobThread$Ctor")
+                .build(),
 
             forClass("com.xxl.job.core.handler.impl.GlueJobHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("execute")
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.GlueJobHandler$Execute")
-                        ),
+                .hook()
+                .onMethodAndNoArgs("execute")
+                .to("org.bithon.agent.plugin.xxl.job.interceptor.GlueJobHandler$Execute")
+                .build(),
 
             forClass("com.xxl.job.core.handler.impl.MethodJobHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("execute")
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.MethodJobHandler$Execute")
-                        ),
+                .hook()
+                .onMethodAndNoArgs("execute")
+                .to("org.bithon.agent.plugin.xxl.job.interceptor.MethodJobHandler$Execute")
+                .build(),
 
             forClass("com.xxl.job.core.handler.impl.ScriptJobHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("execute")
-                                                   .to("org.bithon.agent.plugin.xxl.job.interceptor.ScriptJobHandler$Execute")
-                        ));
+                .hook()
+                .onMethodAndNoArgs("execute")
+                .to("org.bithon.agent.plugin.xxl.job.interceptor.ScriptJobHandler$Execute")
+                .build()
+        );
     }
 }

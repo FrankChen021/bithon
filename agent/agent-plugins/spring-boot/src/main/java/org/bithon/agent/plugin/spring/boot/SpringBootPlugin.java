@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.spring.boot;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -33,21 +32,19 @@ public class SpringBootPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-                // 1.5.0+
-                forClass("org.springframework.boot.logging.LoggingApplicationListener")
-                        .methods(
-                                MethodPointCutDescriptorBuilder.build()
-                                                               .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
-                                                               .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
-                        ),
+            // 1.5.0+
+            forClass("org.springframework.boot.logging.LoggingApplicationListener")
+                .hook()
+                .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
+                .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
+                .build(),
 
-                // 2.0.0+
-                forClass("org.springframework.boot.context.logging.LoggingApplicationListener")
-                        .methods(
-                                MethodPointCutDescriptorBuilder.build()
-                                                               .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
-                                                               .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
-                        )
+            // 2.0.0+
+            forClass("org.springframework.boot.context.logging.LoggingApplicationListener")
+                .hook()
+                .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
+                .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
+                .build()
         );
     }
 }

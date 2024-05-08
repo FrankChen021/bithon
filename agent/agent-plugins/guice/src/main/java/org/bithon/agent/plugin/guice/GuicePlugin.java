@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.guice;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -34,15 +33,14 @@ public class GuicePlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("com.google.inject.internal.BindingBuilder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("toInstance")
-                                                   .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance"),
+                .hook()
+                .onMethodName("toInstance")
+                .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndRawArgs("to", "java.lang.Class")
-                                                   .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
-                )
+                .hook()
+                .onMethodAndRawArgs("to", "java.lang.Class")
+                .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
+                .build()
         );
     }
 }

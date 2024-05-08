@@ -16,6 +16,9 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frankchen
  * @date Jan 13, 2020 1:07:41 PM
@@ -24,18 +27,23 @@ public class InterceptorDescriptorBuilder {
 
     private String targetClass;
     private boolean debug;
+    private final List<MethodPointCutDescriptor> pointCuts = new ArrayList<>();
 
     public static InterceptorDescriptorBuilder forClass(String targetClass) {
         return new InterceptorDescriptorBuilder().targetClass(targetClass);
     }
 
-    public InterceptorDescriptor methods(MethodPointCutDescriptor... pointCuts) {
+    public MethodPointCutDescriptorBuilder hook() {
+        return new MethodPointCutDescriptorBuilder(this);
+    }
+
+    public InterceptorDescriptor build() {
         if (debug) {
             for (MethodPointCutDescriptor pointCut : pointCuts) {
                 pointCut.setDebug(debug);
             }
         }
-        return new InterceptorDescriptor(debug, targetClass, pointCuts);
+        return new InterceptorDescriptor(debug, targetClass, pointCuts.toArray(new MethodPointCutDescriptor[0]));
     }
 
     public InterceptorDescriptorBuilder targetClass(String targetClass) {
@@ -46,5 +54,9 @@ public class InterceptorDescriptorBuilder {
     public InterceptorDescriptorBuilder debug() {
         this.debug = true;
         return this;
+    }
+
+    void add(MethodPointCutDescriptor methodPointCutDescriptor) {
+        pointCuts.add(methodPointCutDescriptor);
     }
 }

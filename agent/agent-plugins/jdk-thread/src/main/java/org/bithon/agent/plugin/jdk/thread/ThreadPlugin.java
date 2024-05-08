@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.jdk.thread;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -34,50 +33,48 @@ public class ThreadPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("java.util.concurrent.ThreadPoolExecutor")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(
-                                                       "int",
-                                                       "int",
-                                                       "long",
-                                                       "java.util.concurrent.TimeUnit",
-                                                       "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
-                                                       "java.util.concurrent.ThreadFactory",
-                                                       "java.util.concurrent.RejectedExecutionHandler")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor"),
+                .hook()
+                .onConstructor(
+                    "int",
+                    "int",
+                    "long",
+                    "java.util.concurrent.TimeUnit",
+                    "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
+                    "java.util.concurrent.ThreadFactory",
+                    "java.util.concurrent.RejectedExecutionHandler")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("execute", "java.lang.Runnable")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute"),
+                .hook()
+                .onMethodAndArgs("execute", "java.lang.Runnable")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("remove", "java.lang.Runnable")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove"),
+                .hook()
+                .onMethodAndArgs("remove", "java.lang.Runnable")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("shutdown")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
-                        ),
+                .hook()
+                .onMethodName("shutdown")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
+                .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor("int",
-                                                                  "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
-                                                                  "java.lang.Thread$UncaughtExceptionHandler",
-                                                                  "int",
-                                                                  "java.lang.String")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor"),
+                .hook()
+                .onConstructor("int",
+                               "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
+                               "java.lang.Thread$UncaughtExceptionHandler",
+                               "int",
+                               "java.lang.String")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("tryTerminate")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate"),
+                .hook()
+                .onMethodName("tryTerminate")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("externalPush")
-                                                   .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
-                        )
-                            );
+                .hook()
+                .onMethodName("externalPush")
+                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
+                .build()
+            );
     }
 }
 

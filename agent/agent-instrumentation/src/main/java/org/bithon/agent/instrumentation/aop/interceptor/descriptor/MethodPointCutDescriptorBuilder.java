@@ -28,16 +28,17 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
  */
 public class MethodPointCutDescriptorBuilder {
 
+    private final InterceptorDescriptorBuilder interceptorDescriptorBuilder;
     private MethodType methodType;
     private ElementMatcher.Junction<MethodDescription> method;
     private ElementMatcher<MethodDescription> argsMatcher;
     private boolean debug;
 
-    public static MethodPointCutDescriptorBuilder build() {
-        return new MethodPointCutDescriptorBuilder();
+    MethodPointCutDescriptorBuilder(InterceptorDescriptorBuilder interceptorDescriptorBuilder) {
+        this.interceptorDescriptorBuilder = interceptorDescriptorBuilder;
     }
 
-    public MethodPointCutDescriptor to(String interceptorQualifiedClassName) {
+    public InterceptorDescriptorBuilder to(String interceptorQualifiedClassName) {
         if (method == null) {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
@@ -46,13 +47,15 @@ public class MethodPointCutDescriptorBuilder {
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }
-        return new MethodPointCutDescriptor(debug,
+        interceptorDescriptorBuilder.add(new MethodPointCutDescriptor(debug,
                                             methodMatcher,
                                             methodType,
-                                            interceptorQualifiedClassName);
+                                            interceptorQualifiedClassName));
+
+        return interceptorDescriptorBuilder;
     }
 
-    public MethodPointCutDescriptor replaceBy(String interceptorQualifiedClassName) {
+    public InterceptorDescriptorBuilder replaceBy(String interceptorQualifiedClassName) {
         if (methodType == MethodType.CONSTRUCTOR) {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
@@ -60,28 +63,28 @@ public class MethodPointCutDescriptorBuilder {
         return to(interceptorQualifiedClassName);
     }
 
-    public MethodPointCutDescriptorBuilder onAllMethods(String method) {
-        this.method = Matchers.withName(method);
+    public MethodPointCutDescriptorBuilder onMethodName(String method) {
+        this.method = Matchers.name(method);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
-        this.method = Matchers.withName(method);
+        this.method = Matchers.name(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
-        this.method = Matchers.withName(method);
+        this.method = Matchers.name(method);
         this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
-        this.method = Matchers.withName(method);
+        this.method = Matchers.name(method);
         this.argsMatcher = ElementMatchers.takesNoArguments();
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;

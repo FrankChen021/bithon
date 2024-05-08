@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.webserver.undertow;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -35,40 +34,34 @@ public class UndertowPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("io.undertow.Undertow")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("start")
-                                                   .noArgs()
-                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
-                ),
+                .hook()
+                .onMethodAndNoArgs("start")
+                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
+                .build(),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("setRootHandler")
-                                                   .onArgs("io.undertow.server.HttpHandler")
-                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
-                ),
+                .hook()
+                .onMethodAndArgs("setRootHandler", "io.undertow.server.HttpHandler")
+                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
+                .build(),
 
             forClass("io.undertow.server.HttpServerExchange")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("dispatch")
-                                                   .onArgs("java.util.concurrent.Executor",
-                                                           "io.undertow.server.HttpHandler")
-                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
-                ),
+                .hook()
+                .onMethodAndArgs("dispatch",
+                                 "java.util.concurrent.Executor",
+                                 "io.undertow.server.HttpHandler")
+                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
+                .build(),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("handleThrowable")
-                                                   .onArgs("io.undertow.server.HttpServerExchange",
-                                                           "javax.servlet.ServletRequest",
-                                                           "javax.servlet.ServletResponse",
-                                                           "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
-                )
+                .hook()
+                .onMethodAndArgs("handleThrowable",
+                                 "io.undertow.server.HttpServerExchange",
+                                 "javax.servlet.ServletRequest",
+                                 "javax.servlet.ServletResponse",
+                                 "java.lang.Throwable")
+                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
+                .build()
         );
     }
 }

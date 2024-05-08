@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.httpclient.jdk;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -49,85 +48,79 @@ public class JdkHttpClientPlugin implements IPlugin {
         return Arrays.asList(
 
             forClass("java.net.Socket")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("getInputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream"),
+                .hook()
+                .onMethodName("getInputStream")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("getOutputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
-                        ),
+                .hook()
+                .onMethodName("getOutputStream")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
+                .build(),
 
             // for HTTPS
             forClass("sun.security.ssl.SSLSocketImpl")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("getInputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream"),
+                .hook()
+                .onMethodName("getInputStream")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("getOutputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
-                        ),
+                .hook()
+                .onMethodName("getOutputStream")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
+                .build(),
 
             forClass("sun.net.NetworkClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("doConnect")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.NetworkClient$DoConnect")
-                        ),
+                .hook()
+                .onMethodName("doConnect")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.NetworkClient$DoConnect")
+                .build(),
 
             forClass("sun.net.www.http.HttpClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.named("New")
-                                                                            .and(ElementMatchers.isStatic())
-                                                                            .and(ElementMatchers.takesArguments(5))
-                                                                            .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$New"),
+                .hook()
+                .onMethod(ElementMatchers.named("New")
+                                         .and(ElementMatchers.isStatic())
+                                         .and(ElementMatchers.takesArguments(5))
+                                         .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$New")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("writeRequests", "sun.net.www.MessageHeader")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests"),
+                .hook()
+                .onMethodAndArgs("writeRequests", "sun.net.www.MessageHeader")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("writeRequests",
-                                                                    "sun.net.www.MessageHeader",
-                                                                    "sun.net.www.http.PosterOutputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests"),
+                .hook()
+                .onMethodAndArgs("writeRequests",
+                                 "sun.net.www.MessageHeader", "sun.net.www.http.PosterOutputStream")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")),
+                .hook()
+                .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")
+                .build(),
 
             forClass("sun.net.www.protocol.https.HttpsURLConnectionImpl")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("connect")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
-                        ),
+                .hook()
+                .onMethodAndNoArgs("connect")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
+                .build(),
+
             forClass("sun.net.www.protocol.http.HttpURLConnection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("connect")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
-                        ),
+                .hook()
+                .onMethodAndNoArgs("connect")
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
+                .build(),
 
             // HttpsClient inherits from HttpClient
             forClass("sun.net.www.protocol.https.HttpsClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.named("New")
-                                                                            .and(ElementMatchers.isStatic())
-                                                                            .and(ElementMatchers.takesArguments(7))
-                                                                            // there are two overridden versions of 'New' both of which have 7 parameters,
-                                                                            // and they don't share the 3rd parameter
-                                                                            .and(Matchers.takesArgument(3, "java.net.Proxy"))
-                                                                            .and(Matchers.takesArgument(6,
-                                                                                                        "sun.net.www.protocol.http.HttpURLConnection")))
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpsClient$New"))
-
-                            );
+                .hook()
+                .onMethod(ElementMatchers.named("New")
+                                         .and(ElementMatchers.isStatic())
+                                         .and(ElementMatchers.takesArguments(7))
+                                         // there are two overridden versions of 'New' both of which have 7 parameters,
+                                         // and they don't share the 3rd parameter
+                                         .and(Matchers.takesArgument(3, "java.net.Proxy"))
+                                         .and(Matchers.takesArgument(6,
+                                                                     "sun.net.www.protocol.http.HttpURLConnection")))
+                .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpsClient$New")
+                .build()
+        );
     }
 }

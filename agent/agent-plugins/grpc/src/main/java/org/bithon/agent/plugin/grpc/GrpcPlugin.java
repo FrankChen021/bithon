@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.grpc;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
@@ -36,45 +35,38 @@ public class GrpcPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         List<InterceptorDescriptor> grpcInterceptorDescriptors = Arrays.asList(
+            // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractBlockingStub")
-                .methods(
-                    // Hook to enhance stub classes
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("newStub").and(Matchers.takesArguments(3)))
-                                                   .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
-                ),
+                .hook()
+                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
+                .build(),
 
+            // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractFutureStub")
-                .methods(
-                    // Hook to enhance stub classes
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("newStub").and(Matchers.takesArguments(3)))
-                                                   .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
-                ),
+                .hook()
+                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
+                .build(),
 
+            // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractAsyncStub")
-                .methods(
-                    // Hook to enhance stub classes
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("newStub").and(Matchers.takesArguments(3)))
-                                                   .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
-                ),
+                .hook()
+                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
+                .build(),
 
             forClass("io.grpc.internal.ManagedChannelImplBuilder")
-                .methods(
-                    // Hook to enhance stub classes
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("build")
-                                                   .to("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
-                ),
-
+                .hook()
+                .onMethodAndNoArgs("build")
+                .to("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
+                .build(),
 
             forClass("io.grpc.internal.ServerImplBuilder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("build")
-                                                   .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
-                )
+                .hook()
+                .onMethodAndNoArgs("build")
+                .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
+                .build()
         );
 
         //
