@@ -60,12 +60,6 @@ public class InterceptorDescriptorBuilder {
                                                    MethodType.CONSTRUCTOR);
     }
 
-    public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
-        return new MethodPointCutDescriptorBuilder(this,
-                                                   ElementMatchers.isConstructor().and(matcher),
-                                                   MethodType.CONSTRUCTOR);
-    }
-
     public MethodPointCutDescriptorBuilder onDefaultConstructor() {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isDefaultConstructor(),
