@@ -50,7 +50,7 @@ public class Jedis2Plugin implements IPlugin {
                     "redis.clients.jedis.BasicCommands",
                     "redis.clients.jedis.ClusterCommands",
                     "redis.clients.jedis.SentinelCommands"))
-                .to("org.bithon.agent.plugin.redis.jedis2.interceptor.OnCommand")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis2.interceptor.OnCommand")
                 .build(),
 
             forClass("redis.clients.jedis.BinaryJedis")
@@ -59,18 +59,18 @@ public class Jedis2Plugin implements IPlugin {
                                              "redis.clients.jedis.MultiKeyBinaryCommands",
                                              "redis.clients.jedis.AdvancedBinaryJedisCommands",
                                              "redis.clients.jedis.BinaryScriptingCommands"))
-                .to("org.bithon.agent.plugin.redis.jedis2.interceptor.OnCommand")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis2.interceptor.OnCommand")
                 .build(),
 
             forClass("redis.clients.util.RedisOutputStream")
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                .to("org.bithon.agent.plugin.redis.jedis2.interceptor.RedisOutputStream$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis2.interceptor.RedisOutputStream$Ctor")
                 .build(),
 
             //2.9.x
             forClass("redis.clients.util.RedisInputStream")
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                .to("org.bithon.agent.plugin.redis.jedis2.interceptor.RedisInputStream$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis2.interceptor.RedisInputStream$Ctor")
                 .build()
         );
     }

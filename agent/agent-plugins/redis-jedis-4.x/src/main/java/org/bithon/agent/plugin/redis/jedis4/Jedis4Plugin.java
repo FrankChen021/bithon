@@ -49,23 +49,23 @@ public class Jedis4Plugin implements IPlugin {
 
             forClass("redis.clients.jedis.Connection")
                 .onMethodAndNoArgs("connect")
-                .to("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
                 .build(),
 
             forClass("redis.clients.jedis.Jedis")
                 .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
-                .to("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
                 .build(),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
                 .build(),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
                 .build()
         );
     }

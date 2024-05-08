@@ -40,23 +40,23 @@ public class JettyPlugin implements IPlugin {
         return Arrays.asList(
             forClass("org.eclipse.jetty.server.AbstractConnector")
                 .onMethodAndNoArgs("doStart")
-                .to("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
                 .build(),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .onMethodAndNoArgs("doStart")
-                .to("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
                 .build(),
 
             forClass("org.eclipse.jetty.server.HttpChannel")
                 .onMethodAndNoArgs("handle")
-                .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle")
 
                 .onMethodAndNoArgs("onCompleted")
-                .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted")
 
                 .onMethodAndArgs("handleException", "java.lang.Throwable")
-                .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
                 .build()
         );
     }

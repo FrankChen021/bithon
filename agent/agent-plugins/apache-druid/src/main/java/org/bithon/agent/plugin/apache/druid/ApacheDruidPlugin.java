@@ -35,12 +35,12 @@ public class ApacheDruidPlugin implements IPlugin {
         return Arrays.asList(
             forClass("org.apache.druid.sql.SqlLifecycle")
                 .onMethodName("initialize")
-                .to("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
                 .build(),
 
             forClass("org.apache.druid.server.QueryLifecycle")
                 .onMethodName("initialize")
-                .to("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
                 .build()
         );
     }

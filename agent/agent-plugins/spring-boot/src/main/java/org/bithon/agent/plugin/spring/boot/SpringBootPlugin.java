@@ -35,13 +35,13 @@ public class SpringBootPlugin implements IPlugin {
             // 1.5.0+
             forClass("org.springframework.boot.logging.LoggingApplicationListener")
                 .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
-                .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
+                .interceptedBy("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
                 .build(),
 
             // 2.0.0+
             forClass("org.springframework.boot.context.logging.LoggingApplicationListener")
                 .onMethodAndArgs("onApplicationEvent", "org.springframework.context.ApplicationEvent")
-                .to("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
+                .interceptedBy("org.bithon.agent.plugin.spring.boot.interceptor.LoggingApplicationListener$OnApplicationStartingEvent")
                 .build()
         );
     }

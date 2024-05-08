@@ -37,15 +37,15 @@ public class LogbackPlugin implements IPlugin {
             forClass("ch.qos.logback.classic.Logger")
                 .onMethodAndArgs("callAppenders",
                                  "ch.qos.logback.classic.spi.ILoggingEvent")
-                .to("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
                 .build(),
 
             forClass("ch.qos.logback.core.pattern.PatternLayoutBase")
                 .onDefaultConstructor()
-                .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor")
 
                 .onMethodAndArgs("setPattern", "java.lang.String")
-                .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
                 .build()
         );
     }

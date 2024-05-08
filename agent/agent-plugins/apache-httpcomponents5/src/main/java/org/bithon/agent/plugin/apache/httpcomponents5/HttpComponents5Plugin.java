@@ -35,19 +35,19 @@ public class HttpComponents5Plugin implements IPlugin {
         return Arrays.asList(
             forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
                 .onMethodAndNoArgs("getBytesTransferred")
-                .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
                 .build(),
 
             // Tracing http request
             forClass("org.apache.hc.core5.http.impl.io.HttpRequestExecutor")
                 .onMethod(Matchers.name("execute").and(Matchers.takesArguments(4)))
-                .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
                 .build(),
 
             // Tracing http connection connect
             forClass("org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator")
                 .onMethod(Matchers.name("connect").and(Matchers.takesArguments(7)))
-                .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
                 .build()
         );
     }

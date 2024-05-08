@@ -48,13 +48,13 @@ public class MySql8Plugin implements IPlugin {
             // mysql-connector 8
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")
                 .onMethodName("execute")
-                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
                 .onMethodName("executeQuery")
-                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
                 .onMethodName("executeUpdate")
-                .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
                 .build(),
 
             //
@@ -63,13 +63,13 @@ public class MySql8Plugin implements IPlugin {
             forClass("com.mysql.cj.protocol.a.NativeProtocol")
                 .onMethodAndArgs("sendCommand",
                                  "com.mysql.cj.protocol.Message", "boolean", "int")
-                .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
 
                 .onMethodAndArgs("readAllResults",
                                  "int", "boolean", "com.mysql.cj.protocol.a.NativePacketPayload", "boolean",
                                  "com.mysql.cj.protocol.ColumnDefinition",
                                  "com.mysql.cj.protocol.ProtocolEntityFactory")
-                .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
                 .build(),
 
             //
@@ -77,19 +77,19 @@ public class MySql8Plugin implements IPlugin {
             //
             forClass("com.mysql.cj.jdbc.StatementImpl")
                 .onMethodAndArgs("executeInternal", "java.lang.String", "boolean")
-                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
                 .onMethodAndArgs("executeQuery",
                                  "java.lang.String")
-                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
                 .onMethodAndArgs("executeUpdate",
                                  "java.lang.String", "boolean", "boolean")
-                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
                 .onMethodAndArgs("executeUpdateInternal",
                                  "java.lang.String", "boolean", "boolean")
-                .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
                 .build()
         );
     }

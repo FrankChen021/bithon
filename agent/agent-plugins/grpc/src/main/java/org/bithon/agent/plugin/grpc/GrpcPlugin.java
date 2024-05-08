@@ -38,29 +38,29 @@ public class GrpcPlugin implements IPlugin {
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractBlockingStub")
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
-                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
+                .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractFutureStub")
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
-                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
+                .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractAsyncStub")
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
-                .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
+                .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
                 .build(),
 
             forClass("io.grpc.internal.ManagedChannelImplBuilder")
                 .onMethodAndNoArgs("build")
-                .to("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
+                .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
                 .build(),
 
             forClass("io.grpc.internal.ServerImplBuilder")
                 .onMethodAndNoArgs("build")
-                .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
+                .interceptedBy("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
                 .build()
         );
 

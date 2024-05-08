@@ -35,12 +35,12 @@ public class SpringSchedulingPlugin implements IPlugin {
         return Arrays.asList(
             forClass("org.springframework.scheduling.support.ScheduledMethodRunnable")
                 .onMethodAndNoArgs("run")
-                .to("org.bithon.agent.plugin.spring.scheduling.ScheduledMethodRunnable$Run")
+                .interceptedBy("org.bithon.agent.plugin.spring.scheduling.ScheduledMethodRunnable$Run")
                 .build(),
 
             forClass("org.springframework.scheduling.support.DelegatingErrorHandlingRunnable")
                 .onMethodAndNoArgs("run")
-                .to("org.bithon.agent.plugin.spring.scheduling.DelegatingErrorHandlingRunnable$Run")
+                .interceptedBy("org.bithon.agent.plugin.spring.scheduling.DelegatingErrorHandlingRunnable$Run")
                 .build()
         );
     }

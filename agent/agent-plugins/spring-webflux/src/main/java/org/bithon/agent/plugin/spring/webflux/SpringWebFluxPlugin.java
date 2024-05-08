@@ -41,36 +41,36 @@ public class SpringWebFluxPlugin implements IPlugin {
         List<InterceptorDescriptor> staticInterceptors = Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
                 .onMethodName("apply")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .onMethodName("onChannelInit")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerOperations")
                 // Its ctors vary in different versions, hook to all ctors
                 .onAllConstructor()
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
                 .onMethodName("send")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
 
                 .onMethodName("responseConnection")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
                 .onMethodName("onChannelInit")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientOperations")
                 .onAllConstructor()
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
                 .build(),
 
             forClass("reactor.core.publisher.Flux")
@@ -79,7 +79,7 @@ public class SpringWebFluxPlugin implements IPlugin {
                     "org.reactivestreams.Publisher",
                     "java.util.function.Function",
                     "org.reactivestreams.Publisher")
-                .to("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
                 .build()
             );
 
@@ -117,7 +117,7 @@ public class SpringWebFluxPlugin implements IPlugin {
                 throw new RuntimeException("Invalid configuration");
             }
 
-            filterInterceptors.add(builder.to(to).build());
+            filterInterceptors.add(builder.interceptedBy(to).build());
         }
 
         return filterInterceptors;

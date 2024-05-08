@@ -41,7 +41,7 @@ public class NettyHttpClientPlugin implements IPlugin {
                 .onMethodAndArgs("write",
                                  "org.jboss.netty.channel.Channel",
                                  "java.lang.Object")
-                .to("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
                 .build()
         );
     }

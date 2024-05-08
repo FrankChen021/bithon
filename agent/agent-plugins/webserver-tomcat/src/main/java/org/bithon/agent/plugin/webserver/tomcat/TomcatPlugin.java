@@ -36,14 +36,14 @@ public class TomcatPlugin implements IPlugin {
             // web server
             forClass("org.apache.tomcat.util.net.AbstractEndpoint")
                 .onMethodName("start")
-                .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.AbstractEndpoint$Start")
+                .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.AbstractEndpoint$Start")
                 .build(),
 
             // statistics
             // differ from Trace below since it depends on different response objects
             forClass("org.apache.catalina.connector.CoyoteAdapter")
                 .onMethodAndArgs("service", "org.apache.coyote.Request", "org.apache.coyote.Response")
-                .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.CoyoteAdapter$Service")
+                .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.CoyoteAdapter$Service")
                 .build(),
 
             // exception
@@ -52,19 +52,19 @@ public class TomcatPlugin implements IPlugin {
                                  "org.apache.catalina.connector.Request",
                                  "org.apache.catalina.connector.Response",
                                  "java.lang.Throwable")
-                .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardWrapperValve$Exception")
+                .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardWrapperValve$Exception")
                 .build(),
 
             // trace
             forClass("org.apache.catalina.core.StandardHostValve")
                 .onMethodAndArgs("invoke", "org.apache.catalina.connector.Request",
                                  "org.apache.catalina.connector.Response")
-                .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardHostValve$Invoke")
+                .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardHostValve$Invoke")
                 .build(),
 
             forClass("org.apache.catalina.core.StandardContext")
                 .onDefaultConstructor()
-                .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardContext$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardContext$Ctor")
                 .build()
         );
     }

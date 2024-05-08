@@ -36,13 +36,13 @@ public class Netty4Plugin implements IPlugin {
         InterceptorDescriptor descriptor =
             forClass("io.netty.util.ResourceLeakDetector")
                 .onMethodName("reportUntracedLeak")
-                .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportUntracedLeak")
+                .interceptedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportUntracedLeak")
 
                 .onMethodName("reportTracedLeak")
-                .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportTracedLeak")
+                .interceptedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportTracedLeak")
 
                 .onMethodName("needReport")
-                .replaceBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$NeedReport")
+                .replacedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$NeedReport")
                 .build();
 
         return Arrays.asList(descriptor.withTargetClazz("org.apache.ratis.thirdparty.io.netty.util.ResourceLeakDetector"),

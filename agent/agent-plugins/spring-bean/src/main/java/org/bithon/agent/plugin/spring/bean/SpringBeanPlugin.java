@@ -34,10 +34,10 @@ public class SpringBeanPlugin implements IPlugin {
         return Collections.singletonList(
             forClass("org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory")
                 .onMethodName("createBeanInstance")
-                .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateBeanInstance")
+                .interceptedBy("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateBeanInstance")
 
                 .onMethodName("applyBeanPostProcessorsBeforeInstantiation")
-                .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
+                .interceptedBy("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
                 .build()
         );
     }

@@ -36,45 +36,45 @@ public class OzonePlugin implements IPlugin {
         return Arrays.asList(
             forClass("org.apache.hadoop.ozone.client.rpc.RpcClient")
                 .onMethod(Matchers.implement("org.apache.hadoop.ozone.client.protocol.ClientProtocol"))
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
                 .build(),
 
             forClass("org.apache.hadoop.ozone.om.protocolPB.OzoneManagerProtocolClientSideTranslatorPB")
                 .onMethod(Matchers.implement("org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol"))
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
 
                 .onMethodAndNoArgs("close")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
                 .build(),
 
             // s3g -> scm
             forClass("org.apache.hadoop.hdds.scm.XceiverClientGrpc")
                 .onMethodAndNoArgs("connect")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
 
                 .onMethodName("sendCommand")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommand")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommand")
 
                 .onMethodName("sendCommandOnAllNodes")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandOnAllNodes")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandOnAllNodes")
 
                 // sendCommandAsync contains the DataNode parameter that we know where the command is sent to
                 .onMethod(Matchers.name("sendCommandAsync").and(Matchers.takesArguments(2)))
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
                 .build(),
 
             // Hook to save leader info
             forClass("org.apache.hadoop.hdds.scm.XceiverClientRatis")
                 .onMethodAndNoArgs("connect")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$Connect")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$Connect")
 
                 .onMethod(Matchers.name("sendCommandAsync").and(Matchers.takesArguments(1)))
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$SendCommandAsync")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$SendCommandAsync")
                 .build(),
 
             forClass("org.apache.hadoop.hdds.scm.XceiverClientSpi")
                 .onMethodName("sendCommand")
-                .to("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientSpi$SendCommand")
+                .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientSpi$SendCommand")
                 .build()
         );
     }

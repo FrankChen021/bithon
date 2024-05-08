@@ -38,45 +38,45 @@ public class DruidPlugin implements IPlugin {
         return Arrays.asList(
             forClass("com.alibaba.druid.pool.DruidDataSource")
                 .onMethodAndNoArgs("init")
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init")
 
                 .onMethodAndNoArgs("close")
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close")
 
                 .onMethodAndNoArgs("restart")
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart")
 
                 .onMethodName("getStatValueAndReset")
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
                 .build(),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")
                 .onMethodAndNoArgs(METHOD_EXECUTE)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
                 .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
                 .build(),
 
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
                 .onMethodName(METHOD_EXECUTE)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
                 .onMethodName(METHOD_EXECUTE_QUERY)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
                 .onMethodName(METHOD_EXECUTE_UPDATE)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
                 .onMethodName(METHOD_EXECUTE_BATCH)
-                .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
                 .build()
         );
     }

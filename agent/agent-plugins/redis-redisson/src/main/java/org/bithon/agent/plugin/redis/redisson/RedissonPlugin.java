@@ -39,7 +39,7 @@ public class RedissonPlugin implements IPlugin {
                 .onMethod(Matchers.name("encode")
                                   .and(Matchers.takesArguments(3))
                                   .and(Matchers.takesArgument(2, "io.netty.buffer.ByteBuf")))
-                .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandEncoder$Encode")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandEncoder$Encode")
                 .build(),
 
             forClass("org.redisson.client.handler.CommandDecoder")
@@ -47,18 +47,18 @@ public class RedissonPlugin implements IPlugin {
                                   .and(Matchers.takesArguments(4))
                                   .and(Matchers.takesArgument(1, "io.netty.buffer.ByteBuf"))
                                   .and(Matchers.takesArgument(2, "org.redisson.client.protocol.QueueCommand")))
-                .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
                 .build(),
 
             forClass("org.redisson.client.protocol.CommandData")
                 .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
                                        .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
-                .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
                 .build(),
 
             forClass("org.redisson.client.RedisConnection")
                 .onMethodAndRawArgs("send", "org.redisson.client.protocol.CommandData")
-                .to("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
                 .build());
     }
 }

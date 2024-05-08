@@ -34,7 +34,7 @@ public class GlassfishPlugin implements IPlugin {
         return Collections.singletonList(
             forClass("org.glassfish.jersey.server.model.internal.AbstractJavaResourceMethodDispatcher")
                 .onAllConstructor()
-                .to("org.bithon.agent.plugin.glassfish.interceptor.AbstractJavaResourceMethodDispatcher$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.glassfish.interceptor.AbstractJavaResourceMethodDispatcher$Ctor")
                 .build()
         );
     }

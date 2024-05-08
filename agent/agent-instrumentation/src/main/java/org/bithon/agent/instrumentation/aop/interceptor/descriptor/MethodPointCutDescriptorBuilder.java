@@ -43,7 +43,7 @@ public class MethodPointCutDescriptorBuilder {
         this.methodType = methodType;
     }
 
-    public InterceptorDescriptorBuilder to(String interceptorQualifiedClassName) {
+    public InterceptorDescriptorBuilder interceptedBy(String interceptorQualifiedClassName) {
         if (method == null) {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
@@ -60,12 +60,12 @@ public class MethodPointCutDescriptorBuilder {
         return interceptorDescriptorBuilder;
     }
 
-    public InterceptorDescriptorBuilder replaceBy(String interceptorQualifiedClassName) {
+    public InterceptorDescriptorBuilder replacedBy(String interceptorQualifiedClassName) {
         if (methodType == MethodType.CONSTRUCTOR) {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
 
-        return to(interceptorQualifiedClassName);
+        return interceptedBy(interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder debug() {

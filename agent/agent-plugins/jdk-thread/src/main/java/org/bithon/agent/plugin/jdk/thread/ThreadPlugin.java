@@ -41,16 +41,16 @@ public class ThreadPlugin implements IPlugin {
                     "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
                     "java.util.concurrent.ThreadFactory",
                     "java.util.concurrent.RejectedExecutionHandler")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor")
 
                 .onMethodAndArgs("execute", "java.lang.Runnable")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute")
 
                 .onMethodAndArgs("remove", "java.lang.Runnable")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove")
 
                 .onMethodName("shutdown")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
@@ -59,13 +59,13 @@ public class ThreadPlugin implements IPlugin {
                                "java.lang.Thread$UncaughtExceptionHandler",
                                "int",
                                "java.lang.String")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
 
                 .onMethodName("tryTerminate")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
 
                 .onMethodName("externalPush")
-                .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
                 .build()
         );
     }

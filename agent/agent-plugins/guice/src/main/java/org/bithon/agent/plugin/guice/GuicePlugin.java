@@ -34,10 +34,10 @@ public class GuicePlugin implements IPlugin {
         return Collections.singletonList(
             forClass("com.google.inject.internal.BindingBuilder")
                 .onMethodName("toInstance")
-                .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance")
+                .interceptedBy("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance")
 
                 .onMethodAndRawArgs("to", "java.lang.Class")
-                .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
+                .interceptedBy("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
                 .build()
         );
     }

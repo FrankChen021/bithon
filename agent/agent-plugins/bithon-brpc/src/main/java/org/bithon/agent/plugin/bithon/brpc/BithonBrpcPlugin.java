@@ -59,7 +59,7 @@ public class BithonBrpcPlugin implements IPlugin {
             String[] interfaces = config.getProviders().get(provider).split(",");
 
             return forClass(provider).onMethod(Matchers.implement(interfaces))
-                                     .to("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
+                                     .interceptedBy("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
                                      .build();
 
         }).collect(Collectors.toList());

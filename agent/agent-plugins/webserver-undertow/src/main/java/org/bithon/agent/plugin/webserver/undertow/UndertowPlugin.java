@@ -35,19 +35,19 @@ public class UndertowPlugin implements IPlugin {
         return Arrays.asList(
             forClass("io.undertow.Undertow")
                 .onMethodAndNoArgs("start")
-                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
+                .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
                 .build(),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
                 .onMethodAndArgs("setRootHandler", "io.undertow.server.HttpHandler")
-                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
+                .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
                 .build(),
 
             forClass("io.undertow.server.HttpServerExchange")
                 .onMethodAndArgs("dispatch",
                                  "java.util.concurrent.Executor",
                                  "io.undertow.server.HttpHandler")
-                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
+                .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
                 .build(),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandler")
@@ -56,7 +56,7 @@ public class UndertowPlugin implements IPlugin {
                                  "javax.servlet.ServletRequest",
                                  "javax.servlet.ServletResponse",
                                  "java.lang.Throwable")
-                .to("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
+                .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
                 .build()
         );
     }
