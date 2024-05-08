@@ -45,35 +45,30 @@ public class InterceptorDescriptorBuilder {
     public MethodPointCutDescriptorBuilder onMethod(String method) {
         return new MethodPointCutDescriptorBuilder(this,
                                                    Matchers.name(method),
-                                                   null,
                                                    MethodType.NON_CONSTRUCTOR);
     }
 
     public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
         return new MethodPointCutDescriptorBuilder(this,
                                                    method,
-                                                   null,
                                                    MethodType.NON_CONSTRUCTOR);
     }
 
     public MethodPointCutDescriptorBuilder onConstructor() {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isConstructor(),
-                                                   null,
                                                    MethodType.CONSTRUCTOR);
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isConstructor().and(matcher),
-                                                   null,
                                                    MethodType.CONSTRUCTOR);
     }
 
     public MethodPointCutDescriptorBuilder onDefaultConstructor() {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isDefaultConstructor(),
-                                                   null,
                                                    MethodType.CONSTRUCTOR);
     }
 

@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.spring.mvc;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -35,8 +34,8 @@ public class SpringMvcPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("feign.SynchronousMethodHandler$Factory")
-                .onMethod(Matchers.name("create")
-                                  .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
+                .onMethod("create")
+                .andArgs(1, "feign.MethodMetadata")
                 .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
                 .build(),
 

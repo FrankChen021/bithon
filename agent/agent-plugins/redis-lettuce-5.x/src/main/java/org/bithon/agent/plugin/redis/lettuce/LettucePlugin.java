@@ -115,9 +115,9 @@ public class LettucePlugin implements IPlugin {
                 .build(),
 
             forClass("io.lettuce.core.protocol.CommandHandler")
-                .onMethod(Matchers.name("decode")
-                                  .and(Matchers.takesArgument(0, "io.netty.buffer.ByteBuf"))
-                                  .and(Matchers.takesArgument(1, "io.lettuce.core.protocol.RedisCommand")))
+                .onMethod("decode")
+                .andArgs(0, "io.netty.buffer.ByteBuf")
+                .andArgs(1, "io.lettuce.core.protocol.RedisCommand")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.CommandHandler$Decode")
                 .build(),
 
@@ -125,7 +125,9 @@ public class LettucePlugin implements IPlugin {
             // Only works on Spring Data Redis
             // because this layer is a synchronized interface while the lettuce provides async operations
             forClass("org.springframework.data.redis.connection.lettuce.LettuceConnection")
-                .onConstructor(Matchers.takesArguments(4).and(Matchers.takesArgument(0, "io.lettuce.core.api.StatefulConnection")))
+                .onConstructor()
+                .andArgsSize(4)
+                .andArgs(0, "io.lettuce.core.api.StatefulConnection")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.LettuceConnection$Ctor")
                 .build(),
 

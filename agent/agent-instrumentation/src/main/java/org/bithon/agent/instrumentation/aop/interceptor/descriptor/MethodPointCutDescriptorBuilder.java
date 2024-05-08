@@ -19,7 +19,10 @@ package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+
+import java.util.function.Function;
 
 /**
  * @author frankchen
@@ -30,36 +33,63 @@ public class MethodPointCutDescriptorBuilder {
     private final InterceptorDescriptorBuilder interceptorDescriptorBuilder;
     private final MethodType methodType;
     private final ElementMatcher.Junction<MethodDescription> method;
-    private ElementMatcher<MethodDescription> argsMatcher;
+    private ElementMatcher.Junction<MethodDescription> argsMatcher;
     private boolean debug;
+    private Visibility[] visibility;
 
     MethodPointCutDescriptorBuilder(InterceptorDescriptorBuilder interceptorDescriptorBuilder,
                                     ElementMatcher.Junction<MethodDescription> name,
-                                    ElementMatcher<MethodDescription> argumentsMatcher,
                                     MethodType methodType) {
         this.interceptorDescriptorBuilder = interceptorDescriptorBuilder;
         this.method = name;
-        this.argsMatcher = argumentsMatcher;
         this.methodType = methodType;
     }
 
-    public MethodPointCutDescriptorBuilder andArgs(ElementMatcher<MethodDescription> matcher) {
-        this.argsMatcher = matcher;
+    public MethodPointCutDescriptorBuilder andArgs(ElementMatcher.Junction<MethodDescription> matcher) {
+        setArgsMatcher(matcher);
         return this;
     }
 
     public MethodPointCutDescriptorBuilder andNoArgs() {
-        this.argsMatcher = Matchers.takesArguments(0);
+        setArgsMatcher(Matchers.argumentSize(0));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgsSize(int size) {
+        setArgsMatcher(Matchers.argumentSize(size));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgsSize(Function<Integer, Boolean> comparator) {
+        setArgsMatcher(new ElementMatcher.Junction.AbstractBase<MethodDescription>() {
+
+            private final Function<Integer, Boolean> sizeComparator = comparator;
+
+            @Override
+            public boolean matches(MethodDescription target) {
+                return sizeComparator.apply(target.getParameters().size());
+            }
+        });
         return this;
     }
 
     public MethodPointCutDescriptorBuilder andArgs(String... args) {
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
+        setArgsMatcher(Matchers.createArgumentsMatcher(debug, args));
         return this;
     }
 
     public MethodPointCutDescriptorBuilder andRawArgs(String... args) {
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
+        setArgsMatcher(Matchers.createArgumentsMatcher(debug, true, args));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgs(int index, String typeName) {
+        setArgsMatcher(Matchers.takesArgument(index, typeName));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andVisibility(Visibility... visibility) {
+        this.visibility = visibility;
         return this;
     }
 
@@ -68,6 +98,9 @@ public class MethodPointCutDescriptorBuilder {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
         ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug, method);
+        if (visibility != null) {
+            methodMatcher = methodMatcher.and(Matchers.visibility(visibility));
+        }
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }
@@ -90,5 +123,9 @@ public class MethodPointCutDescriptorBuilder {
     public MethodPointCutDescriptorBuilder debug() {
         this.debug = true;
         return this;
+    }
+
+    private void setArgsMatcher(ElementMatcher.Junction<MethodDescription> matcher) {
+        this.argsMatcher = this.argsMatcher == null ? matcher : this.argsMatcher.and(matcher);
     }
 }

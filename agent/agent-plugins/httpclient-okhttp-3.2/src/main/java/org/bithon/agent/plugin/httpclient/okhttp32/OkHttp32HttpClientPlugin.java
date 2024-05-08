@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.httpclient.okhttp32;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
@@ -59,7 +58,8 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
 
             forClass("okhttp3.internal.connection.RealConnection")
                 // The connect method is not obfuscated
-                .onMethod(Matchers.name("connect").and(Matchers.visibility(Visibility.PUBLIC)))
+                .onMethod("connect")
+                .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
                 .build()
         );

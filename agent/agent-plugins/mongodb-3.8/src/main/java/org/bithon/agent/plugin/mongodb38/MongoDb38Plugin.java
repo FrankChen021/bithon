@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.mongodb38;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
@@ -45,7 +44,8 @@ public class MongoDb38Plugin implements IPlugin {
                 .build(),
 
             forClass("com.mongodb.internal.connection.CommandProtocolImpl")
-                .onConstructor(Matchers.argumentSize(size -> size >= 9))
+                .onConstructor()
+                .andArgsSize(size -> size >= 9)
                 .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Ctor")
 
                 .onMethod("execute")

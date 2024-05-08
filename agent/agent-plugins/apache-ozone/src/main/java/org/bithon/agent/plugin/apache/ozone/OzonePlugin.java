@@ -61,7 +61,8 @@ public class OzonePlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandOnAllNodes")
 
                 // sendCommandAsync contains the DataNode parameter that we know where the command is sent to
-                .onMethod(Matchers.name("sendCommandAsync").and(Matchers.takesArguments(2)))
+                .onMethod("sendCommandAsync")
+                .andArgsSize(2)
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandAsync")
                 .build(),
 
@@ -71,7 +72,8 @@ public class OzonePlugin implements IPlugin {
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$Connect")
 
-                .onMethod(Matchers.name("sendCommandAsync").and(Matchers.takesArguments(1)))
+                .onMethod("sendCommandAsync")
+                .andArgsSize(1)
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$SendCommandAsync")
                 .build(),
 

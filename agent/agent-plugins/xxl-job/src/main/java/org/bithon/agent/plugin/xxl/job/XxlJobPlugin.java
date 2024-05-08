@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.xxl.job;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -42,7 +41,8 @@ public class XxlJobPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("com.xxl.job.core.server.EmbedServer$EmbedHttpServerHandler")
-                .onMethod(Matchers.name("process").and(Matchers.takesArguments(4)))
+                .onMethod("process")
+                .andArgsSize(4)
                 .interceptedBy("org.bithon.agent.plugin.xxl.job.interceptor.EmbedHttpServerHandler$Process")
                 .build(),
 

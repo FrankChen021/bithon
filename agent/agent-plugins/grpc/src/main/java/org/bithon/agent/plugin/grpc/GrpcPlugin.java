@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.grpc;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.ArrayList;
@@ -37,19 +36,22 @@ public class GrpcPlugin implements IPlugin {
         List<InterceptorDescriptor> grpcInterceptorDescriptors = Arrays.asList(
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractBlockingStub")
-                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .onMethod("newStub")
+                .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractFutureStub")
-                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .onMethod("newStub")
+                .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractAsyncStub")
-                .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
+                .onMethod("newStub")
+                .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
                 .build(),
 

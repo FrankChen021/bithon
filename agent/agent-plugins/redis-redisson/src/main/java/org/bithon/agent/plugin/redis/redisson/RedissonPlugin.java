@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.redis.redisson;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -36,23 +35,24 @@ public class RedissonPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.redisson.client.handler.CommandEncoder")
-                .onMethod(Matchers.name("encode")
-                                  .and(Matchers.takesArguments(3))
-                                  .and(Matchers.takesArgument(2, "io.netty.buffer.ByteBuf")))
+                .onMethod("encode")
+                .andArgsSize(3)
+                .andArgs(2, "io.netty.buffer.ByteBuf")
                 .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandEncoder$Encode")
                 .build(),
 
             forClass("org.redisson.client.handler.CommandDecoder")
-                .onMethod(Matchers.name("decode")
-                                  .and(Matchers.takesArguments(4))
-                                  .and(Matchers.takesArgument(1, "io.netty.buffer.ByteBuf"))
-                                  .and(Matchers.takesArgument(2, "org.redisson.client.protocol.QueueCommand")))
+                .onMethod("decode")
+                .andArgsSize(4)
+                .andArgs(1, "io.netty.buffer.ByteBuf")
+                .andArgs(2, "org.redisson.client.protocol.QueueCommand")
                 .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
                 .build(),
 
             forClass("org.redisson.client.protocol.CommandData")
-                .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
-                                       .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
+                .onConstructor()
+                .andArgs(0, "java.util.concurrent.CompletableFuture")
+                .andArgs(3, "org.redisson.client.protocol.RedisCommand")
                 .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
                 .build(),
 

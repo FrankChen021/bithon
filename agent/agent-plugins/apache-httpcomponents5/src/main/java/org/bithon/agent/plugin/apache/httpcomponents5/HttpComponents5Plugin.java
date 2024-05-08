@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.apache.httpcomponents5;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -41,13 +40,15 @@ public class HttpComponents5Plugin implements IPlugin {
 
             // Tracing http request
             forClass("org.apache.hc.core5.http.impl.io.HttpRequestExecutor")
-                .onMethod(Matchers.name("execute").and(Matchers.takesArguments(4)))
+                .onMethod("execute")
+                .andArgsSize(4)
                 .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
                 .build(),
 
             // Tracing http connection connect
             forClass("org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator")
-                .onMethod(Matchers.name("connect").and(Matchers.takesArguments(7)))
+                .onMethod("connect")
+                .andArgsSize(7)
                 .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
                 .build()
         );

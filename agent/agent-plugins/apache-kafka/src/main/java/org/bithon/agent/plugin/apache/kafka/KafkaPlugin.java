@@ -43,7 +43,8 @@ public class KafkaPlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
 
                 // tracing
-                .onMethod(Matchers.name("poll").and(Matchers.visibility(Visibility.PRIVATE)))
+                .onMethod("poll")
+                .andVisibility(Visibility.PRIVATE)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
@@ -67,7 +68,8 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
-                .onConstructor(Matchers.visibility(Visibility.PACKAGE_PRIVATE).or(Matchers.visibility(Visibility.PRIVATE)))
+                .onConstructor()
+                .andVisibility(Visibility.PACKAGE_PRIVATE, Visibility.PRIVATE)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$Ctor")
 
                 // tracing
@@ -77,8 +79,8 @@ public class KafkaPlugin implements IPlugin {
 
             // Producer metrics helper
             forClass("org.apache.kafka.clients.producer.internals.Sender")
-                .onMethod(Matchers.name("handleProduceResponse")
-                                  .and(Matchers.takesFirstArgument("org.apache.kafka.clients.ClientResponse")))
+                .onMethod("handleProduceResponse")
+                .andArgs(0, "org.apache.kafka.clients.ClientResponse")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.Sender$HandleProduceResponse")
                 .build(),
 

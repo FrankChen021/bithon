@@ -59,13 +59,17 @@ public class Jedis4Plugin implements IPlugin {
                 .build(),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
-                .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
+                .onConstructor()
+                .andArgsSize(2)
+                .andArgs(0, "java.io.OutputStream")
                 .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
                 .build(),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
-                .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
+                .onConstructor()
+                .andArgsSize(2)
+                .andArgs(0, "java.io.InputStream")
                 .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
                 .build()
         );
