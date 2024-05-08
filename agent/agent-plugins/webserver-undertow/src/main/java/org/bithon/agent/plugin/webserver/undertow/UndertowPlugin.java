@@ -34,28 +34,30 @@ public class UndertowPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("io.undertow.Undertow")
-                .onMethodAndNoArgs("start")
+                .onMethod("start")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
                 .build(),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
-                .onMethodAndArgs("setRootHandler", "io.undertow.server.HttpHandler")
+                .onMethod("setRootHandler")
+                .andArgs("io.undertow.server.HttpHandler")
                 .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
                 .build(),
 
             forClass("io.undertow.server.HttpServerExchange")
-                .onMethodAndArgs("dispatch",
-                                 "java.util.concurrent.Executor",
-                                 "io.undertow.server.HttpHandler")
+                .onMethod("dispatch")
+                .andArgs("java.util.concurrent.Executor",
+                         "io.undertow.server.HttpHandler")
                 .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpServerExchangeDispatch")
                 .build(),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandler")
-                .onMethodAndArgs("handleThrowable",
-                                 "io.undertow.server.HttpServerExchange",
-                                 "javax.servlet.ServletRequest",
-                                 "javax.servlet.ServletResponse",
-                                 "java.lang.Throwable")
+                .onMethod("handleThrowable")
+                .andArgs("io.undertow.server.HttpServerExchange",
+                         "javax.servlet.ServletRequest",
+                         "javax.servlet.ServletResponse",
+                         "java.lang.Throwable")
                 .interceptedBy("org.bithon.agent.plugin.webserver.undertow.interceptor.LoggingExceptionHandler$HandleThrowable")
                 .build()
         );

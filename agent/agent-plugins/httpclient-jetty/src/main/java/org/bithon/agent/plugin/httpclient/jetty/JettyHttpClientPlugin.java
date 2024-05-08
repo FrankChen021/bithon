@@ -35,8 +35,8 @@ public class JettyHttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.eclipse.jetty.client.HttpRequest")
-                .onMethodAndArgs("send",
-                                 "org.eclipse.jetty.client.api.Response$CompleteListener")
+                .onMethod("send")
+                .andArgs("org.eclipse.jetty.client.api.Response$CompleteListener")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.jetty.HttpRequest$Send")
                 .build()
         );

@@ -35,8 +35,8 @@ public class LogbackPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("ch.qos.logback.classic.Logger")
-                .onMethodAndArgs("callAppenders",
-                                 "ch.qos.logback.classic.spi.ILoggingEvent")
+                .onMethod("callAppenders")
+                .andArgs("ch.qos.logback.classic.spi.ILoggingEvent")
                 .interceptedBy("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
                 .build(),
 
@@ -44,7 +44,8 @@ public class LogbackPlugin implements IPlugin {
                 .onDefaultConstructor()
                 .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor")
 
-                .onMethodAndArgs("setPattern", "java.lang.String")
+                .onMethod("setPattern")
+                .andArgs("java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
                 .build()
         );

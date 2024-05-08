@@ -33,7 +33,7 @@ public class JerseyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("com.sun.jersey.server.impl.model.method.dispatch.ResourceJavaMethodDispatcher")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.jersey.interceptor.ResourceJavaMethodDispatcher$Ctor")
                 .build()
         );

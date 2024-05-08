@@ -30,39 +30,22 @@ import java.util.List;
  */
 public class InterceptorDescriptorBuilder {
 
-    private String targetClass;
+    private final String targetClass;
     private boolean debug;
     private final List<MethodPointCutDescriptor> pointCuts = new ArrayList<>();
 
-    public static InterceptorDescriptorBuilder forClass(String targetClass) {
-        return new InterceptorDescriptorBuilder().targetClass(targetClass);
+    public InterceptorDescriptorBuilder(String targetClass) {
+        this.targetClass = targetClass;
     }
 
-    public MethodPointCutDescriptorBuilder onMethodName(String method) {
+    public static InterceptorDescriptorBuilder forClass(String targetClass) {
+        return new InterceptorDescriptorBuilder(targetClass);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethod(String method) {
         return new MethodPointCutDescriptorBuilder(this,
                                                    Matchers.name(method),
                                                    null,
-                                                   MethodType.NON_CONSTRUCTOR);
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
-        return new MethodPointCutDescriptorBuilder(this,
-                                                   Matchers.name(method),
-                                                   Matchers.createArgumentsMatcher(debug, args),
-                                                   MethodType.NON_CONSTRUCTOR);
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
-        return new MethodPointCutDescriptorBuilder(this,
-                                                   Matchers.name(method),
-                                                   Matchers.createArgumentsMatcher(debug, true, args),
-                                                   MethodType.NON_CONSTRUCTOR);
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
-        return new MethodPointCutDescriptorBuilder(this,
-                                                   Matchers.name(method),
-                                                   ElementMatchers.takesNoArguments(),
                                                    MethodType.NON_CONSTRUCTOR);
     }
 
@@ -73,7 +56,7 @@ public class InterceptorDescriptorBuilder {
                                                    MethodType.NON_CONSTRUCTOR);
     }
 
-    public MethodPointCutDescriptorBuilder onAllConstructor() {
+    public MethodPointCutDescriptorBuilder onConstructor() {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isConstructor(),
                                                    null,
@@ -84,16 +67,6 @@ public class InterceptorDescriptorBuilder {
         return new MethodPointCutDescriptorBuilder(this,
                                                    ElementMatchers.isConstructor().and(matcher),
                                                    null,
-                                                   MethodType.CONSTRUCTOR);
-    }
-
-    public MethodPointCutDescriptorBuilder onConstructor(String... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args should not be null");
-        }
-        return new MethodPointCutDescriptorBuilder(this,
-                                                   ElementMatchers.isConstructor(),
-                                                   Matchers.createArgumentsMatcher(debug, args),
                                                    MethodType.CONSTRUCTOR);
     }
 
@@ -111,11 +84,6 @@ public class InterceptorDescriptorBuilder {
             }
         }
         return new InterceptorDescriptor(debug, targetClass, pointCuts.toArray(new MethodPointCutDescriptor[0]));
-    }
-
-    public InterceptorDescriptorBuilder targetClass(String targetClass) {
-        this.targetClass = targetClass;
-        return this;
     }
 
     public InterceptorDescriptorBuilder debug() {

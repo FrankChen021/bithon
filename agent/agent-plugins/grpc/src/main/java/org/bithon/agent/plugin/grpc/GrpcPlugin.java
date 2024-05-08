@@ -54,12 +54,14 @@ public class GrpcPlugin implements IPlugin {
                 .build(),
 
             forClass("io.grpc.internal.ManagedChannelImplBuilder")
-                .onMethodAndNoArgs("build")
+                .onMethod("build")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
                 .build(),
 
             forClass("io.grpc.internal.ServerImplBuilder")
-                .onMethodAndNoArgs("build")
+                .onMethod("build")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
                 .build()
         );

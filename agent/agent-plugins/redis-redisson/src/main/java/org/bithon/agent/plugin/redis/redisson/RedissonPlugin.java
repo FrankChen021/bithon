@@ -57,7 +57,8 @@ public class RedissonPlugin implements IPlugin {
                 .build(),
 
             forClass("org.redisson.client.RedisConnection")
-                .onMethodAndRawArgs("send", "org.redisson.client.protocol.CommandData")
+                .onMethod("send")
+                .andRawArgs("org.redisson.client.protocol.CommandData")
                 .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
                 .build());
     }

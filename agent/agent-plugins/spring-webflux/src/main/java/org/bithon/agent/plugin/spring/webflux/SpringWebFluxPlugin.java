@@ -40,48 +40,47 @@ public class SpringWebFluxPlugin implements IPlugin {
 
         List<InterceptorDescriptor> staticInterceptors = Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
-                .onMethodName("apply")
+                .onMethod("apply")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
-                .onMethodName("onChannelInit")
+                .onMethod("onChannelInit")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerOperations")
                 // Its ctors vary in different versions, hook to all ctors
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .onMethodName("send")
+                .onMethod("send")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
 
-                .onMethodName("responseConnection")
+                .onMethod("responseConnection")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
-                .onMethodName("onChannelInit")
+                .onMethod("onChannelInit")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientOperations")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
                 .build(),
 
             forClass("reactor.core.publisher.Flux")
-                .onMethodAndRawArgs(
-                    "timeout",
-                    "org.reactivestreams.Publisher",
-                    "java.util.function.Function",
-                    "org.reactivestreams.Publisher")
+                .onMethod("timeout")
+                .andRawArgs("org.reactivestreams.Publisher",
+                            "java.util.function.Function",
+                            "org.reactivestreams.Publisher")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
                 .build()
-            );
+        );
 
         List<InterceptorDescriptor> interceptorDescriptors = getGatewayInterceptors();
         interceptorDescriptors.addAll(staticInterceptors);
@@ -102,11 +101,9 @@ public class SpringWebFluxPlugin implements IPlugin {
 
 
             MethodPointCutDescriptorBuilder builder = forClass(clazz).debug()
-                                                                                                                          .onMethodAndArgs(
-                                                                         "filter",
-                                                                         "org.springframework.web.server.ServerWebExchange",
-                                                                         "org.springframework.cloud.gateway.filter.GatewayFilterChain");
-
+                                                                     .onMethod("filter")
+                                                                     .andArgs("org.springframework.web.server.ServerWebExchange",
+                                                                              "org.springframework.cloud.gateway.filter.GatewayFilterChain");
 
             String to;
             if ("before".equals(filter.getMode())) {

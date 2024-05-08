@@ -36,10 +36,10 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .onConstructor(
-                    "org.apache.kafka.clients.consumer.ConsumerConfig",
-                    "org.apache.kafka.common.serialization.Deserializer<K>",
-                    "org.apache.kafka.common.serialization.Deserializer<V>")
+                .onConstructor()
+                .andArgs("org.apache.kafka.clients.consumer.ConsumerConfig",
+                         "org.apache.kafka.common.serialization.Deserializer<K>",
+                         "org.apache.kafka.common.serialization.Deserializer<V>")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
 
                 // tracing
@@ -49,19 +49,20 @@ public class KafkaPlugin implements IPlugin {
 
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
                 // Since 0.11
-                .onMethodAndArgs("parseRecord",
-                                 "org.apache.kafka.common.TopicPartition",
-                                 "org.apache.kafka.common.record.RecordBatch",
-                                 "org.apache.kafka.common.record.Record")
+                .onMethod("parseRecord")
+                .andArgs("org.apache.kafka.common.TopicPartition",
+                         "org.apache.kafka.common.record.RecordBatch",
+                         "org.apache.kafka.common.record.Record")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.Fetcher$ParseRecord")
                 .build(),
 
             // Spring Kafka, can move to an independent plugin
             forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$Ctor")
 
-                .onMethodAndNoArgs("pollAndInvoke")
+                .onMethod("pollAndInvoke")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke")
                 .build(),
 
@@ -70,7 +71,7 @@ public class KafkaPlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$Ctor")
 
                 // tracing
-                .onMethodName("doSend")
+                .onMethod("doSend")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$DoSend")
                 .build(),
 
@@ -83,24 +84,24 @@ public class KafkaPlugin implements IPlugin {
 
             // Producer metrics
             forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
-                .onMethodName("updateProduceRequestMetrics")
+                .onMethod("updateProduceRequestMetrics")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$UpdateProduceRequestMetrics")
 
-                .onMethodName("recordRetries")
+                .onMethod("recordRetries")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$RecordRetries")
 
-                .onMethodName("recordErrors")
+                .onMethod("recordErrors")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$RecordErrors")
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
-                .onMethodName("completeResponses")
+                .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),
 
             // AdminClient
             forClass("org.apache.kafka.clients.admin.AdminClient")
-                .onMethodName("create")
+                .onMethod("create")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.admin.interceptor.AdminClient$Create")
                 .build(),
 

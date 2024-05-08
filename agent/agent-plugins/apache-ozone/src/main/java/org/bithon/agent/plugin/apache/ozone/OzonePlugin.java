@@ -43,19 +43,21 @@ public class OzonePlugin implements IPlugin {
                 .onMethod(Matchers.implement("org.apache.hadoop.ozone.om.protocol.OzoneManagerProtocol"))
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
 
-                .onMethodAndNoArgs("close")
+                .onMethod("close")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
                 .build(),
 
             // s3g -> scm
             forClass("org.apache.hadoop.hdds.scm.XceiverClientGrpc")
-                .onMethodAndNoArgs("connect")
+                .onMethod("connect")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.RpcClient$All")
 
-                .onMethodName("sendCommand")
+                .onMethod("sendCommand")
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommand")
 
-                .onMethodName("sendCommandOnAllNodes")
+                .onMethod("sendCommandOnAllNodes")
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientGrpc$SendCommandOnAllNodes")
 
                 // sendCommandAsync contains the DataNode parameter that we know where the command is sent to
@@ -65,7 +67,8 @@ public class OzonePlugin implements IPlugin {
 
             // Hook to save leader info
             forClass("org.apache.hadoop.hdds.scm.XceiverClientRatis")
-                .onMethodAndNoArgs("connect")
+                .onMethod("connect")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientRatis$Connect")
 
                 .onMethod(Matchers.name("sendCommandAsync").and(Matchers.takesArguments(1)))
@@ -73,7 +76,7 @@ public class OzonePlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.hadoop.hdds.scm.XceiverClientSpi")
-                .onMethodName("sendCommand")
+                .onMethod("sendCommand")
                 .interceptedBy("org.bithon.agent.plugin.apache.ozone.interceptor.XceiverClientSpi$SendCommand")
                 .build()
         );

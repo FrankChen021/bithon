@@ -38,9 +38,8 @@ public class NettyHttpClientPlugin implements IPlugin {
 
             // netty http client
             forClass("org.jboss.netty.channel.Channels")
-                .onMethodAndArgs("write",
-                                 "org.jboss.netty.channel.Channel",
-                                 "java.lang.Object")
+                .onMethod("write")
+                .andArgs("org.jboss.netty.channel.Channel", "java.lang.Object")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
                 .build()
         );

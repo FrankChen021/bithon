@@ -33,38 +33,41 @@ public class ThreadPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("java.util.concurrent.ThreadPoolExecutor")
-                .onConstructor(
-                    "int",
-                    "int",
-                    "long",
-                    "java.util.concurrent.TimeUnit",
-                    "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
-                    "java.util.concurrent.ThreadFactory",
-                    "java.util.concurrent.RejectedExecutionHandler")
+                .onConstructor()
+                .andArgs("int",
+                         "int",
+                         "long",
+                         "java.util.concurrent.TimeUnit",
+                         "java.util.concurrent.BlockingQueue<java.lang.Runnable>",
+                         "java.util.concurrent.ThreadFactory",
+                         "java.util.concurrent.RejectedExecutionHandler")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor")
 
-                .onMethodAndArgs("execute", "java.lang.Runnable")
+                .onMethod("execute")
+                .andArgs("java.lang.Runnable")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute")
 
-                .onMethodAndArgs("remove", "java.lang.Runnable")
+                .onMethod("remove")
+                .andArgs("java.lang.Runnable")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove")
 
-                .onMethodName("shutdown")
+                .onMethod("shutdown")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
-                .onConstructor("int",
-                               "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
-                               "java.lang.Thread$UncaughtExceptionHandler",
-                               "int",
-                               "java.lang.String")
+                .onConstructor()
+                .andArgs("int",
+                         "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
+                         "java.lang.Thread$UncaughtExceptionHandler",
+                         "int",
+                         "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
 
-                .onMethodName("tryTerminate")
+                .onMethod("tryTerminate")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
 
-                .onMethodName("externalPush")
+                .onMethod("externalPush")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
                 .build()
         );

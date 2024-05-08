@@ -39,23 +39,28 @@ public class JettyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.eclipse.jetty.server.AbstractConnector")
-                .onMethodAndNoArgs("doStart")
+                .onMethod("doStart")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
                 .build(),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
-                .onMethodAndNoArgs("doStart")
+                .onMethod("doStart")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
                 .build(),
 
             forClass("org.eclipse.jetty.server.HttpChannel")
-                .onMethodAndNoArgs("handle")
+                .onMethod("handle")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle")
 
-                .onMethodAndNoArgs("onCompleted")
+                .onMethod("onCompleted")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted")
 
-                .onMethodAndArgs("handleException", "java.lang.Throwable")
+                .onMethod("handleException")
+                .andArgs("java.lang.Throwable")
                 .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
                 .build()
         );

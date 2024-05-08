@@ -40,10 +40,11 @@ public class QuartzPlugin implements IPlugin {
 
         return Collections.singletonList(
             forClass("org.quartz.core.JobRunShell")
-                .onMethodAndNoArgs("run")
+                .onMethod("run")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.quartz2.JobRunShell$Run")
 
-                .onMethodName("notifyJobListenersComplete")
+                .onMethod("notifyJobListenersComplete")
                 .interceptedBy("org.bithon.agent.plugin.quartz2.JobRunShell$NotifyJobListenersComplete")
                 .build()
         );

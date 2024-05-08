@@ -57,30 +57,30 @@ public class LettucePlugin implements IPlugin {
             // add interceptor for forward Endpoint to Connection
             //
             forClass("io.lettuce.core.RedisClient")
-                .onMethodName("connect")
+                .onMethod("connect")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
-                .onMethodName("connectAsync")
+                .onMethod("connectAsync")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
-                .onMethodName("connectPubSub")
+                .onMethod("connectPubSub")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
-                .onMethodName("connectPubSubAsync")
+                .onMethod("connectPubSubAsync")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
-                .onMethodName("connectSentinel")
+                .onMethod("connectSentinel")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
 
-                .onMethodName("connectSentinelAsync")
+                .onMethod("connectSentinelAsync")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.RedisClient$Connect")
                 .build(),
 
             forClass("io.lettuce.core.DefaultConnectionFuture")
-                .onMethodName("get")
+                .onMethod("get")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.DefaultConnectionFuture$Get")
 
-                .onMethodName("join")
+                .onMethod("join")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.DefaultConnectionFuture$Get")
                 .build(),
 
@@ -88,9 +88,8 @@ public class LettucePlugin implements IPlugin {
             // issue command
             //
             forClass("io.lettuce.core.AbstractRedisAsyncCommands")
-                .onMethodAndArgs(
-                    "dispatch",
-                    "io.lettuce.core.protocol.RedisCommand<K, V, T>")
+                .onMethod("dispatch")
+                .andArgs("io.lettuce.core.protocol.RedisCommand<K, V, T>")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AbstractRedisAsyncCommands$Dispatch")
                 .build(),
 
@@ -98,16 +97,20 @@ public class LettucePlugin implements IPlugin {
             // request sync complete
             //
             forClass("io.lettuce.core.protocol.AsyncCommand")
-                .onMethodAndArgs("encode", "io.netty.buffer.ByteBuf")
+                .onMethod("encode")
+                .andArgs("io.netty.buffer.ByteBuf")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Encode")
 
-                .onMethodAndNoArgs("completeResult")
+                .onMethod("completeResult")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
 
-                .onMethodAndArgs("cancel", "java.lang.boolean")
+                .onMethod("cancel")
+                .andArgs("java.lang.boolean")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
 
-                .onMethodAndArgs("doCompleteExceptionally", "java.lang.Throwable")
+                .onMethod("doCompleteExceptionally")
+                .andArgs("java.lang.Throwable")
                 .interceptedBy("org.bithon.agent.plugin.redis.lettuce.interceptor.AsyncCommand$Complete")
                 .build(),
 

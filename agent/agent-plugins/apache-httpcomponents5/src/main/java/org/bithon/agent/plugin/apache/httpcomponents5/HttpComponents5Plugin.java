@@ -34,7 +34,8 @@ public class HttpComponents5Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
-                .onMethodAndNoArgs("getBytesTransferred")
+                .onMethod("getBytesTransferred")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
                 .build(),
 

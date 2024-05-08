@@ -35,30 +35,32 @@ public class TomcatPlugin implements IPlugin {
         return Arrays.asList(
             // web server
             forClass("org.apache.tomcat.util.net.AbstractEndpoint")
-                .onMethodName("start")
+                .onMethod("start")
                 .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.AbstractEndpoint$Start")
                 .build(),
 
             // statistics
-            // differ from Trace below since it depends on different response objects
+            // differ from the Trace below since it depends on different response objects
             forClass("org.apache.catalina.connector.CoyoteAdapter")
-                .onMethodAndArgs("service", "org.apache.coyote.Request", "org.apache.coyote.Response")
+                .onMethod("service")
+                .andArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
                 .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.CoyoteAdapter$Service")
                 .build(),
 
             // exception
             forClass("org.apache.catalina.core.StandardWrapperValve")
-                .onMethodAndArgs("exception",
-                                 "org.apache.catalina.connector.Request",
-                                 "org.apache.catalina.connector.Response",
-                                 "java.lang.Throwable")
+                .onMethod("exception")
+                .andArgs("org.apache.catalina.connector.Request",
+                         "org.apache.catalina.connector.Response",
+                         "java.lang.Throwable")
                 .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardWrapperValve$Exception")
                 .build(),
 
             // trace
             forClass("org.apache.catalina.core.StandardHostValve")
-                .onMethodAndArgs("invoke", "org.apache.catalina.connector.Request",
-                                 "org.apache.catalina.connector.Response")
+                .onMethod("invoke")
+                .andArgs("org.apache.catalina.connector.Request",
+                         "org.apache.catalina.connector.Response")
                 .interceptedBy("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardHostValve$Invoke")
                 .build(),
 

@@ -45,89 +45,90 @@ public class MongoDbPlugin implements IPlugin {
              */
             forClass("com.mongodb.connection.InternalStreamConnection")
                 .debug()
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.InternalStreamConnection$Constructor")
                 .build(),
 
             forClass("com.mongodb.connection.DefaultServerConnection")
-                .onMethodAndArgs("executeProtocol", "com.mongodb.connection.Protocol<T>")
+                .onMethod("executeProtocol")
+                .andArgs("com.mongodb.connection.Protocol<T>")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnection$ExecuteProtocol")
 
-                .onMethodAndArgs("executeProtocolAsync",
-                                 "com.mongodb.connection.Protocol<T>", "com.mongodb.async.SingleResultCallback<T>")
+                .onMethod("executeProtocolAsync")
+                .andArgs("com.mongodb.connection.Protocol<T>", "com.mongodb.async.SingleResultCallback<T>")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
                 .build(),
 
             forClass("com.mongodb.connection.CommandHelper")
                 .debug()
-                .onMethodName("executeCommand")
+                .onMethod("executeCommand")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.CommandHelper$ExecuteCommand")
 
-                .onMethodName("executeCommandAsync")
+                .onMethod("executeCommandAsync")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.CommandHelper$ExecuteCommandAsync")
                 .build(),
 
             forClass("com.mongodb.event.ConnectionMessagesSentEvent")
                 .debug()
-                .onConstructor("com.mongodb.connection.ConnectionId",
-                               "int", "int")
+                .onConstructor()
+                .andArgs("com.mongodb.connection.ConnectionId", "int", "int")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.ConnectionMessagesSentEvent$Constructor")
                 .build(),
 
             forClass("com.mongodb.event.ConnectionMessageReceivedEvent")
                 .debug()
-                .onConstructor("com.mongodb.connection.ConnectionId",
-                               "int", "int")
+                .onConstructor()
+                .andArgs("com.mongodb.connection.ConnectionId", "int", "int")
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.ConnectionMessageReceivedEvent$Constructor")
                 .build(),
 
             forClass("com.mongodb.connection.CommandProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$CommandProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.DeleteCommandProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$DeleteCommandProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.DeleteProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$DeleteProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.GetMoreProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$GetMoreProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.InsertCommandProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$InsertCommandProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.InsertProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$InsertProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.KillCursorProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$KillCursorProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.QueryProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$QueryProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.UpdateCommandProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$UpdateCommandProtocol")
                 .build(),
 
             forClass("com.mongodb.connection.UpdateProtocol")
-                .onAllConstructor()
+                .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.mongodb.interceptor.Protocol$UpdateProtocol")
                 .build()
         );

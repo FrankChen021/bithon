@@ -48,22 +48,26 @@ public class XxlJobPlugin implements IPlugin {
 
             // Inject the tracing context to the internal queue for tracing context restoring
             forClass("com.xxl.job.core.thread.JobThread")
-                .onConstructor("int", "com.xxl.job.core.handler.IJobHandler")
+                .onConstructor()
+                .andArgs("int", "com.xxl.job.core.handler.IJobHandler")
                 .interceptedBy("org.bithon.agent.plugin.xxl.job.interceptor.JobThread$Ctor")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.GlueJobHandler")
-                .onMethodAndNoArgs("execute")
+                .onMethod("execute")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.xxl.job.interceptor.GlueJobHandler$Execute")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.MethodJobHandler")
-                .onMethodAndNoArgs("execute")
+                .onMethod("execute")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.xxl.job.interceptor.MethodJobHandler$Execute")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.ScriptJobHandler")
-                .onMethodAndNoArgs("execute")
+                .onMethod("execute")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.xxl.job.interceptor.ScriptJobHandler$Execute")
                 .build()
         );

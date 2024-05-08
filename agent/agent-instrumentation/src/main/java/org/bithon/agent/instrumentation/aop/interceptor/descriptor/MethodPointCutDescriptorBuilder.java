@@ -28,8 +28,8 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 public class MethodPointCutDescriptorBuilder {
 
     private final InterceptorDescriptorBuilder interceptorDescriptorBuilder;
-    private MethodType methodType;
-    private ElementMatcher.Junction<MethodDescription> method;
+    private final MethodType methodType;
+    private final ElementMatcher.Junction<MethodDescription> method;
     private ElementMatcher<MethodDescription> argsMatcher;
     private boolean debug;
 
@@ -43,12 +43,31 @@ public class MethodPointCutDescriptorBuilder {
         this.methodType = methodType;
     }
 
+    public MethodPointCutDescriptorBuilder andArgs(ElementMatcher<MethodDescription> matcher) {
+        this.argsMatcher = matcher;
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andNoArgs() {
+        this.argsMatcher = Matchers.takesArguments(0);
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgs(String... args) {
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andRawArgs(String... args) {
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
+        return this;
+    }
+
     public InterceptorDescriptorBuilder interceptedBy(String interceptorQualifiedClassName) {
         if (method == null) {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
-        ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug,
-                                                                                                      method);
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug, method);
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }

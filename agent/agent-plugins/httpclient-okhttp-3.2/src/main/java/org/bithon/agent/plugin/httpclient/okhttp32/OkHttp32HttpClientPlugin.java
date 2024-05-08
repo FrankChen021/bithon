@@ -38,13 +38,13 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("okhttp3.RealCall")
-                .onMethodAndArgs("getResponseWithInterceptorChain",
-                                 "boolean")
+                .onMethod("getResponseWithInterceptorChain")
+                .andArgs("boolean")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 .build(),
 
             forClass("okhttp3.internal.io.RealConnection")
-                .onMethodAndArgs("connect")
+                .onMethod("connect")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
                 .build(),
 
@@ -52,7 +52,8 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
             forClass("okhttp3.internal.connection.RealCall")
                 // ProGuard has obfuscated OKHttp, '$okhttp' suffix is appended during compilation.
                 // So we need to add this suffix to make sure it matches the method in the byte code
-                .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
+                .onMethod("getResponseWithInterceptorChain$okhttp")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 .build(),
 

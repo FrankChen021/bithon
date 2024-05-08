@@ -48,7 +48,8 @@ public class Jedis4Plugin implements IPlugin {
         return Arrays.asList(
 
             forClass("redis.clients.jedis.Connection")
-                .onMethodAndNoArgs("connect")
+                .onMethod("connect")
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
                 .build(),
 

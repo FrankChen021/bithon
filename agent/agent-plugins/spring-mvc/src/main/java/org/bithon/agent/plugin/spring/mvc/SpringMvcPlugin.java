@@ -41,19 +41,19 @@ public class SpringMvcPlugin implements IPlugin {
                 .build(),
 
             forClass("feign.SynchronousMethodHandler")
-                .onMethodName("invoke")
+                .onMethod("invoke")
                 .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
                 .build(),
 
             forClass("org.springframework.web.client.RestTemplate")
-                .onMethodName("doExecute")
+                .onMethod("doExecute")
                 .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute")
-                .onMethodName("handleResponse")
+                .onMethod("handleResponse")
                 .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
                 .build(),
 
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
-                .onMethodName("doInvoke")
+                .onMethod("doInvoke")
                 .interceptedBy("org.bithon.agent.plugin.spring.mvc.InvocableHandlerMethod$DoInvoke")
                 .build()
         );
