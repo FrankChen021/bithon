@@ -33,7 +33,6 @@ public class ThreadPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("java.util.concurrent.ThreadPoolExecutor")
-                .hook()
                 .onConstructor(
                     "int",
                     "int",
@@ -44,21 +43,17 @@ public class ThreadPlugin implements IPlugin {
                     "java.util.concurrent.RejectedExecutionHandler")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Ctor")
 
-                .hook()
                 .onMethodAndArgs("execute", "java.lang.Runnable")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Execute")
 
-                .hook()
                 .onMethodAndArgs("remove", "java.lang.Runnable")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Remove")
 
-                .hook()
                 .onMethodName("shutdown")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ThreadPoolExecutor$Shutdown")
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
-                .hook()
                 .onConstructor("int",
                                "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
                                "java.lang.Thread$UncaughtExceptionHandler",
@@ -66,15 +61,13 @@ public class ThreadPlugin implements IPlugin {
                                "java.lang.String")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
 
-                .hook()
                 .onMethodName("tryTerminate")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
 
-                .hook()
                 .onMethodName("externalPush")
                 .to("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
                 .build()
-            );
+        );
     }
 }
 

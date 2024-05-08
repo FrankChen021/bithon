@@ -36,7 +36,6 @@ public class RedissonPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.redisson.client.handler.CommandEncoder")
-                .hook()
                 .onMethod(Matchers.name("encode")
                                   .and(Matchers.takesArguments(3))
                                   .and(Matchers.takesArgument(2, "io.netty.buffer.ByteBuf")))
@@ -44,7 +43,6 @@ public class RedissonPlugin implements IPlugin {
                 .build(),
 
             forClass("org.redisson.client.handler.CommandDecoder")
-                .hook()
                 .onMethod(Matchers.name("decode")
                                   .and(Matchers.takesArguments(4))
                                   .and(Matchers.takesArgument(1, "io.netty.buffer.ByteBuf"))
@@ -53,14 +51,12 @@ public class RedissonPlugin implements IPlugin {
                 .build(),
 
             forClass("org.redisson.client.protocol.CommandData")
-                .hook()
                 .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
                                        .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
                 .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
                 .build(),
 
             forClass("org.redisson.client.RedisConnection")
-                .hook()
                 .onMethodAndRawArgs("send", "org.redisson.client.protocol.CommandData")
                 .to("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
                 .build());

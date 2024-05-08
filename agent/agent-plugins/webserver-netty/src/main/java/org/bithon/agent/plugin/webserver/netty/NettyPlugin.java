@@ -34,7 +34,6 @@ public class NettyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.springframework.boot.web.embedded.netty.NettyWebServer")
-                .hook()
                 .onMethodAndNoArgs("start")
                 .to("org.bithon.agent.plugin.webserver.netty.interceptor.NettyWebServerStart")
                 .build()

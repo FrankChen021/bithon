@@ -37,7 +37,6 @@ public class BithonSdkPlugin implements IPlugin {
             // metrics
             //
             forClass("org.bithon.agent.sdk.metric.MetricRegistryFactory")
-                .hook()
                 .onMethodName("create")
                 .replaceBy("org.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
                 .build()

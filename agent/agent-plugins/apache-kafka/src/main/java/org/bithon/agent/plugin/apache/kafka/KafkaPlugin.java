@@ -36,7 +36,6 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .hook()
                 .onConstructor(
                     "org.apache.kafka.clients.consumer.ConsumerConfig",
                     "org.apache.kafka.common.serialization.Deserializer<K>",
@@ -44,13 +43,11 @@ public class KafkaPlugin implements IPlugin {
                 .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
 
                 // tracing
-                .hook()
                 .onMethod(Matchers.name("poll").and(Matchers.visibility(Visibility.PRIVATE)))
                 .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
-                .hook()
                 // Since 0.11
                 .onMethodAndArgs("parseRecord",
                                  "org.apache.kafka.common.TopicPartition",
@@ -61,29 +58,24 @@ public class KafkaPlugin implements IPlugin {
 
             // Spring Kafka, can move to an independent plugin
             forClass("org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer")
-                .hook()
                 .onAllConstructor()
                 .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$Ctor")
 
-                .hook()
                 .onMethodAndNoArgs("pollAndInvoke")
                 .to("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.ListenerConsumer$PollAndInvoke")
                 .build(),
 
             forClass("org.apache.kafka.clients.producer.KafkaProducer")
-                .hook()
                 .onConstructor(Matchers.visibility(Visibility.PACKAGE_PRIVATE).or(Matchers.visibility(Visibility.PRIVATE)))
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$Ctor")
 
                 // tracing
-                .hook()
                 .onMethodName("doSend")
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.KafkaProducer$DoSend")
                 .build(),
 
             // Producer metrics helper
             forClass("org.apache.kafka.clients.producer.internals.Sender")
-                .hook()
                 .onMethod(Matchers.name("handleProduceResponse")
                                   .and(Matchers.takesFirstArgument("org.apache.kafka.clients.ClientResponse")))
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.Sender$HandleProduceResponse")
@@ -91,34 +83,28 @@ public class KafkaPlugin implements IPlugin {
 
             // Producer metrics
             forClass("org.apache.kafka.clients.producer.internals.Sender$SenderMetrics")
-                .hook()
                 .onMethodName("updateProduceRequestMetrics")
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$UpdateProduceRequestMetrics")
 
-                .hook()
                 .onMethodName("recordRetries")
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$RecordRetries")
 
-                .hook()
                 .onMethodName("recordErrors")
                 .to("org.bithon.agent.plugin.apache.kafka.producer.interceptor.SenderMetrics$RecordErrors")
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
-                .hook()
                 .onMethodName("completeResponses")
                 .to("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),
 
             // AdminClient
             forClass("org.apache.kafka.clients.admin.AdminClient")
-                .hook()
                 .onMethodName("create")
                 .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.AdminClient$Create")
                 .build(),
 
             forClass("org.apache.kafka.clients.admin.KafkaAdminClient")
-                .hook()
                 .onMethod(Matchers.implement("org.apache.kafka.clients.admin.Admin"))
                 .to("org.bithon.agent.plugin.apache.kafka.admin.interceptor.KafkaAdminClient$All")
                 .build()

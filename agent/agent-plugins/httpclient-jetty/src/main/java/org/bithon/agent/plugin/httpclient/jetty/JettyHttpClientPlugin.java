@@ -35,12 +35,10 @@ public class JettyHttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.eclipse.jetty.client.HttpRequest")
-                .hook()
                 .onMethodAndArgs("send",
                                  "org.eclipse.jetty.client.api.Response$CompleteListener")
                 .to("org.bithon.agent.plugin.httpclient.jetty.HttpRequest$Send")
                 .build()
-
         );
     }
 }

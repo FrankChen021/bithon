@@ -48,69 +48,57 @@ public class JdkHttpClientPlugin implements IPlugin {
         return Arrays.asList(
 
             forClass("java.net.Socket")
-                .hook()
                 .onMethodName("getInputStream")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream")
 
-                .hook()
                 .onMethodName("getOutputStream")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
                 .build(),
 
             // for HTTPS
             forClass("sun.security.ssl.SSLSocketImpl")
-                .hook()
                 .onMethodName("getInputStream")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream")
 
-                .hook()
                 .onMethodName("getOutputStream")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
                 .build(),
 
             forClass("sun.net.NetworkClient")
-                .hook()
                 .onMethodName("doConnect")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.NetworkClient$DoConnect")
                 .build(),
 
             forClass("sun.net.www.http.HttpClient")
-                .hook()
                 .onMethod(ElementMatchers.named("New")
                                          .and(ElementMatchers.isStatic())
                                          .and(ElementMatchers.takesArguments(5))
                                          .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$New")
 
-                .hook()
                 .onMethodAndArgs("writeRequests", "sun.net.www.MessageHeader")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests")
 
-                .hook()
                 .onMethodAndArgs("writeRequests",
                                  "sun.net.www.MessageHeader", "sun.net.www.http.PosterOutputStream")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests")
 
-                .hook()
                 .onMethod(ElementMatchers.named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")
                 .build(),
 
             forClass("sun.net.www.protocol.https.HttpsURLConnectionImpl")
-                .hook()
                 .onMethodAndNoArgs("connect")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
                 .build(),
 
             forClass("sun.net.www.protocol.http.HttpURLConnection")
-                .hook()
                 .onMethodAndNoArgs("connect")
                 .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpURLConnection$Connect")
                 .build(),
 
             // HttpsClient inherits from HttpClient
             forClass("sun.net.www.protocol.https.HttpsClient")
-                .hook()
                 .onMethod(ElementMatchers.named("New")
                                          .and(ElementMatchers.isStatic())
                                          .and(ElementMatchers.takesArguments(7))

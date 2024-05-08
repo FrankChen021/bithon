@@ -36,7 +36,6 @@ public class HttpComponents4Plugin implements IPlugin {
             // "http client 4.3.4~4.5.3: InternalHttpClient"
             //
             forClass("org.apache.http.impl.client.InternalHttpClient")
-                .hook()
                 .onMethodAndArgs("doExecute",
                                  "org.apache.http.HttpHost",
                                  "org.apache.http.HttpRequest",
@@ -48,8 +47,6 @@ public class HttpComponents4Plugin implements IPlugin {
             // http client 4.3.4~4.5.3: RedirectExec"
             //
             forClass("org.apache.http.impl.execchain.RedirectExec")
-                .hook()
-
                 .onMethodAndArgs("execute",
                                  "org.apache.http.conn.routing.HttpRoute",
                                  "org.apache.http.client.methods.HttpRequestWrapper",
@@ -62,7 +59,6 @@ public class HttpComponents4Plugin implements IPlugin {
             // "http client 4.3.4~4.5.3: MinimalClientExec"
             //
             forClass("org.apache.http.impl.execchain.MinimalClientExec")
-                .hook()
                 .onMethodAndArgs("execute",
                                  "org.apache.http.conn.routing.HttpRoute",
                                  "org.apache.http.client.methods.HttpRequestWrapper",
@@ -72,14 +68,12 @@ public class HttpComponents4Plugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
-                .hook()
                 .onMethodAndArgs("execute",
                                  "org.apache.http.HttpHost",
                                  "org.apache.http.HttpRequest",
                                  "org.apache.http.protocol.HttpContext")
                 .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$Execute")
 
-                .hook()
                 .onMethodAndNoArgs("releaseConnection")
                 .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$ReleaseConnection")
                 .build(),
@@ -88,7 +82,6 @@ public class HttpComponents4Plugin implements IPlugin {
             // tracing
             //
             forClass("org.apache.http.protocol.HttpRequestExecutor")
-                .hook()
                 .onMethodAndArgs("execute",
                                  "org.apache.http.HttpRequest",
                                  "org.apache.http.HttpClientConnection",
@@ -98,14 +91,12 @@ public class HttpComponents4Plugin implements IPlugin {
 
             // 4.3 and before
             forClass("org.apache.http.impl.conn.DefaultClientConnectionOperator")
-                .hook()
                 .onMethodName("openConnection")
                 .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultClientConnectionOperator$OpenConnection")
                 .build(),
 
             // Since 4.4
             forClass("org.apache.http.impl.conn.DefaultHttpClientConnectionOperator")
-                .hook()
                 .onMethodName("connect")
                 .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultHttpClientConnectionOperator$Connect")
                 .build()

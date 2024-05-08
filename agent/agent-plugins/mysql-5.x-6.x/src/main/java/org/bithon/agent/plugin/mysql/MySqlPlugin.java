@@ -82,81 +82,66 @@ public class MySqlPlugin implements IPlugin {
         return Arrays.asList(
             // metrics
             forClass("com.mysql.jdbc.MysqlIO")
-                .hook()
                 .onMethodAndArgs(METHOD_SEND_COMMAND, MYSQL_IO_SEND_COMMAND_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.MySqlIOInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_READ_ALL_RESULTS, MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.MySqlIOInterceptor")
                 .build(),
 
 
             forClass(OLD_VERSION_PREPARED_STATEMENT_CLASS)
-                .hook()
                 //
                 // metrics
                 //
                 .onMethodAndNoArgs(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
                 //
                 // trace
                 //
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
                 .build(),
 
 
             forClass(NEW_VERSION_PREPARED_STATEMENT_CLASS)
-                .hook()
 
                 .onMethodAndNoArgs(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor")
 
                 //
                 // trace
                 //
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
                 .build(),
 
             forClass(OLD_VERSION_STATEMENT_CLASS)
-                .hook()
                 //
                 // metrics
                 //
@@ -164,17 +149,14 @@ public class MySqlPlugin implements IPlugin {
                                  STATEMENT_EXECUTE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_QUERY,
                                  STATEMENT_EXECUTE_QUERY_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
                                  STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
                                  STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
@@ -182,25 +164,20 @@ public class MySqlPlugin implements IPlugin {
                 //
                 // trace
                 //
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
                 .build(),
 
             forClass(NEW_VERSION_STATEMENT_CLASS)
-                .hook()
                 //
                 // metrics
                 //
@@ -208,17 +185,14 @@ public class MySqlPlugin implements IPlugin {
                                  STATEMENT_EXECUTE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_QUERY,
                                  STATEMENT_EXECUTE_QUERY_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
                                  STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
                                  STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.metrics.StatementInterceptor")
@@ -226,23 +200,18 @@ public class MySqlPlugin implements IPlugin {
                 //
                 // trace
                 //
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_INTERNAL, STATEMENT_EXECUTE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
                 .to("org.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
                 .build(),
@@ -251,64 +220,51 @@ public class MySqlPlugin implements IPlugin {
             // trace
             //
             forClass(OLD_VERSION_CONNECTION_CLASS)
-                .hook()
                 .onMethodAndArgs("prepareStatement", "java.lang.String")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "[I")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "[Ljava.lang.String;")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int", "int", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
                 .build(),
 
             forClass(NEW_VERSION_CONNECTION_CLASS)
-                .hook()
-
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "[I")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "[Ljava.lang.String;")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
 
-                .hook()
                 .onMethodAndArgs("prepareStatement",
                                  "java.lang.String", "int", "int", "int")
                 .to("org.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")

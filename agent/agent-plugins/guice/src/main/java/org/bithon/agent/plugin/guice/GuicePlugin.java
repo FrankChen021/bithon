@@ -33,11 +33,9 @@ public class GuicePlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("com.google.inject.internal.BindingBuilder")
-                .hook()
                 .onMethodName("toInstance")
                 .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance")
 
-                .hook()
                 .onMethodAndRawArgs("to", "java.lang.Class")
                 .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
                 .build()

@@ -35,29 +35,24 @@ public class SpringMvcPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("feign.SynchronousMethodHandler$Factory")
-                .hook()
                 .onMethod(Matchers.name("create")
                                   .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
                 .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
                 .build(),
 
             forClass("feign.SynchronousMethodHandler")
-                .hook()
                 .onMethodName("invoke")
                 .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
                 .build(),
 
             forClass("org.springframework.web.client.RestTemplate")
-                .hook()
                 .onMethodName("doExecute")
                 .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute")
-                .hook()
                 .onMethodName("handleResponse")
                 .to("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
                 .build(),
 
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
-                .hook()
                 .onMethodName("doInvoke")
                 .to("org.bithon.agent.plugin.spring.mvc.InvocableHandlerMethod$DoInvoke")
                 .build()

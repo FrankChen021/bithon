@@ -47,15 +47,12 @@ public class MySql8Plugin implements IPlugin {
 
             // mysql-connector 8
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")
-                .hook()
                 .onMethodName("execute")
                 .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodName("executeQuery")
                 .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
 
-                .hook()
                 .onMethodName("executeUpdate")
                 .to("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
                 .build(),
@@ -64,12 +61,10 @@ public class MySql8Plugin implements IPlugin {
             // IO
             //
             forClass("com.mysql.cj.protocol.a.NativeProtocol")
-                .hook()
                 .onMethodAndArgs("sendCommand",
                                  "com.mysql.cj.protocol.Message", "boolean", "int")
                 .to("org.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
 
-                .hook()
                 .onMethodAndArgs("readAllResults",
                                  "int", "boolean", "com.mysql.cj.protocol.a.NativePacketPayload", "boolean",
                                  "com.mysql.cj.protocol.ColumnDefinition",
@@ -81,21 +76,17 @@ public class MySql8Plugin implements IPlugin {
             // statement
             //
             forClass("com.mysql.cj.jdbc.StatementImpl")
-                .hook()
                 .onMethodAndArgs("executeInternal", "java.lang.String", "boolean")
                 .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs("executeQuery",
                                  "java.lang.String")
                 .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs("executeUpdate",
                                  "java.lang.String", "boolean", "boolean")
                 .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")
 
-                .hook()
                 .onMethodAndArgs("executeUpdateInternal",
                                  "java.lang.String", "boolean", "boolean")
                 .to("org.bithon.agent.plugin.mysql8.StatementInterceptor")

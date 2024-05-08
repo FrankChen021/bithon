@@ -16,6 +16,11 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +38,70 @@ public class InterceptorDescriptorBuilder {
         return new InterceptorDescriptorBuilder().targetClass(targetClass);
     }
 
-    public MethodPointCutDescriptorBuilder hook() {
-        return new MethodPointCutDescriptorBuilder(this);
+    public MethodPointCutDescriptorBuilder onMethodName(String method) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   Matchers.name(method),
+                                                   null,
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   Matchers.name(method),
+                                                   Matchers.createArgumentsMatcher(debug, args),
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   Matchers.name(method),
+                                                   Matchers.createArgumentsMatcher(debug, true, args),
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   Matchers.name(method),
+                                                   ElementMatchers.takesNoArguments(),
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   method,
+                                                   null,
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onAllConstructor() {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isConstructor(),
+                                                   null,
+                                                   MethodType.CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isConstructor().and(matcher),
+                                                   null,
+                                                   MethodType.CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onConstructor(String... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args should not be null");
+        }
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isConstructor(),
+                                                   Matchers.createArgumentsMatcher(debug, args),
+                                                   MethodType.CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onDefaultConstructor() {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isDefaultConstructor(),
+                                                   null,
+                                                   MethodType.CONSTRUCTOR);
     }
 
     public InterceptorDescriptor build() {

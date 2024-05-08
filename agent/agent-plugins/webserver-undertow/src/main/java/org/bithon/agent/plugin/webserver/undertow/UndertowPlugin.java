@@ -34,19 +34,16 @@ public class UndertowPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("io.undertow.Undertow")
-                .hook()
                 .onMethodAndNoArgs("start")
                 .to("org.bithon.agent.plugin.webserver.undertow.interceptor.UndertowStart")
                 .build(),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
-                .hook()
                 .onMethodAndArgs("setRootHandler", "io.undertow.server.HttpHandler")
                 .to("org.bithon.agent.plugin.webserver.undertow.interceptor.HttpOpenListenerSetRootHandler")
                 .build(),
 
             forClass("io.undertow.server.HttpServerExchange")
-                .hook()
                 .onMethodAndArgs("dispatch",
                                  "java.util.concurrent.Executor",
                                  "io.undertow.server.HttpHandler")
@@ -54,7 +51,6 @@ public class UndertowPlugin implements IPlugin {
                 .build(),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandler")
-                .hook()
                 .onMethodAndArgs("handleThrowable",
                                  "io.undertow.server.HttpServerExchange",
                                  "javax.servlet.ServletRequest",

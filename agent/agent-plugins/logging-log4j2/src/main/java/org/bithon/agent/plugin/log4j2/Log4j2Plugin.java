@@ -34,7 +34,6 @@ public class Log4j2Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.logging.log4j.core.Logger")
-                .hook()
                 .onMethod(Matchers.name("logMessage")
                                   .and(Matchers.takesArgument(1,
                                                               "org.apache.logging.log4j.Level"))
@@ -47,14 +46,12 @@ public class Log4j2Plugin implements IPlugin {
                 /**
                  * {@link org.apache.logging.log4j.core.pattern.PatternParser#PatternParser(org.apache.logging.log4j.core.config.Configuration, String, Class, Class)}
                  */
-                .hook()
                 .onConstructor(Matchers.takesArguments(4))
                 .to("org.bithon.agent.plugin.log4j2.interceptor.PatternParser$Ctor")
 
                 /**
                  * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
                  */
-                .hook()
                 .onMethod(Matchers.name("parse")
                                   .and(Matchers.takesArgument(0,
                                                               "java.lang.String"))

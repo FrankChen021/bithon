@@ -34,13 +34,11 @@ public class ApacheDruidPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.druid.sql.SqlLifecycle")
-                .hook()
                 .onMethodName("initialize")
                 .to("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
                 .build(),
 
             forClass("org.apache.druid.server.QueryLifecycle")
-                .hook()
                 .onMethodName("initialize")
                 .to("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
                 .build()

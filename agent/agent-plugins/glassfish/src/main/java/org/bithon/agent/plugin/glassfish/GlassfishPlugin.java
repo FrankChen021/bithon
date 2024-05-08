@@ -33,7 +33,6 @@ public class GlassfishPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.glassfish.jersey.server.model.internal.AbstractJavaResourceMethodDispatcher")
-                .hook()
                 .onAllConstructor()
                 .to("org.bithon.agent.plugin.glassfish.interceptor.AbstractJavaResourceMethodDispatcher$Ctor")
                 .build()

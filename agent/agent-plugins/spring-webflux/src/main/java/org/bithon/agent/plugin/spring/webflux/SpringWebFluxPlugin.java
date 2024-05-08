@@ -40,48 +40,40 @@ public class SpringWebFluxPlugin implements IPlugin {
 
         List<InterceptorDescriptor> staticInterceptors = Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
-                .hook()
                 .onMethodName("apply")
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
-                .hook()
                 .onMethodName("onChannelInit")
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.server.HttpServerOperations")
-                .hook()
                 // Its ctors vary in different versions, hook to all ctors
                 .onAllConstructor()
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .hook()
                 .onMethodName("send")
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
 
-                .hook()
                 .onMethodName("responseConnection")
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
-                .hook()
                 .onMethodName("onChannelInit")
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientOperations")
-                .hook()
                 .onAllConstructor()
                 .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
                 .build(),
 
             forClass("reactor.core.publisher.Flux")
-                .hook()
                 .onMethodAndRawArgs(
                     "timeout",
                     "org.reactivestreams.Publisher",
@@ -110,8 +102,7 @@ public class SpringWebFluxPlugin implements IPlugin {
 
 
             MethodPointCutDescriptorBuilder builder = forClass(clazz).debug()
-                                                                     .hook()
-                                                                     .onMethodAndArgs(
+                                                                                                                          .onMethodAndArgs(
                                                                          "filter",
                                                                          "org.springframework.web.server.ServerWebExchange",
                                                                          "org.springframework.cloud.gateway.filter.GatewayFilterChain");

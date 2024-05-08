@@ -33,11 +33,9 @@ public class SpringBeanPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory")
-                .hook()
                 .onMethodName("createBeanInstance")
                 .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateBeanInstance")
 
-                .hook()
                 .onMethodName("applyBeanPostProcessorsBeforeInstantiation")
                 .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
                 .build()

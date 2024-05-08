@@ -34,13 +34,11 @@ public class SpringSchedulingPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.springframework.scheduling.support.ScheduledMethodRunnable")
-                .hook()
                 .onMethodAndNoArgs("run")
                 .to("org.bithon.agent.plugin.spring.scheduling.ScheduledMethodRunnable$Run")
                 .build(),
 
             forClass("org.springframework.scheduling.support.DelegatingErrorHandlingRunnable")
-                .hook()
                 .onMethodAndNoArgs("run")
                 .to("org.bithon.agent.plugin.spring.scheduling.DelegatingErrorHandlingRunnable$Run")
                 .build()

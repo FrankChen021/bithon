@@ -37,33 +37,28 @@ public class GrpcPlugin implements IPlugin {
         List<InterceptorDescriptor> grpcInterceptorDescriptors = Arrays.asList(
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractBlockingStub")
-                .hook()
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
                 .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractBlockingStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractFutureStub")
-                .hook()
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
                 .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractFutureStub$NewStub")
                 .build(),
 
             // Hook to enhance stub classes
             forClass("io.grpc.stub.AbstractAsyncStub")
-                .hook()
                 .onMethod(Matchers.name("newStub").and(Matchers.takesArguments(3)))
                 .to("org.bithon.agent.plugin.grpc.client.interceptor.AbstractAsyncStub$NewStub")
                 .build(),
 
             forClass("io.grpc.internal.ManagedChannelImplBuilder")
-                .hook()
                 .onMethodAndNoArgs("build")
                 .to("org.bithon.agent.plugin.grpc.client.interceptor.ManagedChannelImplBuilder$Build")
                 .build(),
 
             forClass("io.grpc.internal.ServerImplBuilder")
-                .hook()
                 .onMethodAndNoArgs("build")
                 .to("org.bithon.agent.plugin.grpc.server.interceptor.ServerImplBuilder$Build")
                 .build()

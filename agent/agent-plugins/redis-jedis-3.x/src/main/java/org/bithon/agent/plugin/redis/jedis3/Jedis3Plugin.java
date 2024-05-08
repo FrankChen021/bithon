@@ -42,7 +42,6 @@ public class Jedis3Plugin implements IPlugin {
         return Arrays.asList(
 
             forClass("redis.clients.jedis.Jedis")
-                .hook()
                 .onMethod(Matchers.implement(
                     "redis.clients.jedis.commands.JedisCommands",
                     "redis.clients.jedis.commands.MultiKeyCommands",
@@ -56,7 +55,6 @@ public class Jedis3Plugin implements IPlugin {
                 .build(),
 
             forClass("redis.clients.jedis.BinaryJedis")
-                .hook()
                 .onMethod(Matchers.implement(
                     "redis.clients.jedis.commands.BasicCommands",
                     "redis.clients.jedis.commands.BinaryJedisCommands",
@@ -67,14 +65,12 @@ public class Jedis3Plugin implements IPlugin {
                 .build(),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
-                .hook()
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
                 .to("org.bithon.agent.plugin.redis.jedis3.interceptor.RedisOutputStream$Ctor")
                 .build(),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
-                .hook()
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
                 .to("org.bithon.agent.plugin.redis.jedis3.interceptor.RedisInputStream$Ctor")
                 .build()

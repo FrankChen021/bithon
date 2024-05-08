@@ -37,56 +37,44 @@ public class DruidPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("com.alibaba.druid.pool.DruidDataSource")
-                .hook()
                 .onMethodAndNoArgs("init")
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Init")
 
-                .hook()
                 .onMethodAndNoArgs("close")
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Close")
 
-                .hook()
                 .onMethodAndNoArgs("restart")
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$Restart")
 
-                .hook()
                 .onMethodName("getStatValueAndReset")
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
                 .build(),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
 
-                .hook()
                 .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
                 .build(),
 
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
-                .hook()
                 .onMethodName(METHOD_EXECUTE)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                .hook()
                 .onMethodName(METHOD_EXECUTE_QUERY)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                .hook()
                 .onMethodName(METHOD_EXECUTE_UPDATE)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
 
-                .hook()
                 .onMethodName(METHOD_EXECUTE_BATCH)
                 .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
                 .build()

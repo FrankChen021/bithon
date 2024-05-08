@@ -35,7 +35,6 @@ public class TomcatPlugin implements IPlugin {
         return Arrays.asList(
             // web server
             forClass("org.apache.tomcat.util.net.AbstractEndpoint")
-                .hook()
                 .onMethodName("start")
                 .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.AbstractEndpoint$Start")
                 .build(),
@@ -43,15 +42,12 @@ public class TomcatPlugin implements IPlugin {
             // statistics
             // differ from Trace below since it depends on different response objects
             forClass("org.apache.catalina.connector.CoyoteAdapter")
-                .hook()
-                .onMethodName("service")
-                .onArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
+                .onMethodAndArgs("service", "org.apache.coyote.Request", "org.apache.coyote.Response")
                 .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.CoyoteAdapter$Service")
                 .build(),
 
             // exception
             forClass("org.apache.catalina.core.StandardWrapperValve")
-                .hook()
                 .onMethodAndArgs("exception",
                                  "org.apache.catalina.connector.Request",
                                  "org.apache.catalina.connector.Response",
@@ -61,14 +57,12 @@ public class TomcatPlugin implements IPlugin {
 
             // trace
             forClass("org.apache.catalina.core.StandardHostValve")
-                .hook()
                 .onMethodAndArgs("invoke", "org.apache.catalina.connector.Request",
                                  "org.apache.catalina.connector.Response")
                 .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardHostValve$Invoke")
                 .build(),
 
             forClass("org.apache.catalina.core.StandardContext")
-                .hook()
                 .onDefaultConstructor()
                 .to("org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardContext$Ctor")
                 .build()

@@ -35,15 +35,12 @@ public class Netty4Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         InterceptorDescriptor descriptor =
             forClass("io.netty.util.ResourceLeakDetector")
-                .hook()
                 .onMethodName("reportUntracedLeak")
                 .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportUntracedLeak")
 
-                .hook()
                 .onMethodName("reportTracedLeak")
                 .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportTracedLeak")
 
-                .hook()
                 .onMethodName("needReport")
                 .replaceBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$NeedReport")
                 .build();

@@ -48,26 +48,22 @@ public class Jedis4Plugin implements IPlugin {
         return Arrays.asList(
 
             forClass("redis.clients.jedis.Connection")
-                .hook()
                 .onMethodAndNoArgs("connect")
                 .to("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
                 .build(),
 
             forClass("redis.clients.jedis.Jedis")
-                .hook()
                 .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
                 .to("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
                 .build(),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
-                .hook()
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
                 .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
                 .build(),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
-                .hook()
                 .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
                 .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
                 .build()

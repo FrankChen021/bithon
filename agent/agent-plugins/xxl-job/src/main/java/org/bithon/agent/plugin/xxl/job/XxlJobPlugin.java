@@ -42,32 +42,27 @@ public class XxlJobPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("com.xxl.job.core.server.EmbedServer$EmbedHttpServerHandler")
-                .hook()
                 .onMethod(Matchers.name("process").and(Matchers.takesArguments(4)))
                 .to("org.bithon.agent.plugin.xxl.job.interceptor.EmbedHttpServerHandler$Process")
                 .build(),
 
             // Inject the tracing context to the internal queue for tracing context restoring
             forClass("com.xxl.job.core.thread.JobThread")
-                .hook()
                 .onConstructor("int", "com.xxl.job.core.handler.IJobHandler")
                 .to("org.bithon.agent.plugin.xxl.job.interceptor.JobThread$Ctor")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.GlueJobHandler")
-                .hook()
                 .onMethodAndNoArgs("execute")
                 .to("org.bithon.agent.plugin.xxl.job.interceptor.GlueJobHandler$Execute")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.MethodJobHandler")
-                .hook()
                 .onMethodAndNoArgs("execute")
                 .to("org.bithon.agent.plugin.xxl.job.interceptor.MethodJobHandler$Execute")
                 .build(),
 
             forClass("com.xxl.job.core.handler.impl.ScriptJobHandler")
-                .hook()
                 .onMethodAndNoArgs("execute")
                 .to("org.bithon.agent.plugin.xxl.job.interceptor.ScriptJobHandler$Execute")
                 .build()

@@ -58,8 +58,7 @@ public class BithonBrpcPlugin implements IPlugin {
         return config.getProviders().keySet().stream().map((provider) -> {
             String[] interfaces = config.getProviders().get(provider).split(",");
 
-            return forClass(provider).hook()
-                                     .onMethod(Matchers.implement(interfaces))
+            return forClass(provider).onMethod(Matchers.implement(interfaces))
                                      .to("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
                                      .build();
 
