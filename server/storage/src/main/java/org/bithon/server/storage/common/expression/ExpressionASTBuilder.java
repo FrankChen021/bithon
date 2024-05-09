@@ -374,8 +374,10 @@ public class ExpressionASTBuilder {
         @Override
         public IExpression visitMapAccessExpression(ExpressionParser.MapAccessExpressionContext ctx) {
             IExpression expr = ctx.expression().accept(this);
-            if (!IDataType.OBJECT.equals(expr.getDataType())) {
-                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is not type of object, object access is not allowed.", ctx.expression().getText()));
+            if (expr.getDataType() != null && !IDataType.OBJECT.equals(expr.getDataType())) {
+                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is type of [%s], but required OBJECT to perform map access.",
+                                                                        ctx.expression().getText(),
+                                                                        expr.getDataType().name()));
             }
 
             return new MapAccessExpression(expr, getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
