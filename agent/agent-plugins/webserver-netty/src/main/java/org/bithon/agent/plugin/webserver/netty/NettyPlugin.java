@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.webserver.netty;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -35,11 +34,10 @@ public class NettyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.springframework.boot.web.embedded.netty.NettyWebServer")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("start")
-                                                   .to("org.bithon.agent.plugin.webserver.netty.interceptor.NettyWebServerStart")
-                )
+                .onMethod("start")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.webserver.netty.interceptor.NettyWebServerStart")
+                .build()
         );
     }
 }

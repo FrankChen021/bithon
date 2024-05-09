@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.spring.bean;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -34,15 +33,12 @@ public class SpringBeanPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("createBeanInstance")
-                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateBeanInstance"),
+                .onMethod("createBeanInstance")
+                .interceptedBy("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateBeanInstance")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("applyBeanPostProcessorsBeforeInstantiation")
-                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
-                )
+                .onMethod("applyBeanPostProcessorsBeforeInstantiation")
+                .interceptedBy("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
+                .build()
         );
     }
 }

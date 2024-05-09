@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.webserver.jetty;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -40,34 +39,30 @@ public class JettyPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.eclipse.jetty.server.AbstractConnector")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
-                ),
+                .onMethod("doStart")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.AbstractConnector$DoStart")
+                .build(),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("doStart")
-                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
-                ),
+                .onMethod("doStart")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.QueuedThreadPool$DoStart")
+                .build(),
 
             forClass("org.eclipse.jetty.server.HttpChannel")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("handle")
-                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle"),
+                .onMethod("handle")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$Handle")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("onCompleted")
-                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted"),
+                .onMethod("onCompleted")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$OnCompleted")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("handleException", "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
-
-                )
+                .onMethod("handleException")
+                .andArgs("java.lang.Throwable")
+                .interceptedBy("org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException")
+                .build()
         );
     }
 }

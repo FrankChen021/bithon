@@ -19,8 +19,10 @@ package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
-import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
+
+import java.util.function.Function;
 
 /**
  * @author frankchen
@@ -28,111 +30,102 @@ import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
  */
 public class MethodPointCutDescriptorBuilder {
 
-    private MethodType methodType;
-    private ElementMatcher.Junction<MethodDescription> method;
-    private ElementMatcher<MethodDescription> argsMatcher;
+    private final InterceptorDescriptorBuilder interceptorDescriptorBuilder;
+    private final MethodType methodType;
+    private final ElementMatcher.Junction<MethodDescription> method;
+    private ElementMatcher.Junction<MethodDescription> argsMatcher;
     private boolean debug;
+    private Visibility[] visibility;
 
-    public static MethodPointCutDescriptorBuilder build() {
-        return new MethodPointCutDescriptorBuilder();
+    MethodPointCutDescriptorBuilder(InterceptorDescriptorBuilder interceptorDescriptorBuilder,
+                                    ElementMatcher.Junction<MethodDescription> name,
+                                    MethodType methodType) {
+        this.interceptorDescriptorBuilder = interceptorDescriptorBuilder;
+        this.method = name;
+        this.methodType = methodType;
     }
 
-    public MethodPointCutDescriptor to(String interceptorQualifiedClassName) {
+    public MethodPointCutDescriptorBuilder andArgs(ElementMatcher.Junction<MethodDescription> matcher) {
+        setArgsMatcher(matcher);
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andNoArgs() {
+        setArgsMatcher(Matchers.argumentSize(0));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgsSize(int size) {
+        setArgsMatcher(Matchers.argumentSize(size));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgsSize(Function<Integer, Boolean> comparator) {
+        setArgsMatcher(new ElementMatcher.Junction.AbstractBase<MethodDescription>() {
+
+            private final Function<Integer, Boolean> sizeComparator = comparator;
+
+            @Override
+            public boolean matches(MethodDescription target) {
+                return sizeComparator.apply(target.getParameters().size());
+            }
+        });
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgs(String... args) {
+        setArgsMatcher(Matchers.createArgumentsMatcher(debug, args));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andRawArgs(String... args) {
+        setArgsMatcher(Matchers.createArgumentsMatcher(debug, true, args));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andArgs(int index, String typeName) {
+        setArgsMatcher(Matchers.takesArgument(index, typeName));
+        return this;
+    }
+
+    public MethodPointCutDescriptorBuilder andVisibility(Visibility... visibility) {
+        this.visibility = visibility;
+        return this;
+    }
+
+    public InterceptorDescriptorBuilder interceptedBy(String interceptorQualifiedClassName) {
         if (method == null) {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
-        ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug,
-                                                                                                      method);
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug, method);
+        if (visibility != null) {
+            methodMatcher = methodMatcher.and(Matchers.visibility(visibility));
+        }
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }
-        return new MethodPointCutDescriptor(debug,
-                                            methodMatcher,
-                                            methodType,
-                                            interceptorQualifiedClassName);
+        interceptorDescriptorBuilder.add(new MethodPointCutDescriptor(debug,
+                                                                      methodMatcher,
+                                                                      methodType,
+                                                                      interceptorQualifiedClassName));
+
+        return interceptorDescriptorBuilder;
     }
 
-    public MethodPointCutDescriptor replaceBy(String interceptorQualifiedClassName) {
+    public InterceptorDescriptorBuilder replacedBy(String interceptorQualifiedClassName) {
         if (methodType == MethodType.CONSTRUCTOR) {
             throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
         }
 
-        return to(interceptorQualifiedClassName);
-    }
-
-    public MethodPointCutDescriptorBuilder onAllMethods(String method) {
-        this.method = Matchers.withName(method);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
-        this.method = Matchers.withName(method);
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
-        this.method = Matchers.withName(method);
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
-        this.methodType = MethodType.NON_CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
-        this.method = Matchers.withName(method);
-        this.argsMatcher = ElementMatchers.takesNoArguments();
-        this.methodType = MethodType.NON_CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
-        this.method = method;
-        this.methodType = MethodType.NON_CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onAllConstructor() {
-        this.method = ElementMatchers.isConstructor();
-        this.methodType = MethodType.CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
-        this.method = ElementMatchers.isConstructor().and(matcher);
-        this.methodType = MethodType.CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onConstructor(String... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args should not be null");
-        }
-        this.method = ElementMatchers.isConstructor();
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        this.methodType = MethodType.CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onDefaultConstructor() {
-        this.method = ElementMatchers.isDefaultConstructor();
-        this.methodType = MethodType.CONSTRUCTOR;
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder onArgs(String... args) {
-        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
-        return this;
-    }
-
-    public MethodPointCutDescriptorBuilder noArgs() {
-        argsMatcher = ElementMatchers.takesNoArguments();
-        return this;
+        return interceptedBy(interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder debug() {
         this.debug = true;
         return this;
+    }
+
+    private void setArgsMatcher(ElementMatcher.Junction<MethodDescription> matcher) {
+        this.argsMatcher = this.argsMatcher == null ? matcher : this.argsMatcher.and(matcher);
     }
 }

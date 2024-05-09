@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.quartz2;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
@@ -41,15 +40,13 @@ public class QuartzPlugin implements IPlugin {
 
         return Collections.singletonList(
             forClass("org.quartz.core.JobRunShell")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("run")
-                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$Run"),
+                .onMethod("run")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.quartz2.JobRunShell$Run")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("notifyJobListenersComplete")
-                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$NotifyJobListenersComplete")
-                )
+                .onMethod("notifyJobListenersComplete")
+                .interceptedBy("org.bithon.agent.plugin.quartz2.JobRunShell$NotifyJobListenersComplete")
+                .build()
         );
     }
 }

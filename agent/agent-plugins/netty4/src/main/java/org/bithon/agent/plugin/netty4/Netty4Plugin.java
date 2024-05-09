@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.netty4;
 
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -35,20 +34,16 @@ public class Netty4Plugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         InterceptorDescriptor descriptor =
-                forClass("io.netty.util.ResourceLeakDetector")
-                        .methods(
-                                MethodPointCutDescriptorBuilder.build()
-                                                               .onAllMethods("reportUntracedLeak")
-                                                               .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportUntracedLeak"),
+            forClass("io.netty.util.ResourceLeakDetector")
+                .onMethod("reportUntracedLeak")
+                .interceptedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportUntracedLeak")
 
-                                MethodPointCutDescriptorBuilder.build()
-                                                               .onAllMethods("reportTracedLeak")
-                                                               .to("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportTracedLeak"),
+                .onMethod("reportTracedLeak")
+                .interceptedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$ReportTracedLeak")
 
-                                MethodPointCutDescriptorBuilder.build()
-                                                               .onAllMethods("needReport")
-                                                               .replaceBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$NeedReport")
-                        );
+                .onMethod("needReport")
+                .replacedBy("org.bithon.agent.plugin.netty4.ResourceLeakDetector$NeedReport")
+                .build();
 
         return Arrays.asList(descriptor.withTargetClazz("org.apache.ratis.thirdparty.io.netty.util.ResourceLeakDetector"),
                              descriptor.withTargetClazz("org.bithon.shaded.io.netty.util.ResourceLeakDetector"),

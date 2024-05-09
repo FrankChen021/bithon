@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.redis.redisson;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -37,38 +35,31 @@ public class RedissonPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.redisson.client.handler.CommandEncoder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("encode")
-                                                                     .and(Matchers.takesArguments(3))
-                                                                     .and(Matchers.takesArgument(2, "io.netty.buffer.ByteBuf")))
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandEncoder$Encode")
-                        ),
+                .onMethod("encode")
+                .andArgsSize(3)
+                .andArgs(2, "io.netty.buffer.ByteBuf")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandEncoder$Encode")
+                .build(),
 
             forClass("org.redisson.client.handler.CommandDecoder")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("decode")
-                                                                     .and(Matchers.takesArguments(4))
-                                                                     .and(Matchers.takesArgument(1, "io.netty.buffer.ByteBuf"))
-                                                                     .and(Matchers.takesArgument(2, "org.redisson.client.protocol.QueueCommand")))
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
-                        ),
+                .onMethod("decode")
+                .andArgsSize(4)
+                .andArgs(1, "io.netty.buffer.ByteBuf")
+                .andArgs(2, "org.redisson.client.protocol.QueueCommand")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandDecoder$Decode")
+                .build(),
 
             forClass("org.redisson.client.protocol.CommandData")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesArgument(0, "java.util.concurrent.CompletableFuture")
-                                                                          .and(Matchers.takesArgument(3, "org.redisson.client.protocol.RedisCommand")))
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
-                        ),
+                .onConstructor()
+                .andArgs(0, "java.util.concurrent.CompletableFuture")
+                .andArgs(3, "org.redisson.client.protocol.RedisCommand")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.CommandData$Ctor")
+                .build(),
 
             forClass("org.redisson.client.RedisConnection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndRawArgs("send", "org.redisson.client.protocol.CommandData")
-                                                   .to("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
-                        )
-                            );
+                .onMethod("send")
+                .andRawArgs("org.redisson.client.protocol.CommandData")
+                .interceptedBy("org.bithon.agent.plugin.redis.redisson.interceptor.RedisConnection$Send")
+                .build());
     }
 }

@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.redis.jedis4;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
@@ -49,33 +48,30 @@ public class Jedis4Plugin implements IPlugin {
         return Arrays.asList(
 
             forClass("redis.clients.jedis.Connection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("connect")
-                                                   .to("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
-                        ),
+                .onMethod("connect")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.Connection$Connect")
+                .build(),
 
             forClass("redis.clients.jedis.Jedis")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
-                                                   .to("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
-                        ),
+                .onMethod(ElementMatchers.isOverriddenFrom(Matchers.endsWith("Commands")))
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.OnCommand")
+                .build(),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                                                   .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
-                        ),
+                .onConstructor()
+                .andArgsSize(2)
+                .andArgs(0, "java.io.OutputStream")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisOutputStream$Ctor")
+                .build(),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                                                   .to("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
-                        )
-                            );
+                .onConstructor()
+                .andArgsSize(2)
+                .andArgs(0, "java.io.InputStream")
+                .interceptedBy("org.bithon.agent.plugin.redis.jedis4.interceptor.RedisInputStream$Ctor")
+                .build()
+        );
     }
 }

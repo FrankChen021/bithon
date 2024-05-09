@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.apache.httpcomponents4;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -37,85 +36,69 @@ public class HttpComponents4Plugin implements IPlugin {
             // "http client 4.3.4~4.5.3: InternalHttpClient"
             //
             forClass("org.apache.http.impl.client.InternalHttpClient")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("doExecute",
-                                                                    "org.apache.http.HttpHost",
-                                                                    "org.apache.http.HttpRequest",
-                                                                    "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.InternalHttpClient$DoExecute")
-                        ),
+                .onMethod("doExecute")
+                .andArgs("org.apache.http.HttpHost", "org.apache.http.HttpRequest", "org.apache.http.protocol.HttpContext")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.InternalHttpClient$DoExecute")
+                .build(),
 
             //
             // http client 4.3.4~4.5.3: RedirectExec"
             //
             forClass("org.apache.http.impl.execchain.RedirectExec")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("execute",
-                                                                    "org.apache.http.conn.routing.HttpRoute",
-                                                                    "org.apache.http.client.methods.HttpRequestWrapper",
-                                                                    "org.apache.http.client.protocol.HttpClientContext",
-                                                                    "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.RedirectExec$Execute")
-                        ),
+                .onMethod("execute")
+                .andArgs("org.apache.http.conn.routing.HttpRoute",
+                         "org.apache.http.client.methods.HttpRequestWrapper",
+                         "org.apache.http.client.protocol.HttpClientContext",
+                         "org.apache.http.client.methods.HttpExecutionAware")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.RedirectExec$Execute")
+                .build(),
 
             //
             // "http client 4.3.4~4.5.3: MinimalClientExec"
             //
             forClass("org.apache.http.impl.execchain.MinimalClientExec")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("execute",
-                                                                    "org.apache.http.conn.routing.HttpRoute",
-                                                                    "org.apache.http.client.methods.HttpRequestWrapper",
-                                                                    "org.apache.http.client.protocol.HttpClientContext",
-                                                                    "org.apache.http.client.methods.HttpExecutionAware")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.MinimalClientExec$Execute")
-                        ),
+                .onMethod("execute")
+                .andArgs("org.apache.http.conn.routing.HttpRoute",
+                         "org.apache.http.client.methods.HttpRequestWrapper",
+                         "org.apache.http.client.protocol.HttpClientContext",
+                         "org.apache.http.client.methods.HttpExecutionAware")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.MinimalClientExec$Execute")
+                .build(),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("execute",
-                                                                    "org.apache.http.HttpHost",
-                                                                    "org.apache.http.HttpRequest",
-                                                                    "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$Execute"),
+                .onMethod("execute")
+                .andArgs("org.apache.http.HttpHost",
+                         "org.apache.http.HttpRequest",
+                         "org.apache.http.protocol.HttpContext")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("releaseConnection")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$ReleaseConnection")
-                        ),
+                .onMethod("releaseConnection")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultRequestDirector$ReleaseConnection")
+                .build(),
 
             //
             // tracing
             //
             forClass("org.apache.http.protocol.HttpRequestExecutor")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("execute",
-                                                                    "org.apache.http.HttpRequest",
-                                                                    "org.apache.http.HttpClientConnection",
-                                                                    "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.HttpRequestExecutor$Execute")
-                        ),
+                .onMethod("execute")
+                .andArgs("org.apache.http.HttpRequest",
+                         "org.apache.http.HttpClientConnection",
+                         "org.apache.http.protocol.HttpContext")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.HttpRequestExecutor$Execute")
+                .build(),
 
             // 4.3 and before
             forClass("org.apache.http.impl.conn.DefaultClientConnectionOperator")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("openConnection")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultClientConnectionOperator$OpenConnection")
-                        ),
+                .onMethod("openConnection")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultClientConnectionOperator$OpenConnection")
+                .build(),
 
             // Since 4.4
             forClass("org.apache.http.impl.conn.DefaultHttpClientConnectionOperator")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("connect")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultHttpClientConnectionOperator$Connect")
-                        )
-                            );
+                .onMethod("connect")
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents4.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                .build()
+        );
     }
 }
