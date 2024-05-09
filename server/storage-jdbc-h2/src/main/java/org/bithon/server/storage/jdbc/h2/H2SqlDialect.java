@@ -103,9 +103,9 @@ public class H2SqlDialect implements ISqlDialect {
                 }
 
                 MapAccessExpression mapAccessExpression = (MapAccessExpression) expression.getLeft();
-                String mapName = ((IdentifierExpression)mapAccessExpression.getMap()).getIdentifier();
+                String mapName = ((IdentifierExpression) mapAccessExpression.getMap()).getIdentifier();
                 String key = mapAccessExpression.getKey();
-                String value = ((LiteralExpression)expression.getRight()).getValue().toString();
+                String value = ((LiteralExpression) expression.getRight()).getValue().toString();
 
                 if (expression instanceof ComparisonExpression.EQ) {
                     return new ConditionalExpression.Like(new IdentifierExpression(mapName),

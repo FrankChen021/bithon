@@ -359,9 +359,7 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             throw new UnsupportedOperationException();
         }
-    }
-    ;
-
+    };
 
     public abstract boolean canCastFrom(IDataType dataType);
 
