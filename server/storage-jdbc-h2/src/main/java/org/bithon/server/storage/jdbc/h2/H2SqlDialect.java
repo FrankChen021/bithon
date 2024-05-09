@@ -137,4 +137,12 @@ public class H2SqlDialect implements ISqlDialect {
     public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
         return "'" + DateTime.toISO8601((Long) expression.getValue()) + "'";
     }
+
+    /**
+     * The H2 uses single quote to escape
+     */
+    @Override
+    public char getEscapeCharacter4SingleQuote() {
+        return '\'';
+    }
 }
