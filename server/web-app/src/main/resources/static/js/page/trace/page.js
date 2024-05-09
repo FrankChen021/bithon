@@ -55,6 +55,7 @@ class TracePage {
             .childOf(parent)
             .registerIntervalChangedListener((selectedModel) => {
                 this.mInterval = this.vIntervalSelector.getInterval();
+                this.#updatePageURL(this.filterExpression);
                 this.#refreshPage();
             });
         this.mInterval = this.vIntervalSelector.getInterval();
@@ -84,14 +85,14 @@ class TracePage {
         });
 
         // If the tag filters are not selectable, add them to the filterExpression
-        const tagFilters = {};
+        const selectableTags = {};
         if (this.vTagFilter !== null) {
             $.each(this.vTagFilter.getFilterName(), (index, name) => {
-                tagFilters["tags." + name] = true;
+                selectableTags["tags." + name] = true;
             });
         }
         $.each(options.queryParams, (name, value) => {
-            if (name.startsWith("tags.") && tagFilters[name] === undefined) {
+            if (name.startsWith("tags.") && selectableTags[name] === undefined) {
                 if (this.filterExpression.length > 0) {
                     this.filterExpression += ' AND ';
                 }
@@ -102,8 +103,13 @@ class TracePage {
         $("#filter-input")
             .val(this.filterExpression)
             .on('keydown', (event) => {
-                this.filterExpression = event.target.value;
+                const newFilterExpression = event.target.value;
                 if (event.keyCode === 13) {
+                    if (newFilterExpression !== this.filterExpression) {
+                        this.#updatePageURL(newFilterExpression);
+                    }
+
+                    this.filterExpression = newFilterExpression;
                     this.#refreshPage();
                 }
             })
@@ -326,5 +332,12 @@ class TracePage {
         }
 
         this.vIntervalSelector.setInterval(startTimestamp, endTimestamp);
+    }
+
+    #updatePageURL(filterExpression){
+        let url = window.location.pathname + '?';
+        url += `interval=${this.mInterval.id}&`;
+        url += `filter=${encodeURIComponent(filterExpression)}`;
+        window.history.pushState('updated' /*state*/, '', url);
     }
 }
