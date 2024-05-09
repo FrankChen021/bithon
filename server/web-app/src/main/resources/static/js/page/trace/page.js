@@ -11,6 +11,7 @@ class TracePage {
         // Model
         this.mQueryParams = options.queryParams;
         this.filterExpression = options.filterExpression
+        this.mSelectedTags = {};
         this.mInterval = null;
 
         // View
@@ -44,6 +45,12 @@ class TracePage {
                 parentId: 'filterBar',
                 intervalProvider: () => this.#getInterval()
             }).registerChangedListener((name, value) => {
+                if (value === null) {
+                    delete this.mSelectedTags[name];
+                } else {
+                    this.mSelectedTags[name] = value;
+                }
+
                 this.#refreshPage();
             }).createFilter('trace_span_tag_index');
         }
@@ -79,7 +86,7 @@ class TracePage {
                     filters: this.#getFilters(),
                     startTimeISO8601: this.mInterval.start,
                     endTimeISO8601: this.mInterval.end,
-                    expression: this.filterExpression
+                    expression: this.#getFilterExpressionForRequest()
                 };
             }
         });
@@ -103,7 +110,7 @@ class TracePage {
         $("#filter-input")
             .val(this.filterExpression)
             .on('keydown', (event) => {
-                const newFilterExpression = event.target.value;
+                const newFilterExpression = event.target.value.trim();
                 if (event.keyCode === 13) {
                     if (newFilterExpression !== this.filterExpression) {
                         this.#updatePageURL(newFilterExpression);
@@ -133,11 +140,25 @@ class TracePage {
 
     #getFilters() {
         if (this.vFilters !== null) {
-            let summaryTableFilter = this.vFilters.getSelectedFilters();
-            let tagFilters = this.vTagFilter.getSelectedFilters();
-            return summaryTableFilter.concat(tagFilters);
+            return this.vFilters.getSelectedFilters();
         } else {
             return [];
+        }
+    }
+
+    #getFilterExpressionForRequest() {
+        let tagExpression = '';
+        $.each(this.mSelectedTags, (name, val) => {
+            if(tagExpression.length > 0) {
+                tagExpression += ' AND ';
+            }
+            tagExpression += `tags['${name}'] = '${val}'`;
+        });
+
+        if (this.filterExpression.length > 0) {
+            return tagExpression.length > 0 ? (this.filterExpression + ' AND ' + tagExpression) : this.filterExpression;
+        } else {
+            return tagExpression;
         }
     }
 
@@ -160,7 +181,7 @@ class TracePage {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 filters: this.#getFilters(),
-                expression: this.filterExpression
+                expression: this.#getFilterExpressionForRequest()
             }),
             processResult: (data) => {
                 this._data = data;

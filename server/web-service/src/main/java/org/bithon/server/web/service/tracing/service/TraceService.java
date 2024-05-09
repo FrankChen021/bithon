@@ -219,111 +219,131 @@ public class TraceService {
                                                 expression.getType());
             }
 
-            TagFilterExtractor extractor = new TagFilterExtractor(this.summaryTableSchema, this.indexTableSchema);
-            expression.accept(extractor);
-            this.indexedTagFilters = extractor.indexedTagFilter;
+            SplitterImpl splitter = new SplitterImpl(this.summaryTableSchema, this.indexTableSchema);
+            expression.accept(splitter);
+            this.indexedTagFilters = splitter.indexedTagFilters;
             this.expression = expression;
         }
-    }
 
-    static class TagFilterExtractor implements IExpressionVisitor2<Boolean> {
+        /**
+         * This Splitter extracts filters on the 'attributes' column which is indexed
+         * so that the execution engine will generate queries on the indexed table.
+         * <p>
+         * For example, let's say the tag 'http.method'
+         * is indexed to the first column (defined in the {@link org.bithon.server.storage.tracing.index.TagIndexConfig}),
+         * When the given expression is as:
+         *
+         * <pre><code>
+         * tags['http.method'] = 'GET' AND http.status = 200
+         * </code></pre>
+         * <p>
+         * After the processing of this class, the expression will be turned into:
+         * <pre><code>
+         * http.status = 200
+         * </code></pre>
+         * <p>
+         * and the indexedTagFilters field will hold expression as
+         * <pre><code>
+         * f1 = 'GET'
+         * </code></pre>
+         */
+        private static class SplitterImpl implements IExpressionVisitor2<Boolean> {
 
-        private final ISchema indexTableSchema;
-        private final ISchema summaryTableSchema;
-        private boolean isFilterOnIndexedTag = false;
+            private final ISchema indexTableSchema;
+            private final ISchema summaryTableSchema;
+            private final List<IExpression> indexedTagFilters;
 
-        private final List<IExpression> indexedTagFilter;
+            public SplitterImpl(ISchema summaryTableSchema,
+                                ISchema indexTableSchema) {
+                this.indexedTagFilters = new ArrayList<>();
+                this.summaryTableSchema = summaryTableSchema;
+                this.indexTableSchema = indexTableSchema;
+            }
 
-        public TagFilterExtractor(ISchema summaryTableSchema,
-                                  ISchema indexTableSchema) {
-            this.indexedTagFilter = new ArrayList<>();
-            this.summaryTableSchema = summaryTableSchema;
-            this.indexTableSchema = indexTableSchema;
-        }
-
-        @Override
-        public Boolean visit(ExpressionList expression) {
-            return false;
-        }
-
-        @Override
-        public Boolean visit(ArrayAccessExpression expression) {
-            return false;
-        }
-
-        @Override
-        public Boolean visit(ArithmeticExpression expression) {
-            return false;
-        }
-
-        @Override
-        public Boolean visit(MacroExpression expression) {
-            return false;
-        }
-
-        @Override
-        public Boolean visit(FunctionExpression expression) {
-            return false;
-        }
-
-        @Override
-        public Boolean visit(ConditionalExpression expression) {
-            IExpression left = expression.getLeft();
-            if (!(left instanceof MapAccessExpression)) {
+            @Override
+            public Boolean visit(ExpressionList expression) {
                 return false;
             }
 
-            MapAccessExpression mapAccessExpression = (MapAccessExpression) left;
-            IExpression mapContainerExpression = ((MapAccessExpression) left).getMap();
-            if (!(mapContainerExpression instanceof IdentifierExpression)) {
-                throw new UnsupportedOperationException("Only identifier is supported as map container");
+            @Override
+            public Boolean visit(ArrayAccessExpression expression) {
+                return false;
             }
 
-            String mapIdentifier = ((IdentifierExpression) mapContainerExpression).getIdentifier();
-            IColumn attributeColumn = this.summaryTableSchema.getColumnByName(mapIdentifier);
-            if (!(attributeColumn instanceof ObjectColumn)) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "The column [%s] is not a map column",
-                                                mapIdentifier);
-            }
-            ((IdentifierExpression) mapContainerExpression).setIdentifier(attributeColumn.getName());
-
-            IColumn column = this.indexTableSchema.getColumnByName(mapAccessExpression.getKey());
-            if (column != null) {
-                // Given identifier in the expression might be alias, replace it with the actual name
-                mapAccessExpression.setKey(column.getName());
-            } else {
-                isFilterOnIndexedTag = false;
+            @Override
+            public Boolean visit(ArithmeticExpression expression) {
+                return false;
             }
 
-            return true;
-        }
-
-        @Override
-        public Boolean visit(LogicalExpression expression) {
-            if (!(expression instanceof LogicalExpression.AND)) {
-                throw new RuntimeException("Only AND operator is supported to search tracing.");
+            @Override
+            public Boolean visit(MacroExpression expression) {
+                return false;
             }
 
-            List<IExpression> nonTagsFilters = new ArrayList<>();
-            for (IExpression subExpression : expression.getOperands()) {
-                if (subExpression.accept(this)) {
-                    if (isFilterOnIndexedTag) {
-                        indexedTagFilter.add(subExpression);
+            @Override
+            public Boolean visit(FunctionExpression expression) {
+                return false;
+            }
+
+            @Override
+            public Boolean visit(ConditionalExpression expression) {
+                IExpression left = expression.getLeft();
+                if (!(left instanceof MapAccessExpression)) {
+                    return false;
+                }
+
+                MapAccessExpression mapAccessExpression = (MapAccessExpression) left;
+                IExpression mapContainerExpression = ((MapAccessExpression) left).getMap();
+                if (!(mapContainerExpression instanceof IdentifierExpression)) {
+                    throw new UnsupportedOperationException("Only identifier is supported as map container");
+                }
+                String mapColumnName = ((IdentifierExpression) mapContainerExpression).getIdentifier();
+
+                if (!(expression instanceof ComparisonExpression.EQ)) {
+                    throw new UnsupportedOperationException(StringUtils.format("Only EQ operator is supported on map column [%s].", mapColumnName));
+                }
+
+                IColumn mapColumn = this.summaryTableSchema.getColumnByName(mapColumnName);
+                if (!(mapColumn instanceof ObjectColumn)) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                    "The column [%s] is not a map column",
+                                                    mapColumnName);
+                }
+                ((IdentifierExpression) mapContainerExpression).setIdentifier(mapColumn.getName());
+
+                IColumn indexColumn = this.indexTableSchema.getColumnByName(mapAccessExpression.getKey());
+                if (indexColumn != null) {
+                    // Replace the map access expression in the left to identifier expression
+                    // which refers to the indexed column
+                    expression.setLeft(new IdentifierExpression(indexColumn.getName()));
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public Boolean visit(LogicalExpression expression) {
+                if (!(expression instanceof LogicalExpression.AND)) {
+                    throw new RuntimeException("Only AND operator is supported to search tracing.");
+                }
+
+                List<IExpression> nonTagsFilters = new ArrayList<>();
+                for (IExpression subExpression : expression.getOperands()) {
+                    if (subExpression.accept(this)) {
+                        indexedTagFilters.add(subExpression);
                     } else {
                         nonTagsFilters.add(subExpression);
                     }
-                } else {
-                    nonTagsFilters.add(subExpression);
                 }
-            }
-            if (nonTagsFilters.isEmpty()) {
-                // Add a placeholder expression so simple further processing
-                nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1)));
-            }
-            expression.setOperands(nonTagsFilters);
+                if (nonTagsFilters.isEmpty()) {
+                    // Add a placeholder expression so simple further processing
+                    nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1)));
+                }
+                expression.setOperands(nonTagsFilters);
 
-            return false;
+                return false;
+            }
         }
     }
 }
