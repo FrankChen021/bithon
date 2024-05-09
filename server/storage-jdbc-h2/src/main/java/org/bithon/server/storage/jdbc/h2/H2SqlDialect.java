@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.h2;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -30,6 +29,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
 import java.util.Arrays;
 
@@ -102,16 +102,7 @@ public class H2SqlDialect implements ISqlDialect {
                     return super.visit(expression);
                 }
 
-                MapAccessExpression mapAccessExpression = (MapAccessExpression) expression.getLeft();
-                String mapName = ((IdentifierExpression) mapAccessExpression.getMap()).getIdentifier();
-                String key = mapAccessExpression.getKey();
-                String value = ((LiteralExpression) expression.getRight()).getValue().toString();
-
-                if (expression instanceof ComparisonExpression.EQ) {
-                    return new ConditionalExpression.Like(new IdentifierExpression(mapName),
-                                                          LiteralExpression.create("%\"" + key + "\":\"" + value + "\"%"));
-                }
-                return super.visit(expression);
+                return MapAccessExpressionTransformer.transform(expression);
             }
 
             @Override
