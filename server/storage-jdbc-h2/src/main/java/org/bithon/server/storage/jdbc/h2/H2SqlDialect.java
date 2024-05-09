@@ -17,11 +17,13 @@
 package org.bithon.server.storage.jdbc.h2;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
@@ -84,12 +86,34 @@ public class H2SqlDialect implements ISqlDialect {
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
         return SimpleAggregateExpressions.FirstAggregateExpression.TYPE.equals(aggregator)
-            || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
+               || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
     }
 
     @Override
     public IExpression transform(IExpression expression) {
         return expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+            /**
+             * H2 does not support Map, the JSON formatted string is stored in the column.
+             * So we turn the MapAccessExpression into a LIKE expression
+             */
+            @Override
+            public IExpression visit(ConditionalExpression expression) {
+                if (!(expression.getLeft() instanceof MapAccessExpression)) {
+                    return super.visit(expression);
+                }
+
+                MapAccessExpression mapAccessExpression = (MapAccessExpression) expression.getLeft();
+                String mapName = ((IdentifierExpression)mapAccessExpression.getMap()).getIdentifier();
+                String key = mapAccessExpression.getKey();
+                String value = ((LiteralExpression)expression.getRight()).getValue().toString();
+
+                if (expression instanceof ComparisonExpression.EQ) {
+                    return new ConditionalExpression.Like(new IdentifierExpression(mapName),
+                                                          LiteralExpression.create("%\"" + key + "\":\"" + value + "\"%"));
+                }
+                return super.visit(expression);
+            }
+
             @Override
             public IExpression visit(FunctionExpression expression) {
                 if ("startsWith".equals(expression.getName())) {

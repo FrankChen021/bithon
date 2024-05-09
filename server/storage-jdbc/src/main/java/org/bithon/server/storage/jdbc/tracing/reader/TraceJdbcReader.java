@@ -133,12 +133,6 @@ public class TraceJdbcReader implements ITraceReader {
                                                           filter));
         }
 
-        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
-            listQuery = listQuery.and(nonIndexedTagFilters.stream()
-                                                          .map(this::getTagPredicate)
-                                                          .collect(Collectors.joining(" AND ")));
-        }
-
         // Build the tag query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
             SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
@@ -208,13 +202,6 @@ public class TraceJdbcReader implements ITraceReader {
                                                   filter));
         }
 
-        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
-            sqlBuilder.append(" AND ");
-            sqlBuilder.append(nonIndexedTagFilters.stream()
-                                                  .map(this::getTagPredicate)
-                                                  .collect(Collectors.joining(" AND ")));
-        }
-
         // Build the indexed tag sub query
         if (CollectionUtils.isNotEmpty(indexedTagFilter)) {
             SelectConditionStep<Record1<String>> indexedTagQuery = new IndexedTagQueryBuilder(this.sqlDialect)
@@ -260,12 +247,6 @@ public class TraceJdbcReader implements ITraceReader {
             countQuery = countQuery.and(Expression2Sql.from((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).getName(),
                                                             sqlDialect,
                                                             filter));
-        }
-
-        if (CollectionUtils.isNotEmpty(nonIndexedTagFilters)) {
-            countQuery = countQuery.and(nonIndexedTagFilters.stream()
-                                                            .map(this::getTagPredicate)
-                                                            .collect(Collectors.joining(" AND ")));
         }
 
         // Build the indexed tag query
