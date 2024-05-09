@@ -58,7 +58,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,7 +66,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TraceJdbcReader implements ITraceReader {
 
-    public static final String SPAN_TAGS_PREFIX = "tags.";
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig traceStorageConfig;
@@ -109,7 +107,6 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<TraceSpan> getTraceList(IExpression filter,
-                                        List<IExpression> nonIndexedTagFilters,
                                         List<IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
@@ -170,7 +167,6 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                          List<IExpression> nonIndexedTagFilters,
                                                           List<IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
@@ -226,7 +222,6 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public int getTraceListSize(IExpression filter,
-                                List<IExpression> nonIndexedTagFilters,
                                 List<IExpression> indexedTagFilters,
                                 Timestamp start,
                                 Timestamp end) {
@@ -343,33 +338,6 @@ public class TraceJdbcReader implements ITraceReader {
         SpanKindIsRootDetector detector = new SpanKindIsRootDetector(kindFieldName);
         expression.accept(detector);
         return detector.isTrue;
-    }
-
-    /**
-     * Get the SQL predicate expression for give tag filter.
-     * For the default implementation, ONLY the 'equal' filter is supported, and it's turned into a LIKE search.
-     */
-    protected String getTagPredicate(IExpression tagFilter) {
-        if (!(tagFilter instanceof ComparisonExpression.EQ)) {
-            throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
-                                                                       tagFilter.getClass().getSimpleName()));
-        }
-
-        IExpression left = ((ComparisonExpression.EQ) tagFilter).getLeft();
-        IExpression right = ((ComparisonExpression.EQ) tagFilter).getRight();
-        if (!(left instanceof IdentifierExpression)) {
-            throw new UnsupportedOperationException(StringUtils.format("The left operator in expression [%s] should be identifier only.",
-                                                                       tagFilter.serializeToText()));
-        }
-        if (!(right instanceof LiteralExpression)) {
-            throw new UnsupportedOperationException(StringUtils.format("The right operator in expression [%s] should be literal only.",
-                                                                       tagFilter.serializeToText()));
-        }
-
-        return StringUtils.format("\"%s\" LIKE '%%\"%s\":\"%s\"%%'",
-                                  Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName(),
-                                  ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length()),
-                                  ((LiteralExpression) right).getValue());
     }
 
     protected Map<String, String> toTagMap(Object attributes) {

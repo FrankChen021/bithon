@@ -30,7 +30,6 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
-import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
@@ -146,7 +145,6 @@ public class TraceService {
         splitter.split(FilterExpressionToFilters.toExpression(this.summaryTableSchema, filterExpression, filters));
 
         return traceReader.getTraceListSize(splitter.expression,
-                                            splitter.nonIndexedTagFilters,
                                             splitter.indexedTagFilters,
                                             start,
                                             end);
@@ -164,7 +162,6 @@ public class TraceService {
         splitter.split(FilterExpressionToFilters.toExpression(this.summaryTableSchema, filterExpression, filters));
 
         return traceReader.getTraceList(splitter.expression,
-                                        splitter.nonIndexedTagFilters,
                                         splitter.indexedTagFilters,
                                         start,
                                         end,
@@ -183,7 +180,6 @@ public class TraceService {
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.expression,
-                                                                                splitter.nonIndexedTagFilters,
                                                                                 splitter.indexedTagFilters,
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
@@ -201,7 +197,6 @@ public class TraceService {
     static class FilterSplitter {
         private IExpression expression;
         private List<IExpression> indexedTagFilters;
-        private List<IExpression> nonIndexedTagFilters;
         private final ISchema summaryTableSchema;
         private final ISchema indexTableSchema;
 
@@ -227,7 +222,6 @@ public class TraceService {
             TagFilterExtractor extractor = new TagFilterExtractor(this.summaryTableSchema, this.indexTableSchema);
             expression.accept(extractor);
             this.indexedTagFilters = extractor.indexedTagFilter;
-            this.nonIndexedTagFilters = extractor.nonIndexedTagFilter;
             this.expression = expression;
         }
     }
@@ -239,12 +233,10 @@ public class TraceService {
         private boolean isFilterOnIndexedTag = false;
 
         private final List<IExpression> indexedTagFilter;
-        private final List<IExpression> nonIndexedTagFilter;
 
         public TagFilterExtractor(ISchema summaryTableSchema,
                                   ISchema indexTableSchema) {
             this.indexedTagFilter = new ArrayList<>();
-            this.nonIndexedTagFilter = new ArrayList<>();
             this.summaryTableSchema = summaryTableSchema;
             this.indexTableSchema = indexTableSchema;
         }
@@ -300,7 +292,6 @@ public class TraceService {
             if (column != null) {
                 // Given identifier in the expression might be alias, replace it with the actual name
                 mapAccessExpression.setKey(column.getName());
-                isFilterOnIndexedTag = true;
             } else {
                 isFilterOnIndexedTag = false;
             }

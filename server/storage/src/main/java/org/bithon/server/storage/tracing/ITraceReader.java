@@ -35,7 +35,6 @@ public interface ITraceReader extends IDataSourceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
-                                 List<IExpression> nonIndexedTagFilters,
                                  List<IExpression> indexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
@@ -45,14 +44,12 @@ public interface ITraceReader extends IDataSourceReader {
                                  int pageSize);
 
     List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                   List<IExpression> nonIndexedTagFilters,
                                                    List<IExpression> indexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
                                                    int interval);
 
     int getTraceListSize(IExpression filter,
-                         List<IExpression> nonIndexedTagFilters,
                          List<IExpression> indexedTagFilters,
                          Timestamp start,
                          Timestamp end);
