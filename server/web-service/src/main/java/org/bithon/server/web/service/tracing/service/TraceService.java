@@ -299,10 +299,6 @@ public class TraceService {
                 }
                 String mapColumnName = ((IdentifierExpression) mapContainerExpression).getIdentifier();
 
-                if (!(expression instanceof ComparisonExpression.EQ)) {
-                    throw new UnsupportedOperationException(StringUtils.format("Only EQ operator is supported on map column [%s].", mapColumnName));
-                }
-
                 IColumn mapColumn = this.summaryTableSchema.getColumnByName(mapColumnName);
                 if (!(mapColumn instanceof ObjectColumn)) {
                     throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
