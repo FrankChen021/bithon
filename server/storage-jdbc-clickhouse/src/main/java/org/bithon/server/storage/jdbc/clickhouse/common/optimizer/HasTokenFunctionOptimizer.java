@@ -31,18 +31,6 @@ import java.util.List;
  * @date 02/05/24 22:11pm
  */
 public class HasTokenFunctionOptimizer extends ExpressionOptimizer.AbstractOptimizer {
-    @Override
-    public IExpression visit(LogicalExpression expression) {
-        expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
-        return expression;
-    }
-
-    @Override
-    public IExpression visit(ConditionalExpression expression) {
-        expression.setLeft(expression.getLeft().accept(this));
-        expression.setRight(expression.getRight().accept(this));
-        return expression;
-    }
 
     @Override
     public IExpression visit(FunctionExpression expression) {

@@ -64,8 +64,8 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },
@@ -122,8 +122,8 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },
@@ -175,8 +175,8 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },

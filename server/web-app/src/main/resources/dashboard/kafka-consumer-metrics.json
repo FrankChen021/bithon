@@ -84,9 +84,9 @@
         },
         "tracing": {
           "mappings": {
-            "cluster": "tags.net.peer",
-            "topic": "tags.messaging.kafka.topic",
-            "groupId": "tags.messaging.kafka.consumer.group"
+            "cluster": "tags['net.peer']",
+            "topic": "tags['messaging.kafka.topic']",
+            "groupId": "tags['messaging.kafka.consumer.group']"
           },
           "filter": "name= 'kafka' AND kind = 'CONSUMER'"
         }
@@ -157,9 +157,9 @@
         },
         "tracing": {
           "mappings": {
-            "cluster": "tags.net.peer",
-            "topic": "tags.messaging.kafka.topic",
-            "groupId": "tags.messaging.kafka.consumer.group"
+            "cluster": "tags['net.peer']",
+            "topic": "tags['messaging.kafka.topic']",
+            "groupId": "tags['messaging.kafka.consumer.group']"
           },
           "filter": "name= 'kafka' AND kind = 'CONSUMER'"
         }

@@ -59,10 +59,10 @@
         },
         "tracing": {
           "mappings": {
-            "uri": "tags.net.peer",
-            "command": "tags.db.operation"
+            "uri": "tags['net.peer']",
+            "command": "tags['db.operation']"
           },
-          "filter": "kind = 'CLIENT' AND tags.db.system='redis'"
+          "filter": "kind = 'CLIENT' AND tags['db.system']='redis'"
         }
       }
     },

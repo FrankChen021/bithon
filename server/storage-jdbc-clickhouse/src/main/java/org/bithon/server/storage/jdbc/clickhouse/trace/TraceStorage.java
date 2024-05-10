@@ -23,11 +23,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -37,7 +32,6 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
-import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
@@ -171,36 +165,6 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.traceTagIndexSchema,
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext)) {
-
-            /**
-             * In ClickHouse, the tags are stored in a Map field.
-             * We need to use map accessor expression to search in the map
-             */
-            @Override
-            protected String getTagPredicate(IExpression tagFilter) {
-                if (!(tagFilter instanceof ComparisonExpression)) {
-                    throw new UnsupportedOperationException(StringUtils.format("[%s] matcher on tag field is not supported on this database.",
-                                                                               tagFilter.getClass().getSimpleName()));
-                }
-
-                IExpression left = ((ComparisonExpression) tagFilter).getLeft();
-                IExpression right = ((ComparisonExpression) tagFilter).getRight();
-                if (!(left instanceof IdentifierExpression)) {
-                    throw new UnsupportedOperationException(StringUtils.format("The left operator in expression [%s] should be identifier only.",
-                                                                               tagFilter.serializeToText()));
-                }
-                if (!(right instanceof LiteralExpression)) {
-                    throw new UnsupportedOperationException(StringUtils.format("The right operator in expression [%s] should be literal only.",
-                                                                               tagFilter.serializeToText()));
-                }
-
-                // Change the identifier of tags.xxx.xxx into: attributes['xxx.xxx']
-                String propName = ((IdentifierExpression) left).getIdentifier().substring(SPAN_TAGS_PREFIX.length());
-                MapAccessExpression attributeAccessExpression = new MapAccessExpression(new IdentifierExpression(Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName()), propName);
-                ((ComparisonExpression) tagFilter).setLeft(attributeAccessExpression);
-
-                return Expression2Sql.from(sqlDialect, tagFilter);
-            }
 
             @Override
             protected Map<String, String> toTagMap(Object attributes) {

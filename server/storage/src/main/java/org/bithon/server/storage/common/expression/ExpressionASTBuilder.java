@@ -32,6 +32,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -43,6 +44,7 @@ import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
@@ -361,12 +363,24 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
-            return new ArrayAccessExpression(ctx.expression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
+            IExpression expr = ctx.expression().accept(this);
+            if (!IDataType.ARRAY.equals(expr.getDataType())) {
+                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is not type of array, array access is not allowed.", ctx.expression().getText()));
+            }
+
+            return new ArrayAccessExpression(expr, Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
         }
 
         @Override
         public IExpression visitMapAccessExpression(ExpressionParser.MapAccessExpressionContext ctx) {
-            return new MapAccessExpression(ctx.expression().accept(this), getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
+            IExpression expr = ctx.expression().accept(this);
+            if (expr.getDataType() != null && !IDataType.OBJECT.equals(expr.getDataType())) {
+                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is type of [%s], but required OBJECT to perform map access.",
+                                                                        ctx.expression().getText(),
+                                                                        expr.getDataType().name()));
+            }
+
+            return new MapAccessExpression(expr, getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
         }
 
         @Override

@@ -52,6 +52,7 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(LogicalExpression expression) {
+            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
             return expression;
         }
 
@@ -62,10 +63,7 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ExpressionList expression) {
-            for (int i = 0; i < expression.getExpressions().size(); i++) {
-                IExpression newSubExpression = expression.getExpressions().get(i);
-                expression.getExpressions().set(i, newSubExpression);
-            }
+            expression.getExpressions().replaceAll(iExpression -> iExpression.accept(this));
             return expression;
         }
 
@@ -93,6 +91,8 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ConditionalExpression expression) {
+            expression.setLeft(expression.getLeft().accept(this));
+            expression.setRight(expression.getRight().accept(this));
             return expression;
         }
 
@@ -115,13 +115,16 @@ public class ExpressionOptimizer {
             }
 
             if (literalCount == expression.getOperands().size()) {
-                // All sub expressions are literal, do constant folding
+                // All operands are literal, do constant folding
                 return LiteralExpression.create(expression.evaluate(null));
             } else {
                 return expression;
             }
         }
 
+        /**
+         * Optimize the function expression by folding the constant parameters
+         */
         @Override
         public IExpression visit(FunctionExpression expression) {
             int literalCount = 0;
@@ -183,11 +186,14 @@ public class ExpressionOptimizer {
         public IExpression visit(LogicalExpression expression) {
             expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
 
+            // Check if the Logical expression is a constant expression
+            // or simplify the expression if it has only one operand
+            // or reverse the logical condition
             if (expression instanceof LogicalExpression.AND) {
-                return handleAndExpression((LogicalExpression.AND) expression);
+                return simplifyAndExpression((LogicalExpression.AND) expression);
             }
             if (expression instanceof LogicalExpression.OR) {
-                return handleOrExpression((LogicalExpression.OR) expression);
+                return simplifyOrExpression((LogicalExpression.OR) expression);
             }
             if (expression instanceof LogicalExpression.NOT) {
                 return handleNotExpression(expression);
@@ -264,7 +270,7 @@ public class ExpressionOptimizer {
             return expression;
         }
 
-        private IExpression handleOrExpression(LogicalExpression.OR expression) {
+        private IExpression simplifyOrExpression(LogicalExpression.OR expression) {
             Iterator<IExpression> subExpressionIterator = expression.getOperands().iterator();
 
             while (subExpressionIterator.hasNext()) {
@@ -304,7 +310,7 @@ public class ExpressionOptimizer {
             return expression;
         }
 
-        private IExpression handleAndExpression(LogicalExpression.AND andExpression) {
+        private IExpression simplifyAndExpression(LogicalExpression.AND andExpression) {
             Iterator<IExpression> subExpressionIterator = andExpression.getOperands().iterator();
 
             while (subExpressionIterator.hasNext()) {

@@ -11,6 +11,7 @@ class TracePage {
         // Model
         this.mQueryParams = options.queryParams;
         this.filterExpression = options.filterExpression
+        this.mSelectedTags = {};
         this.mInterval = null;
 
         // View
@@ -44,6 +45,12 @@ class TracePage {
                 parentId: 'filterBar',
                 intervalProvider: () => this.#getInterval()
             }).registerChangedListener((name, value) => {
+                if (value === null) {
+                    delete this.mSelectedTags[name];
+                } else {
+                    this.mSelectedTags[name] = value;
+                }
+
                 this.#refreshPage();
             }).createFilter('trace_span_tag_index');
         }
@@ -55,6 +62,7 @@ class TracePage {
             .childOf(parent)
             .registerIntervalChangedListener((selectedModel) => {
                 this.mInterval = this.vIntervalSelector.getInterval();
+                this.#updatePageURL(this.filterExpression);
                 this.#refreshPage();
             });
         this.mInterval = this.vIntervalSelector.getInterval();
@@ -78,20 +86,20 @@ class TracePage {
                     filters: this.#getFilters(),
                     startTimeISO8601: this.mInterval.start,
                     endTimeISO8601: this.mInterval.end,
-                    expression: this.filterExpression
+                    expression: this.#getFilterExpressionForRequest()
                 };
             }
         });
 
         // If the tag filters are not selectable, add them to the filterExpression
-        const tagFilters = {};
+        const selectableTags = {};
         if (this.vTagFilter !== null) {
             $.each(this.vTagFilter.getFilterName(), (index, name) => {
-                tagFilters["tags." + name] = true;
+                selectableTags["tags." + name] = true;
             });
         }
         $.each(options.queryParams, (name, value) => {
-            if (name.startsWith("tags.") && tagFilters[name] === undefined) {
+            if (name.startsWith("tags.") && selectableTags[name] === undefined) {
                 if (this.filterExpression.length > 0) {
                     this.filterExpression += ' AND ';
                 }
@@ -102,8 +110,13 @@ class TracePage {
         $("#filter-input")
             .val(this.filterExpression)
             .on('keydown', (event) => {
-                this.filterExpression = event.target.value;
+                const newFilterExpression = event.target.value.trim();
                 if (event.keyCode === 13) {
+                    if (newFilterExpression !== this.filterExpression) {
+                        this.#updatePageURL(newFilterExpression);
+                    }
+
+                    this.filterExpression = newFilterExpression;
                     this.#refreshPage();
                 }
             })
@@ -127,11 +140,25 @@ class TracePage {
 
     #getFilters() {
         if (this.vFilters !== null) {
-            let summaryTableFilter = this.vFilters.getSelectedFilters();
-            let tagFilters = this.vTagFilter.getSelectedFilters();
-            return summaryTableFilter.concat(tagFilters);
+            return this.vFilters.getSelectedFilters();
         } else {
             return [];
+        }
+    }
+
+    #getFilterExpressionForRequest() {
+        let tagExpression = '';
+        $.each(this.mSelectedTags, (name, val) => {
+            if(tagExpression.length > 0) {
+                tagExpression += ' AND ';
+            }
+            tagExpression += `tags['${name}'] = '${val}'`;
+        });
+
+        if (this.filterExpression.length > 0) {
+            return tagExpression.length > 0 ? (this.filterExpression + ' AND ' + tagExpression) : this.filterExpression;
+        } else {
+            return tagExpression;
         }
     }
 
@@ -154,7 +181,7 @@ class TracePage {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 filters: this.#getFilters(),
-                expression: this.filterExpression
+                expression: this.#getFilterExpressionForRequest()
             }),
             processResult: (data) => {
                 this._data = data;
@@ -326,5 +353,12 @@ class TracePage {
         }
 
         this.vIntervalSelector.setInterval(startTimestamp, endTimestamp);
+    }
+
+    #updatePageURL(filterExpression){
+        let url = window.location.pathname + '?';
+        url += `interval=${this.mInterval.id}&`;
+        url += `filter=${encodeURIComponent(filterExpression)}`;
+        window.history.pushState('updated' /*state*/, '', url);
     }
 }

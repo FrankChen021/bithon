@@ -22,12 +22,14 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
 import java.util.Arrays;
 
@@ -84,12 +86,25 @@ public class MySQLSqlDialect implements ISqlDialect {
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
         return SimpleAggregateExpressions.FirstAggregateExpression.TYPE.equals(aggregator)
-            || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
+               || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
     }
 
     @Override
     public IExpression transform(IExpression expression) {
         return expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+            /**
+             * MYSQL does not support Map, the JSON formatted string is stored in the column.
+             * So we turn the MapAccessExpression into a LIKE expression
+             */
+            @Override
+            public IExpression visit(ConditionalExpression expression) {
+                if (!(expression.getLeft() instanceof MapAccessExpression)) {
+                    return super.visit(expression);
+                }
+
+                return MapAccessExpressionTransformer.transform(expression);
+            }
+
             @Override
             public IExpression visit(FunctionExpression expression) {
                 if ("startsWith".equals(expression.getName())) {

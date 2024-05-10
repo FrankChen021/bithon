@@ -53,9 +53,9 @@
         },
         "tracing": {
           "mappings": {
-            "cluster": "tags.net.peer",
-            "topic": "tags.messaging.kafka.topic",
-            "clientId": "tags.messaging.kafka.client_id"
+            "cluster": "tags['net.peer']",
+            "topic": "tags['messaging.kafka.topic']",
+            "clientId": "tags['messaging.kafka.client_id']"
           },
           "filter": "name= 'kafka' AND kind = 'PRODUCER'"
         }
