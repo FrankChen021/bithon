@@ -53,7 +53,8 @@ COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bi
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
-    && apt-get -qq -y install wget
+    && apt-get -qq -y install wget \
+    && apt-get -qq -y install libjemalloc-dev
 
 COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh \
@@ -65,6 +66,9 @@ ENV ENABLE_AGENT=true
 
 # Remember to replace the URI to the URI of your own distribution
 ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+
+# Replace the glibc memory allocator to jemalloc
+ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so"
 
 VOLUME /opt/shared/conf
 
