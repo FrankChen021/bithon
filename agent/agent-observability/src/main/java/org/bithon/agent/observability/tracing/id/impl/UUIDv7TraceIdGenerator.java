@@ -17,19 +17,18 @@
 package org.bithon.agent.observability.tracing.id.impl;
 
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
-
-import java.util.UUID;
+import org.bithon.component.commons.uuid.UUIDv7Generator;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/6 12:20 上午
+ * @date 14/5/24 10:52 pm
  */
-public class UUIDGenerator implements ITraceIdGenerator {
-    /**
-     * generates an opentelemetry specification standard trace id
-     */
+public class UUIDv7TraceIdGenerator implements ITraceIdGenerator {
+    // Use plus_1 version to get better monotonicity
+    private final UUIDv7Generator generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_1);
+
     @Override
     public String newId() {
-        return UUID.randomUUID().toString().replace("-", "");
+        return generator.generate().toCompactFormat();
     }
 }

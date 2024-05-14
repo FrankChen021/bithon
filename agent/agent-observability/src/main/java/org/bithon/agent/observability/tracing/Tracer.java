@@ -28,7 +28,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ITracePropagat
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.UUIDGenerator;
+import org.bithon.agent.observability.tracing.id.impl.UUIDv7TraceIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
@@ -73,7 +73,7 @@ public class Tracer {
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
                             .traceConfig(ConfigurationManager.getInstance().getConfig(TraceConfig.class))
                             .propagator(new DefaultPropagator(sampler))
-                            .traceIdGenerator(new UUIDGenerator())
+                            .traceIdGenerator(new UUIDv7TraceIdGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
                             .reporter(new DefaultReporter());
                     } catch (Exception e) {

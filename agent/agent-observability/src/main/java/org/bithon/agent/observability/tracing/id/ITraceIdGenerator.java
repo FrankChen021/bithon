@@ -21,5 +21,5 @@ package org.bithon.agent.observability.tracing.id;
  * @date 2021/2/6 12:04 上午
  */
 public interface ITraceIdGenerator {
-    String newTraceId();
+    String newId();
 }
