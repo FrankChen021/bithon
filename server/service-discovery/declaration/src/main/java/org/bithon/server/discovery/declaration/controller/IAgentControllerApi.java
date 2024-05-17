@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * @date 2022/8/7 20:46
  */
 @DiscoverableService(name = "agentCommand")
-public interface IAgentProxyApi {
+public interface IAgentControllerApi {
     /**
      * The two special parameters that will be extracted from the SQL and push down to the underlying query
      */
@@ -63,20 +63,27 @@ public interface IAgentProxyApi {
 
     /**
      * Get the information instances connected to one controller
+     *
+     * @param instance The specific instance that callers want to get information about
      */
     @GetMapping("/api/agent/service/instances")
     ServiceResponse<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
 
     /**
-     * Proxy Brpc services provided at agent side over HTTP.
+     * Call Brpc services provided at agent side over HTTP.
      *
-     * @param instance          the target client instance that the request will be sent to.
-     * @param token             For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
-     * @param timeout           timeout value in milliseconds
+     * @param instance the target client instance that the request will be sent to.
+     * @param token    For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
+     * @param timeout  timeout value in milliseconds
+     * @param message message serialized by {@link ServiceRequestMessageOut}
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] proxy(@RequestHeader(name = "token", required = false) String token,
-                 @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
-                 @RequestParam(name = "timeout", required = false) Integer timeout,
-                 @RequestBody byte[] rawMessage) throws IOException;
+    byte[] callAgentService(@RequestHeader(name = "token", required = false) String token,
+                            @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
+                            @RequestParam(name = "timeout", required = false) Integer timeout,
+                            @RequestBody byte[] message) throws IOException;
+
+    @GetMapping("/api/agent/service/setting")
+    void onAgentSettingChange(@RequestParam(name = "appName") String appName,
+                              @RequestParam(name = "env", required = false) String env);
 }

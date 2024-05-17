@@ -149,14 +149,14 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
 
     private class ServiceBroadcastInvocationHandler<T> implements InvocationHandler {
         private final ObjectMapper objectMapper;
-        private final Class<T> type;
+        private final Class<T> serviceDeclaration;
         private final String serviceName;
 
         private ServiceBroadcastInvocationHandler(ObjectMapper objectMapper,
-                                                  Class<T> type,
+                                                  Class<T> serviceDeclaration,
                                                   String name) {
             this.objectMapper = objectMapper;
-            this.type = type;
+            this.serviceDeclaration = serviceDeclaration;
             this.serviceName = name;
         }
 
@@ -181,11 +181,11 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
             //
             List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
-                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, type, hostAndPort, method, args, token)));
+                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, serviceDeclaration, hostAndPort, method, args, token)));
             }
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
-            List mergedRows = new ArrayList();
+            List mergedResponse = new ArrayList();
 
             //
             // Merge the result
@@ -198,7 +198,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                     }
 
                     // Merge response
-                    mergedRows.addAll(response.getRows());
+                    mergedResponse.addAll(response.getRows());
                 } catch (InterruptedException | ExecutionException e) {
                     if (e.getCause() instanceof HttpMappableException) {
                         throw (HttpMappableException) e.getCause();
@@ -207,7 +207,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                 }
             }
 
-            return ServiceResponse.success(mergedRows);
+            return ServiceResponse.success(mergedResponse);
         }
     }
 

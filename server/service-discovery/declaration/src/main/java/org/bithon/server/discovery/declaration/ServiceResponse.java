@@ -42,7 +42,7 @@ public class ServiceResponse<T> {
         private String message;
 
         /**
-         * Add jackson annotation so that client can deserialize the response manually.
+         * Add jackson annotation so that a client can deserialize the response manually.
          */
         @JsonCreator
         public Error(@JsonProperty("uri") String uri,

@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql.table;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
@@ -31,35 +31,35 @@ import java.util.stream.Collectors;
  * @date 1/3/23 8:18 pm
  */
 public class InstanceTable extends AbstractBaseTable implements IPushdownPredicateProvider {
-    private final IAgentProxyApi impl;
+    private final IAgentControllerApi impl;
 
     public InstanceTable(DiscoveredServiceInvoker invoker) {
-        this.impl = invoker.createBroadcastApi(IAgentProxyApi.class);
+        this.impl = invoker.createBroadcastApi(IAgentControllerApi.class);
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         // The 'instance' can be NULL, if it's NULL, all records will be retrieved
-        String instance = (String) executionContext.getParameters().get(IAgentProxyApi.PARAMETER_NAME_INSTANCE);
+        String instance = (String) executionContext.getParameters().get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
-        ServiceResponse<IAgentProxyApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
+        ServiceResponse<IAgentControllerApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
         if (clients.getError() != null) {
             throw new RuntimeException(clients.getError().toString());
         }
 
         return clients.getRows()
                       .stream()
-                      .map(IAgentProxyApi.AgentInstanceRecord::toObjectArray)
+                      .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
                       .collect(Collectors.toList());
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentProxyApi.AgentInstanceRecord.class;
+        return IAgentControllerApi.AgentInstanceRecord.class;
     }
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, false);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, false);
     }
 }

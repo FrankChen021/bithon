@@ -16,6 +16,8 @@
 
 package org.bithon.server.discovery.declaration;
 
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,7 +27,7 @@ import java.lang.annotation.Target;
  * A service annotation used to declare a service is provided in multiple instances.
  * <br/>
  * Currently,
- * it is used only for the {@link org.bithon.server.discovery.declaration.controller.IAgentProxyApi},
+ * it is used only for the {@link IAgentControllerApi},
  * which is implemented in the controller module.
  * <br/>
  * For any methods in an interface which is annotated by this annotation,

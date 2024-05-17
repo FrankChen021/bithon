@@ -36,7 +36,7 @@ import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -79,24 +79,27 @@ public class AgentServiceProxyFactory {
         this.applicationContext = applicationContext;
     }
 
-    public <T> T create(Class<?> proxyServiceDeclaration,
-                        Map<String, Object> context,
-                        Class<T> serviceDeclaration) {
+    /**
+     * @param context The context that contains extra invocation information
+     * @param agentServiceDeclaration The service located at agent side that we want to invoke
+     */
+    public <T> T create(Map<String, Object> context,
+                        Class<T> agentServiceDeclaration) {
         // instance is a mandatory parameter
-        String instance = (String) context.get(IAgentProxyApi.PARAMETER_NAME_INSTANCE);
-        Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentProxyApi.PARAMETER_NAME_INSTANCE);
+        String instance = (String) context.get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
+        Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
         // Locate the proxy server
-        DiscoverableService metadata = proxyServiceDeclaration.getAnnotation(DiscoverableService.class);
+        DiscoverableService metadata = IAgentControllerApi.class.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
-                                                          proxyServiceDeclaration.getName(),
+                                                          IAgentControllerApi.class.getName(),
                                                           DiscoverableService.class.getSimpleName()));
         }
 
         //noinspection unchecked
-        return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
-                                          new Class<?>[]{serviceDeclaration},
+        return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
+                                          new Class<?>[]{agentServiceDeclaration},
                                           new AgentServiceBroadcastInvoker(metadata.name(),
                                                                            context,
                                                                            invocationManager));
@@ -108,15 +111,15 @@ public class AgentServiceProxyFactory {
      */
     private class AgentServiceBroadcastInvoker implements InvocationHandler {
 
-        private final InvocationManager brpcServiceInvoker;
+        private final InvocationManager invocationManager;
         private final String proxyServiceName;
         private final Map<String, Object> context;
 
         private AgentServiceBroadcastInvoker(String proxyServiceName,
                                              Map<String, Object> context,
-                                             InvocationManager brpcServiceInvoker) {
+                                             InvocationManager invocationManager) {
             this.proxyServiceName = proxyServiceName;
-            this.brpcServiceInvoker = brpcServiceInvoker;
+            this.invocationManager = invocationManager;
 
             // Make sure the context is modifiable because we're going to add token into the context
             this.context = new TreeMap<>(context);
@@ -150,12 +153,12 @@ public class AgentServiceProxyFactory {
                 futures.add(executor.submit(() -> {
                     try {
                         // The agent's Brpc services MUST return a type of Collection
-                        return (Collection<?>) brpcServiceInvoker.invoke("bithon-webservice",
-                                                                         Headers.EMPTY,
-                                                                         new BrpcChannelOverHttp(proxyServer, context),
-                                                                         30_000,
-                                                                         agentServiceMethod,
-                                                                         args);
+                        return (Collection<?>) invocationManager.invoke("bithon-webservice",
+                                                                        Headers.EMPTY,
+                                                                        new BrpcChannelOverHttp(proxyServer, context),
+                                                                        30_000,
+                                                                        agentServiceMethod,
+                                                                        args);
                     } catch (HttpMappableException e) {
                         if (SessionNotFoundException.class.getName().equals(e.getCauseExceptionClass())) {
                             // We're issuing broadcast invocations on all proxy servers,
@@ -174,7 +177,7 @@ public class AgentServiceProxyFactory {
 
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
             //noinspection rawtypes
-            List mergedRows = new ArrayList<>();
+            List mergedResults = new ArrayList<>();
 
             //
             // Merge the result
@@ -185,7 +188,7 @@ public class AgentServiceProxyFactory {
 
                     // Merge response
                     // noinspection unchecked
-                    mergedRows.addAll(response);
+                    mergedResults.addAll(response);
                 } catch (InterruptedException | ExecutionException e) {
                     if (e.getCause() instanceof RuntimeException) {
                         throw e.getCause();
@@ -194,7 +197,7 @@ public class AgentServiceProxyFactory {
                 }
             }
 
-            return mergedRows;
+            return mergedResults;
         }
     }
 
@@ -229,8 +232,7 @@ public class AgentServiceProxyFactory {
         }
 
         @Override
-        public void writeAsync(Object obj) throws IOException {
-            ServiceRequestMessageOut serviceRequest = (ServiceRequestMessageOut) obj;
+        public void writeAsync(ServiceRequestMessageOut serviceRequest) throws IOException {
             final long txId = serviceRequest.getTransactionId();
 
             // Turn the message into a byte array to send over HTTP
@@ -240,24 +242,24 @@ public class AgentServiceProxyFactory {
             // However, this writeMessage is an async operation,
             // we use CompletableFuture to turn the sync operation into async
             CompletableFuture.supplyAsync(() -> {
-                                              IAgentProxyApi proxyApi = Feign.builder()
-                                                                             .contract(applicationContext.getBean(Contract.class))
-                                                                             .encoder(applicationContext.getBean(Encoder.class))
-                                                                             .decoder(applicationContext.getBean(Decoder.class))
-                                                                             .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
-                                                                             .requestInterceptor(template -> {
+                                              IAgentControllerApi proxyApi = Feign.builder()
+                                                                                  .contract(applicationContext.getBean(Contract.class))
+                                                                                  .encoder(applicationContext.getBean(Encoder.class))
+                                                                                  .decoder(applicationContext.getBean(Decoder.class))
+                                                                                  .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
+                                                                                  .requestInterceptor(template -> {
                                                                                  Object token = context.get("X-Bithon-Token");
                                                                                  if (token != null) {
                                                                                      template.header("X-Bithon-Token", token.toString());
                                                                                  }
                                                                              })
-                                                                             .target(IAgentProxyApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
+                                                                                  .target(IAgentControllerApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
-                                                  return proxyApi.proxy((String) context.getOrDefault("_token", ""),
-                                                                        (String) context.getOrDefault(IAgentProxyApi.PARAMETER_NAME_INSTANCE, ""),
-                                                                        30_000,
-                                                                        message);
+                                                  return proxyApi.callAgentService((String) context.getOrDefault("_token", ""),
+                                                                                   (String) context.getOrDefault(IAgentControllerApi.PARAMETER_NAME_INSTANCE, ""),
+                                                                                   30_000,
+                                                                                   message);
                                               } catch (IOException e) {
                                                   throw new RuntimeException(e);
                                               }

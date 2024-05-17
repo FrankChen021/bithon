@@ -46,15 +46,17 @@ public class AgentControllerServer implements SmartLifecycle {
     private final int port;
     private boolean isRunning = false;
 
-    public AgentControllerServer(ObjectMapper jsonFormatter,
-                                 ISettingStorage storage,
-                                 Environment env) {
+    private AgentSettingLoader loader;
+
+    public AgentControllerServer(AgentSettingLoader loader, Environment env) {
         AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
 
         this.port = config.getPort();
         this.brpcServer = new BrpcServer("ctrl");
-        this.brpcServer.bindService(new AgentSettingFetcher(storage.createReader(), jsonFormatter));
+        this.brpcServer.bindService(new AgentSettingFetcher(loader));
+
+        this.loader = loader;
     }
 
     public BrpcServer getBrpcServer() {
@@ -65,6 +67,8 @@ public class AgentControllerServer implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting Agent controller at port {}", this.port);
+        this.loader.start();
+
         this.brpcServer.start(this.port);
         this.isRunning = true;
     }
@@ -73,6 +77,8 @@ public class AgentControllerServer implements SmartLifecycle {
     public void stop() {
         log.info("Stopping Agent controller at port {}", this.port);
         this.brpcServer.close();
+
+        this.loader.stop();
     }
 
     @Override

@@ -145,11 +145,16 @@ public class MetricJdbcReader implements IDataSourceReader {
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
-    private String getOrderBySQL(OrderBy orderBy) {
+    private String getOrderBySQL(OrderBy orderBy, String timestampColumn) {
         if (orderBy == null) {
             return "";
         }
-        return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
+
+        if (orderBy.getName().equals(timestampColumn)) {
+            return StringUtils.format("ORDER BY toStartOfMinute(%s) %s, \"%s\" %s", timestampColumn, orderBy.getOrder(), orderBy.getName(), orderBy.getOrder());
+        } else {
+            return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
+        }
     }
 
     @Override
@@ -166,12 +171,9 @@ public class MetricJdbcReader implements IDataSourceReader {
                      String alias = field.getResultColumnName();
 
                      return expr.equals(alias) ?
-                         StringUtils.format("\"%s\"",
-                                            field.getColumnExpression())
+                         StringUtils.format("\"%s\"", field.getColumnExpression())
                          :
-                         StringUtils.format("\"%s\" AS \"%s\"",
-                                            field.getColumnExpression(),
-                                            field.getResultColumnName());
+                         StringUtils.format("\"%s\" AS \"%s\"", field.getColumnExpression(), field.getResultColumnName());
                  })
                  .collect(Collectors.joining(",")),
             sqlTableName,
@@ -181,10 +183,9 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            getOrderBySQL(query.getOrderBy()),
+            getOrderBySQL(query.getOrderBy(), timestampCol),
             query.getLimit().getLimit(),
-            query.getLimit().getOffset()
-                                       );
+            query.getLimit().getOffset());
 
         return executeSql(sql);
     }
@@ -204,7 +205,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-                                       );
+        );
 
         Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -263,7 +264,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(end),
             dimension,
             dimension
-                                       );
+        );
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);
