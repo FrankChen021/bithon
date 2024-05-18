@@ -36,11 +36,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Invoke the discovered service on service provider(providers) instance(s).
@@ -165,7 +163,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
+        public Object invoke(Object proxy, Method method, Object[] args) throws InterruptedException {
             if (serviceDiscoveryClient == null) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
                                                 "This API is unavailable because Service Discovery is not configured.");
@@ -188,22 +186,15 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
             List<DiscoveredServiceInstance> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
 
             // Invoke remote service on each instance
-            List<Future<?>> futures = new ArrayList<>(instanceList.size());
+            CountDownLatch countDownLatch = new CountDownLatch(instanceList.size());
+
             for (DiscoveredServiceInstance instance : instanceList) {
-                futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, serviceDeclaration, instance, method, args, token)));
+                executor.submit(new RemoteServiceCaller<>(objectMapper, serviceDeclaration, instance, method, args, token))
+                        .whenComplete((ret, ex) -> countDownLatch.countDown());
             }
 
             // Wait for completion
-            for (Future<?> future : futures) {
-                try {
-                    future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    if (e.getCause() instanceof HttpMappableException) {
-                        throw (HttpMappableException) e.getCause();
-                    }
-                    throw new RuntimeException(e);
-                }
-            }
+            countDownLatch.await();
 
             return null;
         }

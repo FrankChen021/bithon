@@ -19,6 +19,7 @@ package org.bithon.server.discovery.client;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,8 +40,14 @@ public class ServiceInvocationExecutor implements AutoCloseable, Executor {
         executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 
-    public <T> Future<T> submit(Callable<T> task) {
-        return executorService.submit(task);
+    public <T> CompletableFuture<T> submit(Callable<T> task) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return task.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executorService);
     }
 
     @Override

@@ -25,8 +25,7 @@ import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 /**
@@ -48,26 +47,30 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
 
         List<DiscoveredServiceInstance> instanceList = invoker.getInstanceList(IAgentControllerApi.class);
 
-        List<Future<List<IAgentControllerApi.AgentInstanceRecord>>> futureList = new ArrayList<>(instanceList.size());
+        List<Object[]> result = new ArrayList<>();
+        CountDownLatch countDownLatch = new CountDownLatch(instanceList.size());
+
         for (DiscoveredServiceInstance instance : instanceList) {
-            Future<List<IAgentControllerApi.AgentInstanceRecord>> future = invoker.getExecutor()
-                                                                                  .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, instance)
-                                                                                                            .getAgentInstanceList(agentInstance));
-            futureList.add(future);
+            invoker.getExecutor()
+                   .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, instance)
+                                             .getAgentInstanceList(agentInstance))
+                   .thenAccept((r) -> {
+                       List<Object[]> objectLists = r.stream().map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
+                                                     .collect(Collectors.toList());
+                       synchronized (result) {
+                           result.addAll(objectLists);
+                       }
+                   })
+                   .whenComplete((ret, ex) -> countDownLatch.countDown());
         }
 
-        List<IAgentControllerApi.AgentInstanceRecord> records = new ArrayList<>();
-        for (Future<List<IAgentControllerApi.AgentInstanceRecord>> future : futureList) {
-            try {
-                records.addAll(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
-        return records.stream()
-                      .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
-                      .collect(Collectors.toList());
+        return result;
     }
 
     @Override
