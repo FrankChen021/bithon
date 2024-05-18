@@ -18,7 +18,6 @@ package org.bithon.server.web.service.agent.sql.table;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
@@ -42,13 +41,9 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
         // The 'instance' can be NULL, if it's NULL, all records will be retrieved
         String instance = (String) executionContext.getParameters().get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
-        ServiceResponse<IAgentControllerApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
-        if (clients.getError() != null) {
-            throw new RuntimeException(clients.getError().toString());
-        }
+        List<IAgentControllerApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
 
-        return clients.getRows()
-                      .stream()
+        return clients.stream()
                       .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
                       .collect(Collectors.toList());
     }

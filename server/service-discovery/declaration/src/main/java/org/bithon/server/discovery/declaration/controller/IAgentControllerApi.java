@@ -18,7 +18,6 @@ package org.bithon.server.discovery.declaration.controller;
 
 import lombok.Data;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * An API that proxies services running in agents over HTTP.
@@ -67,7 +67,7 @@ public interface IAgentControllerApi {
      * @param instance The specific instance that callers want to get information about
      */
     @GetMapping("/api/agent/service/instances")
-    ServiceResponse<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
+    List<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
 
     /**
      * Call Brpc services provided at agent side over HTTP.

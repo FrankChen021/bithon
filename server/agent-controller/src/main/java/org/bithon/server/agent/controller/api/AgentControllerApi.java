@@ -29,7 +29,6 @@ import org.bithon.server.agent.controller.config.PermissionConfig;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.agent.controller.service.AgentSettingLoader;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -71,27 +71,27 @@ public class AgentControllerApi implements IAgentControllerApi {
     }
 
     @Override
-    public ServiceResponse<AgentInstanceRecord> getAgentInstanceList(String instance) {
-        return ServiceResponse.success(agentControllerServer.getBrpcServer()
-                                                            .getSessions()
-                                                            .stream()
-                                                            .map((session) -> {
-                                                                AgentInstanceRecord record = new AgentInstanceRecord();
-                                                                record.setAppName(session.getRemoteApplicationName());
-                                                                record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
-                                                                record.setEndpoint(session.getRemoteEndpoint());
-                                                                record.setController(session.getLocalEndpoint());
-                                                                record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
-                                                                long start = 0;
-                                                                try {
-                                                                    start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
-                                                                } catch (NumberFormatException ignored) {
-                                                                }
-                                                                record.setStartAt(new Timestamp(start).toLocalDateTime());
-                                                                return record;
-                                                            })
-                                                            .filter((record) -> instance == null || instance.equals(record.getInstance()))
-                                                            .collect(Collectors.toList()));
+    public List<AgentInstanceRecord> getAgentInstanceList(String instance) {
+        return agentControllerServer.getBrpcServer()
+                                    .getSessions()
+                                    .stream()
+                                    .map((session) -> {
+                                        AgentInstanceRecord record = new AgentInstanceRecord();
+                                        record.setAppName(session.getRemoteApplicationName());
+                                        record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                        record.setEndpoint(session.getRemoteEndpoint());
+                                        record.setController(session.getLocalEndpoint());
+                                        record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+                                        long start = 0;
+                                        try {
+                                            start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
+                                        } catch (NumberFormatException ignored) {
+                                        }
+                                        record.setStartAt(new Timestamp(start).toLocalDateTime());
+                                        return record;
+                                    })
+                                    .filter((record) -> instance == null || instance.equals(record.getInstance()))
+                                    .collect(Collectors.toList());
     }
 
     @Override

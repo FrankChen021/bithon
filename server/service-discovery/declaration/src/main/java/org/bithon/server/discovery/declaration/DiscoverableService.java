@@ -30,8 +30,6 @@ import java.lang.annotation.Target;
  * it is used only for the {@link IAgentControllerApi},
  * which is implemented in the controller module.
  * <br/>
- * For any methods in an interface which is annotated by this annotation,
- * the return value MUST be type of {@link ServiceResponse}.
  *
  * @author frank.chen
  */

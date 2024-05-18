@@ -26,7 +26,6 @@ import lombok.Getter;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.discovery.declaration.ServiceResponse;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -38,6 +37,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -79,7 +80,6 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
      * Create invoker for given interface.
      *
      * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}.
-     *                           And the returning type of invokable methods SHOULD be type of {@link ServiceResponse}
      */
     public <T> T createBroadcastApi(Class<T> serviceDeclaration) {
         DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
@@ -88,6 +88,21 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                                           serviceDeclaration.getName(),
                                                           DiscoverableService.class.getSimpleName()));
         }
+
+        Arrays.stream(serviceDeclaration.getDeclaredMethods())
+              .forEach((method) -> {
+                  Class<?> retType = method.getReturnType();
+                  if (!retType.isArray()
+                      && !Collection.class.isAssignableFrom(retType)
+                      && !retType.equals(void.class)
+                      && !retType.equals(Void.class)
+                  ) {
+                      throw new UnsupportedOperationException(StringUtils.format("method [%s#%s] returns type of [%s] which is not supported. Only void or Collection is supported now.",
+                                                                                 method.getDeclaringClass().getName(),
+                                                                                 method.getName(),
+                                                                                 retType.getName()));
+                  }
+              });
 
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
@@ -179,26 +194,28 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
             //
             // Invoke remote service on each instance
             //
-            List<Future<ServiceResponse<?>>> futures = new ArrayList<>(instanceList.size());
+            List<Future<?>> futures = new ArrayList<>(instanceList.size());
             for (IDiscoveryClient.HostAndPort hostAndPort : instanceList) {
                 futures.add(executor.submit(new RemoteServiceCaller<>(objectMapper, serviceDeclaration, hostAndPort, method, args, token)));
             }
 
+            // TODO: handle the array/map
             // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
             List mergedResponse = new ArrayList();
+
+            boolean isCollection = Collection.class.isAssignableFrom(method.getReturnType());
 
             //
             // Merge the result
             //
-            for (Future<ServiceResponse<?>> future : futures) {
+            for (Future<?> future : futures) {
                 try {
-                    ServiceResponse<?> response = future.get();
-                    if (response.getError() != null) {
-                        return response;
+                    if (isCollection) {
+                        Collection collection = (Collection) future.get();
+                        mergedResponse.addAll(collection);
+                    } else {
+                        future.get();
                     }
-
-                    // Merge response
-                    mergedResponse.addAll(response.getRows());
                 } catch (InterruptedException | ExecutionException e) {
                     if (e.getCause() instanceof HttpMappableException) {
                         throw (HttpMappableException) e.getCause();
@@ -207,7 +224,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                 }
             }
 
-            return ServiceResponse.success(mergedResponse);
+            return mergedResponse;
         }
     }
 
