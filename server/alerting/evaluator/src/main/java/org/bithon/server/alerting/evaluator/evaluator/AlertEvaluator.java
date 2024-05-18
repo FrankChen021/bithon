@@ -36,6 +36,7 @@ import org.bithon.server.alerting.notification.message.ExpressionEvaluationResul
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
@@ -56,7 +57,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author frank.chen021@outlook.com
@@ -135,8 +138,15 @@ public class AlertEvaluator implements SmartLifecycle {
             // Even the notification module is deployed with the evaluator module together,
             // we still call the notification module via HTTP instead of direct API method calls in process
             // So that it simulates the 'remote call' via discovered service
-            return context.getBean(DiscoveredServiceInvoker.class)
-                          .createUnicastApi(INotificationApi.class);
+            DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
+            List<DiscoveredServiceInstance> instanceList = invoker.getInstanceList(INotificationApi.class);
+            if (instanceList.isEmpty()) {
+                throw new RuntimeException("Can't find any instance of INotificationApi");
+            }
+
+            // Find a random instance to invoke the notification
+            DiscoveredServiceInstance instance = instanceList.get(ThreadLocalRandom.current().nextInt(instanceList.size()));
+            return invoker.createUnicastApi(INotificationApi.class, instance);
         }
 
         // The service is configured as a remote service at fixed address

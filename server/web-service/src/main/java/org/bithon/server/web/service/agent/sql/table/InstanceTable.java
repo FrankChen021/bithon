@@ -17,12 +17,16 @@
 package org.bithon.server.web.service.agent.sql.table;
 
 import com.google.common.collect.ImmutableMap;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -30,20 +34,38 @@ import java.util.stream.Collectors;
  * @date 1/3/23 8:18 pm
  */
 public class InstanceTable extends AbstractBaseTable implements IPushdownPredicateProvider {
-    private final IAgentControllerApi impl;
+    private final DiscoveredServiceInvoker invoker;
 
     public InstanceTable(DiscoveredServiceInvoker invoker) {
-        this.impl = invoker.createBroadcastApi(IAgentControllerApi.class);
+        //this.impl = invoker.createBroadcastApi(IAgentControllerApi.class);
+        this.invoker = invoker;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         // The 'instance' can be NULL, if it's NULL, all records will be retrieved
-        String instance = (String) executionContext.getParameters().get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
+        String agentInstance = (String) executionContext.getParameters().get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
-        List<IAgentControllerApi.AgentInstanceRecord> clients = impl.getAgentInstanceList(instance);
+        List<DiscoveredServiceInstance> instanceList = invoker.getInstanceList(IAgentControllerApi.class);
 
-        return clients.stream()
+        List<Future<List<IAgentControllerApi.AgentInstanceRecord>>> futureList = new ArrayList<>(instanceList.size());
+        for (DiscoveredServiceInstance instance : instanceList) {
+            Future<List<IAgentControllerApi.AgentInstanceRecord>> future = invoker.getExecutor()
+                                                                                  .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, instance)
+                                                                                                            .getAgentInstanceList(agentInstance));
+            futureList.add(future);
+        }
+
+        List<IAgentControllerApi.AgentInstanceRecord> records = new ArrayList<>();
+        for (Future<List<IAgentControllerApi.AgentInstanceRecord>> future : futureList) {
+            try {
+                records.addAll(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return records.stream()
                       .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
                       .collect(Collectors.toList());
     }

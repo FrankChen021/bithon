@@ -32,6 +32,7 @@ import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.client.ServiceInvocationExecutor;
@@ -138,18 +139,17 @@ public class AgentServiceProxyFactory {
             // to make sure the task in that thread pool can access the security context, we have to explicitly
             Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.getCredentials() != null) {
-
                 context.put("X-Bithon-Token", authentication.getCredentials());
             }
 
             // Get all service provider instance from the service discovery center
-            List<IDiscoveryClient.HostAndPort> proxyServerList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
+            List<DiscoveredServiceInstance> proxyServerList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
 
             //
             // Invoke remote service on each proxy server
             //
             List<Future<Collection<?>>> futures = new ArrayList<>(proxyServerList.size());
-            for (IDiscoveryClient.HostAndPort proxyServer : proxyServerList) {
+            for (DiscoveredServiceInstance proxyServer : proxyServerList) {
                 futures.add(executor.submit(() -> {
                     try {
                         // The agent's Brpc services MUST return a type of Collection
@@ -202,10 +202,10 @@ public class AgentServiceProxyFactory {
     }
 
     class BrpcChannelOverHttp implements IBrpcChannel {
-        private final IDiscoveryClient.HostAndPort proxyHost;
+        private final DiscoveredServiceInstance proxyHost;
         private final Map<String, Object> context;
 
-        public BrpcChannelOverHttp(IDiscoveryClient.HostAndPort proxyHost,
+        public BrpcChannelOverHttp(DiscoveredServiceInstance proxyHost,
                                    Map<String, Object> context) {
             this.proxyHost = proxyHost;
             this.context = context;

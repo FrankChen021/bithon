@@ -16,12 +16,22 @@
 
 package org.bithon.server.discovery.client;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
+ * @date 18/5/24 8:28 pm
  */
-public interface IDiscoveryClient {
+@Data
+@AllArgsConstructor
+public
+class DiscoveredServiceInstance {
+    private String host;
+    private int port;
 
-    List<DiscoveredServiceInstance> getInstanceList(String serviceName);
+    @Override
+    public String toString() {
+        return host + ":" + port;
+    }
 }
