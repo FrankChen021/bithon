@@ -2,20 +2,40 @@
 
 ---
 
-# What's Bithon
+# Introduction
 
 Bithon is a word combining binocular together with python.
 
 It targets application metrics, logging, distributed tracing, alert and application risk governance under microservice environment.
 
-Reference:
+## Architecture
 
+![architecture.png](doc/intro/architecture.png)
+
+The above pic illustrates the main components of this project, including:
+- Agent, which collects metrics/tracing logs automatically from client application without any code modification at the application side
+- Collector, which provides various interfaces (including OpenTelemetry GRPC interface) to receive metrics/tracing logs from clients
+- Pipeline, which provides a flexible and robust way to hande small data scale to a very huge data scale for incoming metrics or tracing logs
+- Storage, which provides an abstraction to underlying storages like H2, MySQL or Clickhouse
+- Alerting, which allows us to set up alerts by using MetricSQL style expression on existing metrics or tracing logs
+- Web, which provides a simple web portal for metrics/tracing log visualization 
+
+## Highlights
+
+- Around 200 built-in metrics for various JDK or various Java middlewares like Apache Http Components
+- Open Telemetry Tracing standard support and integration
+- Built-in debugging diagnosis commands for target application
+- Flexible deployment to adapt small data scale and huge data scale use cases
+- Fast queries and very low storage cost benefit from ClickHouse
+- PromQL style alerting expression support
+
+Reference:
 - [White Paper](doc/misc/white-paper.md)
-- [How does the agent work](doc/misc/rationale/index.md)
+- [How does the agent work?](doc/misc/rationale/index.md)
 - [What's the difference between Jaeger and Bithon?](doc/misc/comparison/jaeger/index.md) 
 - [What's the difference between OpenTelemetry and Bithon?](doc/misc/comparison/opentelemetry/index.md)
 
-# Demon
+# Demo
 
 A demo is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
 You can follow the README on that demo repo to start the demo within just 3 steps.
