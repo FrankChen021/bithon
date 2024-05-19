@@ -27,9 +27,9 @@ import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.agent.controller.config.PermissionConfig;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
+import org.bithon.server.agent.controller.service.AgentSettingLoader;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -52,54 +53,57 @@ import java.util.stream.Collectors;
  */
 @RestController
 @ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
-public class AgentProxyApi implements IAgentProxyApi {
+public class AgentControllerApi implements IAgentControllerApi {
 
     private final ObjectMapper objectMapper;
     private final AgentControllerServer agentControllerServer;
     private final PermissionConfig permissionConfig;
+    private final AgentSettingLoader loader;
 
-    public AgentProxyApi(ObjectMapper objectMapper,
-                         AgentControllerServer agentControllerServer,
-                         AgentControllerConfig agentConfig) {
+    public AgentControllerApi(ObjectMapper objectMapper,
+                              AgentControllerServer agentControllerServer,
+                              AgentControllerConfig agentConfig,
+                              AgentSettingLoader loader) {
         this.objectMapper = objectMapper;
         this.agentControllerServer = agentControllerServer;
         this.permissionConfig = agentConfig.getPermission();
+        this.loader = loader;
     }
 
     @Override
-    public ServiceResponse<AgentInstanceRecord> getAgentInstanceList(String instance) {
-        return ServiceResponse.success(agentControllerServer.getBrpcServer()
-                                                            .getSessions()
-                                                            .stream()
-                                                            .map((session) -> {
-                                                                AgentInstanceRecord record = new AgentInstanceRecord();
-                                                                record.setAppName(session.getRemoteApplicationName());
-                                                                record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
-                                                                record.setEndpoint(session.getRemoteEndpoint());
-                                                                record.setController(session.getLocalEndpoint());
-                                                                record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
-                                                                long start = 0;
-                                                                try {
-                                                                    start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
-                                                                } catch (NumberFormatException ignored) {
-                                                                }
-                                                                record.setStartAt(new Timestamp(start).toLocalDateTime());
-                                                                return record;
-                                                            })
-                                                            .filter((record) -> instance == null || instance.equals(record.getInstance()))
-                                                            .collect(Collectors.toList()));
+    public List<AgentInstanceRecord> getAgentInstanceList(String instance) {
+        return agentControllerServer.getBrpcServer()
+                                    .getSessions()
+                                    .stream()
+                                    .map((session) -> {
+                                        AgentInstanceRecord record = new AgentInstanceRecord();
+                                        record.setAppName(session.getRemoteApplicationName());
+                                        record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
+                                        record.setEndpoint(session.getRemoteEndpoint());
+                                        record.setController(session.getLocalEndpoint());
+                                        record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+                                        long start = 0;
+                                        try {
+                                            start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
+                                        } catch (NumberFormatException ignored) {
+                                        }
+                                        record.setStartAt(new Timestamp(start).toLocalDateTime());
+                                        return record;
+                                    })
+                                    .filter((record) -> instance == null || instance.equals(record.getInstance()))
+                                    .collect(Collectors.toList());
     }
 
     @Override
-    public byte[] proxy(String token, String instance, Integer timeout, byte[] rawMessage) throws IOException {
+    public byte[] callAgentService(String token, String instance, Integer timeout, byte[] message) throws IOException {
         // Get the session first
         BrpcServer.Session agentSession = agentControllerServer.getBrpcServer().getSession(instance);
 
         //
         // Parse input request stream
         //
-        CodedInputStream input = CodedInputStream.newInstance(rawMessage);
-        input.pushLimit(rawMessage.length);
+        CodedInputStream input = CodedInputStream.newInstance(message);
+        input.pushLimit(message.length);
         ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
 
         // Verify if the given token matches
@@ -136,6 +140,12 @@ public class AgentProxyApi implements IAgentProxyApi {
         return responseBuilder.build().toByteArray();
     }
 
+    @Override
+    public void updateAgentSetting(String appName, String env) {
+        // TODO: update setting at agent side immediately
+        this.loader.update(appName, env);
+    }
+
     /**
      * Handle exception thrown in this REST controller.
      */
@@ -150,5 +160,4 @@ public class AgentProxyApi implements IAgentProxyApi {
                                                 .message(exception.getMessage())
                                                 .build());
     }
-
 }

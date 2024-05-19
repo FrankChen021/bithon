@@ -140,7 +140,7 @@ public class AlertRule {
     }
 
     static class ApplicationNameExtractor {
-        private String applicationName;
+        private String applicationName = "";
 
         public String extract(IExpression astExpression) {
             astExpression.accept(((IAlertExpressionVisitor) expression -> {
