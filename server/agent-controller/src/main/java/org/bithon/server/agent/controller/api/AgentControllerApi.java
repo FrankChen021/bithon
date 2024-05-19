@@ -141,7 +141,7 @@ public class AgentControllerApi implements IAgentControllerApi {
     }
 
     @Override
-    public void onAgentSettingChange(String appName, String env) {
+    public void updateAgentSetting(String appName, String env) {
         // TODO: update setting at agent side immediately
         this.loader.update(appName, env);
     }

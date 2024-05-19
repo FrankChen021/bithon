@@ -221,7 +221,7 @@ public class AgentConfigurationApi {
     }
 
     private void notifyConfigurationChange(String appName, String env) {
-        this.agentControllerApi.onAgentSettingChange(appName, env);
+        this.agentControllerApi.updateAgentSetting(appName, env);
     }
 
     private String getUserOrToken(String token) {
