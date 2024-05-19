@@ -16,12 +16,10 @@
 
 package org.bithon.server.agent.controller.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
-import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.SmartLifecycle;
