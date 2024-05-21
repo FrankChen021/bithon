@@ -150,11 +150,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             return "";
         }
 
-        if (orderBy.getName().equals(timestampColumn)) {
-            return StringUtils.format("ORDER BY toStartOfMinute(%s) %s, \"%s\" %s", timestampColumn, orderBy.getOrder(), orderBy.getName(), orderBy.getOrder());
-        } else {
-            return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
-        }
+        return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
     }
 
     @Override
