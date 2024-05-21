@@ -30,5 +30,6 @@ import java.util.List;
 @AllArgsConstructor
 public class GetTraceListResponse {
     private int total;
+    private int pageNumber;
     private List<TraceSpan> rows;
 }
