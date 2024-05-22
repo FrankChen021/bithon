@@ -86,7 +86,7 @@ public class BrpcRpcTest {
             Assert.assertEquals(
                 ImmutableMap.of("k1", "v1", "k2", "v2"),
                 exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
-                               );
+            );
         }
     }
 
@@ -99,13 +99,13 @@ public class BrpcRpcTest {
             Assert.assertEquals(
                 ImmutableMap.of("k1", "v1"),
                 service.mergeMap(ImmutableMap.of("k1", "v1"), null)
-                               );
+            );
 
             // test the 1st argument is null
             Assert.assertEquals(
                 ImmutableMap.of("k2", "v2"),
                 service.mergeMap(null, ImmutableMap.of("k2", "v2"))
-                               );
+            );
 
             // test both arguments are null
             Assert.assertNull(service.mergeMap(null, null));
@@ -130,17 +130,17 @@ public class BrpcRpcTest {
             Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
                 WebRequestMetrics.newBuilder().setUri("/1").build(),
                 WebRequestMetrics.newBuilder().setUri("/2").build()
-                                                                       ));
+            ));
 
             Assert.assertEquals("/2-/3", exampleService.sendWebMetrics2(
                 "/2",
                 WebRequestMetrics.newBuilder().setUri("/3").build()
-                                                                       ));
+            ));
 
             Assert.assertEquals("/4-/5", exampleService.sendWebMetrics3(
                 WebRequestMetrics.newBuilder().setUri("/4").build(),
                 "/5"
-                                                                       ));
+            ));
         }
     }
 
@@ -358,7 +358,7 @@ public class BrpcRpcTest {
             Assert.assertEquals(ImmutableSet.of("pong1", "pong2"), ImmutableSet.of(
                 client1Services.get(0).ping(),
                 client1Services.get(1).ping()
-                                                                                  ));
+            ));
 
             //
             // close the channel actively
@@ -393,7 +393,7 @@ public class BrpcRpcTest {
                 exampleService.mergeWithJson(
                     ImmutableMap.of("k1", "v1"),
                     ImmutableMap.of("k2", "v2"))
-                               );
+            );
         }
     }
 
