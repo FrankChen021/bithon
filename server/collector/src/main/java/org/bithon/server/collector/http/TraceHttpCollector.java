@@ -90,13 +90,16 @@ public class TraceHttpCollector {
                 case "gzip":
                     is = new GZIPInputStream(is);
                     break;
+
                 case "deflate":
                     is = new InflaterInputStream(is);
                     break;
+
                 case "lz4":
                     // Currently only FramedLZ4 is supported
                     is = new FramedLZ4CompressorInputStream(is);
                     break;
+
                 default:
                     String message = StringUtils.format("Not supported Content-Encoding [%s] from remote [%s]", encoding, request.getRemoteAddr());
                     response.getWriter().println(message);
@@ -105,7 +108,7 @@ public class TraceHttpCollector {
             }
         }
 
-        List<TraceSpan> spans = new ArrayList<>(1024);
+        List<TraceSpan> spans = new ArrayList<>(config.getMaxRowsPerBatch());
 
         // Create parser manually so that this parser can be accessed in the catch handler
         try (JsonParser parser = om.createParser(is)) {
@@ -125,7 +128,7 @@ public class TraceHttpCollector {
                         process(spans);
 
                         // Create a new array to hold the next batch
-                        spans = new ArrayList<>(256);
+                        spans = new ArrayList<>(config.getMaxRowsPerBatch());
                     }
                 }
             } catch (IOException e) {
