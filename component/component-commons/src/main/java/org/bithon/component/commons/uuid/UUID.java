@@ -21,17 +21,14 @@ package org.bithon.component.commons.uuid;
  * @date 14/5/24 10:18 pm
  */
 public class UUID {
-    /*
+
+    /**
      * The most significant 64 bits of this UUID.
-     *
-     * @serial
      */
     private final long mostSignificantBits;
 
-    /*
+    /**
      * The least significant 64 bits of this UUID.
-     *
-     * @serial
      */
     private final long leastSignificantBits;
 

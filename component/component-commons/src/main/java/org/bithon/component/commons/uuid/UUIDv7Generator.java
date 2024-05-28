@@ -38,10 +38,11 @@ public abstract class UUIDv7Generator {
     // system clock jumps back by 1 second due to leap second.
     private static final long CLOCK_DRIFT_TOLERANCE = 10_000;
 
-    private static final long versionBits = 0x000000000000f000L;
-    private static final long variantBits = 0xc000000000000000L;
-    private static final long lower16Bits = 0x000000000000ffffL;
-    private static final long upper16Bits = 0xffff000000000000L;
+    private static final long VERSION_MASK = 0x000000000000f000L;
+    private static final long VARIANT_MASK = 0xc000000000000000L;
+    private static final long LOWER_16_MASK = 0x000000000000ffffL;
+    private static final long UPPER_16_MASK = 0xffff000000000000L;
+    protected static final long OVERFLOW = 0x0000000000000000L;
 
     public static UUIDv7Generator create(int type) {
         switch (type) {
@@ -59,8 +60,6 @@ public abstract class UUIDv7Generator {
     protected long lsb = 0L; // least significant bits
 
     protected final ReentrantLock lock = new ReentrantLock();
-
-    protected static final long overflow = 0x0000000000000000L;
 
     private UUIDv7Generator() {
         reset(getCurrentTimestamp());
@@ -106,7 +105,7 @@ public abstract class UUIDv7Generator {
 
     private void reset(final long time) {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        this.msb = (time << 16) | (rnd.nextLong() & lower16Bits);
+        this.msb = (time << 16) | (rnd.nextLong() & LOWER_16_MASK);
         this.lsb = rnd.nextLong();
     }
 
@@ -116,15 +115,15 @@ public abstract class UUIDv7Generator {
         protected void increment() {
 
             // add 2^48 to rand_b
-            this.lsb = (this.lsb & upper16Bits);
-            this.lsb = (this.lsb | variantBits) + (1L << 48);
+            this.lsb = (this.lsb & UPPER_16_MASK);
+            this.lsb = (this.lsb | VARIANT_MASK) + (1L << 48);
 
-            if (this.lsb == overflow) {
+            if (this.lsb == OVERFLOW) {
                 // add 1 to rand_a if rand_b overflows
-                this.msb = (this.msb | versionBits) + 1L;
+                this.msb = (this.msb | VERSION_MASK) + 1L;
             }
 
-            this.lsb |= ThreadLocalRandom.current().nextLong() & (~upper16Bits);
+            this.lsb |= ThreadLocalRandom.current().nextLong() & (~UPPER_16_MASK);
         }
     }
 
@@ -132,12 +131,12 @@ public abstract class UUIDv7Generator {
 
         @Override
         protected void increment() {
-            // just add 1 to rand_b
-            this.lsb = (this.lsb | variantBits) + 1L;
+            // add 1 to rand_b
+            this.lsb = (this.lsb | VARIANT_MASK) + 1L;
 
-            if (this.lsb == overflow) {
+            if (this.lsb == OVERFLOW) {
                 // add 1 to rand_a if rand_b overflows
-                this.msb = (this.msb | versionBits) + 1L;
+                this.msb = (this.msb | VERSION_MASK) + 1L;
             }
         }
     }
@@ -163,11 +162,11 @@ public abstract class UUIDv7Generator {
             }
 
             // add a random n to rand_b, where 1 <= n <= incrementMax
-            this.lsb = (this.lsb | variantBits) + val;
+            this.lsb = (this.lsb | VARIANT_MASK) + val;
 
-            if (this.lsb == overflow) {
+            if (this.lsb == OVERFLOW) {
                 // add 1 to rand_a if rand_b overflows
-                this.msb = (this.msb | versionBits) + 1L;
+                this.msb = (this.msb | VERSION_MASK) + 1L;
             }
         }
     }
