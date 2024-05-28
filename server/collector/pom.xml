@@ -41,9 +41,26 @@
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
     </dependency>
+
+    <!--Use LZ4 decompress
+    This lib supports dependent block while the org.lz4:lz4-java does not
+    -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.26.2</version>
+    </dependency>
+
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
   </build>
+  <repositories>
+    <repository>
+      <id>maven_central</id>
+      <name>Maven Central</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
+  </repositories>
 </project>

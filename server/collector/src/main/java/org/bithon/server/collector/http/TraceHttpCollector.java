@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorInputStream;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
@@ -85,19 +86,26 @@ public class TraceHttpCollector {
 
         String encoding = request.getHeader("Content-Encoding");
         if (!StringUtils.isEmpty(encoding)) {
-            if ("gzip".equals(encoding)) {
-                is = new GZIPInputStream(is);
-            } else if ("deflate".equals(encoding)) {
-                is = new InflaterInputStream(is);
-            } else {
-                String message = StringUtils.format("Not supported Content-Encoding [%s] from remote [%s]", encoding, request.getRemoteAddr());
-                response.getWriter().println(message);
-                response.setStatus(HttpStatus.BAD_REQUEST.value());
-                return;
+            switch (encoding) {
+                case "gzip":
+                    is = new GZIPInputStream(is);
+                    break;
+                case "deflate":
+                    is = new InflaterInputStream(is);
+                    break;
+                case "lz4":
+                    // Currently only FramedLZ4 is supported
+                    is = new FramedLZ4CompressorInputStream(is);
+                    break;
+                default:
+                    String message = StringUtils.format("Not supported Content-Encoding [%s] from remote [%s]", encoding, request.getRemoteAddr());
+                    response.getWriter().println(message);
+                    response.setStatus(HttpStatus.BAD_REQUEST.value());
+                    return;
             }
         }
 
-        List<TraceSpan> spans = new ArrayList<>(256);
+        List<TraceSpan> spans = new ArrayList<>(1024);
 
         // Create parser manually so that this parser can be accessed in the catch handler
         try (JsonParser parser = om.createParser(is)) {
