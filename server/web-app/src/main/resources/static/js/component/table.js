@@ -45,6 +45,7 @@ class TableComponent {
         this.mColumns = option.columns;
         this.mCreated = false;
         this.mPopoverShown = false;
+        this.mTotal = 0;
 
         this.mServerSort = option.serverSort;
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
@@ -314,7 +315,21 @@ class TableComponent {
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,
-                responseHandler: option.responseHandler,
+                responseHandler: (data, jqXHR) => {
+                    const ret = option.responseHandler(data);
+
+                    if (jqXHR.status == 200 && data.limit !== undefined && data.limit !== null) {
+                        if (data.limit.offset == 0) {
+                            this.mTotal = ret.total;
+                        } else {
+                            // For pagination request, the 'total' is not returned from the server,
+                            // But bootstrap-table requires the 'total' field tor refresh the pagination
+                            // So we use the cached 'total'
+                            ret.total = this.mTotal;
+                        }
+                    }
+                    return ret;
+                },
 
                 sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
@@ -336,6 +351,8 @@ class TableComponent {
                 stickyHeaderOffsetLeft: stickyHeaderOffsetLeft,
                 stickyHeaderOffsetRight: stickyHeaderOffsetRight,
                 theadClasses: 'thead-light',
+
+
 
                 onLoadError: (status, jqXHR) => {
                     let message = jqXHR.responseText;

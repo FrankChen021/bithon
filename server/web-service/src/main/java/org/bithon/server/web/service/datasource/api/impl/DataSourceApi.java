@@ -136,7 +136,11 @@ public class DataSourceApi implements IDataSourceApi {
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return GeneralQueryResponse.builder()
-                                       .total(reader.listSize(query))
+                                       // Only query the total number of records for the first page
+                                       // This also has a restriction
+                                       // that the page number is not a query parameter on web page URL
+                                       .total(query.getLimit().getOffset() == 0 ? reader.listSize(query) : 0)
+                                       .limit(query.getLimit())
                                        .data(reader.list(query))
                                        .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                        .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
@@ -285,7 +289,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                .orElse(null);
 
                 Preconditions.checkIfTrue(queryField != null
-                                              && schema.getColumnByName(queryField.getField()) != null,
+                                          && schema.getColumnByName(queryField.getField()) != null,
                                           "OrderBy field [%s] does not exist in the schema.",
                                           orderBy.getName());
 
