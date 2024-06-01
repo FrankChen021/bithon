@@ -363,22 +363,18 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> list(Query query) {
-        return getDataSourceReader().list(query);
+    public List<Map<String, Object>> select(Query query) {
+        return getDataSourceReader().select(query);
     }
 
     @Override
-    public int listSize(Query query) {
-        return getDataSourceReader().listSize(query);
+    public int count(Query query) {
+        return getDataSourceReader().count(query);
     }
 
     @Override
-    public List<Map<String, String>> distinct(TimeSpan start,
-                                              TimeSpan end,
-                                              ISchema schema,
-                                              IExpression filter,
-                                              String dimension) {
-        return getDataSourceReader().distinct(start, end, schema, filter, dimension);
+    public List<String> distinct(Query query) {
+        return getDataSourceReader().distinct(query);
     }
 
     static class SpanKindIsRootDetector implements IExpressionVisitor {
