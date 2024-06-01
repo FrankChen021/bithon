@@ -24,7 +24,6 @@ public class BrpcServerBuilder {
     String serverId;
     int idleSeconds = 180;
     int backlog = 1024;
-    int receiveBufSize = 1024 * 1024;
     int workerThreadCount = Runtime.getRuntime().availableProcessors();
 
     public static BrpcServerBuilder builder() {
@@ -48,11 +47,6 @@ public class BrpcServerBuilder {
 
     public BrpcServerBuilder backlog(int backlog) {
         this.backlog = backlog;
-        return this;
-    }
-
-    public BrpcServerBuilder receiveBufSize(int receiveBufSize) {
-        this.receiveBufSize = receiveBufSize;
         return this;
     }
 
