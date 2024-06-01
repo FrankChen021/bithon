@@ -69,7 +69,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     private final IEndPointProvider server;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private NioEventLoopGroup bossGroup;
-    private final Duration retryInterval;
+    private final Duration retryBackoff;
     private final int maxRetry;
 
     /**
@@ -96,7 +96,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
         this.server = Preconditions.checkArgumentNotNull("server", builder.server);
         this.maxRetry = builder.maxRetry;
-        this.retryInterval = builder.retryInterval;
+        this.retryBackoff = builder.retryBackoff;
         this.appName = builder.appName;
 
         this.invocationManager = new InvocationManager();
@@ -104,7 +104,6 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.bootstrap = new Bootstrap().group(this.bossGroup)
                                         .channel(NioSocketChannel.class)
                                         .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)
-                                        .option(ChannelOption.SO_SNDBUF, builder.sendBufferSize)
                                         .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark))
                                         .handler(new ChannelInitializer<SocketChannel>() {
                                             @Override
@@ -211,7 +210,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                              server.getHost(),
                              server.getPort(),
                              maxRetry - i - 1);
-                    Thread.sleep(retryInterval.toMillis());
+                    Thread.sleep(retryBackoff.toMillis());
                 }
             } catch (InterruptedException ignored) {
             }

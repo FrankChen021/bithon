@@ -30,17 +30,16 @@ import java.util.Map;
  */
 public class BrpcClientBuilder {
     boolean keepAlive = true;
-    int sendBufferSize = 8192;
     int lowMaterMark = WriteBufferWaterMark.DEFAULT.low();
     int highMaterMark = 1024 * 1024;
-    IEndPointProvider server;
     int workerThreads = 1;
 
     int maxRetry = 30;
-    Duration retryInterval = Duration.ofMillis(100);
+    Duration retryBackoff = Duration.ofMillis(100);
 
     String appName = "brpc-client";
 
+    IEndPointProvider server;
     Map<String, String> headers;
 
     /**
@@ -82,7 +81,7 @@ public class BrpcClientBuilder {
     }
 
     public BrpcClientBuilder retryInterval(Duration retryInterval) {
-        this.retryInterval = retryInterval;
+        this.retryBackoff = retryInterval;
         return this;
     }
 
@@ -110,11 +109,6 @@ public class BrpcClientBuilder {
     }
 
     public BrpcClientBuilder keepAlive(boolean keepAlive) {
-        return this;
-    }
-
-    public BrpcClientBuilder sendBufferSize(int sendBufferSize) {
-        this.sendBufferSize = sendBufferSize;
         return this;
     }
 

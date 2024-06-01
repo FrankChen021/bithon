@@ -88,7 +88,6 @@ public class BrpcServer implements Closeable {
             .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .option(ChannelOption.SO_BACKLOG, builder.backlog)
             .option(ChannelOption.SO_KEEPALIVE, false)
-            .option(ChannelOption.SO_RCVBUF, builder.receiveBufSize)
             .option(ChannelOption.TCP_NODELAY, true)
             .childHandler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
