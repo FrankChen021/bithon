@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * The Unix Epoch time-based UUID specified in RFC 9562.
+ * <p>
  * This class is adapted from <a href="https://github.com/f4b6a3/uuid-creator">UUID-Creator</a> under its MIT license.
  *
  * @author frank.chen021@outlook.com
@@ -27,9 +29,20 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class UUIDv7Generator {
 
-    public static final int INCREMENT_TYPE_DEFAULT = 0; // add 2^48 to `rand_b`
-    public static final int INCREMENT_TYPE_PLUS_1 = 1; // just add 1 to `rand_b`
-    public static final int INCREMENT_TYPE_PLUS_N = 2; // add a random n to `rand_b`, where 1 <= n <= 2^32
+    /**
+     * add 2^48 to `rand_b`
+     */
+    public static final int INCREMENT_TYPE_DEFAULT = 0;
+
+    /**
+     * just add 1 to `rand_b`
+     */
+    public static final int INCREMENT_TYPE_PLUS_1 = 1;
+
+    /**
+     * add a random n to `rand_b`, where 1 <= n <= 2^32
+     */
+    public static final int INCREMENT_TYPE_PLUS_N = 2;
 
     private static final long INCREMENT_MAX_DEFAULT = 0xffffffffL; // 2^32-1
 

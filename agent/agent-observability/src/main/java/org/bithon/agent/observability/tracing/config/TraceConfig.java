@@ -126,4 +126,14 @@ public class TraceConfig {
     public void setHeaders(HeaderConfig headers) {
         this.headers = headers;
     }
+
+    private String traceIdGenerator = "uuidv7-n";
+
+    public String getTraceIdGenerator() {
+        return traceIdGenerator;
+    }
+
+    public void setTraceIdGenerator(String traceIdGenerator) {
+        this.traceIdGenerator = traceIdGenerator;
+    }
 }

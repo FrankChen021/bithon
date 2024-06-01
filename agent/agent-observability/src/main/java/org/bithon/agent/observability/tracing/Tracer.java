@@ -27,8 +27,8 @@ import org.bithon.agent.observability.tracing.context.propagation.DefaultPropaga
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
+import org.bithon.agent.observability.tracing.id.TraceIdGeneratorFactory;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.UUIDv7TraceIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
@@ -67,13 +67,15 @@ public class Tracer {
                 if (INSTANCE == null) {
                     AppInstance appInstance = AppInstance.getInstance();
                     try {
+                        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+
                         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",
                                                                                                               TraceSamplingConfig.class));
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
-                            .traceConfig(ConfigurationManager.getInstance().getConfig(TraceConfig.class))
+                            .traceConfig(traceConfig)
                             .propagator(new DefaultPropagator(sampler))
-                            .traceIdGenerator(new UUIDv7TraceIdGenerator())
+                            .traceIdGenerator(TraceIdGeneratorFactory.create(traceConfig.getTraceIdGenerator()))
                             .spanIdGenerator(new DefaultSpanIdGenerator())
                             .reporter(new DefaultReporter());
                     } catch (Exception e) {

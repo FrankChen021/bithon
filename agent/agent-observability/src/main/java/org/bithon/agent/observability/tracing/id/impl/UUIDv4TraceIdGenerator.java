@@ -24,7 +24,7 @@ import java.util.UUID;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 12:20 上午
  */
-public class UUIDGenerator implements ITraceIdGenerator {
+public class UUIDv4TraceIdGenerator implements ITraceIdGenerator {
     /**
      * generates an opentelemetry specification standard trace id
      */

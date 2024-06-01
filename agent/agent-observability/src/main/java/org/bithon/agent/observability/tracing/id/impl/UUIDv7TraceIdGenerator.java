@@ -25,7 +25,11 @@ import org.bithon.component.commons.uuid.UUIDv7Generator;
  */
 public class UUIDv7TraceIdGenerator implements ITraceIdGenerator {
     // Use plus_1 version to get better monotonicity
-    private final UUIDv7Generator generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_1);
+    private final UUIDv7Generator generator;
+
+    public UUIDv7TraceIdGenerator(int type) {
+        this.generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_1);
+    }
 
     @Override
     public String newId() {

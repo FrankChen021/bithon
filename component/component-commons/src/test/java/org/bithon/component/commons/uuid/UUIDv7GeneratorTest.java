@@ -26,12 +26,12 @@ import org.junit.Test;
 public class UUIDv7GeneratorTest {
     @Test
     public void test() {
-        UUIDv7Generator v7 = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_1);
+        UUIDv7Generator v7 = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_N);
         for (int i = 0; i < 1000; i++) {
             UUID uuid = v7.generate();
             String compact = uuid.toCompactFormat();
             String full = uuid.toUUIDFormat();
-
+System.out.println(compact);
             Assert.assertEquals(32, compact.length());
             Assert.assertEquals(36, full.length());
             Assert.assertEquals(compact, full.replace("-", ""));
