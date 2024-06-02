@@ -83,7 +83,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                     LOG.debug("Receiving response, txId={}", msg.getTransactionId());
                 }
 
-                invocationManager.onResponse((ServiceResponseMessageIn) msg);
+                invocationManager.handleResponse((ServiceResponseMessageIn) msg);
                 break;
 
             default:
