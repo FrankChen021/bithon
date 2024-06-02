@@ -40,6 +40,7 @@ import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
 import org.bithon.shaded.io.netty.channel.ChannelInitializer;
 import org.bithon.shaded.io.netty.channel.ChannelOption;
 import org.bithon.shaded.io.netty.channel.ChannelPipeline;
+import org.bithon.shaded.io.netty.channel.WriteBufferWaterMark;
 import org.bithon.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
@@ -85,10 +86,11 @@ public class BrpcServer implements Closeable {
         this.serverBootstrap = new ServerBootstrap()
             .group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
-            .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .option(ChannelOption.SO_BACKLOG, builder.backlog)
-            .option(ChannelOption.SO_KEEPALIVE, false)
-            .option(ChannelOption.TCP_NODELAY, true)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .childOption(ChannelOption.SO_KEEPALIVE, false)
+            .childOption(ChannelOption.TCP_NODELAY, true)
+            .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .childHandler(new ChannelInitializer<NioSocketChannel>() {
                 @Override
                 protected void initChannel(NioSocketChannel ch) {
@@ -102,6 +104,10 @@ public class BrpcServer implements Closeable {
                     pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                 }
             });
+
+        if (builder.lowMaterMark > 0 && builder.highMaterMark > 0) {
+            this.serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark));
+        }
     }
 
     /**

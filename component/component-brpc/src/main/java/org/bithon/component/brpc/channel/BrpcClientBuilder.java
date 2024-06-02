@@ -18,7 +18,6 @@ package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
-import org.bithon.shaded.io.netty.channel.WriteBufferWaterMark;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -30,8 +29,8 @@ import java.util.Map;
  */
 public class BrpcClientBuilder {
     boolean keepAlive = true;
-    int lowMaterMark = WriteBufferWaterMark.DEFAULT.low();
-    int highMaterMark = 1024 * 1024;
+    int lowMaterMark = 0;
+    int highMaterMark = 0;
     int workerThreads = 1;
 
     int maxRetry = 30;

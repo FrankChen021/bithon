@@ -104,7 +104,6 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.bootstrap = new Bootstrap().group(this.bossGroup)
                                         .channel(NioSocketChannel.class)
                                         .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)
-                                        .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark))
                                         .handler(new ChannelInitializer<SocketChannel>() {
                                             @Override
                                             public void initChannel(SocketChannel ch) {
@@ -117,6 +116,10 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                                                 pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
                                             }
                                         });
+
+        if (builder.lowMaterMark > 0 && builder.highMaterMark > 0) {
+            this.bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark));
+        }
 
         this.connectionTimeout = Duration.ofMillis(builder.connectionTimeout);
 
