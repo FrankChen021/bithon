@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>
  * Note: the concept 'client' here is a relative concept.
  * It could be a network client, which connects to an RPC server,
- * it could also be an RPC server which calls service provided by a network client.
+ * it could also be an RPC server that calls service provided by a network client.
  *
  * @author frankchen
  */
@@ -155,26 +155,26 @@ public class InvocationManager {
                                               remoteEndpoint);
             }
 
-            //make sure it has been cleared when timeout
+            // Make sure it has been cleared when timeout
             inflightRequests.remove(serviceRequest.getTransactionId());
 
             if (inflightRequest.exception != null) {
                 throw inflightRequest.exception;
             }
 
-            if (!inflightRequest.responseReceived) {
-                throw new TimeoutException(remoteEndpoint.toString(),
-                                           serviceRequest.getServiceName(),
-                                           serviceRequest.getMethodName(),
-                                           timeoutMillisecond);
+            if (inflightRequest.returnObject != null) {
+                return inflightRequest.returnObject;
             }
 
-            return inflightRequest.returnObject;
+            throw new TimeoutException(remoteEndpoint.toString(),
+                                       serviceRequest.getServiceName(),
+                                       serviceRequest.getMethodName(),
+                                       timeoutMillisecond);
         }
         return null;
     }
 
-    public void onResponse(ServiceResponseMessageIn response) {
+    public void handleResponse(ServiceResponseMessageIn response) {
         long txId = response.getTransactionId();
         InflightRequest inflightRequest = inflightRequests.remove(txId);
         if (inflightRequest == null) {
@@ -197,20 +197,22 @@ public class InvocationManager {
         } else {
             try {
                 inflightRequest.returnObject = inflightRequest.returnObjectType == null ?
-                        response.getReturnAsRaw() :
-                        response.getReturningAsObject(inflightRequest.returnObjectType);
+                    response.getReturnAsRaw() :
+                    response.getReturningAsObject(inflightRequest.returnObjectType);
             } catch (IOException e) {
                 inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
             }
         }
 
         synchronized (inflightRequest) {
-            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
 
-    public void onClientException(long txId, Throwable e) {
+    /**
+     * Handle exception raised at caller side before the RPC call request is issued to server side
+     */
+    public void handleException(long txId, Throwable e) {
         InflightRequest inflightRequest = inflightRequests.remove(txId);
         if (inflightRequest == null) {
             return;
@@ -219,7 +221,6 @@ public class InvocationManager {
         inflightRequest.exception = e;
 
         synchronized (inflightRequest) {
-            inflightRequest.responseReceived = true;
             inflightRequest.notify();
         }
     }
@@ -251,13 +252,7 @@ public class InvocationManager {
          * The deserialized response object.
          * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
          */
-        Object returnObject;
-
-        /**
-         * Indicate whether this request has a response.
-         * This is required so that {@link #returnObject} might be null
-         */
-        boolean responseReceived;
-        Throwable exception;
+        volatile Object returnObject;
+        volatile Throwable exception;
     }
 }
