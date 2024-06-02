@@ -25,6 +25,8 @@ public class BrpcServerBuilder {
     int idleSeconds = 180;
     int backlog = 1024;
     int workerThreadCount = Runtime.getRuntime().availableProcessors();
+    int lowMaterMark = 0;
+    int highMaterMark = 0;
 
     public static BrpcServerBuilder builder() {
         return new BrpcServerBuilder();
