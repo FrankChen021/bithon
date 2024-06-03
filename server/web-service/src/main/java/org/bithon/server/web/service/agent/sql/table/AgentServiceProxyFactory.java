@@ -229,8 +229,7 @@ public class AgentServiceProxyFactory {
         }
 
         @Override
-        public void writeAsync(Object obj) throws IOException {
-            ServiceRequestMessageOut serviceRequest = (ServiceRequestMessageOut) obj;
+        public void writeAsync(ServiceRequestMessageOut serviceRequest) throws IOException {
             final long txId = serviceRequest.getTransactionId();
 
             // Turn the message into a byte array to send over HTTP

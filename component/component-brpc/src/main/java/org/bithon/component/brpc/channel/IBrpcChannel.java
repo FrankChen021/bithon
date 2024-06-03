@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 
 import java.io.IOException;
 
@@ -49,5 +50,5 @@ public interface IBrpcChannel {
     /**
      * Write the message without waiting for the response
      */
-    void writeAsync(Object obj) throws IOException;
+    void writeAsync(ServiceRequestMessageOut serviceRequest) throws IOException;
 }
