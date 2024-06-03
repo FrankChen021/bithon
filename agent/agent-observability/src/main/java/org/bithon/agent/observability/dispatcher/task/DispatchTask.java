@@ -35,7 +35,7 @@ public class DispatchTask {
     private final IMessageQueue queue;
     private final DispatcherConfig.QueueFullStrategy queueFullStrategy;
     private volatile boolean isRunning = true;
-    private volatile boolean isTaskEnd = false;
+    private volatile boolean isTaskEnded = false;
 
     /**
      * in millisecond
@@ -54,7 +54,7 @@ public class DispatchTask {
             while (isRunning) {
                 dispatch(true);
             }
-            isTaskEnd = true;
+            isTaskEnded = true;
         }, taskName + "-sender").start();
     }
 
@@ -85,6 +85,9 @@ public class DispatchTask {
         }
     }
 
+    /**
+     * User code might call this public method in multiple threads, thread-safe must be guaranteed.
+     */
     public void accept(Object message) {
         if (!isRunning) {
             return;
@@ -97,14 +100,18 @@ public class DispatchTask {
         // but because the underlying queue is already a concurrency-supported structure,
         // adding such a lock to solve this edge case does not gain much
         //
-        if (DispatcherConfig.QueueFullStrategy.DISCARD.equals(this.queueFullStrategy)) {
-            // The return is ignored if the 'offer' fails to run
+        if (DispatcherConfig.QueueFullStrategy.DISCARD_NEWEST.equals(this.queueFullStrategy)) {
+            // The 'message' will be discarded if the queue is full
             this.queue.offer(message);
         } else if (DispatcherConfig.QueueFullStrategy.DISCARD_OLDEST.equals(this.queueFullStrategy)) {
             // Discard the oldest in the queue
+            int discarded = 0;
             while (!queue.offer(message)) {
-                LOG.error("Failed offer element to the queue, capacity = {}. Discarding the oldest...", this.queue.capacity());
+                discarded++;
                 queue.pop();
+            }
+            if (discarded > 0) {
+                LOG.error("Failed offer element to the queue, capacity = {}. Discarded the {} oldest entry", this.queue.capacity(), discarded);
             }
         } else {
             throw new UnsupportedOperationException("Not supported now");
@@ -116,7 +123,7 @@ public class DispatchTask {
         isRunning = false;
 
         // Wait for the send task to complete
-        while (!isTaskEnd) {
+        while (!isTaskEnded) {
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ignored) {
