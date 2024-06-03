@@ -83,10 +83,14 @@ public class InvocationManager {
                       timeoutMillisecond);
     }
 
-    public byte[] invoke(IBrpcChannel channelWriter,
+    /**
+     * Invoke a remote service method and returns the raw byte-stream response.
+     * This is used for proxy.
+     */
+    public byte[] invoke(IBrpcChannel channel,
                          ServiceRequestMessageOut serviceRequest,
                          long timeoutMillisecond) throws Throwable {
-        return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
+        return (byte[]) invoke(channel, serviceRequest, null, timeoutMillisecond);
     }
 
     private Object invoke(IBrpcChannel channel,
