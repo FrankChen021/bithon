@@ -65,19 +65,18 @@ import java.util.stream.Collectors;
  */
 public class BrpcServer implements Closeable {
 
+    private final ServerBootstrap serverBootstrap;
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
+
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
-
     private final SessionManager sessionManager;
-
     private final InvocationManager invocationManager;
-    private final ServerBootstrap serverBootstrap;
 
     BrpcServer(BrpcServerBuilder builder) {
         Preconditions.checkNotNull(builder.serverId, "serverId must be set");
 
-        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server-" + builder.serverId));
+        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-s-boss-" + builder.serverId));
         this.workerGroup = new NioEventLoopGroup(builder.workerThreadCount, NamedThreadFactory.of("brpc-s-work-" + builder.serverId));
 
         this.invocationManager = new InvocationManager();
@@ -86,6 +85,7 @@ public class BrpcServer implements Closeable {
         this.serverBootstrap = new ServerBootstrap()
             .group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
+            .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .option(ChannelOption.SO_BACKLOG, builder.backlog)
             .option(ChannelOption.SO_REUSEADDR, true)
             .childOption(ChannelOption.SO_KEEPALIVE, false)
