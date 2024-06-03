@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 public class BlockingQueueTest {
 
     static class QueueTestDelegation {
-        private final IMessageQueue queue;
+        private final IThreadSafeQueue queue;
         private long elapsed = 0;
         private Object takenObject;
 
