@@ -54,7 +54,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
     ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
                                  InvocationManager invocationManager) {
         this(serviceRegistry,
-             Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor-")),
+             Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor")),
              invocationManager);
     }
 
