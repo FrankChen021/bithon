@@ -17,15 +17,16 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.ServiceRegistry;
-import org.bithon.component.brpc.invocation.IServiceInvocationExecutor;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
@@ -33,6 +34,8 @@ import org.bithon.shaded.io.netty.channel.SimpleChannelInboundHandler;
 import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * @author frankchen
@@ -41,7 +44,7 @@ import java.io.IOException;
 class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMessage> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
-    private final IServiceInvocationExecutor executor;
+    private final Executor executor;
     private final ServiceRegistry serviceRegistry;
     private final InvocationManager invocationManager;
 
@@ -50,18 +53,20 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
      */
     ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
                                  InvocationManager invocationManager) {
-        this(serviceRegistry, ServiceInvocationRunnable::run, invocationManager);
+        this(serviceRegistry,
+             Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor-")),
+             invocationManager);
     }
 
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
     public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
-                                        IServiceInvocationExecutor executor,
+                                        Executor executor,
                                         InvocationManager invocationManager) {
-        this.serviceRegistry = serviceRegistry;
-        this.executor = executor;
-        this.invocationManager = invocationManager;
+        this.serviceRegistry = Preconditions.checkArgumentNotNull("serviceRegistry", serviceRegistry);
+        this.executor = Preconditions.checkArgumentNotNull("executor", executor);
+        this.invocationManager = Preconditions.checkArgumentNotNull("invocationManager", invocationManager);
     }
 
     @Override
