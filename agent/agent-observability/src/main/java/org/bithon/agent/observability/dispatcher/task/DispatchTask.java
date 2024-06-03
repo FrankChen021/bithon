@@ -32,7 +32,7 @@ public class DispatchTask {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(DispatchTask.class);
 
     private final Consumer<Object> underlyingSender;
-    private final IMessageQueue queue;
+    private final IThreadSafeQueue queue;
     private final DispatcherConfig.QueueFullStrategy queueFullStrategy;
     private volatile boolean isRunning = true;
     private volatile boolean isTaskEnded = false;
@@ -43,7 +43,7 @@ public class DispatchTask {
     private final long flushTime;
 
     public DispatchTask(String taskName,
-                        IMessageQueue queue,
+                        IThreadSafeQueue queue,
                         DispatcherConfig config,
                         Consumer<Object> underlyingSender) {
         this.flushTime = Math.max(10, config.getFlushTime());
