@@ -21,14 +21,14 @@ import org.bithon.component.commons.uuid.UUIDv7Generator;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/5/24 10:52 pm
+ * @date 2024/6/3 21:00
  */
-public class UUIDv7TraceIdGenerator implements ITraceIdGenerator {
+public class UUIDv7TracePlusNTraceIdGenerator implements ITraceIdGenerator {
     // Use plus_1 version to get better monotonicity
     private final UUIDv7Generator generator;
 
-    public UUIDv7TraceIdGenerator(int type) {
-        this.generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT);
+    public UUIDv7TracePlusNTraceIdGenerator() {
+        this.generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_N);
     }
 
     @Override

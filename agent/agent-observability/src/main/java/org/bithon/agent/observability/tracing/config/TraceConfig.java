@@ -17,6 +17,8 @@
 package org.bithon.agent.observability.tracing.config;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
+import org.bithon.agent.observability.tracing.id.impl.UUIDv7TracePlusNTraceIdGenerator;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -127,13 +129,13 @@ public class TraceConfig {
         this.headers = headers;
     }
 
-    private String traceIdGenerator = "uuidv7-n";
+    private ITraceIdGenerator traceIdGenerator = new UUIDv7TracePlusNTraceIdGenerator();
 
-    public String getTraceIdGenerator() {
+    public ITraceIdGenerator getTraceIdGenerator() {
         return traceIdGenerator;
     }
 
-    public void setTraceIdGenerator(String traceIdGenerator) {
+    public void setTraceIdGenerator(ITraceIdGenerator traceIdGenerator) {
         this.traceIdGenerator = traceIdGenerator;
     }
 }
