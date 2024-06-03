@@ -18,10 +18,10 @@ package org.bithon.server.web.service.datasource.api.impl;
 
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
@@ -147,8 +147,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
                            .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()))
-                           .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
-                                                 TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
+                           .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
                            .orderBy(request.getOrderBy())
                            .limit(request.getLimit())
                            .build();
@@ -162,7 +161,12 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> reader.select(query), asyncExecutor);
+            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
+                // The query is executed in an async task, and the filter AST might be optimized in further processing
+                // To make sure the optimization is thread safe, we create a new AST
+                IExpression filter = FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters());
+                return reader.select(query.with(filter));
+            }, asyncExecutor);
 
             try {
                 return GeneralQueryResponse.builder()
@@ -276,11 +280,12 @@ public class DataSourceApi implements IDataSourceApi {
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             Query query = Query.builder()
-                               .interval(Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())))
+                               .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
                                .resultColumns(Collections.singletonList(column.getResultColumn()))
                                .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), CollectionUtils.emptyOrOriginal(request.getFilters())))
                                .build();
+
             return reader.distinct(query)
                          .stream()
                          .map((val) -> {
