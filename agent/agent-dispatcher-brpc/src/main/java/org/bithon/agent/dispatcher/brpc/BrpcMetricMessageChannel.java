@@ -97,8 +97,8 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                                            .clientId("metrics")
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
-                                           .retryInterval(Duration.ofMillis(100))
-                                           .connectionTimeout(dispatcherConfig.getClient().getConnectionTimeout())
+                                           .retryBackOff(Duration.ofMillis(100))
+                                           .connectionTimeout(Duration.ofMillis(dispatcherConfig.getClient().getConnectionTimeout()))
                                            .build();
         this.dispatcherConfig = dispatcherConfig;
 

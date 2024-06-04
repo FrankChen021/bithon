@@ -92,15 +92,14 @@ public class BrpcClient implements IBrpcChannel, Closeable {
      */
     BrpcClient(BrpcClientBuilder builder) {
         Preconditions.checkIfTrue(StringUtils.hasText("appName"), "appName can't be blank.");
-        Preconditions.checkIfTrue(builder.maxRetry > 0, "maxRetry must be at least 1.");
 
         this.server = Preconditions.checkArgumentNotNull("server", builder.server);
-        this.maxRetry = builder.maxRetry;
+        this.maxRetry = Math.max(1, builder.maxRetry);
         this.retryBackoff = builder.retryBackoff;
         this.appName = builder.appName;
 
         this.invocationManager = new InvocationManager();
-        this.bossGroup = new NioEventLoopGroup(builder.workerThreads, NamedThreadFactory.of("brpc-c-work-" + builder.clientId));
+        this.bossGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.of("brpc-c-io-" + builder.clientId));
         this.bootstrap = new Bootstrap().group(this.bossGroup)
                                         .channel(NioSocketChannel.class)
                                         .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)
@@ -121,7 +120,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
             this.bootstrap.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark));
         }
 
-        this.connectionTimeout = Duration.ofMillis(builder.connectionTimeout);
+        this.connectionTimeout = builder.connectionTimeout;
 
         if (builder.headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {

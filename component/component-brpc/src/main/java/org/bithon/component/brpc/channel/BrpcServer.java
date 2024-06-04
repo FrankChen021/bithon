@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +67,8 @@ import java.util.stream.Collectors;
 public class BrpcServer implements Closeable {
 
     private final ServerBootstrap serverBootstrap;
-    private final NioEventLoopGroup bossGroup;
-    private final NioEventLoopGroup workerGroup;
+    private final NioEventLoopGroup acceptorGroup;
+    private final NioEventLoopGroup ioGroup;
 
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
     private final SessionManager sessionManager;
@@ -76,14 +77,15 @@ public class BrpcServer implements Closeable {
     BrpcServer(BrpcServerBuilder builder) {
         Preconditions.checkNotNull(builder.serverId, "serverId must be set");
 
-        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-s-boss-" + builder.serverId));
-        this.workerGroup = new NioEventLoopGroup(builder.workerThreadCount, NamedThreadFactory.of("brpc-s-work-" + builder.serverId));
+        this.acceptorGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-s-acceptor-" + builder.serverId));
+        this.ioGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.of("brpc-s-io-" + builder.serverId));
 
         this.invocationManager = new InvocationManager();
         this.sessionManager = new SessionManager(this.invocationManager);
 
+        final Executor executor = builder.executor;
         this.serverBootstrap = new ServerBootstrap()
-            .group(bossGroup, workerGroup)
+            .group(acceptorGroup, ioGroup)
             .channel(NioServerSocketChannel.class)
             .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             .option(ChannelOption.SO_BACKLOG, builder.backlog)
@@ -101,7 +103,7 @@ public class BrpcServer implements Closeable {
                     pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                     pipeline.addLast(new IdleStateHandler(builder.idleSeconds, 0, 0));
                     pipeline.addLast(sessionManager);
-                    pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
+                    pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, executor, invocationManager));
                 }
             });
 
@@ -134,11 +136,11 @@ public class BrpcServer implements Closeable {
     @Override
     public void close() {
         try {
-            bossGroup.shutdownGracefully().sync();
+            acceptorGroup.shutdownGracefully().sync();
         } catch (InterruptedException ignored) {
         }
         try {
-            workerGroup.shutdownGracefully().sync();
+            ioGroup.shutdownGracefully().sync();
         } catch (InterruptedException ignored) {
         }
     }

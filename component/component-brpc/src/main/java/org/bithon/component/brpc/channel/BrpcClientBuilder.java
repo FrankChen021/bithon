@@ -31,7 +31,7 @@ public class BrpcClientBuilder {
     boolean keepAlive = true;
     int lowMaterMark = 0;
     int highMaterMark = 0;
-    int workerThreads = 1;
+    int ioThreads = 1;
 
     int maxRetry = 30;
     Duration retryBackoff = Duration.ofMillis(100);
@@ -53,7 +53,7 @@ public class BrpcClientBuilder {
      * The default value is 200ms, which is originally used in previous versions.
      * We keep it as compatibility.
      */
-    int connectionTimeout = 200;
+    Duration connectionTimeout = Duration.ofMillis(200);
 
     public static BrpcClientBuilder builder() {
         return new BrpcClientBuilder();
@@ -70,7 +70,7 @@ public class BrpcClientBuilder {
     }
 
     public BrpcClientBuilder workerThreads(int nWorkerThreads) {
-        this.workerThreads = nWorkerThreads;
+        this.ioThreads = nWorkerThreads;
         return this;
     }
 
@@ -79,8 +79,8 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder retryInterval(Duration retryInterval) {
-        this.retryBackoff = retryInterval;
+    public BrpcClientBuilder retryBackOff(Duration retryBackOff) {
+        this.retryBackoff = retryBackOff;
         return this;
     }
 
@@ -102,7 +102,7 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder connectionTimeout(int connectionTimeout) {
+    public BrpcClientBuilder connectionTimeout(Duration connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
         return this;
     }

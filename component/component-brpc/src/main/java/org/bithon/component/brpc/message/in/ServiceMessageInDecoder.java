@@ -21,6 +21,7 @@ import org.bithon.component.brpc.message.UnknownMessageException;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.bithon.shaded.io.netty.buffer.ByteBuf;
 import org.bithon.shaded.io.netty.buffer.ByteBufInputStream;
+import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.handler.codec.ByteToMessageDecoder;
 
@@ -36,6 +37,7 @@ import java.util.List;
  *
  * @author frankchen
  */
+@ChannelHandler.Sharable
 public class ServiceMessageInDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws IOException {
@@ -51,16 +53,21 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         is.pushLimit(in.readableBytes());
 
         int messageType = is.readInt32();
-        if (messageType == ServiceMessageType.CLIENT_REQUEST
-            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
-            || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
-            out.add(new ServiceRequestMessageIn(messageType).decode(is));
-        } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
-            out.add(new ServiceResponseMessageIn().decode(is));
-        } else {
-            throw new UnknownMessageException(ctx.channel().remoteAddress().toString(),
-                                              ctx.channel().localAddress().toString(),
-                                              messageType);
+        switch (messageType) {
+            case ServiceMessageType.CLIENT_REQUEST:
+            case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
+            case ServiceMessageType.CLIENT_REQUEST_V2:
+                out.add(new ServiceRequestMessageIn(messageType).decode(is));
+                break;
+
+            case ServiceMessageType.SERVER_RESPONSE:
+                out.add(new ServiceResponseMessageIn().decode(is));
+                break;
+
+            default:
+                throw new UnknownMessageException(ctx.channel().remoteAddress().toString(),
+                                                  ctx.channel().localAddress().toString(),
+                                                  messageType);
         }
     }
 }
