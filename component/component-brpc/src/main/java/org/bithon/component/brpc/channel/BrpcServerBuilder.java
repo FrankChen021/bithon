@@ -16,6 +16,8 @@
 
 package org.bithon.component.brpc.channel;
 
+import java.util.concurrent.Executor;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/4/30 22:18
@@ -24,9 +26,10 @@ public class BrpcServerBuilder {
     String serverId;
     int idleSeconds = 180;
     int backlog = 1024;
-    int workerThreadCount = Runtime.getRuntime().availableProcessors();
+    int ioThreads = Runtime.getRuntime().availableProcessors();
     int lowMaterMark = 0;
     int highMaterMark = 0;
+    Executor executor;
 
     public static BrpcServerBuilder builder() {
         return new BrpcServerBuilder();
@@ -37,8 +40,8 @@ public class BrpcServerBuilder {
         return this;
     }
 
-    public BrpcServerBuilder workerThreadCount(int workerThreadCount) {
-        this.workerThreadCount = workerThreadCount;
+    public BrpcServerBuilder networkIOThreads(int networkIOThreads) {
+        this.ioThreads = networkIOThreads;
         return this;
     }
 
@@ -49,6 +52,14 @@ public class BrpcServerBuilder {
 
     public BrpcServerBuilder backlog(int backlog) {
         this.backlog = backlog;
+        return this;
+    }
+
+    /**
+     * The executor that executes the service call
+     */
+    public BrpcServerBuilder executor(Executor executor) {
+        this.executor = executor;
         return this;
     }
 

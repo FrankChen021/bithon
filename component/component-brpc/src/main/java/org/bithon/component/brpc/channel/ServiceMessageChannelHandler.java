@@ -49,12 +49,12 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
     private final InvocationManager invocationManager;
 
     /**
-     * Instantiate an instance which calls the service in worker threads
+     * Instantiate an instance which calls the service in the netty's IO threads
      */
     ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
                                  InvocationManager invocationManager) {
         this(serviceRegistry,
-             Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor")),
+             Runnable::run,
              invocationManager);
     }
 
@@ -65,8 +65,8 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                                         Executor executor,
                                         InvocationManager invocationManager) {
         this.serviceRegistry = Preconditions.checkArgumentNotNull("serviceRegistry", serviceRegistry);
-        this.executor = Preconditions.checkArgumentNotNull("executor", executor);
         this.invocationManager = Preconditions.checkArgumentNotNull("invocationManager", invocationManager);
+        this.executor = executor == null ? Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor")) : executor;
     }
 
     @Override
