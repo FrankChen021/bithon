@@ -257,8 +257,8 @@ public class AgentServiceProxyFactory {
                                           discoveryServiceInvoker.getExecutor())
                              .thenAccept((responseBytes) -> {
                                  try {
-                                     ServiceResponseMessageIn in = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
-                                     invocationManager.handleResponse(in);
+                                     ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
+                                     invocationManager.handleResponse(response);
                                  } catch (IOException e) {
                                      invocationManager.handleException(txId, e);
                                  }

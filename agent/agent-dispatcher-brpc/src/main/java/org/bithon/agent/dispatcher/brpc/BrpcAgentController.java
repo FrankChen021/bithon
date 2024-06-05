@@ -65,7 +65,7 @@ public class BrpcAgentController implements IAgentController {
                                       .applicationName(appInstance.getQualifiedName())
                                       .clientId("ctrl")
                                       .server(new RoundRobinEndPointProvider(endpoints))
-                                      .workerThreads(2)
+                                      .ioThreads(2)
                                       .maxRetry(3)
                                       .retryBackOff(Duration.ofSeconds(2))
                                       .connectionTimeout(Duration.ofMillis(config.getClient().getConnectionTimeout()))
