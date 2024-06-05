@@ -159,7 +159,7 @@ public class DynamicInstrumentationService implements IAgentService, IConfigurat
             aop.put(clazz,
                     new DynamicInterceptorInstaller.AopDescriptor(
                         clazz,
-                        instrumentedMethod.methods.isEmpty() ? MethodMatcher.INSTANCE : Matchers.withNames(instrumentedMethod.methods),
+                        instrumentedMethod.methods.isEmpty() ? MethodMatcher.INSTANCE : Matchers.names(instrumentedMethod.methods),
                         Interceptor.class.getName()
                     ));
         }

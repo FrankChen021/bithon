@@ -27,11 +27,11 @@ import java.util.Map;
 public class MapAccessExpression implements IExpression {
 
     private IExpression map;
-    private final String prop;
+    private String key;
 
-    public MapAccessExpression(IExpression map, String prop) {
+    public MapAccessExpression(IExpression map, String key) {
         this.map = map;
-        this.prop = prop;
+        this.key = key;
     }
 
     public IExpression getMap() {
@@ -42,13 +42,17 @@ public class MapAccessExpression implements IExpression {
         this.map = map;
     }
 
-    public String getProp() {
-        return prop;
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     @Override
     public IDataType getDataType() {
-        // Not accurate, but suppose it's STRING now.
+        // Not accurate, but suppose it is STRING now.
         return IDataType.STRING;
     }
 
@@ -62,9 +66,9 @@ public class MapAccessExpression implements IExpression {
     public Object evaluate(IEvaluationContext context) {
         Object obj = map.evaluate(context);
         if (obj instanceof Map) {
-            return ((Map) obj).get(this.prop);
+            return ((Map) obj).get(this.key);
         }
-        return ReflectionUtils.getFieldValue(obj, this.prop);
+        return ReflectionUtils.getFieldValue(obj, this.key);
     }
 
     @Override

@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.apache.httpcomponents5;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -34,28 +32,25 @@ public class HttpComponents5Plugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-
             forClass("org.apache.hc.core5.http.impl.BasicHttpTransportMetrics")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("getBytesTransferred")
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
-                        ),
+                .onMethod("getBytesTransferred")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.BasicHttpTransportMetrics$GetBytesTransferred")
+                .build(),
 
             // Tracing http request
             forClass("org.apache.hc.core5.http.impl.io.HttpRequestExecutor")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("execute").and(Matchers.takesArguments(4)))
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
-                        ),
+                .onMethod("execute")
+                .andArgsSize(4)
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.HttpRequestExecutor$Execute")
+                .build(),
 
             // Tracing http connection connect
             forClass("org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("connect").and(Matchers.takesArguments(7)))
-                                                   .to("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
-                        ));
+                .onMethod("connect")
+                .andArgsSize(7)
+                .interceptedBy("org.bithon.agent.plugin.apache.httpcomponents5.interceptor.DefaultHttpClientConnectionOperator$Connect")
+                .build()
+        );
     }
 }

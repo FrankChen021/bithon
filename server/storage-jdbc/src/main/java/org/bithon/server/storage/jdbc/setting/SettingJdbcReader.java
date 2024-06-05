@@ -18,11 +18,9 @@ package org.bithon.server.storage.jdbc.setting;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAgentSettingRecord;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.SelectConditionStep;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -41,18 +39,28 @@ public class SettingJdbcReader implements ISettingReader {
     }
 
     @Override
-    public List<SettingEntry> getSettings(String appName, String env, long since) {
-        SelectConditionStep<BithonAgentSettingRecord> step = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
-                                                                       .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName));
-        if (!env.isEmpty()) {
-            step = step.and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)
-                                                                   // Also returns the application level configuration
-                                                                   .or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
-        }
+    public List<SettingEntry> getSettings() {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                         .fetch()
+                         .map(this::toSettingEntry);
+    }
 
-        return step.and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
-                   .fetch()
-                   .map(this::toSettingEntry);
+    @Override
+    public List<SettingEntry> getSettings(String appName) {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                         .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(""))
+                         .fetch()
+                         .map(this::toSettingEntry);
+    }
+
+    @Override
+    public List<SettingEntry> getSettings(String appName, String env) {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                         .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
+                         .fetch()
+                         .map(this::toSettingEntry);
     }
 
     @Override
@@ -70,6 +78,7 @@ public class SettingJdbcReader implements ISettingReader {
             return null;
         }
         SettingEntry entry = new SettingEntry();
+        entry.setAppName(record.get(Tables.BITHON_AGENT_SETTING.APPNAME));
         entry.setEnvironment(record.get(Tables.BITHON_AGENT_SETTING.ENVIRONMENT));
         entry.setName(record.get(Tables.BITHON_AGENT_SETTING.SETTINGNAME));
         entry.setValue(record.get(Tables.BITHON_AGENT_SETTING.SETTING));

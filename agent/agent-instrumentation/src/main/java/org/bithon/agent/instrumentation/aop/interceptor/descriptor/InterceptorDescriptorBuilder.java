@@ -16,35 +16,71 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
+import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frankchen
  * @date Jan 13, 2020 1:07:41 PM
  */
 public class InterceptorDescriptorBuilder {
 
-    private String targetClass;
+    private final String targetClass;
     private boolean debug;
+    private final List<MethodPointCutDescriptor> pointCuts = new ArrayList<>();
 
-    public static InterceptorDescriptorBuilder forClass(String targetClass) {
-        return new InterceptorDescriptorBuilder().targetClass(targetClass);
+    public InterceptorDescriptorBuilder(String targetClass) {
+        this.targetClass = targetClass;
     }
 
-    public InterceptorDescriptor methods(MethodPointCutDescriptor... pointCuts) {
+    public static InterceptorDescriptorBuilder forClass(String targetClass) {
+        return new InterceptorDescriptorBuilder(targetClass);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethod(String method) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   Matchers.name(method),
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   method,
+                                                   MethodType.NON_CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onConstructor() {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isConstructor(),
+                                                   MethodType.CONSTRUCTOR);
+    }
+
+    public MethodPointCutDescriptorBuilder onDefaultConstructor() {
+        return new MethodPointCutDescriptorBuilder(this,
+                                                   ElementMatchers.isDefaultConstructor(),
+                                                   MethodType.CONSTRUCTOR);
+    }
+
+    public InterceptorDescriptor build() {
         if (debug) {
             for (MethodPointCutDescriptor pointCut : pointCuts) {
                 pointCut.setDebug(debug);
             }
         }
-        return new InterceptorDescriptor(debug, targetClass, pointCuts);
-    }
-
-    public InterceptorDescriptorBuilder targetClass(String targetClass) {
-        this.targetClass = targetClass;
-        return this;
+        return new InterceptorDescriptor(debug, targetClass, pointCuts.toArray(new MethodPointCutDescriptor[0]));
     }
 
     public InterceptorDescriptorBuilder debug() {
         this.debug = true;
         return this;
+    }
+
+    void add(MethodPointCutDescriptor methodPointCutDescriptor) {
+        pointCuts.add(methodPointCutDescriptor);
     }
 }

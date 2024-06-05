@@ -49,6 +49,10 @@ public class FunctionExpression implements IExpression {
         return parameters;
     }
 
+    public IFunction getFunction() {
+        return function;
+    }
+
     @Override
     public IDataType getDataType() {
         return function == null ? null : function.getReturnType();

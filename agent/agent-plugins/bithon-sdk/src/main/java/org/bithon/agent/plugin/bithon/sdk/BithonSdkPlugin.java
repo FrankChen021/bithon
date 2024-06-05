@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.bithon.sdk;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -38,11 +37,10 @@ public class BithonSdkPlugin implements IPlugin {
             // metrics
             //
             forClass("org.bithon.agent.sdk.metric.MetricRegistryFactory")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("create")
-                                                   .replaceBy("org.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
-                )
+                .onMethod("create")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
+                .build()
+
         );
     }
 }

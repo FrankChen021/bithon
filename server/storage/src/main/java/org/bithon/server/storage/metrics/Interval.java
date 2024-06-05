@@ -44,6 +44,10 @@ public class Interval {
         this.timestampColumn = timestampColumn;
     }
 
+    public static Interval of(String startISO8601, String endISO8601) {
+        return of(TimeSpan.fromISO8601(startISO8601), TimeSpan.fromISO8601(endISO8601));
+    }
+
     public static Interval of(TimeSpan start, TimeSpan end) {
         return of(start, end, null, new IdentifierExpression("timestamp"));
     }

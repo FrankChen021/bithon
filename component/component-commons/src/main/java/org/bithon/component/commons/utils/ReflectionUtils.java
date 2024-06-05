@@ -31,6 +31,10 @@ public class ReflectionUtils {
 
     public static Object getFieldValue(Object obj,
                                        String fieldName) {
+        if (obj == null) {
+            return null;
+        }
+
         Object result = null;
         Field field;
         try {

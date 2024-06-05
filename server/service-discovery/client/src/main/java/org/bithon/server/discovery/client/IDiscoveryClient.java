@@ -16,9 +16,6 @@
 
 package org.bithon.server.discovery.client;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.util.List;
 
 /**
@@ -26,18 +23,5 @@ import java.util.List;
  */
 public interface IDiscoveryClient {
 
-    @Data
-    @AllArgsConstructor
-    class HostAndPort
-    {
-        private String host;
-        private int port;
-
-        @Override
-        public String toString() {
-            return host + ":" + port;
-        }
-    }
-
-    List<HostAndPort> getInstanceList(String serviceName);
+    List<DiscoveredServiceInstance> getInstanceList(String serviceName);
 }

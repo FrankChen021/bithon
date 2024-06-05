@@ -12,6 +12,8 @@ class TraceListComponent {
         const parent = options.parent;
         this.vTable = $(parent).append('<table></table>').find('table');
 
+        this.mTotal = 0;
+
         const excludeColumns = {};
         $.each(options.excludeColumns, (index, column) => {
             excludeColumns[column] = true;
@@ -118,6 +120,20 @@ class TraceListComponent {
                 return {};
             },
 
+            responseHandler: (data, jqXHR) => {
+                if (jqXHR.status == 200) {
+                    if (data.pageNumber == 0) {
+                        this.mTotal = data.total;
+                    } else {
+                        // For pagination request, the 'total' is not returned from the server,
+                        // But bootstrap-table requires the 'total' field tor refresh the pagination
+                        // So we use the cached 'total'
+                        data.total = this.mTotal;
+                    }
+                }
+                return data;
+            },
+
             onLoadError: (status, jqXHR) => {
                 let message;
                 if (jqXHR.responseJSON != null) {
@@ -136,6 +152,6 @@ class TraceListComponent {
     }
 
     refresh() {
-        this.vTable.bootstrapTable('refresh');
+        this.vTable.bootstrapTable('refresh', {pageNumber: 1});
     }
 }

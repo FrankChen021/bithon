@@ -50,12 +50,11 @@ jobs:
       # https://github.com/marketplace/actions/delete-tag-and-release
       - name: Delete agent tag
         if: github.ref == 'refs/heads/master'
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+        uses: dev-drprasad/delete-tag-and-release@v1.1
         with:
           delete_release: true # default: false
           tag_name: agent-distribution-latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release agent
         if: github.ref == 'refs/heads/master'

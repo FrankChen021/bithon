@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.httpclient.netty3;
 
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -39,16 +38,10 @@ public class NettyHttpClientPlugin implements IPlugin {
 
             // netty http client
             forClass("org.jboss.netty.channel.Channels")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs(
-                                                       "write",
-                                                       "org.jboss.netty.channel.Channel",
-                                                       "java.lang.Object"
-                                                   )
-                                                   .to("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
-
-                )
+                .onMethod("write")
+                .andArgs("org.jboss.netty.channel.Channel", "java.lang.Object")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
+                .build()
         );
     }
 }

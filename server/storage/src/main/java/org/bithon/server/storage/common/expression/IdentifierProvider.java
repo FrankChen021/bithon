@@ -37,26 +37,6 @@ class IdentifierProvider implements IIdentifierProvider {
     public IIdentifier getIdentifier(String identifier) {
         IColumn column = schema.getColumnByName(identifier);
         if (column == null) {
-            // A special and ugly check.
-            // For indexed tags filter, when querying the dimensions, we need to convert its alias to its field name.
-            // However, when searching spans with tag filters, the schema here does not contain the tags.
-            // We need to ignore this case.
-            // The ignored tags will be processed later in the trace module.
-            /*
-            if (identifier.startsWith("tags.")) {
-                return new IIdentifier() {
-                    @Override
-                    public String getName() {
-                        return identifier;
-                    }
-
-                    @Override
-                    public IDataType getDataType() {
-                        return IDataType.STRING;
-                    }
-                };
-            }*/
-
             throw new ExpressionValidationException("Identifier [%s] not defined in schema [%s]",
                                                     identifier,
                                                     schema.getName());

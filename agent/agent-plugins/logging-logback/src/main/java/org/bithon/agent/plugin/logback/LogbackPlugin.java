@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.logback;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -36,23 +35,19 @@ public class LogbackPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("ch.qos.logback.classic.Logger")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("callAppenders",
-                                                                    "ch.qos.logback.classic.spi.ILoggingEvent")
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
-                ),
+                .onMethod("callAppenders")
+                .andArgs("ch.qos.logback.classic.spi.ILoggingEvent")
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.Logger$CallAppenders")
+                .build(),
 
             forClass("ch.qos.logback.core.pattern.PatternLayoutBase")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                        .onDefaultConstructor()
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor"),
+                .onDefaultConstructor()
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$Ctor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("setPattern", "java.lang.String")
-                                                   .to("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
-                )
+                .onMethod("setPattern")
+                .andArgs("java.lang.String")
+                .interceptedBy("org.bithon.agent.plugin.logback.interceptor.PatternLayout$SetPattern")
+                .build()
         );
     }
 }

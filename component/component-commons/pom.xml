@@ -44,10 +44,9 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-    </dependency>
+    <!--
+    NOTE: No dependency should be introduced into this module
+    -->
 
     <dependency>
       <groupId>junit</groupId>

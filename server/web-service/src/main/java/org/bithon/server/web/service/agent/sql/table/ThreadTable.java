@@ -18,7 +18,7 @@ package org.bithon.server.web.service.agent.sql.table;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
@@ -38,13 +38,12 @@ public class ThreadTable extends AbstractBaseTable implements IPushdownPredicate
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentProxyApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentProxyApi.class,
-                                   executionContext.getParameters(),
+        return proxyFactory.create(executionContext.getParameters(),
                                    IJvmCommand.class)
                            .dumpThreads()
                            .stream()

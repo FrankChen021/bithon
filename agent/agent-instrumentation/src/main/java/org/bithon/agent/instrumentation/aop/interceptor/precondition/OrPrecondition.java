@@ -18,11 +18,14 @@ package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class OrPrecondition implements IInterceptorPrecondition {
+class OrPrecondition implements IInterceptorPrecondition {
     private final IInterceptorPrecondition[] conditions;
 
     public OrPrecondition(IInterceptorPrecondition... conditions) {
@@ -30,12 +33,18 @@ public class OrPrecondition implements IInterceptorPrecondition {
     }
 
     @Override
-    public boolean canInstall(String providerName, ClassLoader classLoader, TypeDescription typeDescription) {
+    public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
         for (IInterceptorPrecondition checker : conditions) {
-            if (checker.canInstall(providerName, classLoader, typeDescription)) {
+            if (checker.matches(classLoader, typeDescription)) {
                 return true;
             }
         }
         return false;
+    }
+
+
+    @Override
+    public String toString() {
+        return Stream.of(conditions).map((cond) -> "(" + cond.toString() + ")").collect(Collectors.joining(" OR "));
     }
 }

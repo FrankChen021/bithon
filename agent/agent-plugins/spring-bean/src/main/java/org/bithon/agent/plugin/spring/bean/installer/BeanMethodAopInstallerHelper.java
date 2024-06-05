@@ -19,6 +19,8 @@ package org.bithon.agent.plugin.spring.bean.installer;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,12 +29,17 @@ import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
 public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> targetClass) {
+        if (targetClass.getDeclaredAnnotation(RestController.class) != null) {
+            return;
+        }
+        if (targetClass.getDeclaredAnnotation(Controller.class) != null) {
+            return;
+        }
 
         BeanMethodAopInstaller.BeanTransformationConfig transformationConfig = ConfigurationManager.getInstance()
                                                                                                    .getConfig("agent.plugin.spring.bean",
                                                                                                               BeanMethodAopInstaller.BeanTransformationConfig.class,
                                                                                                               true);
-
         BeanMethodAopInstaller.install(targetClass,
                                        BeanMethod$Invoke.class.getName(),
                                        transformationConfig);

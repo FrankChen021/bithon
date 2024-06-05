@@ -285,43 +285,44 @@ public class TraceTopoBuilder {
             // When there are no children, it means the next hop might be another system.
             // So, we need to create a link for this situation
             if (childSpan.children.isEmpty() || !hasTermination) {
-                String scheme = "";
-                String peer = null;
+                String remoteApplication = "";
+                String remoteInstance = null;
                 if (SpanKind.CLIENT.name().equals(childSpan.getKind())) {
-                    peer = childSpan.getTag(Tags.Net.PEER);
+                    remoteInstance = childSpan.getTag(Tags.Net.PEER);
                     if (childSpan.getTag(Tags.Http.CLIENT) != null) {
-                        scheme = "http";
+                        remoteApplication = "http";
                     } else if (childSpan.getTag(Tags.Messaging.SYSTEM) != null) {
-                        scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
+                        remoteApplication = childSpan.getTag(Tags.Messaging.SYSTEM);
                     } else if (childSpan.getTag(Tags.Database.SYSTEM) != null) {
-                        scheme = childSpan.getTag(Tags.Database.SYSTEM);
-                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(Tags.Database.CONNECTION_STRING));
-                        peer = conn == null ? "Database" : conn.getDbType();
-                    } else if (childSpan.getTag(Tags.Database.CONNECTION_STRING) != null) {
+                        remoteApplication = childSpan.getTag(Tags.Database.SYSTEM);
+
                         String connectionString = childSpan.getTag(Tags.Database.CONNECTION_STRING);
-                        DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(childSpan.getTag(connectionString));
-                        scheme = conn == null ? "Database" : conn.getDbType();
-                        peer = conn == null ? connectionString : conn.getHostAndPort();
+                        if (connectionString != null) {
+                            DbUtils.ConnectionString conn = DbUtils.tryParseConnectionString(connectionString);
+                            remoteInstance = conn.getHostAndPort();
+                        } else {
+                            remoteInstance = childSpan.getTag(Tags.Net.PEER);
+                        }
                     } else {
-                        scheme = "Unknown";
+                        remoteApplication = "Unknown";
                     }
                 } else if (SpanKind.PRODUCER.name().equals(childSpan.getKind())) {
-                    scheme = childSpan.getTag(Tags.Messaging.SYSTEM);
-                    peer = childSpan.getTag(Tags.Net.PEER);
-                    if (scheme == null) {
+                    remoteApplication = childSpan.getTag(Tags.Messaging.SYSTEM);
+                    remoteInstance = childSpan.getTag(Tags.Net.PEER);
+                    if (remoteApplication == null) {
                         if (childSpan.getTag(Tags.Messaging.KAFKA_TOPIC) != null) {
                             // compatible with old data
-                            scheme = "kafka";
+                            remoteApplication = "kafka";
                         } else {
-                            scheme = "Unknown";
+                            remoteApplication = "Unknown";
                         }
                     }
                 }
 
-                if (peer != null) {
+                if (remoteInstance != null) {
                     TraceSpan next = new TraceSpan();
-                    next.setAppName(scheme);
-                    next.setInstanceName(peer);
+                    next.setAppName(remoteApplication);
+                    next.setInstanceName(remoteInstance);
                     this.addLink(childSpan, next);
 
                     hasTermination = true;

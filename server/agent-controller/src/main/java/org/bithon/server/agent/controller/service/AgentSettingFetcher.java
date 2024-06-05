@@ -16,19 +16,11 @@
 
 package org.bithon.server.agent.controller.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import org.bithon.component.commons.utils.SupplierUtils;
-import org.bithon.server.storage.setting.ISettingReader;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * The BRPC implementation to get agent settings for agents.
@@ -39,41 +31,14 @@ import java.util.function.Supplier;
 @Slf4j
 public class AgentSettingFetcher implements ISettingFetcher {
 
-    private final ISettingReader reader;
-    private final Supplier<ObjectMapper> yamlFormatter;
-    private final ObjectMapper jsonFormatter;
+    private final AgentSettingLoader loader;
 
-    public AgentSettingFetcher(ISettingReader reader, ObjectMapper objectMapper) {
-        this.reader = reader;
-        this.jsonFormatter = objectMapper;
-        this.yamlFormatter = SupplierUtils.cachedWithLock(() -> new ObjectMapper(new YAMLFactory()));
+    public AgentSettingFetcher(AgentSettingLoader loader) {
+        this.loader = loader;
     }
 
     @Override
     public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
-        // Always fetch all configuration by setting 'since' parameter to 0
-        return getConfiguration(header.getAppName(), header.getEnv(), 0);
-    }
-
-    private Map<String, String> getConfiguration(String appName, String env, long since) {
-        List<ISettingReader.SettingEntry> settings = reader.getSettings(appName, env, since);
-
-        Map<String, String> map = new HashMap<>();
-        for (ISettingReader.SettingEntry record : settings) {
-            String value = record.getValue();
-            if (record.getFormat().equals("yaml")) {
-                try {
-                    value = convertYamlToJson(value);
-                } catch (JsonProcessingException e) {
-                    log.error("Illegal format of setting", e);
-                }
-            }
-            map.put(record.getName(), value);
-        }
-        return map;
-    }
-
-    private String convertYamlToJson(String yaml) throws JsonProcessingException {
-        return jsonFormatter.writeValueAsString(this.yamlFormatter.get().readTree(yaml));
+        return this.loader.get(header.getAppName(), header.getEnv());
     }
 }

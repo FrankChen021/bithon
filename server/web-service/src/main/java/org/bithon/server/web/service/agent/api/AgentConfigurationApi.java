@@ -22,7 +22,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.Data;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.ISettingWriter;
@@ -54,13 +57,16 @@ public class AgentConfigurationApi {
     private final ISettingStorage settingStorage;
     private final ObjectMapper objectMapper;
     private final AgentControllerConfig agentControllerConfig;
+    private final IAgentControllerApi agentControllerApi;
 
     public AgentConfigurationApi(ISettingStorage settingStorage,
                                  ObjectMapper objectMapper,
-                                 AgentControllerConfig agentControllerConfig) {
+                                 AgentControllerConfig agentControllerConfig,
+                                 DiscoveredServiceInvoker discoveredServiceInvoker) {
         this.settingStorage = settingStorage;
         this.objectMapper = objectMapper;
         this.agentControllerConfig = agentControllerConfig;
+        this.agentControllerApi = discoveredServiceInvoker.createBroadcastApi(IAgentControllerApi.class);
     }
 
     @Data
@@ -78,10 +84,20 @@ public class AgentConfigurationApi {
 
     @PostMapping("/api/agent/configuration/get")
     public List<ISettingReader.SettingEntry> getConfiguration(@RequestBody GetRequest request) {
-        return settingStorage.createReader()
-                             .getSettings(request.getAppName().trim(),
-                                          request.getEnvironment() == null ? "" : request.getEnvironment(),
-                                          0);
+        List<ISettingReader.SettingEntry> perAppSetting = settingStorage.createReader()
+                                                                        .getSettings(request.getAppName().trim());
+
+        if (StringUtils.isBlank(request.getEnvironment())) {
+            return perAppSetting;
+        }
+
+        List<ISettingReader.SettingEntry> perEnvSetting = settingStorage.createReader()
+                                                                        .getSettings(request.getAppName().trim(),
+                                                                                     request.getEnvironment().trim());
+
+        perAppSetting.addAll(perEnvSetting);
+
+        return perAppSetting;
     }
 
     @Data
@@ -137,6 +153,9 @@ public class AgentConfigurationApi {
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.addSetting(application, environment, settingName, settingVal, format);
+
+        // Notify agent controller about the change
+        notifyConfigurationChange(request.appName, request.environment);
     }
 
     @PostMapping("/api/agent/configuration/update")
@@ -172,6 +191,9 @@ public class AgentConfigurationApi {
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.updateSetting(application, environment, settingName, settingVal, format);
+
+        // Notify agent controller about the change
+        notifyConfigurationChange(request.appName, request.environment);
     }
 
     @Data
@@ -193,6 +215,13 @@ public class AgentConfigurationApi {
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
+
+        // Notify agent controller about the change
+        notifyConfigurationChange(request.appName, request.environment);
+    }
+
+    private void notifyConfigurationChange(String appName, String env) {
+        this.agentControllerApi.updateAgentSetting(appName, env);
     }
 
     private String getUserOrToken(String token) {
@@ -200,7 +229,8 @@ public class AgentConfigurationApi {
         String principal = authentication == null ? null : (String) authentication.getPrincipal();
         if (principal == null || "anonymousUser".equals(principal)) {
             if (token == null) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "No user or token provided for authorization.");
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                "No user or token provided for authorization to perform this operation.");
             }
 
             // Use token-based authorization

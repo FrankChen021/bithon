@@ -175,7 +175,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         expression.getMap().accept(this);
         sb.append('[');
         sb.append('\'');
-        sb.append(expression.getProp());
+        sb.append(expression.getKey());
         sb.append('\'');
         sb.append(']');
         return false;

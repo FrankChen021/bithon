@@ -77,6 +77,16 @@ public interface ITraceSpan {
         return this;
     }
 
+    default ITraceSpan tag(String name, int value) {
+        tag(name, String.valueOf(value));
+        return this;
+    }
+
+    default ITraceSpan tag(String name, long value) {
+        tag(name, String.valueOf(value));
+        return this;
+    }
+
     default ITraceSpan tag(String name, Object value) {
         if (value != null) {
             tag(name, value.toString());

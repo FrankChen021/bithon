@@ -71,8 +71,8 @@ public class EventApi implements IEventApi {
                                .interval(Interval.of(start, end))
                                .build();
 
-            return new GetEventListResponse(reader.listSize(query),
-                                            reader.list(query));
+            return new GetEventListResponse(reader.count(query),
+                                            reader.select(query));
         }
     }
 }

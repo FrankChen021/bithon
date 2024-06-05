@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.apache.druid;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -35,18 +34,14 @@ public class ApacheDruidPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.druid.sql.SqlLifecycle")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("initialize")
-                                                   .to("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
-                ),
+                .onMethod("initialize")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
+                .build(),
 
             forClass("org.apache.druid.server.QueryLifecycle")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("initialize")
-                                                   .to("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
-                )
+                .onMethod("initialize")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
+                .build()
         );
     }
 }

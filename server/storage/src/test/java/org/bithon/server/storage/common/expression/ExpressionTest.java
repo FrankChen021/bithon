@@ -190,4 +190,9 @@ public class ExpressionTest {
         // equivalent to NOT( 3 > 2 AND 4 > 2)
         Assert.assertEquals(false, ExpressionASTBuilder.builder().build("NOT 3 > 2 AND 4 > 2").evaluate(null));
     }
+
+    @Test
+    public void test_EscapeSingleQuote() {
+        Assert.assertEquals("message like 'a\\''", ExpressionASTBuilder.builder().build("message LIKE 'a\\''").serializeToText(null));
+    }
 }

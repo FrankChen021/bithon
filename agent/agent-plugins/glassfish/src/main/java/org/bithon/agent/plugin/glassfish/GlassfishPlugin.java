@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.glassfish;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -34,11 +33,9 @@ public class GlassfishPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.glassfish.jersey.server.model.internal.AbstractJavaResourceMethodDispatcher")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.glassfish.interceptor.AbstractJavaResourceMethodDispatcher$Ctor")
-                )
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.glassfish.interceptor.AbstractJavaResourceMethodDispatcher$Ctor")
+                .build()
         );
     }
 }

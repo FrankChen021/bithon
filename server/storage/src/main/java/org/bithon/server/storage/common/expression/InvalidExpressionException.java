@@ -16,7 +16,9 @@
 
 package org.bithon.server.storage.common.expression;
 
-import javax.validation.constraints.NotNull;
+import org.antlr.v4.runtime.Token;
+import org.bithon.component.commons.utils.StringUtils;
+
 import java.util.Locale;
 
 /**
@@ -24,11 +26,45 @@ import java.util.Locale;
  * @date 2021/3/11
  */
 public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
+    public InvalidExpressionException(String expression,
+                                      Object offendingSymbol,
+                                      int line,
+                                      int charPositionInLine,
+                                      String msg) {
+        super(format(expression, (Token) offendingSymbol, line, charPositionInLine, msg));
     }
 
     public InvalidExpressionException(String format, Object... args) {
         super(String.format(Locale.ENGLISH, format, args));
+    }
+
+    public static String format(String expression,
+                                Token offendingToken,
+                                int line,
+                                int charPositionInLine,
+                                String error) {
+        StringBuilder messages = new StringBuilder(128);
+        messages.append(StringUtils.format("Invalid expression at line %d:%d %s\n", line, charPositionInLine, error));
+
+        String[] lines = expression.split("\n");
+        String errorLine = lines[line - 1];
+
+        messages.append(errorLine);
+        messages.append('\n');
+        for (int i = 0; i < charPositionInLine; i++) {
+            messages.append(' ');
+        }
+
+        int indicatorLength = 1;
+        if (offendingToken != null) {
+            int start = offendingToken.getStartIndex();
+            int stop = offendingToken.getStopIndex();
+            indicatorLength = Math.max(1, stop - start + 1);
+        }
+        for (int i = 0; i < indicatorLength; i++) {
+            messages.append('^');
+        }
+
+        return messages.toString();
     }
 }

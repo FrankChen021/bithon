@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.query.Limit;
 
 import java.util.Collection;
 
@@ -34,9 +35,15 @@ import java.util.Collection;
 public class GeneralQueryResponse {
 
     /**
-     * The number of total records that satisfies the request conditions
+     * The number of total records that satisfies the request conditions.
+     * Only available when the request is performed on page 0
      */
     private Integer total;
+
+    /**
+     * The request limit parameter
+     */
+    private Limit limit;
 
     private long startTimestamp;
     private long endTimestamp;

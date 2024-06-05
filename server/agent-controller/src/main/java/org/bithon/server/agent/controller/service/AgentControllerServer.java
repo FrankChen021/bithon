@@ -16,13 +16,11 @@
 
 package org.bithon.server.agent.controller.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.channel.BrpcServerBuilder;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
-import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.SmartLifecycle;
@@ -47,8 +45,9 @@ public class AgentControllerServer implements SmartLifecycle {
     private final int port;
     private boolean isRunning = false;
 
-    public AgentControllerServer(ObjectMapper jsonFormatter,
-                                 ISettingStorage storage,
+    private AgentSettingLoader loader;
+
+    public AgentControllerServer(AgentSettingLoader loader,
                                  Environment env) {
         AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
@@ -57,7 +56,9 @@ public class AgentControllerServer implements SmartLifecycle {
         this.brpcServer = BrpcServerBuilder.builder()
                                            .serverId("ctrl")
                                            .build()
-                                           .bindService(new AgentSettingFetcher(storage.createReader(), jsonFormatter));
+                                           .bindService(new AgentSettingFetcher(loader));
+
+        this.loader = loader;
     }
 
     public BrpcServer getBrpcServer() {
@@ -68,6 +69,8 @@ public class AgentControllerServer implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting Agent controller at port {}", this.port);
+        this.loader.start();
+
         this.brpcServer.start(this.port);
         this.isRunning = true;
     }
@@ -76,6 +79,8 @@ public class AgentControllerServer implements SmartLifecycle {
     public void stop() {
         log.info("Stopping Agent controller at port {}", this.port);
         this.brpcServer.close();
+
+        this.loader.stop();
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
 import com.alibaba.nacos.api.exception.NacosException;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.springframework.http.HttpStatus;
 
@@ -39,11 +40,11 @@ public class NacosDiscoveryClient implements IDiscoveryClient {
     }
 
     @Override
-    public List<HostAndPort> getInstanceList(String serviceName) {
+    public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
         try {
             return discovery.getInstances(prop.getService()).stream()
                             .filter(serviceInstance -> serviceInstance.getMetadata().containsKey("bithon.service." + serviceName))
-                            .map(serviceInstance -> new HostAndPort(serviceInstance.getHost(), serviceInstance.getPort()))
+                            .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(), serviceInstance.getPort()))
                             .collect(Collectors.toList());
         } catch (NacosException e) {
             throw new HttpMappableException(e,

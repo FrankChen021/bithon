@@ -29,6 +29,7 @@ public interface ISettingReader {
 
     @Data
     class SettingEntry {
+        private String appName;
         private String environment;
         private String name;
         private String value;
@@ -37,7 +38,9 @@ public interface ISettingReader {
         private Timestamp updatedAt;
     }
 
-    List<SettingEntry> getSettings(String appName, String env, long since);
+    List<SettingEntry> getSettings();
+    List<SettingEntry> getSettings(String appName);
+    List<SettingEntry> getSettings(String appName, String env);
 
     SettingEntry getSetting(String appName, String env, String setting);
 }

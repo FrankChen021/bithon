@@ -40,60 +40,46 @@ public class SpringWebFluxPlugin implements IPlugin {
 
         List<InterceptorDescriptor> staticInterceptors = Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("apply")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
-                ),
+                .onMethod("apply")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
+                .build(),
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("onChannelInit")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
-                ),
+                .onMethod("onChannelInit")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
+                .build(),
 
             forClass("reactor.netty.http.server.HttpServerOperations")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   // Its ctors vary in different versions, hook to all ctors
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
-                ),
+                // Its ctors vary in different versions, hook to all ctors
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
+                .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("send")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send"),
+                .onMethod("send")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("responseConnection")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
-                ),
+                .onMethod("responseConnection")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
+                .build(),
 
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("onChannelInit")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
-                ),
+                .onMethod("onChannelInit")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
+                .build(),
+
             forClass("reactor.netty.http.client.HttpClientOperations")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
+                .build(),
 
             forClass("reactor.core.publisher.Flux")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndRawArgs("timeout",
-                                                                       "org.reactivestreams.Publisher",
-                                                                       "java.util.function.Function",
-                                                                       "org.reactivestreams.Publisher")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
-                )
+                .onMethod("timeout")
+                .andRawArgs("org.reactivestreams.Publisher",
+                            "java.util.function.Function",
+                            "org.reactivestreams.Publisher")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
+                .build()
         );
 
         List<InterceptorDescriptor> interceptorDescriptors = getGatewayInterceptors();
@@ -102,7 +88,7 @@ public class SpringWebFluxPlugin implements IPlugin {
     }
 
     /**
-     * since gateway filters have similar pattern, we define them in configuration file
+     * since gateway filters have a similar pattern, we define them in the configuration file
      * so that user defined filters can be supported
      */
     List<InterceptorDescriptor> getGatewayInterceptors() {
@@ -113,20 +99,22 @@ public class SpringWebFluxPlugin implements IPlugin {
             String clazz = entry.getKey();
             GatewayFilterConfigs.Filter filter = entry.getValue();
 
-            MethodPointCutDescriptorBuilder builder = MethodPointCutDescriptorBuilder.build()
-                                                                                     .onMethodAndArgs("filter",
-                                                                                                      "org.springframework.web.server.ServerWebExchange",
-                                                                                                      "org.springframework.cloud.gateway.filter.GatewayFilterChain");
 
+            MethodPointCutDescriptorBuilder builder = forClass(clazz).debug()
+                                                                     .onMethod("filter")
+                                                                     .andArgs("org.springframework.web.server.ServerWebExchange",
+                                                                              "org.springframework.cloud.gateway.filter.GatewayFilterChain");
+
+            String to;
             if ("before".equals(filter.getMode())) {
-                filterInterceptors.add(forClass(clazz)
-                                           .debug()
-                                           .methods(builder.to("org.bithon.agent.plugin.spring.webflux.interceptor.BeforeGatewayFilter$Filter")));
+                to = "org.bithon.agent.plugin.spring.webflux.interceptor.BeforeGatewayFilter$Filter";
             } else if ("around".equals(filter.getMode())) {
-                filterInterceptors.add(forClass(clazz)
-                                           .debug()
-                                           .methods(builder.to("org.bithon.agent.plugin.spring.webflux.interceptor.AroundGatewayFilter$Filter")));
+                to = "org.bithon.agent.plugin.spring.webflux.interceptor.AroundGatewayFilter$Filter";
+            } else {
+                throw new RuntimeException("Invalid configuration");
             }
+
+            filterInterceptors.add(builder.interceptedBy(to).build());
         }
 
         return filterInterceptors;

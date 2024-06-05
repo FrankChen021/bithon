@@ -23,6 +23,8 @@ package org.bithon.agent.plugin.redis.lettuce;
 public class LettuceAsyncContext {
     private String endpoint;
     private Long startNano;
+    private int responseSize;
+    private int requestSize;
 
     public void setStartTime(long startNano) {
         this.startNano = startNano;
@@ -38,5 +40,21 @@ public class LettuceAsyncContext {
 
     public Long getStartTime() {
         return startNano;
+    }
+
+    public int getResponseSize() {
+        return responseSize;
+    }
+
+    public void setResponseSize(int responseSize) {
+        this.responseSize = responseSize;
+    }
+
+    public int getRequestSize() {
+        return requestSize;
+    }
+
+    public void setRequestSize(int requestSize) {
+        this.requestSize = requestSize;
     }
 }

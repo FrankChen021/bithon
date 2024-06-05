@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.mongodb38;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 
@@ -34,140 +32,107 @@ public class MongoDb38Plugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        return IInterceptorPrecondition.hasClass("com.mongodb.internal.connection.DefaultServerConnection");
+        return IInterceptorPrecondition.isClassDefined("com.mongodb.internal.connection.DefaultServerConnection");
     }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("com.mongodb.internal.connection.CommandHelper")
-                .methods(MethodPointCutDescriptorBuilder.build()
-                                                        .onAllMethods("executeCommand")
-                                                        .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandHelper$ExecuteCommand")
-                ),
+                .onMethod("executeCommand")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.CommandHelper$ExecuteCommand")
+                .build(),
 
             forClass("com.mongodb.internal.connection.CommandProtocolImpl")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.argumentSize(size -> size >= 9))
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Ctor"),
+                .onConstructor()
+                .andArgsSize(size -> size >= 9)
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Ctor")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("execute")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Execute"),
+                .onMethod("execute")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Execute")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("executeAsync")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$ExecuteAsync")
-                ),
+                .onMethod("executeAsync")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$ExecuteAsync")
+                .build(),
 
             //request statistics
             forClass("com.mongodb.internal.connection.DefaultServerConnection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("executeProtocol")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocol"),
+                .onMethod("executeProtocol")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocol")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("executeProtocolAsync")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
-                ),
+                .onMethod("executeProtocolAsync")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
+                .build(),
 
             //request bytes statistics
             // By contrast to 3.4, ConnectionMessageSentEvent & ConnectionMessageReceivedEvent are removed
             // So we have to intercept the underlying StreamConnection to get the message size
             forClass("com.mongodb.internal.connection.InternalStreamConnection")
-                .debug()
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("sendMessage")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessage"),
+                .onMethod("sendMessage")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessage")
 
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("sendMessageAsync")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessageAsync"),
+                .onMethod("sendMessageAsync")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessageAsync")
 
-                    // 3.8
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("receiveMessage")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage"),
+                // 3.8
+                .onMethod("receiveMessage")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage")
 
-                    // 4.x, following method replaces underlying 'receiveMessage'
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("receiveMessageWithAdditionalTimeout")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage")
-                ),
+                // 4.x, following method replaces underlying 'receiveMessage'
+                .onMethod("receiveMessageWithAdditionalTimeout")
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage")
+                .build(),
 
             // Protocols
             forClass("com.mongodb.connection.CommandProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.CommandProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.CommandProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.DeleteCommandProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.DeleteCommandProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.DeleteCommandProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.DeleteProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.DeleteProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.DeleteProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.GetMoreProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.GetMoreProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.GetMoreProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.InsertCommandProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.InsertCommandProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.InsertCommandProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.InsertProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.InsertProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.InsertProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.KillCursorProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.KillCursorProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.KillCursorProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.QueryProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.QueryProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.QueryProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.UpdateCommandProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.UpdateCommandProtocol$Ctor")
-                ),
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.UpdateCommandProtocol$Ctor")
+                .build(),
 
             forClass("com.mongodb.connection.UpdateProtocol")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllConstructor()
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.protocol.UpdateProtocol$Ctor")
-                )
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.mongodb38.interceptor.protocol.UpdateProtocol$Ctor")
+                .build()
         );
     }
 }

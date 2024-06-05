@@ -27,17 +27,27 @@ public interface IInterceptorPrecondition {
     /**
      * Helper method
      */
-    static IInterceptorPrecondition hasClass(String className) {
-        return new HasClassPrecondition(className);
+    static IInterceptorPrecondition isClassDefined(String className) {
+        return new IsClassDefinedPrecondition(className);
     }
 
     static IInterceptorPrecondition or(IInterceptorPrecondition... conditions) {
         return new OrPrecondition(conditions);
     }
 
+    static IInterceptorPrecondition and(IInterceptorPrecondition... conditions) {
+        return new AndPrecondition(conditions);
+    }
+
+    static IInterceptorPrecondition not(IInterceptorPrecondition condition) {
+        return new NotPrecondition(condition);
+    }
+
     /**
      * returns true if interceptors in this plugin can be installed
      *
+     * @param classLoader     Current class loader that is loading the target {@param typeDescription}
+     * @param typeDescription The type that is being instrumented
      */
-    boolean canInstall(String providerName, ClassLoader classLoader, TypeDescription typeDescription);
+    boolean matches(ClassLoader classLoader, TypeDescription typeDescription);
 }
