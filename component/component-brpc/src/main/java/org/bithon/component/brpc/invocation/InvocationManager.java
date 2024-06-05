@@ -129,8 +129,7 @@ public class InvocationManager {
         if (!serviceRequest.isOneway()) {
             inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
                                                   serviceRequest.getMethodName(),
-                                                  returnObjectType,
-                                                  System.currentTimeMillis());
+                                                  returnObjectType);
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
         }
 
@@ -209,6 +208,7 @@ public class InvocationManager {
         }
 
         synchronized (inflightRequest) {
+            inflightRequest.responseAt = System.currentTimeMillis();
             inflightRequest.notify();
         }
     }
@@ -222,9 +222,9 @@ public class InvocationManager {
             return;
         }
 
-        inflightRequest.exception = e;
-
         synchronized (inflightRequest) {
+            inflightRequest.exception = e;
+            inflightRequest.responseAt = System.currentTimeMillis();
             inflightRequest.notify();
         }
     }
@@ -244,18 +244,18 @@ public class InvocationManager {
 
         private InflightRequest(String serviceName,
                                 String methodName,
-                                Type returnObjectType,
-                                long requestAt) {
+                                Type returnObjectType) {
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.returnObjectType = returnObjectType;
-            this.requestAt = requestAt;
+            this.requestAt = System.currentTimeMillis();
         }
 
         /**
          * The deserialized response object.
          * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
          */
+        volatile long responseAt;
         volatile Object returnObject;
         volatile Throwable exception;
     }
