@@ -69,8 +69,8 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder workerThreads(int nWorkerThreads) {
-        this.ioThreads = nWorkerThreads;
+    public BrpcClientBuilder ioThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
         return this;
     }
 
