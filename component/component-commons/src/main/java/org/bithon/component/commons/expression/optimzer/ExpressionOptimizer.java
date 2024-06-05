@@ -32,6 +32,7 @@ import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -52,7 +53,32 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(LogicalExpression expression) {
-            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
+            List<IExpression> operands = expression.getOperands();
+
+            for (int i = 0; i < operands.size(); i++) {
+                // Apply optimization on the operand
+                IExpression expr = operands.get(i).accept(this);
+
+                if (expression instanceof LogicalExpression.AND && expr instanceof LogicalExpression.AND
+                    || (expression instanceof LogicalExpression.OR && expr instanceof LogicalExpression.OR)
+                    || (expression instanceof LogicalExpression.NOT && expr instanceof LogicalExpression.AND)
+                ) {
+                    operands.remove(i);
+
+                    // Flatten nested AND/OR expression
+                    List<IExpression> nestedExpressions = ((LogicalExpression) expr).getOperands();
+                    for (IExpression nest : nestedExpressions) {
+                        operands.add(i++, nest);
+                    }
+
+                    // The nested has N elements, since we remove one element first,
+                    // the number total added elements is N - 1
+                    i--;
+                } else {
+                    operands.set(i, expr);
+                }
+            }
+
             return expression;
         }
 
@@ -177,9 +203,11 @@ public class ExpressionOptimizer {
     }
 
     /**
-     * Simplifies constant expressions in logical AND/OR/NOT.
+     * 1. Simplifies constant expressions in logical AND/OR/NOT.
      * For example, the expression '1 = 1 AND condition2' can be simplified as condition2.
      * '1 = 1 OR condition2' can be simplified as true.
+     * 2. Reverse the logical expressions.
+     * For example, NOT a = 1 will be optimized into a != 1
      */
     static class LogicalExpressionOptimizer extends AbstractOptimizer {
         @Override
@@ -260,11 +288,11 @@ public class ExpressionOptimizer {
             } else if (subExpression instanceof ComparisonExpression.LTE) {
                 // Turn '<= into '>'
                 return new ComparisonExpression.GT(((ComparisonExpression.LTE) subExpression).getLeft(),
-                                                  ((ComparisonExpression.LTE) subExpression).getRight());
+                                                   ((ComparisonExpression.LTE) subExpression).getRight());
             } else if (subExpression instanceof ComparisonExpression.GTE) {
                 // Turn '>= into '<'
                 return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLeft(),
-                                                  ((ComparisonExpression.GTE) subExpression).getRight());
+                                                   ((ComparisonExpression.GTE) subExpression).getRight());
             }
 
             return expression;

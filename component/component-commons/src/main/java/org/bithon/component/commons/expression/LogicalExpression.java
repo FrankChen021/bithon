@@ -161,6 +161,8 @@ public abstract class LogicalExpression implements IExpression {
         }
 
         public OR(IExpression... operands) {
+            // Arrays.asList returns unmodified copy,
+            // but we need a modifiable one so that further optimizer can be applied on this expression
             super(OR, new ArrayList<>(Arrays.asList(operands)));
         }
 
@@ -185,6 +187,12 @@ public abstract class LogicalExpression implements IExpression {
 
         public NOT(List<IExpression> operands) {
             super(NOT, operands);
+        }
+
+        public NOT(IExpression... operands) {
+            // Arrays.asList returns unmodified copy,
+            // but we need a modifiable one so that further optimizer can be applied on this expression
+            super(NOT, new ArrayList<>(Arrays.asList(operands)));
         }
 
         public NOT(IExpression expression) {

@@ -75,6 +75,6 @@ public class HasTokenFunctionOptimizerTest {
                                                .build("hasToken(a, 'SERVER_ERROR') AND hasToken(a, 'EXCEPTION_CODE')")
                                                .accept(new HasTokenFunctionOptimizer());
 
-        Assert.assertEquals("((hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%') AND (hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND a like '%EXCEPTION_CODE%'))", expr.serializeToText(null));
+        Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%' AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND a like '%EXCEPTION_CODE%')", expr.serializeToText(null));
     }
 }
