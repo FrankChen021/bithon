@@ -21,7 +21,6 @@ import org.bithon.component.brpc.message.UnknownMessageException;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.bithon.shaded.io.netty.buffer.ByteBuf;
 import org.bithon.shaded.io.netty.buffer.ByteBufInputStream;
-import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
 import org.bithon.shaded.io.netty.handler.codec.ByteToMessageDecoder;
 
@@ -32,12 +31,12 @@ import java.util.List;
  * Decode input stream to an incoming service message, either it's {@link ServiceRequestMessageIn}
  * or {@link ServiceResponseMessageIn}
  * <p>
- * Note that the {@link ByteToMessageDecoder} DOES NOT allow its subclasses to be {@link org.bithon.shaded.io.netty.channel.ChannelHandler.Sharable}.
+ *
+ * NOTE that the {@link ByteToMessageDecoder} DOES NOT allow its subclasses to be {@link org.bithon.shaded.io.netty.channel.ChannelHandler.Sharable}.
  * However, {@link org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder} CAN BE shared
  *
  * @author frankchen
  */
-@ChannelHandler.Sharable
 public class ServiceMessageInDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws IOException {
