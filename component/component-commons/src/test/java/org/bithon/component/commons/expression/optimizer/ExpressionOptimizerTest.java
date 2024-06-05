@@ -41,13 +41,18 @@ public class ExpressionOptimizerTest {
             new LogicalExpression.AND(
                 new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
                 new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3))
+            ),
+
+            new LogicalExpression.AND(
+                new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.create(4)),
+                new ComparisonExpression.EQ(new IdentifierExpression("e"), LiteralExpression.create(5))
             )
         );
 
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
-        Assert.assertEquals(3, expr.getOperands().size());
-        Assert.assertEquals("(a = 1 AND b = 2 AND c = 3)", expr.serializeToText(null));
+        Assert.assertEquals(5, expr.getOperands().size());
+        Assert.assertEquals("(a = 1 AND b = 2 AND c = 3 AND d = 4 AND e = 5)", expr.serializeToText(null));
     }
 
     @Test

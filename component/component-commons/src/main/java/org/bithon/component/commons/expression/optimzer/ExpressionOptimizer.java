@@ -70,6 +70,12 @@ public class ExpressionOptimizer {
                     for (IExpression nest : nestedExpressions) {
                         operands.add(i++, nest);
                     }
+
+                    // The nested has N elements, since we remove one element first,
+                    // the number total added elements is N - 1
+                    i--;
+                } else {
+                    operands.set(i, expr);
                 }
             }
 
@@ -198,10 +204,10 @@ public class ExpressionOptimizer {
 
     /**
      * 1. Simplifies constant expressions in logical AND/OR/NOT.
-     *      For example, the expression '1 = 1 AND condition2' can be simplified as condition2.
-     *      '1 = 1 OR condition2' can be simplified as true.
+     * For example, the expression '1 = 1 AND condition2' can be simplified as condition2.
+     * '1 = 1 OR condition2' can be simplified as true.
      * 2. Reverse the logical expressions.
-     *      For example, NOT a = 1 will be optimized into a != 1
+     * For example, NOT a = 1 will be optimized into a != 1
      */
     static class LogicalExpressionOptimizer extends AbstractOptimizer {
         @Override
