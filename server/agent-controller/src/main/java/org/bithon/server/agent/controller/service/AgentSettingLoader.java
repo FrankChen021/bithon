@@ -24,6 +24,7 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentSettingLoader implements SmartLifecycle {
 
     private final ScheduledExecutorService scheduledExecutorService;
