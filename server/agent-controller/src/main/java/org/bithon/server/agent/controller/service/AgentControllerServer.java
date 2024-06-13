@@ -44,7 +44,7 @@ public class AgentControllerServer implements SmartLifecycle {
     private final int port;
     private boolean isRunning = false;
 
-    private AgentSettingLoader loader;
+    private final AgentSettingLoader loader;
 
     public AgentControllerServer(AgentSettingLoader loader, Environment env) {
         AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
