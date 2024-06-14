@@ -61,7 +61,7 @@
     <dependency><!-- Use our version to Support more DBMS -->
       <groupId>org.jooq</groupId>
       <artifactId>jooq</artifactId>
-      <version>3.13.7</version>
+      <version>3.17.27</version>
       <exclusions>
         <exclusion>
           <artifactId>jaxb-api</artifactId>
@@ -123,7 +123,7 @@
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>6.2.0.Final</version>
+      <version>8.0.1.Final</version>
     </dependency>
 
     <!-- DEV TOOLS -->
@@ -163,5 +163,12 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>maven_central</id>
+      <name>Maven Central</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
+  </repositories>
 
 </project>
