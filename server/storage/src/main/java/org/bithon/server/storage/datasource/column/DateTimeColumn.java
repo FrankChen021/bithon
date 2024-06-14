@@ -16,10 +16,13 @@
 
 package org.bithon.server.storage.datasource.column;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,7 +30,9 @@ import javax.annotation.Nullable;
  */
 public class DateTimeColumn extends AbstractColumn {
 
-    public DateTimeColumn(String name, @Nullable String alias) {
+    @JsonCreator
+    public DateTimeColumn(@JsonProperty("name") @NotNull String name,
+                          @JsonProperty("alias") @Nullable String alias) {
         super(name, alias);
     }
 

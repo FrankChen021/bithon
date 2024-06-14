@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import sun.net.www.MessageHeader;
@@ -40,12 +40,12 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
 
         clientContext.setWriteAt(System.nanoTime());
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
+        ITraceSpan span = TraceContextFactory.newSpan("http-client", headers, MessageHeader::set);
         if (span == null) {
             return;
         }
 
-        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
@@ -54,7 +54,6 @@ public class HttpClient$WriteRequests extends BeforeInterceptor {
             .tag(Tags.Http.CLIENT, "jdk")
             .tag(Tags.Http.URL, clientContext.getUrl())
             .tag(Tags.Http.METHOD, clientContext.getMethod())
-            .propagate(headers, MessageHeader::set)
             .start();
     }
 }

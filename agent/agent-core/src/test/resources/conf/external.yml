@@ -1,0 +1,4 @@
+
+# This file here is for test cases
+test:
+  prop: "from external file"

@@ -16,18 +16,20 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-public class ConfigurationTable extends AbstractBaseTable {
+public class ConfigurationTable extends AbstractBaseTable implements IPushdownPredicateProvider {
 
     public static class ConfigurationRecord {
         public String payload;
@@ -41,7 +43,7 @@ public class ConfigurationTable extends AbstractBaseTable {
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentProxyApi.class, executionContext.getParameters(), IConfigurationCommand.class)
+        return proxyFactory.create(executionContext.getParameters(), IConfigurationCommand.class)
                            .getConfiguration("YAML", true)
                            .stream()
                            .map((cfg) -> new Object[]{cfg})
@@ -51,5 +53,10 @@ public class ConfigurationTable extends AbstractBaseTable {
     @Override
     protected Class<?> getRecordClazz() {
         return ConfigurationRecord.class;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

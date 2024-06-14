@@ -16,18 +16,21 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
-import com.clickhouse.client.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseVersion;
 import com.clickhouse.client.config.ClickHouseClientOption;
+import com.clickhouse.data.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseVersion;
 import com.clickhouse.jdbc.ClickHouseConnection;
 import com.clickhouse.jdbc.ClickHouseDriver;
 import com.clickhouse.jdbc.JdbcConfig;
 import com.clickhouse.jdbc.internal.ClickHouseConnectionImpl;
 import com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser;
 import lombok.AllArgsConstructor;
+import org.bithon.component.commons.utils.RetryUtils;
+import org.bithon.server.storage.jdbc.clickhouse.common.exception.RetryableExceptions;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +83,16 @@ public class JdbcDriver extends ClickHouseDriver {
             connectionInfo.getProperties().put(ClickHouseClientOption.SERVER_TIME_ZONE.getKey(), cachedServerInfo.timeZone.getID());
         }
 
-        ConnectionImpl clickHouseConnection = new ConnectionImpl(connectionInfo);
+        ConnectionImpl clickHouseConnection;
+        try {
+            clickHouseConnection = RetryUtils.retry(() -> new ConnectionImpl(connectionInfo),
+                                                    RetryableExceptions::isExceptionRetryable,
+                                                    3,
+                                                    Duration.ofMillis(100));
+        } catch (Exception e) {
+            throw new SQLException(e.getCause());
+        }
+
         if (cachedServerInfo == null) {
             SERVER_INFO_CACHE.putIfAbsent(host, new ServerInfo(clickHouseConnection.getServerTimeZone(),
                                                                clickHouseConnection.getServerVersion()));

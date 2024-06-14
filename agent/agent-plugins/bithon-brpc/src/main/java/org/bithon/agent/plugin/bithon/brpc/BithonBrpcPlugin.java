@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.bithon.brpc;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
@@ -36,7 +35,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  */
 public class BithonBrpcPlugin implements IPlugin {
 
-    @ConfigurationProperties(prefix = "agent.plugin.bithon.brpc")
+    @ConfigurationProperties(path = "agent.plugin.bithon.brpc")
     public static class ServiceProviderConfig {
         private Map<String, String> providers = Collections.emptyMap();
 
@@ -59,11 +58,10 @@ public class BithonBrpcPlugin implements IPlugin {
         return config.getProviders().keySet().stream().map((provider) -> {
             String[] interfaces = config.getProviders().get(provider).split(",");
 
-            return forClass(provider).methods(
-                MethodPointCutDescriptorBuilder.build()
-                                               .onMethod(Matchers.implement(interfaces))
-                                               .to("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
-                                             );
+            return forClass(provider).onMethod(Matchers.implement(interfaces))
+                                     .interceptedBy("org.bithon.agent.plugin.bithon.brpc.interceptor.BrpcMethodInterceptor")
+                                     .build();
+
         }).collect(Collectors.toList());
     }
 }

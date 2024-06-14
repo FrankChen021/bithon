@@ -18,6 +18,7 @@ package org.bithon.component.commons.expression.optimzer;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ArrayAccessExpression;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -31,6 +32,7 @@ import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -39,8 +41,7 @@ import java.util.Iterator;
 public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
-        return expression.accept(new HasTokenFunctionOptimizer())
-                         .accept(new ConstantFoldingOptimizer())
+        return expression.accept(new ConstantFoldingOptimizer())
                          .accept(new LogicalExpressionOptimizer());
     }
 
@@ -52,6 +53,32 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(LogicalExpression expression) {
+            List<IExpression> operands = expression.getOperands();
+
+            for (int i = 0; i < operands.size(); i++) {
+                // Apply optimization on the operand
+                IExpression expr = operands.get(i).accept(this);
+
+                if (expression instanceof LogicalExpression.AND && expr instanceof LogicalExpression.AND
+                    || (expression instanceof LogicalExpression.OR && expr instanceof LogicalExpression.OR)
+                    || (expression instanceof LogicalExpression.NOT && expr instanceof LogicalExpression.AND)
+                ) {
+                    operands.remove(i);
+
+                    // Flatten nested AND/OR expression
+                    List<IExpression> nestedExpressions = ((LogicalExpression) expr).getOperands();
+                    for (IExpression nest : nestedExpressions) {
+                        operands.add(i++, nest);
+                    }
+
+                    // The nested has N elements, since we remove one element first,
+                    // the number total added elements is N - 1
+                    i--;
+                } else {
+                    operands.set(i, expr);
+                }
+            }
+
             return expression;
         }
 
@@ -62,10 +89,7 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ExpressionList expression) {
-            for (int i = 0; i < expression.getExpressions().size(); i++) {
-                IExpression newSubExpression = expression.getExpressions().get(i);
-                expression.getExpressions().set(i, newSubExpression);
-            }
+            expression.getExpressions().replaceAll(iExpression -> iExpression.accept(this));
             return expression;
         }
 
@@ -93,6 +117,8 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ConditionalExpression expression) {
+            expression.setLeft(expression.getLeft().accept(this));
+            expression.setRight(expression.getRight().accept(this));
             return expression;
         }
 
@@ -115,13 +141,16 @@ public class ExpressionOptimizer {
             }
 
             if (literalCount == expression.getOperands().size()) {
-                // All sub expressions are literal, do constant folding
+                // All operands are literal, do constant folding
                 return LiteralExpression.create(expression.evaluate(null));
             } else {
                 return expression;
             }
         }
 
+        /**
+         * Optimize the function expression by folding the constant parameters
+         */
         @Override
         public IExpression visit(FunctionExpression expression) {
             int literalCount = 0;
@@ -173,66 +202,26 @@ public class ExpressionOptimizer {
         }
     }
 
-    static class HasTokenFunctionOptimizer extends AbstractOptimizer {
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(FunctionExpression expression) {
-            if (!"hasToken".equals(expression.getName())) {
-                return expression;
-            }
-
-            // The hasToken already checks the parameter is a type of Literal
-            String needle = ((LiteralExpression) expression.getParameters().get(1)).asString();
-
-            for (int i = 0, size = needle.length(); i < size; i++) {
-                char chr = needle.charAt(i);
-                if (isTokenSeparator(chr)) {
-                    // replace this function into a LIKE expression
-                    return new ConditionalExpression.Like(expression.getParameters().get(0),
-                                                          LiteralExpression.create("%" + needle + "%"));
-                }
-            }
-            return expression;
-        }
-
-        /**
-         * ALWAYS_INLINE static bool isTokenSeparator(const uint8_t c)
-         * {
-         * return !(isAlphaNumericASCII(c) || !isASCII(c));
-         * }
-         */
-        private boolean isTokenSeparator(char chr) {
-            return !(Character.isLetterOrDigit(chr) || (chr > 127));
-        }
-    }
-
     /**
-     * Simplifies constant expressions in logical AND/OR/NOT.
+     * 1. Simplifies constant expressions in logical AND/OR/NOT.
      * For example, the expression '1 = 1 AND condition2' can be simplified as condition2.
      * '1 = 1 OR condition2' can be simplified as true.
+     * 2. Reverse the logical expressions.
+     * For example, NOT a = 1 will be optimized into a != 1
      */
     static class LogicalExpressionOptimizer extends AbstractOptimizer {
         @Override
         public IExpression visit(LogicalExpression expression) {
             expression.getOperands().replaceAll(iExpression -> iExpression.accept(this));
 
+            // Check if the Logical expression is a constant expression
+            // or simplify the expression if it has only one operand
+            // or reverse the logical condition
             if (expression instanceof LogicalExpression.AND) {
-                return handleAndExpression((LogicalExpression.AND) expression);
+                return simplifyAndExpression((LogicalExpression.AND) expression);
             }
             if (expression instanceof LogicalExpression.OR) {
-                return handleOrExpression((LogicalExpression.OR) expression);
+                return simplifyOrExpression((LogicalExpression.OR) expression);
             }
             if (expression instanceof LogicalExpression.NOT) {
                 return handleNotExpression(expression);
@@ -248,29 +237,68 @@ public class ExpressionOptimizer {
             }
 
             IExpression subExpression = expression.getOperands().get(0);
-            if (!(subExpression instanceof LiteralExpression)) {
-                return expression;
+            if ((subExpression instanceof LiteralExpression)) {
+                if (((LiteralExpression) subExpression).isNumber()) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is false
+                        return LiteralExpression.create(false);
+                    } else {
+                        return LiteralExpression.create(true);
+                    }
+                } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
+                    if (((LiteralExpression) subExpression).asBoolean()) {
+                        // the sub expression is true, the whole expression is false
+                        return LiteralExpression.create(false);
+                    } else {
+                        return LiteralExpression.create(true);
+                    }
+                }
+            } else if (subExpression instanceof ConditionalExpression.NotIn) {
+                // Turn the expression: 'NOT a not in ('xxx')' into 'a in (xxx)'
+                return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLeft(),
+                                                    (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.NotLike) {
+                // Turn the expression: 'NOT a not like 'xxx'' into 'a like (xxx)'
+                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLeft(),
+                                                      ((ConditionalExpression.NotLike) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.In) {
+                // Turn into In into NotIn
+                return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLeft(),
+                                                       (ExpressionList) ((ConditionalExpression.In) subExpression).getRight());
+            } else if (subExpression instanceof ConditionalExpression.Like) {
+                // Turn into Like into NotLike
+                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLeft(),
+                                                         ((ConditionalExpression.Like) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.EQ) {
+                // Turn '=' into '<>'
+                return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLeft(),
+                                                   ((ComparisonExpression.EQ) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.NE) {
+                // Turn '<>' into '='
+                return new ComparisonExpression.EQ(((ComparisonExpression.NE) subExpression).getLeft(),
+                                                   ((ComparisonExpression.NE) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.LT) {
+                // Turn '<' into '>='
+                return new ComparisonExpression.GTE(((ComparisonExpression.LT) subExpression).getLeft(),
+                                                    ((ComparisonExpression.LT) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.GT) {
+                // Turn '>' into '<='
+                return new ComparisonExpression.LTE(((ComparisonExpression.GT) subExpression).getLeft(),
+                                                    ((ComparisonExpression.GT) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.LTE) {
+                // Turn '<= into '>'
+                return new ComparisonExpression.GT(((ComparisonExpression.LTE) subExpression).getLeft(),
+                                                   ((ComparisonExpression.LTE) subExpression).getRight());
+            } else if (subExpression instanceof ComparisonExpression.GTE) {
+                // Turn '>= into '<'
+                return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLeft(),
+                                                   ((ComparisonExpression.GTE) subExpression).getRight());
             }
 
-            if (((LiteralExpression) subExpression).isNumber()) {
-                if (((LiteralExpression) subExpression).asBoolean()) {
-                    // the sub expression is true, the whole expression is false
-                    return LiteralExpression.create(false);
-                } else {
-                    return LiteralExpression.create(true);
-                }
-            } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                if (((LiteralExpression) subExpression).asBoolean()) {
-                    // the sub expression is true, the whole expression is false
-                    return LiteralExpression.create(false);
-                } else {
-                    return LiteralExpression.create(true);
-                }
-            }
             return expression;
         }
 
-        private IExpression handleOrExpression(LogicalExpression.OR expression) {
+        private IExpression simplifyOrExpression(LogicalExpression.OR expression) {
             Iterator<IExpression> subExpressionIterator = expression.getOperands().iterator();
 
             while (subExpressionIterator.hasNext()) {
@@ -310,7 +338,7 @@ public class ExpressionOptimizer {
             return expression;
         }
 
-        private IExpression handleAndExpression(LogicalExpression.AND andExpression) {
+        private IExpression simplifyAndExpression(LogicalExpression.AND andExpression) {
             Iterator<IExpression> subExpressionIterator = andExpression.getOperands().iterator();
 
             while (subExpressionIterator.hasNext()) {

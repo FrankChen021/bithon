@@ -17,10 +17,9 @@
 package org.bithon.server.storage.jdbc.clickhouse.metric;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
@@ -28,7 +27,6 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,20 +52,17 @@ public class JdbcReader extends MetricJdbcReader {
      * Rewrite the SQL to use group-by instead of distinct so that we can leverage PROJECTIONS defined at the underlying table to speed up queries
      */
     @Override
-    public List<Map<String, String>> distinct(TimeSpan start,
-                                              TimeSpan end,
-                                              ISchema schema,
-                                              IExpression filter,
-                                              String dimension) {
-        start = start.floor(Duration.ofMinutes(1));
-        end = end.ceil(Duration.ofMinutes(1));
+    public List<String> distinct(Query query) {
+        TimeSpan start = query.getInterval().getStartTime().floor(Duration.ofMinutes(1));
+        TimeSpan end = query.getInterval().getEndTime().ceil(Duration.ofMinutes(1));
 
-        String condition = filter == null ? "" : Expression2Sql.from(schema, sqlDialect, filter) + " AND ";
+        String dimension = query.getResultColumns().get(0).getResultColumnName();
+        String condition = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
 
         String sql = StringUtils.format(
             "SELECT \"%s\" FROM \"%s\" WHERE %s toStartOfMinute(\"timestamp\") >= %s AND toStartOfMinute(\"timestamp\") < %s GROUP BY \"%s\" ORDER BY \"%s\"",
             dimension,
-            schema.getDataStoreSpec().getStore(),
+            query.getSchema().getDataStoreSpec().getStore(),
             condition,
             sqlDialect.formatTimestamp(start),
             sqlDialect.formatTimestamp(end),
@@ -76,10 +71,8 @@ public class JdbcReader extends MetricJdbcReader {
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);
-        return records.stream().map(record -> {
-            Map<String, String> mapObject = new HashMap<>();
-            mapObject.put("value", record.get(0).toString());
-            return mapObject;
-        }).collect(Collectors.toList());
+        return records.stream()
+                      .map(record -> record.get(0).toString())
+                      .collect(Collectors.toList());
     }
 }

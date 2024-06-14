@@ -19,6 +19,8 @@ package org.bithon.server.web.service.agent.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.calcite.schema.Schema;
+import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlBasicCall;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlCharStringLiteral;
@@ -37,9 +39,10 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
+import org.bithon.server.web.service.agent.sql.table.IPushdownPredicateProvider;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
 import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
@@ -60,6 +63,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -101,18 +108,56 @@ public class AgentDiagnosisApi {
             }
 
             SqlNode whereNode;
+            SqlNode from = null;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
+                from = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
+                from = ((SqlSelect) (sqlNode)).getFrom();
             } else if (sqlNode.getKind() == SqlKind.UPDATE) {
                 whereNode = ((SqlUpdate) (sqlNode)).getCondition();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
+
+            Map<String, Boolean> pushdownPredicates = Collections.emptyMap();
+            if (from != null) {
+                if (!(from instanceof SqlIdentifier)) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", from.toString());
+                }
+
+                List<String> names = ((SqlIdentifier) from).names;
+                if (names.size() != 2) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", from.toString());
+                }
+
+                Schema schema = queryContext.getRootSchema().getSubSchema(names.get(0));
+                if (schema == null) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown schema: %s", names.get(0));
+                }
+
+                Table table = schema.getTable(names.get(1));
+                if (table == null) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown table: %s", names.get(1));
+                }
+                if (table instanceof IPushdownPredicateProvider) {
+                    pushdownPredicates = ((IPushdownPredicateProvider) table).getPredicates();
+                }
+            }
             if (whereNode != null) {
                 // Convert related filter at the raw SQL into query context parameters
-                whereNode.accept(new FilterToContextParameterConverter(queryContext));
+                whereNode.accept(new FilterToContextParameterConverter(queryContext, pushdownPredicates));
+            }
+
+            if (!pushdownPredicates.isEmpty()) {
+                pushdownPredicates.forEach((predicate, required) -> {
+                    if (required && queryContext.get(predicate) == null) {
+                        throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                        "The filter '%s' is required but not provided",
+                                                        predicate);
+                    }
+                });
             }
         });
 
@@ -129,9 +174,11 @@ public class AgentDiagnosisApi {
 
     private static class FilterToContextParameterConverter extends SqlBasicVisitor<String> {
         private final SqlExecutionContext queryContext;
+        private final Map<String, Boolean> pushDownPredicates;
 
-        public FilterToContextParameterConverter(SqlExecutionContext queryContext) {
+        public FilterToContextParameterConverter(SqlExecutionContext queryContext, Map<String, Boolean> pushDownPredicates) {
             this.queryContext = queryContext;
+            this.pushDownPredicates = pushDownPredicates;
         }
 
         @Override
@@ -158,9 +205,8 @@ public class AgentDiagnosisApi {
                 return super.visit(call);
             }
 
-            String identifier = ((SqlIdentifier) identifierNode).getSimple();
-            if (!IAgentProxyApi.INSTANCE_FIELD.equalsIgnoreCase(identifier)
-                && !"_token".equalsIgnoreCase(identifier)) {
+            String identifier = ((SqlIdentifier) identifierNode).getSimple().toLowerCase(Locale.ENGLISH);
+            if (!IAgentControllerApi.PARAMETER_NAME_TOKEN.equals(identifier) && !pushDownPredicates.containsKey(identifier)) {
                 return super.visit(call);
             }
 

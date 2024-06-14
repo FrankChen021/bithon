@@ -22,6 +22,7 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.ObjectColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
@@ -117,6 +118,11 @@ public class TraceTableSchema implements ISchema {
         return null;
     }
 
+    @Override
+    public boolean isVirtual() {
+        return true;
+    }
+
     public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema("trace_span_summary",
                                     traceStorage,
@@ -130,6 +136,7 @@ public class TraceTableSchema implements ISchema {
                                                   new StringColumn("normalizedUrl",
                                                                    "url"),
                                                   new StringColumn("kind", "kind"),
+                                                  new ObjectColumn("attributes", "tags"),
 
                                                   AggregateCountColumn.INSTANCE,
                                                   // microsecond
@@ -142,7 +149,7 @@ public class TraceTableSchema implements ISchema {
         List<IColumn> dimensionSpecs = new ArrayList<>();
         if (tagIndexConfig != null) {
             for (Map.Entry<String, Integer> entry : tagIndexConfig.getMap().entrySet()) {
-                String tagName = "tags." + entry.getKey();
+                String tagName = entry.getKey();
                 Integer indexPos = entry.getValue();
                 dimensionSpecs.add(new StringColumn("f" + indexPos,
                                                     // Alias

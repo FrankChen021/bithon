@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.utils.StringUtils;
+
 import java.sql.Timestamp;
 
 /**
@@ -32,6 +34,9 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     public IDataType getDataType() {
         IDataType leftType = left.getDataType();
         IDataType rightType = right.getDataType();
+        if (leftType.equals(IDataType.STRING)) {
+            return IDataType.STRING;
+        }
         if (leftType.equals(IDataType.DOUBLE) || rightType.equals(IDataType.DOUBLE)) {
             return IDataType.DOUBLE;
         }
@@ -40,12 +45,23 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Number r1 = asNumber(left.evaluate(context));
-        Number r2 = asNumber(right.evaluate(context));
-        if (r1 instanceof Double || r2 instanceof Double) {
-            return evaluate(r1.doubleValue(), r2.doubleValue());
+        Object r1 = left.evaluate(context);
+        Object r2 = right.evaluate(context);
+
+        if (r1 instanceof Number) {
+            Number rValue = asNumber(r2);
+            if (r1 instanceof Double || r2 instanceof Double) {
+                return evaluate(((Number) r1).doubleValue(), rValue.doubleValue());
+            }
+            return evaluate(((Number) r1).longValue(), rValue.longValue());
         }
-        return evaluate(r1.longValue(), r2.longValue());
+        if (r1 instanceof String) {
+            return r1 + right.evaluate(context).toString();
+        }
+
+        throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
+                                                                   r1.getClass().getSimpleName(),
+                                                                   r2.getClass().getSimpleName()));
     }
 
     @Override

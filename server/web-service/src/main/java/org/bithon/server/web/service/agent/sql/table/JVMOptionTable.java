@@ -16,18 +16,20 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/2 16:20
  */
-public class JVMOptionTable extends AbstractBaseTable {
+public class JVMOptionTable extends AbstractBaseTable implements IPushdownPredicateProvider {
     private final AgentServiceProxyFactory proxyFactory;
 
     public JVMOptionTable(AgentServiceProxyFactory proxyFactory) {
@@ -36,8 +38,7 @@ public class JVMOptionTable extends AbstractBaseTable {
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentProxyApi.class,
-                                   executionContext.getParameters(),
+        return proxyFactory.create(executionContext.getParameters(),
                                    IJvmCommand.class)
                            .getVMOptions()
                            .stream()
@@ -48,5 +49,10 @@ public class JVMOptionTable extends AbstractBaseTable {
     @Override
     protected Class<?> getRecordClazz() {
         return IJvmCommand.VMOption.class;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

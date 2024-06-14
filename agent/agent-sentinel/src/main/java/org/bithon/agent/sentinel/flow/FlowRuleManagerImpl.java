@@ -17,6 +17,8 @@
 package org.bithon.agent.sentinel.flow;
 
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.IFlowRuleManager;
 import org.bithon.agent.sentinel.SentinelRuleManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

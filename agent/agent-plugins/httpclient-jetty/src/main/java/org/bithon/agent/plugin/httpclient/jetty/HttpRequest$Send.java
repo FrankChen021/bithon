@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterc
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.eclipse.jetty.client.HttpRequest;
@@ -51,14 +51,13 @@ public class HttpRequest$Send extends BeforeInterceptor {
     public void before(AopContext aopContext) {
         HttpRequest httpRequest = aopContext.getTargetAs();
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
+        final ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client", httpRequest.getHeaders(), HttpFields::put);
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.Http.CLIENT, "jetty")
                 .tag(Tags.Http.URL, httpRequest.getURI().toString())
                 .tag(Tags.Http.METHOD, httpRequest.getMethod())
-                .propagate(httpRequest.getHeaders(), HttpFields::put)
                 .start();
         }
 

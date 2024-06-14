@@ -18,10 +18,13 @@ package org.bithon.server.alerting.common.parser;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -95,6 +98,34 @@ public class AlertExpressionASTParserTest {
     }
 
     @Test
+    public void testHumanReadableSizeExpression() {
+        // binary format
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1MiB");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toMinutes());
+        Assert.assertEquals(TimeUnit.MINUTES, ((AlertExpression) expression).getWindow().getUnit());
+        Assert.assertEquals(HumanReadableSize.of("1MiB"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5m] > 1MiB", expression.serializeToText());
+
+        // decimal format
+        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 7K");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(HumanReadableSize.of("7K"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 7K", expression.serializeToText());
+
+        // simplified binary format
+        expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 100Gi");
+        Assert.assertTrue(expression instanceof AlertExpression);
+        Assert.assertEquals(5, ((AlertExpression) expression).getWindow().getDuration().toHours());
+        Assert.assertEquals(HumanReadableSize.of("100Gi"), ((AlertExpression) expression).getAlertExpected());
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 100Gi", expression.serializeToText());
+
+        // Invalid human readable size
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 1)})[0m] > 1MB"));
+    }
+
+    @Test
     public void testPredicateExpression() {
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] >= 1");
@@ -111,24 +142,24 @@ public class AlertExpressionASTParserTest {
     @Test
     public void testCompoundExpression() {
         IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] <> 1 " +
-                                                                    "AND " +
-                                                                    "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
+                                                                "AND " +
+                                                                "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
         Assert.assertTrue(expression instanceof LogicalExpression.AND);
         Assert.assertEquals("1", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(0)).getId());
         Assert.assertEquals("2", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(1)).getId());
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
-                                                        "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
+                                                    "AND avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 " +
+                                                    "OR avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1 " +
-                                                        "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
-                                                        "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
+                                                    "AND (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2)" +
+                                                    "OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3)");
 
         expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 3 " +
-                                                        "AND (" +
-                                                        "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
-                                                        ")");
+                                                    "AND (" +
+                                                    "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
+                                                    ")");
 
     }
 
@@ -227,5 +258,28 @@ public class AlertExpressionASTParserTest {
             Assert.assertEquals("count(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1",
                                 expression.serializeToText());
         }
+    }
+
+    @Test
+    public void testInvalidMetricName() {
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm)[5m] > 1[-7m]"));
+    }
+
+
+    @Test
+    public void testMultipleFilters() {
+        Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(http-metrics{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1[-7m]"));
+    }
+
+    @Test
+    public void testByExpression() {
+        AlertExpression expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance) > 1");
+        Assert.assertEquals(Collections.singletonList("instance"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url) > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url"), expr.getGroupBy());
+
+        expr = (AlertExpression) AlertExpressionASTParser.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url, method) > 1");
+        Assert.assertEquals(Arrays.asList("instance", "url", "method"), expr.getGroupBy());
     }
 }

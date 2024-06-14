@@ -136,7 +136,7 @@ public abstract class LiteralExpression implements IExpression {
                                                                   Locale.ENGLISH).parse(value.toString())
                                                                                  .getTime();
 
-                            return new DateTime3Literal(timestamp);
+                            return new TimestampLiteral(timestamp);
                         } catch (ParseException e) {
                             throw new ExpressionValidationException(e.getMessage());
                         }
@@ -178,7 +178,7 @@ public abstract class LiteralExpression implements IExpression {
                     return new LiteralExpression.BooleanLiteral(((long) value) != 0);
 
                 case DATETIME_3:
-                    return new DateTime3Literal((long) value);
+                    return new TimestampLiteral((long) value);
 
                 default:
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
@@ -246,9 +246,9 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class DateTime3Literal extends LiteralExpression {
+    public static class TimestampLiteral extends LiteralExpression {
 
-        public DateTime3Literal(long milliseconds) {
+        public TimestampLiteral(long milliseconds) {
             super(milliseconds);
         }
 

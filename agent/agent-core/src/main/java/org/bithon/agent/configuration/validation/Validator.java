@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,17 +39,18 @@ public class Validator {
             put(NotBlank.class.getName(), new NotBlankValidator());
             put(Range.class.getName(), new RangeValidator());
             put(GreaterThan.class.getName(), new GreaterThanValidator());
+            put(RegExpr.class.getName(), new RegExprValidator());
 
             // Validated is declared on an object, validate the object recursively
             put(Validated.class.getName(), (annotation, objectType, property, value) -> validate(property, value));
         }};
 
         for (Field field : obj.getClass().getDeclaredFields()) {
-            Annotation[] annotations = field.getDeclaredAnnotations();
-            for (Annotation annotation : annotations) {
-                IValueValidator validator = validators.get(annotation.annotationType().getName());
+            Annotation[] validationAnnotations = field.getDeclaredAnnotations();
+            for (Annotation validationAnnotation : validationAnnotations) {
+                IValueValidator validator = validators.get(validationAnnotation.annotationType().getName());
                 if (validator != null) {
-                    String violation = validateField(prefix, annotation, obj, field, validator);
+                    String violation = validateField(prefix, validationAnnotation, obj, field, validator);
                     if (violation != null) {
                         return violation;
                     }
@@ -137,6 +139,32 @@ public class Validator {
                 return "[%s] " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %d", input, constraint);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
+        }
+    }
+
+    static class RegExprValidator implements IValueValidator {
+        @Override
+        public String validate(Annotation annotation, Class<?> objectType, String property, Object value) {
+            if (value == null) {
+                return StringUtils.format("The [%s] can't be NULL.", property);
+            }
+
+            if (!(value instanceof String)) {
+                return StringUtils.format("Bug!!! The property [%s] is type of [%s], but the RegExpr annotation can only be applied to a String field.",
+                                          property,
+                                          value.getClass().getSimpleName());
+            }
+
+            RegExpr regExpr = (RegExpr) annotation;
+            boolean found = Pattern.compile(regExpr.expr())
+                                   .matcher(value.toString())
+                                   .find();
+            if (found) {
+                return null;
+            } else {
+                // Fail
+                return StringUtils.format(((RegExpr) annotation).message(), value);
+            }
         }
     }
 }

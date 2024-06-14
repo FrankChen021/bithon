@@ -20,11 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
+import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
+import org.bithon.server.pipeline.event.metrics.MetricOverEventInputSource;
 import org.bithon.server.pipeline.event.receiver.IEventReceiver;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.storage.event.EventMessage;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,8 +39,14 @@ import java.util.List;
 @Slf4j
 public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExporter> {
 
-    public EventPipeline(EventPipelineConfig pipelineConfig, ObjectMapper objectMapper) {
+    private final IMetricInputSourceManager metricInputSourceManager;
+    private final Set<String> metricEvents = new ConcurrentSkipListSet<>();
+
+    public EventPipeline(EventPipelineConfig pipelineConfig,
+                         IMetricInputSourceManager metricInputSourceManager,
+                         ObjectMapper objectMapper) {
         super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
+        this.metricInputSourceManager = metricInputSourceManager;
     }
 
     public EventPipelineConfig getPipelineConfig() {
@@ -43,6 +55,9 @@ public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExport
 
     @Override
     protected void registerProcessor() {
+        // Load schemas and register processor for each schema
+        this.metricInputSourceManager.start(MetricOverEventInputSource.class);
+
         IEventProcessor processor = new IEventProcessor() {
             @Override
             public void process(String messageType, List<EventMessage> messages) {
@@ -64,6 +79,66 @@ public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExport
         for (IEventReceiver receiver : this.receivers) {
             receiver.registerProcessor(processor);
         }
+    }
+
+    /**
+     * Previously, some metrics are reported via the event channel.
+     * Since these metrics will be exported to a dedicated storage,
+     * there's no need to store these events in the default event store.
+     *
+     * In the future, we can change the reporting channel so that we don't need to keep the implementation here.
+     */
+    @Override
+    public IEventExporter link(IEventExporter exporter) {
+        if (exporter instanceof MetricOverEventExporter) {
+            String eventType = ((MetricOverEventExporter) exporter).getEventType();
+            this.metricEvents.add(eventType);
+
+            return super.link(exporter);
+        } else {
+            IEventExporter filteredExporter = new IEventExporter() {
+                @Override
+                public void process(String messageType, List<EventMessage> messages) {
+                    if (!metricEvents.isEmpty()) {
+                        messages = messages.stream()
+                                           .filter((msg) -> !metricEvents.contains(msg.getType()))
+                                           .collect(Collectors.toList());
+                    }
+                    exporter.process(messageType, messages);
+                }
+
+                @Override
+                public void close() throws Exception {
+                    exporter.close();
+                }
+
+                @Override
+                public void start() {
+                    exporter.start();
+                }
+
+                @Override
+                public void stop() {
+                    exporter.stop();
+                }
+
+                @Override
+                public String toString() {
+                    return exporter.toString();
+                }
+            };
+            return super.link(filteredExporter);
+        }
+    }
+
+    @Override
+    public IEventExporter unlink(IEventExporter exporter) {
+        if (exporter instanceof MetricOverEventExporter) {
+            String eventType = ((MetricOverEventExporter) exporter).getEventType();
+            this.metricEvents.remove(eventType);
+        }
+
+        return super.unlink(exporter);
     }
 
     @Override

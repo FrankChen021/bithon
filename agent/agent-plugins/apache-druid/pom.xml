@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.bithon.agent</groupId>
-    <artifactId>agent</artifactId>
+    <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
@@ -19,12 +19,28 @@
       <artifactId>druid-server</artifactId>
       <version>0.16.0-incubating</version>
       <scope>provided</scope>
+
+      <!-- Sigar is indirectly used, however sometimes it can't be pulled from the maven repository located in https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads/
+      -->
+      <exclusions>
+        <exclusion>
+          <artifactId>druid-core</artifactId>
+          <groupId>org.apache.druid</groupId>
+        </exclusion>
+      </exclusions>
+
     </dependency>
     <dependency>
       <groupId>org.apache.druid</groupId>
       <artifactId>druid-sql</artifactId>
       <version>0.16.0-incubating</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>druid-core</artifactId>
+          <groupId>org.apache.druid</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

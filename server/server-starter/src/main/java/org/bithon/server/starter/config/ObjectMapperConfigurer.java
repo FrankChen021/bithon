@@ -33,6 +33,8 @@ import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageDeserializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
+import org.bithon.server.commons.serializer.HumanReadableSizeDeserializer;
+import org.bithon.server.commons.serializer.HumanReadableSizeSerializer;
 import org.bithon.server.commons.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -77,11 +79,14 @@ public class ObjectMapperConfigurer {
                                    },
                                    new HumanReadablePercentageSerializer(),
                                    new HumanReadableDurationSerializer(),
+                                   new HumanReadableSizeSerializer(),
                                    new AlertExpressionSerializer()
                       )
                 .deserializers(new ExpressionDeserializer(),
                                new HumanReadablePercentageDeserializer(),
-                               new HumanReadableDurationDeserializer())
+                               new HumanReadableDurationDeserializer(),
+                               new HumanReadableSizeDeserializer()
+                              )
                       .build()
                       .setInjectableValues(new InjectableValues() {
                           @Override

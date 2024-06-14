@@ -26,7 +26,7 @@ import org.bithon.agent.configuration.validation.Validated;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 2:48 下午
  */
-@ConfigurationProperties(prefix = "controller", dynamic = false)
+@ConfigurationProperties(path = "controller", dynamic = false)
 public class AgentControllerConfig {
     @Validated
     private RpcClientConfig client;

@@ -32,7 +32,6 @@ import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingWriter;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -66,14 +65,33 @@ public class SettingStorage extends SettingJdbcStorage {
     @Override
     public ISettingReader createReader() {
         return new SettingJdbcReader(this.dslContext) {
+
             @Override
-            public List<SettingEntry> getSettings(String appName, String env, long since) {
+            public List<SettingEntry> getSettings() {
+                String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                       .getSQL() + " FINAL ";
+
+                return dslContext.fetch(sql).map(this::toSettingEntry);
+            }
+
+            @Override
+            public List<SettingEntry> getSettings(String appName) {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
                 sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.ge(new Timestamp(since).toLocalDateTime())));
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
+
+                return dslContext.fetch(sql).map(this::toSettingEntry);
+            }
+
+            @Override
+            public List<SettingEntry> getSettings(String appName, String env) {
+                String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                                       .getSQL() + " FINAL WHERE ";
+
+                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env)));
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
             }

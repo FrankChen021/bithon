@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
 import org.bithon.component.commons.time.DateTime;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.context.SmartLifecycle;
 
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class SchemaManager implements SmartLifecycle {
-    private final List<ISchemaChangeListener> listeners = Collections.synchronizedList(new ArrayList<>());
+    private final List<ISchemaChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private final ISchemaStorage schemaStorage;
     private ScheduledExecutorService loaderScheduler;
     private final Map<String, ISchema> schemas = new ConcurrentHashMap<>();
@@ -56,7 +57,7 @@ public class SchemaManager implements SmartLifecycle {
     public boolean addSchema(ISchema schema, boolean saveSchema) {
         if (schema != null &&
             schemas.putIfAbsent(schema.getName(), schema) == null) {
-            if (saveSchema && schema.getDataStoreSpec().isInternal()) {
+            if (saveSchema && !schema.isVirtual()) {
                 try {
                     schemaStorage.putIfNotExist(schema.getName(), schema);
                 } catch (IOException e) {
@@ -86,6 +87,10 @@ public class SchemaManager implements SmartLifecycle {
     }
 
     public ISchema getSchema(String name) {
+        return getSchema(name, true);
+    }
+
+    public ISchema getSchema(String name, boolean throwIfNotFound) {
         // load from cache first
         ISchema schema = schemas.get(name);
         if (schema != null) {
@@ -99,29 +104,43 @@ public class SchemaManager implements SmartLifecycle {
             return schema;
         }
 
-        throw new SchemaException.NotFound(name);
+        if (throwIfNotFound) {
+            throw new SchemaException.NotFound(name);
+        } else {
+            return null;
+        }
     }
 
-    public Map<String, ISchema> getSchemas() {
+    public synchronized Map<String, ISchema> getSchemas() {
+        if (!this.isRunning()) {
+            // Make sure when this method is called, it's initialized, and schemas have been loaded,
+            // We don't change the Phase of this object because change of Phase still has implicit dependency,
+            // Dependencies have to carefully define the order of phase.
+            // So, manually starting this object is much reasonable
+            this.start();
+        }
+
         return new TreeMap<>(schemas);
     }
 
-    public void addListener(ISchemaChangeListener listener) {
+    public void addListener(ISchemaChangedListener listener) {
         listeners.add(listener);
 
-        this.schemas.forEach((name, schema) -> listener.onChange(null, schema));
+        this.schemas.forEach((name, schema) -> listener.onSchemaChanged(null, schema));
     }
 
     private void incrementalLoadSchemas() {
-        List<ISchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+        long now = TimeSpan.now().toSeconds() * 1000;
 
+        List<ISchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
         log.info("{} schema(s) have been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
         for (ISchema changedSchema : changedSchemaList) {
-            this.onChange(this.put(changedSchema.getName(), changedSchema), changedSchema);
+            ISchema oldSchema = this.put(changedSchema.getName(), changedSchema);
+            this.onChange(oldSchema, changedSchema);
         }
 
-        this.lastLoadAt = System.currentTimeMillis();
+        this.lastLoadAt = now;
     }
 
     /**
@@ -133,11 +152,11 @@ public class SchemaManager implements SmartLifecycle {
 
     private void onChange(ISchema oldSchema, ISchema newSchema) {
         // Copy to list first to avoid a concurrency problem
-        ISchemaChangeListener[] listenerList = this.listeners.toArray(new ISchemaChangeListener[0]);
+        ISchemaChangedListener[] listenerList = this.listeners.toArray(new ISchemaChangedListener[0]);
 
-        for (ISchemaChangeListener listener : listenerList) {
+        for (ISchemaChangedListener listener : listenerList) {
             try {
-                listener.onChange(oldSchema, newSchema);
+                listener.onSchemaChanged(oldSchema, newSchema);
             } catch (Exception e) {
                 log.error("notify onAdd exception", e);
             }
@@ -147,26 +166,17 @@ public class SchemaManager implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting schema incremental loader...");
+
+        // Load schemas first.
+        incrementalLoadSchemas();
+
+        // start periodic loader
         loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
                                                // no delay to execute the first task
-                                               0,
+                                               1,
                                                1,
                                                TimeUnit.MINUTES);
-
-        // Wait until the load complete
-        // Not able to use the Future object returned by the scheduleWithFixedDelay above because the 'get'
-        // works abnormally as its javadoc says
-        int count = 0;
-        while (this.lastLoadAt == 0 && count++ < 30) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-            }
-        }
-        if (this.lastLoadAt == 0) {
-            log.error("!!!!!!Timeout to wait for the first loading of schemas!!!");
-        }
     }
 
     @Override
@@ -175,6 +185,7 @@ public class SchemaManager implements SmartLifecycle {
             log.info("Shutting down Schema Manager...");
             loaderScheduler.shutdownNow();
             try {
+                //noinspection ResultOfMethodCallIgnored
                 loaderScheduler.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             } finally {
@@ -188,7 +199,7 @@ public class SchemaManager implements SmartLifecycle {
         return loaderScheduler != null && !loaderScheduler.isShutdown();
     }
 
-    public interface ISchemaChangeListener {
-        void onChange(ISchema oldSchema, ISchema newSchema);
+    public interface ISchemaChangedListener {
+        void onSchemaChanged(ISchema oldSchema, ISchema newSchema);
     }
 }

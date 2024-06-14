@@ -76,4 +76,19 @@ public class Query {
         this.limit = limit;
         this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
     }
+
+    /**
+     * Create a new query object based on an existing query.
+     * All fields in the new object except for {@param filter} is a shallow copy of an existing query object.
+     */
+    public Query with(IExpression filter) {
+        return new Query(this.schema,
+                         this.resultColumns,
+                         filter,
+                         this.interval,
+                         this.groupBy,
+                         this.orderBy,
+                         this.limit,
+                         this.resultFormat);
+    }
 }

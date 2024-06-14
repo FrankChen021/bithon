@@ -17,6 +17,8 @@
 package org.bithon.agent.sentinel.degrade;
 
 import org.bithon.agent.controller.cmd.IAgentCommand;
+import org.bithon.agent.rpc.brpc.sentinel.DegradingRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.IDegradingRuleManager;
 import org.bithon.agent.sentinel.SentinelRuleManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

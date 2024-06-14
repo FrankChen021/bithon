@@ -20,18 +20,22 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.event.EventMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +46,7 @@ import java.util.Map;
 @Slf4j
 public class KafkaEventExporter implements IEventExporter {
 
-    private final KafkaTemplate<String, String> producer;
+    private final KafkaTemplate<String, byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
 
@@ -54,45 +58,40 @@ public class KafkaEventExporter implements IEventExporter {
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
-                                                                              new StringSerializer()),
+                                                                              new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "event"));
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper.copy()
+                                        .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
     }
 
     @Override
     public void process(String messageType, List<EventMessage> messages) {
-        String key = null;
-
-        StringBuilder messageText = new StringBuilder(512);
-        messageText.append('[');
-        for (EventMessage eventMessage : messages) {
-
-            // Sink receives messages from an agent, it's safe to use instance name of first item
-            if (key == null) {
-                key = messageType + "/" + eventMessage.getAppName() + "/" + eventMessage.getInstanceName();
+        ByteArrayOutputStream bao = new ByteArrayOutputStream(512);
+        try {
+            JsonGenerator generator = objectMapper.createGenerator(bao);
+            for (EventMessage eventMessage : messages) {
+                try {
+                    objectMapper.writeValue(generator, eventMessage);
+                } catch (IOException ignored) {
+                }
+                generator.writeRaw('\n');
             }
+            bao.flush();
 
-            // deserialization
-            try {
-                messageText.append(objectMapper.writeValueAsString(eventMessage));
-            } catch (JsonProcessingException ignored) {
-            }
-
-            messageText.append(",\n");
-        }
-        if (messageText.length() > 2) {
-            // Remove last separator
-            messageText.delete(messageText.length() - 2, messageText.length());
-        }
-        messageText.append(']');
-        if (key != null) {
-            ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
+            ProducerRecord<String, byte[]> record = new ProducerRecord<>(this.topic, null, bao.toByteArray());
             producer.send(record);
+        } catch (IOException e) {
+            log.error("Failed to serialize event message", e);
         }
     }
 
     @Override
     public void close() {
         producer.destroy();
+    }
+
+    @Override
+    public String toString() {
+        return "export-event-to-kafka";
     }
 }

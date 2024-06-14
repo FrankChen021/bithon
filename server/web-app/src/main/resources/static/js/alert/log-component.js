@@ -58,22 +58,27 @@ class LogComponent {
 
                 $(this._containerId).find('.alert').css('display', 'none');
 
-                let minute = 0;
+                let countOfPrevMinute = 0;
+                let minuteOfPrevItem = 0;
                 let logContent = '';
                 for (let i = 0; i < data.rows.length; i++) {
                     const item = data.rows[i];
 
-                    const thisMinute = Math.trunc(item.timestamp / 1000 / 60);
-                    if (minute !== thisMinute) {
-                        if (minute !== 0) {
+                    const minuteOfThisItem = Math.trunc(item.timestamp / 1000 / 60);
+                    if (minuteOfPrevItem !== minuteOfThisItem) {
+                        if (minuteOfPrevItem !== 0 && countOfPrevMinute > 1) {
                             // Insert a line break between two logs where the minute of timestamp are different
                             // So that the logs with the same minute are shown together as a block
                             logContent += '\n';
                         }
-                        minute = thisMinute;
+                        minuteOfPrevItem = minuteOfThisItem;
+                        countOfPrevMinute = 1;
+                    } else {
+                        countOfPrevMinute++;
                     }
 
                     logContent += new Date(item.timestamp).format('yyyy-MM-dd hh:mm:ss.S')
+                               + ' [' + item.instance + ']'
                                + ' [' + this.truncateOrPad(item.clazz, 24) + '] '
                                + item.message + '\n';
                 }

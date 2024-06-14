@@ -18,11 +18,8 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -145,17 +142,18 @@ public class MetricJdbcReader implements IDataSourceReader {
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
-    private String getOrderBySQL(OrderBy orderBy) {
+    private String getOrderBySQL(OrderBy orderBy, String timestampColumn) {
         if (orderBy == null) {
             return "";
         }
+
         return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
     }
 
     @Override
-    public List<Map<String, Object>> list(Query query) {
+    public List<Map<String, Object>> select(Query query) {
         String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
@@ -166,12 +164,9 @@ public class MetricJdbcReader implements IDataSourceReader {
                      String alias = field.getResultColumnName();
 
                      return expr.equals(alias) ?
-                         StringUtils.format("\"%s\"",
-                                            field.getColumnExpression())
+                         StringUtils.format("\"%s\"", field.getColumnExpression())
                          :
-                         StringUtils.format("\"%s\" AS \"%s\"",
-                                            field.getColumnExpression(),
-                                            field.getResultColumnName());
+                         StringUtils.format("\"%s\" AS \"%s\"", field.getColumnExpression(), field.getResultColumnName());
                  })
                  .collect(Collectors.joining(",")),
             sqlTableName,
@@ -181,18 +176,17 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            getOrderBySQL(query.getOrderBy()),
+            getOrderBySQL(query.getOrderBy(), timestampCol),
             query.getLimit().getLimit(),
-            query.getLimit().getOffset()
-                                       );
+            query.getLimit().getOffset());
 
         return executeSql(sql);
     }
 
     @Override
-    public int listSize(Query query) {
+    public int count(Query query) {
         String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getTimestampColumn();
+        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
 
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
@@ -204,7 +198,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-                                       );
+        );
 
         Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
@@ -246,35 +240,27 @@ public class MetricJdbcReader implements IDataSourceReader {
     }
 
     @Override
-    public List<Map<String, String>> distinct(TimeSpan start,
-                                              TimeSpan end,
-                                              ISchema schema,
-                                              IExpression filter,
-                                              String dimension) {
-        String filterText = filter == null ? "" : Expression2Sql.from(schema, sqlDialect, filter) + " AND ";
+    public List<String> distinct(Query query) {
+        String filterText = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
+        String dimension = query.getResultColumns().get(0).getResultColumnName();
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
             dimension,
             dimension,
-            schema.getDataStoreSpec().getStore(),
+            query.getSchema().getDataStoreSpec().getStore(),
             filterText,
-            sqlDialect.formatTimestamp(start),
-            sqlDialect.formatTimestamp(end),
+            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+            sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
             dimension,
             dimension
-                                       );
+        );
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);
-        return records.stream().map(record -> {
-            Field<?>[] fields = record.fields();
-            Map<String, String> mapObject = new HashMap<>(fields.length);
-            for (Field<?> field : fields) {
-                mapObject.put("value", record.get(field).toString());
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
+        return records.stream()
+                      .map(record -> record.get(0).toString())
+                      .collect(Collectors.toList());
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.httpclient.jetty;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Collections;
@@ -36,14 +35,10 @@ public class JettyHttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.eclipse.jetty.client.HttpRequest")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs(
-                                                       "send",
-                                                       "org.eclipse.jetty.client.api.Response$CompleteListener"
-                                                   )
-                                                   .to("org.bithon.agent.plugin.httpclient.jetty.HttpRequest$Send"))
-
+                .onMethod("send")
+                .andArgs("org.eclipse.jetty.client.api.Response$CompleteListener")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.jetty.HttpRequest$Send")
+                .build()
         );
     }
 }

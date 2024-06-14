@@ -43,8 +43,8 @@ bithon:
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
       processors:
-        - type: filter
-          expr: not endsWith(clazz,  'UriNormalizer')
+        - type: drop
+          expr: endsWith(clazz,  'UriNormalizer')
         - type: url-sanitize-transform
           sensitiveParameters:
             "[http.uri]": password
@@ -58,8 +58,7 @@ bithon:
             "[http.url]": ["query_id"]
             "uri": ["query_id"]
         - type: name
-          tags:
-            names: ["clickhouse.query_id"]
+          tags: ["clickhouse.query_id"]
       exporters:
         - type: store
 

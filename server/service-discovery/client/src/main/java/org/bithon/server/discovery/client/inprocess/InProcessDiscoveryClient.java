@@ -17,6 +17,7 @@
 package org.bithon.server.discovery.client.inprocess;
 
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +43,7 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
     }
 
     @Override
-    public List<HostAndPort> getInstanceList(String serviceName) {
+    public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
         // Find the service implementations in the current running process
         Map<String, Object> serviceProviders = applicationContext.getBeansWithAnnotation(DiscoverableService.class);
         if (serviceProviders.isEmpty()) {
@@ -62,8 +63,8 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
                     DiscoverableService annotation = serviceInterface.getAnnotation(DiscoverableService.class);
                     if (annotation != null && serviceName.equals(annotation.name())) {
                         // Found. Return current application instance
-                        return Collections.singletonList(new HostAndPort("localhost",
-                                                                         applicationContext.getEnvironment()
+                        return Collections.singletonList(new DiscoveredServiceInstance("localhost",
+                                                                                       applicationContext.getEnvironment()
                                                                                            .getProperty("server.port", Integer.class)));
                     }
                 }

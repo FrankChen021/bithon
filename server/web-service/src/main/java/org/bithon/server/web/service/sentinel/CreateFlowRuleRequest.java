@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.sentinel;
 
 import lombok.Data;
-import org.bithon.agent.sentinel.flow.FlowRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
 
 import javax.validation.constraints.NotNull;
 

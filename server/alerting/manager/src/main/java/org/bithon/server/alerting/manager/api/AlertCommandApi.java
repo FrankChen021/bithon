@@ -60,11 +60,6 @@ public class AlertCommandApi {
     public ApiResponse<String> createAlert(@Valid @RequestBody CreateAlertRequest request) {
         try {
             AlertRule rule = (AlertRule) Validator.validate(request.toAlert());
-            long every = rule.getEvery().getDuration().toMinutes();
-            long lasting = rule.getForDuration().getDuration().toMinutes();
-            if (lasting % every != 0) {
-                return ApiResponse.fail("The 'for' property must be times of the 'every' property.");
-            }
             return ApiResponse.success(commandService.createAlert(rule, request.toCommandArgs()));
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
@@ -76,11 +71,6 @@ public class AlertCommandApi {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
             AlertRule rule = (AlertRule) Validator.validate(request.toAlert());
-            long every = rule.getEvery().getDuration().toMinutes();
-            long lasting = rule.getForDuration().getDuration().toMinutes();
-            if (lasting % every != 0) {
-                return ApiResponse.fail("The 'for' property must be times of the 'every' property.");
-            }
             commandService.updateAlert(rule);
             return ApiResponse.success();
         } catch (BizException e) {

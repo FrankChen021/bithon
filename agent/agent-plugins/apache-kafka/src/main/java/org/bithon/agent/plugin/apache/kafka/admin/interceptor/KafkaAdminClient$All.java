@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -34,7 +34,7 @@ import org.bithon.component.commons.tracing.Tags;
 public class KafkaAdminClient$All extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan(Components.KAFKA);
+        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -42,19 +42,19 @@ public class KafkaAdminClient$All extends AroundInterceptor {
         IBithonObject bithonObject = aopContext.getTargetAs();
         KafkaPluginContext pluginContext = (KafkaPluginContext) bithonObject.getInjectedObject();
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag(Tags.Messaging.SYSTEM, "kafka")
-                                      .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
-                                      .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Messaging.SYSTEM, "kafka")
+                               .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                               .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

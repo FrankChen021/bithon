@@ -22,7 +22,7 @@ import org.bithon.agent.configuration.ConfigurationProperties;
  * @author frank.chen021@outlook.com
  * @date 2023/3/6 00:44
  */
-@ConfigurationProperties(prefix = "agent.sentinel")
+@ConfigurationProperties(path = "agent.sentinel")
 public class SentinelConfig {
     private boolean enabled = false;
 

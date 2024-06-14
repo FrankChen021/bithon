@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 21:33
  */
-@ConfigurationProperties(prefix = "tracing")
+@ConfigurationProperties(path = "tracing")
 public class TraceConfig {
 
     public static class HeaderConfig {

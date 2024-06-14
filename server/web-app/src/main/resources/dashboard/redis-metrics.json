@@ -14,7 +14,8 @@
           "command"
         ]
       }
-    ]
+    ],
+    "showFilterInput": true
   },
   "charts": [
     {
@@ -55,6 +56,13 @@
             "name": "totalCount",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "mappings": {
+            "uri": "tags['net.peer']",
+            "command": "tags['db.operation']"
+          },
+          "filter": "kind = 'CLIENT' AND tags['db.system']='redis'"
         }
       }
     },

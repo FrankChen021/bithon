@@ -20,7 +20,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * A temp interface to generalize metrics processing of previous http-incoming-metrics/http-outcoming-metrics/...
- * Eventually it will be replaced by some kind of {@link org.bithon.server.storage.datasource.input.TransformSpec}
+ * Eventually it will be replaced by some kind of {@link TransformSpec}
  *
  * @author frank.chen021@outlook.com
  * @date 2022/8/9 19:30

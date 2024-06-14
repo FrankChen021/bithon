@@ -4,4 +4,4 @@
 #
 spring:
   profiles:
-    include: receiver, pipeline-to-local, storage-h2, webapp, alerting
+    include: controller, receiver, pipeline-to-local, storage-h2, webapp, alerting

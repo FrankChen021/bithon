@@ -105,7 +105,7 @@ public class QueryBuilder {
             }
         }
 
-        String timestampColumn = schema.getTimestampSpec().getTimestampColumn();
+        String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
             timestampColumn = query.getInterval().getTimestampColumn();
         }

@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
@@ -41,14 +40,20 @@ public class ListenerConsumer$Ctor extends AfterInterceptor {
      */
     @Override
     public void after(AopContext aopContext) {
-        KafkaConsumer<?, ?> consumer = (KafkaConsumer<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
-                                                                                           "consumer");
+        // The declaration of the 'consumer' field is a type of KafkaConsumer.
+        // However, we can't dynamically cast it to KafkaConsumer,
+        // because some specific Spring Kafka will apply proxy on this KafkaConsumer, which is a proxy object.
+        //
+        // For the JDK proxy object, it also has the IBithonObject declaration,
+        // the calls on the IBithonObject will be forwarded to the underlying KafkaConsumer object by the mechanism of the JDK proxy,
+        // so it's safe to convert it into IBithonObject in the following.
+        // See: https://github.com/FrankChen021/bithon/issues/748 to know more.
+        Object consumer = ReflectionUtils.getFieldValue(aopContext.getTarget(), "consumer");
         if (consumer == null) {
             return;
         }
 
-        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(),
-                                                                                             "containerProperties");
+        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
         if (properties == null) {
             return;
         }

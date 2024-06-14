@@ -16,6 +16,8 @@
 
 package org.bithon.agent.sentinel.flow;
 
+import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
+
 class CreateFlowRuleRequest extends FlowRuleDto {
 
 }

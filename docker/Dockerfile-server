@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-ARG JDK_VERSION=17
+ARG JDK_VERSION=21
 
 FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} as builder
 
@@ -50,11 +50,11 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
 
 FROM eclipse-temurin:${JDK_VERSION}
 COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
-COPY --from=builder /src/agent/agent-distribution/target/agent-distribution/agent-distribution /opt/agent-distribution
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
-    && apt-get -qq -y install wget
+    && apt-get -qq -y install wget \
+    && apt-get -qq -y install libjemalloc-dev
 
 COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh \
@@ -62,10 +62,13 @@ RUN chmod +x /startup.sh \
 
 ENV JAVA_OPTS ""
 ENV APP_OPTS ""
-ENV WITH_AGENT=false
+ENV ENABLE_AGENT=true
 
 # Remember to replace the URI to the URI of your own distribution
-ENV AGENT_URI https://repo1.maven.org/maven2/org/bithon/agent/agent-distribution/1.1.0-RELEASE/agent-distribution-1.1.0-RELEASE.zip
+ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+
+# Replace the glibc memory allocator to jemalloc
+ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so"
 
 VOLUME /opt/shared/conf
 

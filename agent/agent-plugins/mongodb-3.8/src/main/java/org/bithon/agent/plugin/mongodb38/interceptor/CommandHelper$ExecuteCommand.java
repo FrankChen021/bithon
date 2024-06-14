@@ -75,7 +75,7 @@ public class CommandHelper$ExecuteCommand extends AroundInterceptor {
         InternalConnection connection = aopContext.getArgAs(lastIndex);
         String server = connection.getDescription().getServerAddress().toString();
 
-        MongoCommand command = aopContext.getUserContextAs();
+        MongoCommand command = aopContext.getUserContext();
         metricRegistry.getOrCreateMetric(server,
                                          command.getDatabase(),
                                          command.getCollection(),

@@ -64,15 +64,27 @@ public class DbUtils {
                                                 uri.getSchemeSpecificPart(),
                                                 "h2");
 
-                case "mysql":
-                    return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
-                                                uri.getPath().substring(1),
+                case "mysql": {
+                    String path = uri.getPath();
+                    if (path == null) {
+                        uri = new URI(connectionString.substring(uri.getScheme().length() + 1));
+                        path = uri.getPath();
+                    }
+                    String hostAndPort = uri.getAuthority();
+                    int separator = uri.getAuthority().indexOf(',');
+                    if (separator > 0) {
+                        hostAndPort = hostAndPort.substring(0, separator);
+                    }
+                    return new ConnectionString(hostAndPort,
+                                                path.isEmpty() ? "" : path.substring(1),
                                                 "mysql");
+                }
+
                 case "ch":
                 case "clickhouse":
                     if (uri.getPath() == null) {
                         //
-                        // ClickHouse JDBC Driver sometimes turn jdbc:clickhouse:// into jdbc:clickhouse:http://
+                        // ClickHouse JDBC Driver sometimes turns jdbc:clickhouse:// into jdbc:clickhouse:http://
                         // So we need to drop the jdbc:clickhouse: if necessary
                         //
                         uri = new URI(connectionString.substring(uri.getScheme().length() + 1));

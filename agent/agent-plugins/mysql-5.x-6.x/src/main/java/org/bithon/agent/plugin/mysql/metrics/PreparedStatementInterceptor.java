@@ -48,7 +48,7 @@ public class PreparedStatementInterceptor extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        String connectionString = aopContext.getUserContextAs();
+        String connectionString = aopContext.getUserContext();
         if (connectionString == null) {
             return;
         }
@@ -69,6 +69,6 @@ public class PreparedStatementInterceptor extends AroundInterceptor {
                       .update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
 
 
-        statementMetricCollector.sqlStats(aopContext, (String) aopContext.getUserContext());
+        statementMetricCollector.sqlStats(aopContext, connectionString);
     }
 }

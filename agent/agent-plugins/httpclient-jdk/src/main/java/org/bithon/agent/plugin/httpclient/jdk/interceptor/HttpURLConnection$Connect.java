@@ -20,7 +20,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.net.HttpURLConnection;
@@ -35,7 +36,7 @@ import java.net.URL;
 public class HttpURLConnection$Connect extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -46,22 +47,24 @@ public class HttpURLConnection$Connect extends AroundInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      // Since this span does not propagate the tracing context to next hop,
-                                      // it's not marked as SpanKind.CLIENT
-                                      .tag(Tags.Http.CLIENT, "jdk")
-                                      .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
-                                      // No need to write URL and method to avoid repetition
-                                      //.tag(Tags.Http.URL, connection.getURL().toString())
-                                      //.tag(Tags.Http.METHOD, connection.getRequestMethod())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               // Even if this span does not propagate the tracing context to next hop,
+                               // it's still marked as SpanKind.CLIENT
+                               // so that the visualization knows how to visualize this span and its remote
+                               .kind(SpanKind.CLIENT)
+                               .tag(Tags.Http.CLIENT, "jdk")
+                               .tag(Tags.Net.PEER, url.getPort() == -1 ? url.getHost() : (url.getHost() + ":" + url.getPort()))
+                               // No need to write URL and method to avoid repetition
+                               //.tag(Tags.Http.URL, connection.getURL().toString())
+                               //.tag(Tags.Http.METHOD, connection.getRequestMethod())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

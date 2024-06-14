@@ -16,20 +16,26 @@
 
 package org.bithon.server.storage.jdbc.clickhouse.common.exception;
 
+import java.net.UnknownHostException;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/1/14 11:57
  */
 public class RetryableExceptions {
     public static boolean isExceptionRetryable(Exception e) {
+        if (e instanceof UnknownHostException) {
+            return true;
+        }
         String message = e.getMessage();
         return message != null
-            && (message.startsWith("Connect timed out")
-            || message.startsWith("Connection reset")
-            || message.startsWith("Connection refused")
-            || message.startsWith("Unexpected end of file from server")
-            // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
-            || message.startsWith("Error writing request body to server")
-        );
+               && (message.startsWith("Connect timed out")
+                   || message.contains("connect timed out")
+                   || message.startsWith("Connection reset")
+                   || message.startsWith("Connection refused")
+                   || message.startsWith("Unexpected end of file from server")
+                   // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
+                   || message.startsWith("Error writing request body to server")
+               );
     }
 }

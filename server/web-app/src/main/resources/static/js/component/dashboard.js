@@ -1,5 +1,5 @@
 class Dashboard {
-    constructor(containerId, dashboardName, defaultInterval, showAppSelector) {
+    constructor(containerId, dashboardName, defaultInterval) {
         this._defaultInterval = defaultInterval;
 
         // View
@@ -8,6 +8,7 @@ class Dashboard {
         this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
+        this._timeSelectAll = false;
 
         // Model
         this._chartComponents = {};
@@ -36,6 +37,12 @@ class Dashboard {
     }
 
     // PUBLIC
+    allowTimeSelectAll(allowed) {
+        // A view model
+        this._timeSelectAll = allowed;
+    }
+
+    // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
         //
@@ -56,7 +63,7 @@ class Dashboard {
                                     '    <input type="text"                                                       ' +
                                     '           class="form-control"                                              ' +
                                     '           id="filter-input" placeholder="SQL style filter expression, hover your mouse on the question mark to learn more. Press Enter once input complete."' +
-                                    '           aria-describedby="filter-input-span" tooltip/>                           ' +
+                                    '           aria-describedby="filter-input-span"/>                           ' +
                                     ' </div>')
                                     .parent();
 
@@ -110,8 +117,7 @@ class Dashboard {
         // Set up id
         //
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
-            const chartId = 'chart_' + index;
-            chartDescriptor['id'] = chartId;
+            chartDescriptor['id'] = 'chart_' + index;
         });
 
         const parent = $('#filterBarForm');
@@ -120,7 +126,7 @@ class Dashboard {
         // Create TimeSpanSelector
         //
         const intervalList = dashboard.filter === undefined || dashboard.filter.interval === undefined ? null : dashboard.filter.interval.list;
-        this._timeSelector = new TimeSpanSelector(this._defaultInterval, false, intervalList)
+        this._timeSelector = new TimeSpanSelector(this._defaultInterval, this._timeSelectAll, intervalList)
                                 .childOf(parent)
                                 .registerIntervalChangedListener((selectedModel) => {
             g_MetricSelectedInterval = selectedModel.id;
@@ -186,7 +192,8 @@ class Dashboard {
 
         //
         // Loaded Dimension Filter
-        // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
+        // This is a legacy implementation.
+        // Should be refactored to decouple the filter from the dataSource field
         //
         const filterSpecs = [];
         if (dashboard.filter !== undefined) {
@@ -1057,7 +1064,7 @@ class Dashboard {
                         mode = 'replace';
                     } else {
                         // If the returned count of series is less than the given fields count, that's a group-by.
-                        // In this case, we always replace the series because one group may not exist in following queries.
+                        // In this case, we always replace the series because one group may not exist in the following queries.
                         mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
                     }
                 }
@@ -1288,7 +1295,8 @@ class Dashboard {
                 // Add line
                 $('.btn-compare-add').click((e) => {
                     const removeButtonId = 'btn-popup-compare-' + $(e.target).attr('data-id');
-                    if ($('#btn-remove-buttons').find('#' + removeButtonId).length > 0) {
+                    const removeButtonContainer = $('#btn-remove-buttons');
+                    if (removeButtonContainer.find('#' + removeButtonId).length > 0) {
                         return;
                     }
 
@@ -1307,7 +1315,7 @@ class Dashboard {
                             // remove lines from chart
                             compareChart.clearLines(text + '-');
                         });
-                    $('#btn-remove-buttons').append(removeButton);
+                    removeButtonContainer.append(removeButton);
 
                     let start, end;
                     if ($(e.target).attr('data-absolute') === 'true') {

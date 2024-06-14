@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.common.dialect;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 
 /**
@@ -28,18 +29,18 @@ import org.bithon.server.storage.datasource.ISchema;
 public class Expression2Sql extends ExpressionSerializer {
 
     public static String from(ISchema dataSource, ISqlDialect sqlDialect, IExpression expression) {
-        return from(dataSource.getDataStoreSpec().getStore(), sqlDialect, expression);
+        return from((String) null, sqlDialect, expression);
     }
 
     public static String from(String qualifier, ISqlDialect sqlDialect, IExpression expression) {
         if (expression == null) {
             return null;
         }
-        return new Expression2Sql(qualifier, sqlDialect).serialize(sqlDialect.transform(expression));
-    }
 
-    public static String from(ISqlDialect sqlDialect, IExpression expression) {
-        return new Expression2Sql(null, sqlDialect).serialize(sqlDialect.transform(expression));
+        // Apply DB-related transformation on general AST
+        IExpression transformed = sqlDialect.transform(expression);
+
+        return new Expression2Sql(qualifier, sqlDialect).serialize(transformed);
     }
 
     private final ISqlDialect sqlDialect;
@@ -55,15 +56,15 @@ public class Expression2Sql extends ExpressionSerializer {
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
-            sb.append(((String) value).replace("'", "\\'"));
+            sb.append(StringUtils.escapeSingleQuoteIfNecessary((String) value, sqlDialect.getEscapeCharacter4SingleQuote()));
             sb.append('\'');
         } else if (expression instanceof LiteralExpression.LongLiteral || expression instanceof LiteralExpression.DoubleLiteral) {
             sb.append(value);
         } else if (expression instanceof LiteralExpression.BooleanLiteral) {
             // Some old versions of CK do not support true/false literal, we use integer instead
             sb.append(expression.asBoolean() ? 1 : 0);
-        } else if (expression instanceof LiteralExpression.DateTime3Literal) {
-            sb.append(sqlDialect.formatDateTime((LiteralExpression.DateTime3Literal) expression));
+        } else if (expression instanceof LiteralExpression.TimestampLiteral) {
+            sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }

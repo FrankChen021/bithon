@@ -63,7 +63,7 @@ public class ExpressionOptimizerTest {
                 @Override
                 public Object evaluate(List<Object> parameters) {
                     return ((Number) parameters.get(0)).longValue() +
-                        ((Number) parameters.get(1)).longValue();
+                           ((Number) parameters.get(1)).longValue();
                 }
             };
         }
@@ -170,24 +170,10 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
-    public void testHasTokenReplacer_NotReplaced() {
+    public void test_NotReplaced() {
         IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'ab')");
 
         Assert.assertEquals("hasToken(a, 'ab')", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'a_b')");
-
-        Assert.assertEquals("a like '%a_b%'", expr.serializeToText(null));
-    }
-
-    @Test
-    public void testHasTokenReplacer_Replaced_In_CompoundExpression() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'a_b') AND hasToken(a, 'c_d')");
-
-        Assert.assertEquals("(a like '%a_b%' AND a like '%c_d%')", expr.serializeToText(null));
     }
 
     @Test
@@ -288,29 +274,43 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
-    public void test_Optimize_NOT() {
+    public void test_Optimize_Constant_NOT() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 = 1");
 
         Assert.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
-    public void test_Optimize_NOT_2() {
+    public void test_Optimize_Constant_NOT_2() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 > 1");
 
         Assert.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
-    public void test_Optimize_NOT_3() {
+    public void test_Optimize_Constant_NOT_3() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 >= 1");
 
         Assert.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
-    public void test_Optimize_NOT_4() {
+    public void test_Optimize_Constant_NOT_4() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT (a = 'God' AND 0)");
+
+        Assert.assertEquals("true", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Optimize_Constant_NOT_IN() {
+        IExpression expr = ExpressionASTBuilder.builder().build("NOT (1 in (1))");
+
+        Assert.assertEquals("false", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Optimize_Constant_NOT_NOT_IN() {
+        IExpression expr = ExpressionASTBuilder.builder().build("NOT (1 not in (1))");
 
         Assert.assertEquals("true", expr.serializeToText(null));
     }
@@ -321,5 +321,54 @@ public class ExpressionOptimizerTest {
 
         Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertEquals("true", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_NotIn() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a not in (1,2,3)");
+        Assert.assertEquals("a in (1, 2, 3)", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_NotLike() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a not like 'a'");
+        Assert.assertEquals("a like 'a'", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_EQ() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a = b");
+        Assert.assertEquals("a <> b", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_NE() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a <> b");
+        Assert.assertEquals("a = b", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_GT() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a > b");
+        Assert.assertEquals("a <= b", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_GTE() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a >= b");
+        Assert.assertEquals("a < b", expr.serializeToText(null));
+
+    }
+
+    @Test
+    public void test_Not_LT() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a < b");
+        Assert.assertEquals("a >= b", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Not_LTE() {
+        IExpression expr = ExpressionASTBuilder.builder().build("not a <= b");
+        Assert.assertEquals("a > b", expr.serializeToText(null));
     }
 }

@@ -105,9 +105,9 @@ public class Functions implements IFunctionProvider {
 
             @Override
             public Object evaluate(List<Object> parameters) {
-                String str = (String) parameters.get(0);
-                String token = (String) parameters.get(1);
-                return str != null && token != null && str.contains(token);
+                String haystack = (String) parameters.get(0);
+                String needle = (String) parameters.get(1);
+                return haystack != null && needle != null && haystack.contains(needle);
             }
         });
 

@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 
 /**
  * {@link org.apache.hadoop.hdds.scm.XceiverClientGrpc#sendCommandAsync(ContainerProtos.ContainerCommandRequestProto, DatanodeDetails)}
@@ -34,7 +34,7 @@ public class XceiverClientGrpc$SendCommandAsync extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("ozone-hdds");
+        ITraceSpan span = TraceContextFactory.newSpan("ozone-hdds");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -42,18 +42,18 @@ public class XceiverClientGrpc$SendCommandAsync extends AroundInterceptor {
         ContainerProtos.ContainerCommandRequestProto request = aopContext.getArgAs(0);
         DatanodeDetails dataNode = aopContext.getArgAs(1);
 
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .tag("request", request.getCmdType().name())
-                                      .tag("datanode.host", dataNode.getHostName())
-                                      .tag("datanode.ip", dataNode.getIpAddress())
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag("request", request.getCmdType().name())
+                               .tag("datanode.host", dataNode.getHostName())
+                               .tag("datanode.ip", dataNode.getIpAddress())
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
     }
 }

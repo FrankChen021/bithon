@@ -83,6 +83,7 @@ public class HumanReadableDuration {
     public static HumanReadableDuration parse(String durationText) {
         Preconditions.checkNotNull(durationText, "durationText can not be null.");
         durationText = durationText.trim();
+        Preconditions.checkIfTrue(!durationText.isEmpty(), "duration can't be empty");
         Preconditions.checkIfTrue(durationText.length() >= 2, "[%s] is not a valid format of duration", durationText);
 
         TimeUnit timeUnit;
@@ -115,10 +116,10 @@ public class HumanReadableDuration {
         for (int i = start, len = durationText.length() - 1; i < len; i++) {
             char chr = durationText.charAt(i);
             if (!Character.isDigit(chr)) {
-                throw new RuntimeException("Invalid duration: " + durationText);
+                throw new RuntimeException(StringUtils.format("Invalid character [%c] found in the duration formatted text: ", chr, durationText));
             }
 
-            int v = val + chr - '0';
+            int v = val * 10 + chr - '0';
             if (v < val) {
                 throw new RuntimeException("The number is out of range of Integer");
             }

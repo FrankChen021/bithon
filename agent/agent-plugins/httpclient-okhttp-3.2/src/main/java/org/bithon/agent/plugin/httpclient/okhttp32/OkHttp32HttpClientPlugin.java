@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.httpclient.okhttp32;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
@@ -39,37 +37,31 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("okhttp3.RealCall")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("getResponseWithInterceptorChain",
-                                                                    "boolean")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                        ),
+                .onMethod("getResponseWithInterceptorChain")
+                .andArgs("boolean")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                .build(),
 
             forClass("okhttp3.internal.io.RealConnection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("connect")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
-                        ),
+                .onMethod("connect")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
+                .build(),
 
             // 4.4+
             forClass("okhttp3.internal.connection.RealCall")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   // ProGuard has obfuscated OKHttp, '$okhttp' suffix is appended during compilation.
-                                                   // So we need to add this suffix to make sure it matches the method in the byte code
-                                                   .onMethodAndNoArgs("getResponseWithInterceptorChain$okhttp")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
-                        ),
+                // ProGuard has obfuscated OKHttp, '$okhttp' suffix is appended during compilation.
+                // So we need to add this suffix to make sure it matches the method in the byte code
+                .onMethod("getResponseWithInterceptorChain$okhttp")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
+                .build(),
 
             forClass("okhttp3.internal.connection.RealConnection")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   // The connect method is not obfuscated
-                                                   .onMethod(Matchers.withName("connect").and(Matchers.visibility(Visibility.PUBLIC)))
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
-                        )
-                            );
+                // The connect method is not obfuscated
+                .onMethod("connect")
+                .andVisibility(Visibility.PUBLIC)
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
+                .build()
+        );
     }
 }

@@ -29,5 +29,5 @@ import java.util.List;
 @AllArgsConstructor
 public class GetAlertListResponse {
     private Integer total;
-    private List<ListAlertBo> rows;
+    private List<ListAlertVO> rows;
 }

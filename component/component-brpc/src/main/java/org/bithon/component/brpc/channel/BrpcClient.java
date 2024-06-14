@@ -29,6 +29,7 @@ import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
+import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -129,12 +130,12 @@ public class BrpcClient implements IBrpcChannel, Closeable {
     }
 
     @Override
-    public void writeAsync(Object obj) {
+    public void writeAsync(ServiceRequestMessageOut serviceRequest) {
         Channel ch = channelRef.get();
         if (ch == null) {
             throw new ChannelException("Client channel is closed");
         }
-        ch.writeAndFlush(obj);
+        ch.writeAndFlush(serviceRequest);
     }
 
     @Override

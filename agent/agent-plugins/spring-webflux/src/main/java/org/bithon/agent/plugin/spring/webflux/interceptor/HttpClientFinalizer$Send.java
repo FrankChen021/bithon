@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
@@ -50,7 +50,7 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span != null) {
             // Span will be finished in ResponseConnection interceptor
             httpClientContext.setSpan(span.kind(SpanKind.CLIENT)
@@ -81,7 +81,7 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
     }
 
     /**
-     * target method returns a new copy, so we have to pass the trace span to the new copy for further processing(such as ResponseConnection)
+     * target method returns a new copy, so we have to pass the trace span to the new copy for further processing (such as ResponseConnection)
      */
     @Override
     public void after(AopContext aopContext) {

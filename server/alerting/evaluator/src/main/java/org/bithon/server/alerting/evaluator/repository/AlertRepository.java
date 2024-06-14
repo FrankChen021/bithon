@@ -21,12 +21,15 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +50,8 @@ public class AlertRepository {
     private final List<IAlertChangeListener> changeListeners = Collections.synchronizedList(new ArrayList<>());
     private Timestamp lastLoadedAt = new Timestamp(0);
 
-    public AlertRepository(IAlertObjectStorage alertObjectDao) {
-        this.alertObjectStorage = alertObjectDao;
+    public AlertRepository(IAlertObjectStorage alertObjectStorage) {
+        this.alertObjectStorage = alertObjectStorage;
     }
 
     public Map<String, AlertRule> getLoadedAlerts() {
@@ -57,7 +60,7 @@ public class AlertRepository {
 
     public void loadChanges() {
         Timestamp lastTimestamp = lastLoadedAt;
-        Timestamp now = new Timestamp(System.currentTimeMillis());
+        Timestamp now = TimeSpan.now().ceil(Duration.ofSeconds(1)).toTimestamp();
 
         log.info("Loading Alerts from [{}, {}]", lastTimestamp, now);
 
@@ -84,6 +87,10 @@ public class AlertRepository {
         });
 
         this.lastLoadedAt = now;
+    }
+
+    public Map<String, AlertStateObject> loadStatus() {
+        return alertObjectStorage.getAlertStates();
     }
 
     private AlertRule toAlert(AlertStorageObject alertObject) {

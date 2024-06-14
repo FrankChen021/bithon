@@ -16,10 +16,12 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
@@ -46,6 +48,7 @@ import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,8 +56,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +80,7 @@ public class DataSourceApi implements IDataSourceApi {
     private final IMetricStorage metricStorage;
     private final SchemaManager schemaManager;
     private final DataSourceService dataSourceService;
+    private final Executor asyncExecutor;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          IMetricStorage metricStorage,
@@ -78,6 +90,12 @@ public class DataSourceApi implements IDataSourceApi {
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
         this.dataSourceService = dataSourceService;
+        this.asyncExecutor = new ThreadPoolExecutor(0,
+                                                    32,
+                                                    180L,
+                                                    TimeUnit.SECONDS,
+                                                    new SynchronousQueue<>(),
+                                                    NamedThreadFactory.of("datasource-async"));
     }
 
     @Override
@@ -114,8 +132,9 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public GeneralQueryResponse list(GeneralQueryRequest request) throws IOException {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
+        Preconditions.checkNotNull(request.getLimit(), "limit parameter should not be NULL");
 
+        ISchema schema = schemaManager.getSchema(request.getDataSource());
         validateQueryRequest(schema, request);
 
         Query query = Query.builder()
@@ -128,19 +147,42 @@ public class DataSourceApi implements IDataSourceApi {
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
                            .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()))
-                           .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
-                                                 TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
+                           .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
                            .orderBy(request.getOrderBy())
                            .limit(request.getLimit())
                            .build();
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return GeneralQueryResponse.builder()
-                                       .total(reader.listSize(query))
-                                       .data(reader.list(query))
-                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                       .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                       .build();
+
+            CompletableFuture<Integer> total = CompletableFuture.supplyAsync(() -> {
+                // Only query the total number of records for the first page
+                // This also has a restriction
+                // that the page number is not a query parameter on web page URL
+                return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
+            }, asyncExecutor);
+
+            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
+                // The query is executed in an async task, and the filter AST might be optimized in further processing
+                // To make sure the optimization is thread safe, we create a new AST
+                IExpression filter = FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters());
+                return reader.select(query.with(filter));
+            }, asyncExecutor);
+
+            try {
+                return GeneralQueryResponse.builder()
+                                           .total(total.get())
+                                           .limit(query.getLimit())
+                                           .data(list.get())
+                                           .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                           .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                           .build();
+            } catch (ExecutionException e) {
+                throw new HttpMappableException(e.getCause(),
+                                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                                "Unexpected exception occurred");
+            } catch (InterruptedException e) {
+                throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+            }
         }
     }
 
@@ -182,7 +224,7 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public ISchema getSchemaByName(String schemaName) {
-        ISchema schema = schemaManager.getSchema(schemaName);
+        ISchema schema = schemaManager.getSchema(schemaName, false);
 
         // Mask the sensitive information
         // This is experimental
@@ -237,11 +279,20 @@ public class DataSourceApi implements IDataSourceApi {
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return reader.distinct(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                   TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                   schema,
-                                   FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()),
-                                   column.getName());
+            Query query = Query.builder()
+                               .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
+                               .schema(schema)
+                               .resultColumns(Collections.singletonList(column.getResultColumn()))
+                               .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), CollectionUtils.emptyOrOriginal(request.getFilters())))
+                               .build();
+
+            return reader.distinct(query)
+                         .stream()
+                         .map((val) -> {
+                             Map<String, String> map = new HashMap<>();
+                             map.put("value", val);
+                             return map;
+                         }).collect(Collectors.toList());
         }
     }
 
@@ -285,7 +336,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                .orElse(null);
 
                 Preconditions.checkIfTrue(queryField != null
-                                              && schema.getColumnByName(queryField.getField()) != null,
+                                          && schema.getColumnByName(queryField.getField()) != null,
                                           "OrderBy field [%s] does not exist in the schema.",
                                           orderBy.getName());
 

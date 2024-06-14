@@ -22,9 +22,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.utils.MiscUtils;
-import org.bithon.agent.plugin.alibaba.druid.DruidPlugin;
 import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -77,7 +76,7 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
         DatabaseMetaData meta = statement.getConnection().getMetaData();
         String connectionString = MiscUtils.cleanupConnectionString(meta.getURL());
 
-        ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
+        ITraceSpan span = TraceContextFactory.newSpan("alibaba-druid");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
@@ -94,13 +93,13 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        UserContext context = aopContext.getUserContextAs();
+        UserContext context = aopContext.getUserContext();
         if (context.span != null) {
             try {
                 context.span.tag(Tags.Database.STATEMENT, getExecutingSql(aopContext))
                             .tag(aopContext.getException());
 
-                if (DruidPlugin.METHOD_EXECUTE_BATCH.equals(aopContext.getMethod())) {
+                if ("executeBatch".equals(aopContext.getMethod())) {
                     if (aopContext.getReturning() != null) {
                         context.span.tag(Tags.Database.PREFIX + "rows", Integer.toString(((int[]) aopContext.getReturning()).length));
                     }
@@ -116,15 +115,15 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
 
             // check if the metrics provider for this driver exists
             Boolean isQuery = null;
-            if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
-                || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+            if ("executeUpdate".equals(methodName)
+                || "executeBatch".equals(methodName)) {
                 isQuery = false;
-            } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName)) {
+            } else if ("execute".equals(methodName)) {
                 /*
                  * execute method return true if the first result is a ResultSet
                  */
                 isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.getReturningAs();
-            } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName)) {
+            } else if ("executeQuery".equals(methodName)) {
                 isQuery = true;
             } else {
                 //TODO: parse the SQL to check if it's a SELECT

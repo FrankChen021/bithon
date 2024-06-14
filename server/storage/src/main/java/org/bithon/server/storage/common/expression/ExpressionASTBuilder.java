@@ -32,6 +32,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -43,6 +44,7 @@ import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
 import org.bithon.server.datasource.ast.ExpressionLexer;
 import org.bithon.server.datasource.ast.ExpressionParser;
@@ -98,7 +100,7 @@ public class ExpressionASTBuilder {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
             }
         });
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -112,7 +114,7 @@ public class ExpressionASTBuilder {
                                     int charPositionInLine,
                                     String msg,
                                     RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
             }
         });
 
@@ -208,7 +210,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitNotExpression(ExpressionParser.NotExpressionContext ctx) {
+        public IExpression visitNotExpressionDecl(ExpressionParser.NotExpressionDeclContext ctx) {
             return new LogicalExpression.NOT(ctx.expression().accept(this));
         }
 
@@ -361,16 +363,28 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitArrayAccessExpression(ExpressionParser.ArrayAccessExpressionContext ctx) {
-            return new ArrayAccessExpression(ctx.expression().accept(this), Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
+            IExpression expr = ctx.expression().accept(this);
+            if (!IDataType.ARRAY.equals(expr.getDataType())) {
+                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is not type of array, array access is not allowed.", ctx.expression().getText()));
+            }
+
+            return new ArrayAccessExpression(expr, Integer.parseInt(ctx.INTEGER_LITERAL().getText()));
         }
 
         @Override
         public IExpression visitMapAccessExpression(ExpressionParser.MapAccessExpressionContext ctx) {
-            return new MapAccessExpression(ctx.expression().accept(this), getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
+            IExpression expr = ctx.expression().accept(this);
+            if (expr.getDataType() != null && !IDataType.OBJECT.equals(expr.getDataType())) {
+                throw new InvalidExpressionException(StringUtils.format("Expression [%s] is type of [%s], but required OBJECT to perform map access.",
+                                                                        ctx.expression().getText(),
+                                                                        expr.getDataType().name()));
+            }
+
+            return new MapAccessExpression(expr, getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
         }
 
         @Override
-        public IExpression visitLiteralExpression(ExpressionParser.LiteralExpressionContext ctx) {
+        public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
             TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
             switch (literalExpressionNode.getSymbol().getType()) {
                 case ExpressionLexer.INTEGER_LITERAL: {
@@ -391,7 +405,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitExpressionList(ExpressionParser.ExpressionListContext ctx) {
+        public IExpression visitExpressionListDecl(ExpressionParser.ExpressionListDeclContext ctx) {
             List<IExpression> expressions = new ArrayList<>();
             for (ParseTree expr : ctx.children) {
                 if (expr instanceof ExpressionParser.ExpressionContext) {
@@ -408,8 +422,8 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitFunctionExpression(ExpressionParser.FunctionExpressionContext ctx) {
-            List<ExpressionParser.ExpressionContext> parameters = ctx.expressionList().expression();
+        public IExpression visitFunctionExpressionDecl(ExpressionParser.FunctionExpressionDeclContext ctx) {
+            List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListDecl().expression();
             List<IExpression> parameterExpressionList = new ArrayList<>(parameters.size());
             for (ExpressionParser.ExpressionContext parameter : parameters) {
                 IExpression parameterExpression = parameter.accept(this);
@@ -431,7 +445,7 @@ public class ExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitMacroExpression(ExpressionParser.MacroExpressionContext ctx) {
+        public IExpression visitMacroExpressionDecl(ExpressionParser.MacroExpressionDeclContext ctx) {
             return new MacroExpression(ctx.IDENTIFIER().getText());
         }
 

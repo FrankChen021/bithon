@@ -1,21 +1,83 @@
-## Static Configuration
+# Configuration architecture
 
-Configuration in agent.yml file located at 'agent/agent-main/resources' directory
+The agent supports multi-layer configurations.
+1. Default configuration
+2. External configuration
+3. Java command line arguments
+4. Environment variables
+5. Dynamic configurations
+
+The latter one has higher priority than the previous one. 
+That's to say, if two same configuration keys are defined across multiple configuration sources,
+the latter one will take effect.
+
+## Default Configuration (YAML file format)
+
+Configuration in agent.yml file located at 'agent/agent-main/resources' directory.
+This static configuration is shipped with the agent distribution.
+
+You can customize this configuration as the default configuration of your own distribution.
+
+> NOTE: Variable replacement in the configuration is not supported. For example:
+> 
+> ```
+> application:
+>   name: ${ENV:name}
+> ```
+> 
+> The value of the `application.name` property will not be replaced but the right `{ENV:name}`. 
+
+## External Configuration (YAML file format)
+
+Since the default configuration customizes the global configuration of one distribution,
+there are still cases that users of that particular distribution would need a configuration for a group of applications.
+
+In such a case, the external configuration serves such a need.
+Users can use `-Dbithon.configuration.location` JVM command line argument
+to specify an external configuration file for the agents.
+
+> NOTE: Variable replacement in the configuration is not supported.
+
+## Java command line arguments
+
+Can be specified via the `-D` parameter in the JVM parameters sections.
+Usually we use these arguments to customize two important parameters: the application name and application environment.
+
+When using this format of configuration, all parameters must start with `-Dbithon.`.
+For example:
+
+```text
+java -Dbithon.application.name=bithon-server -Dbithon.application.env=local -jar bithon-server.jar
+```
+
+## Environment variables
+
+Configurations can also be set by environment variables. This is helpful when the agent is loaded in docker environment.
+
+```text
+export bithon_application_name=bithon-server
+export bithon_application_env=local
+java -jar bithon-server.jar
+```
+
+Note that all environment variables are in underscore mode.
 
 ## Dynamic Configuration
 
-Configurations via command line arguments or environment variables.
-Each static configuration item has a corresponding dynamic configuration item.
+The Bithon server can store configurations for agents. We can use the API to manage(create/update/delete) configurations of an application or a group of applications.
+And the agent itself will fetch configurations from the server periodically.
 
-Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, it could be set by dynamic configuration as
-
-```bash
--Dbithon.agent.plugin.http.incoming.filter.uri.suffixes=.html
+You can take a look at the API in the code for reference:
+```
+/api/agent/configuration/add
+/api/agent/configuration/update
+/api/agent/configuration/delete
+/api/agent/configuration/get
 ```
 
-## Configurations
+# Configuration Instruction
 
-### Dispatcher Configuration
+## Dispatcher Configuration
 
 The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
 
@@ -50,18 +112,68 @@ dispatchers:
 | batchSize          | The max size of messages that can be sent in one batch.                                                            | 500                           |
 | flushTime          | The interval of sending messages in milliseconds if there are no enough messages that can be put in one batch.     |
 
-### Plugin Configuration
+## Plugin Configuration
 
-#### Agent Plugin Enabler flag
+### Agent Plugin Enabler flag
 
 User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins.
-Say we want to disable the `webserver-tomcat` plugin, passing the following property
+We can use the following property format to disable it:
+
+```bash
+-Dbithon.agent.plugin.[plugin-name].disabled=true
+```
+The `plugin-name` can be found from the following list:
+
+* alibaba.druid
+* apache.druid
+* apache.kafka
+* apache.ozone
+* bithon.brpc
+* bithon.sdk
+* glassfish
+* grpc
+* guice
+* httpclient.apache
+* httpclient.jdk
+* httpclient.jetty
+* httpclient.netty3
+* httpclient.okhttp32
+* jedis
+* jersey
+* jetty
+* lettuce
+* log4j2
+* logback
+* mongodb
+* mongodb38
+* mysql
+* mysql8
+* netty
+* netty4
+* quartz2
+* spring.bean
+* spring.boot
+* spring.mvc
+* spring.scheduling
+* spring.webflux
+* thread
+* tomcat
+* undertow
+* xxl.job
+
+For example, if we want to disable the `tomcat` HTTP server plugin, passing the following property
 
 ```bash
 -Dbithon.agent.plugin.webserver.tomcat.disabled=true
 ```
 
-#### Agent Plugin Configuration
+Once the application starts, a log will be printed to show the status of this plugin:
+
+```text
+15:38:01.155 [main] INFO org.bithon.agent.instrumentation.aop.interceptor.plugin.PluginResolver - Found plugin [tomcat], but it's DISABLED by configuration
+```
+
+### Agent Plugin Configuration
 
 Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'
 
@@ -84,7 +196,23 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 | tracing.debug                                               | Whether to enable the logging of span events.                                                                                                                                     | false             |                                         |
 | tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                    | 'X-Bithon-Trace-' |                                         |                                  
 
-# Plugin Configurations
+## Plugin Configurations
+
+
+### Disable/Enable plugin
+
+All plugins are enabled by default. They can be disabled separately. Use the following pattern to disable one plugin.
+
+```
+-Dbithon.agent.plugin.<plugin name>.disabled=true
+```
+
+For example, to disable the `spring-bean` plugin, use
+```
+-Dbithon.agent.plugin.spring.bean.disabled=true
+```
+
+### Plugin Configuration
 
 - [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)

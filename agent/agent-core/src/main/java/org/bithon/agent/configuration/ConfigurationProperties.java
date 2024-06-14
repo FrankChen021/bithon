@@ -23,8 +23,10 @@ import java.lang.annotation.Target;
 
 /**
  * Annotate a config class.
- *
- * NOTE: fields in the target class should be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
+ * <p>
+ * NOTE:
+ * fields in the target class should be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
+ * or related fields have getter/setter methods defined
  *
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 09:57
@@ -35,7 +37,7 @@ public @interface ConfigurationProperties {
     /**
      * not null
      */
-    String prefix();
+    String path();
 
     /**
      * If this configuration class can receive dynamic configuration changes.

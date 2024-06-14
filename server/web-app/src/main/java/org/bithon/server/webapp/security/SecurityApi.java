@@ -22,9 +22,9 @@ import io.jsonwebtoken.Jws;
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.HumanReadableDurationConstraint;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -101,7 +101,7 @@ public class SecurityApi {
             JwtTokenComponent tokenComponent = new JwtTokenComponent(securityConfig);
             Jws<Claims> parsedToken = tokenComponent.parseToken(token);
             return GetTokenValidityResponse.builder()
-                                           .expiredAt(TimeSpan.of(tokenComponent.getTokenExpiration(parsedToken)).toISO8601())
+                                           .expiredAt(TimeSpan.of(tokenComponent.getExpirationTimestamp(parsedToken)).toISO8601())
                                            .build();
         } catch (ExpiredJwtException ignored) {
             return GetTokenValidityResponse.builder()

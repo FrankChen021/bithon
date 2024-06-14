@@ -16,7 +16,6 @@
 
 package org.bithon.server.pipeline.common.kafka;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,11 +54,9 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
     @Getter
     private String topic;
 
-    public AbstractKafkaConsumer(ApplicationContext applicationContext) {
+    public AbstractKafkaConsumer(ObjectMapper objectMapper, ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper = objectMapper;
     }
 
     @Override

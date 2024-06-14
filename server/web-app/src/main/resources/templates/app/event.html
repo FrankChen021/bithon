@@ -11,12 +11,88 @@
 </head>
 <body>
 
-<div layout:fragment="content">
-
-    <table id="table"></table>
+<div layout:fragment="content" id="dashboard">
 
     <script>
-        new EventPage(g_SelectedApp);
+        const eventPage = {
+                "name": "event",
+                "title": "Events",
+                "filter": {
+                    "selectors": [
+                        {
+                            "type": "datasource",
+                            "name": "event",
+                            "fields": [
+                                {"name": "appName", "width": 200, "allowClear": false},
+                                "instanceName",
+                                "type"
+                            ]
+                        }
+                    ],
+                    "showFilterInput": false
+                },
+                "charts": [
+                    {
+                        "title": "Events List",
+                        "width": 4,
+                        "type": "table",
+                        "showColumns": false,
+                        "columns": [
+                            {
+                                "name": "timestamp",
+                                "format": "time",
+                                "template": "MM-dd hh:mm:ss.S",
+                                "width": 200
+                            },
+                            "instanceName",
+                            "type",
+                            {
+                                "name": "arguments",
+                                "format": "json_string",
+                                "sortable": false
+                            }
+                        ],
+                        "pagination": [
+                            50,
+                            100,
+                            500
+                        ],
+                        "query": {
+                            "dataSource": "event",
+                            "type": "list",
+                            "fields": [
+                                "timestamp",
+                                "instanceName",
+                                "type",
+                                "arguments",
+                            ],
+                            "orderBy": {
+                                "name": "timestamp",
+                                "order": "desc"
+                            },
+                            "precondition": {
+                                "filters": [
+                                    "appName"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            };
+
+        $(document).ready(() => {
+
+            // Initialize dashboard
+            const dashboard = new Dashboard('dashboard',
+                'Event',
+                'all');
+            dashboard.allowTimeSelectAll(true);
+            dashboard.load(eventPage);
+
+            $(window).bind('resize', () => {
+                dashboard.resize();
+            });
+        });
     </script>
 </div>
 </body>

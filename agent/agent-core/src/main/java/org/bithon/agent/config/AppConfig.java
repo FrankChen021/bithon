@@ -18,18 +18,21 @@ package org.bithon.agent.config;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.configuration.validation.NotBlank;
+import org.bithon.agent.configuration.validation.RegExpr;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/1/5 22:30
  */
-@ConfigurationProperties(prefix = "application", dynamic = false)
+@ConfigurationProperties(path = "application", dynamic = false)
 public class AppConfig {
 
     @NotBlank(message = "'bithon.application.env' should not be blank")
+    @RegExpr(expr = "^[\\w_-]+$", message = "The 'bithon.application.env' [%s] is illegally configured. Only letter/digit/underscore/hyphen is allowed")
     private String env;
 
     @NotBlank(message = "'bithon.application.name' should not be blank")
+    @RegExpr(expr = "^[\\w_-]+$", message = "The 'bithon.application.name' [%s] is illegally configured. Only letter/digit/underscore/hyphen is allowed")
     private String name;
 
     /**

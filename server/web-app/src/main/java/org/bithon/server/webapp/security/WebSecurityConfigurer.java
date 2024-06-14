@@ -57,6 +57,7 @@ public class WebSecurityConfigurer {
                                     .map((path) -> contextPath + path)
                                     .toArray(String[]::new);
 
+        // Configure to ignore security check on static resources
         return (web) -> web.ignoring().requestMatchers(ignoreList);
     }
 
@@ -69,7 +70,9 @@ public class WebSecurityConfigurer {
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
         // For simplicity, we just disable the frame option in global.
-        http.headers().frameOptions().disable();
+        http.headers()
+            .frameOptions()
+            .disable();
 
         if (!securityConfig.isEnabled()) {
             // Permit all

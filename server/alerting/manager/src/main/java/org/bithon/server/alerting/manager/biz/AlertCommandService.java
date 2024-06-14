@@ -18,11 +18,8 @@ package org.bithon.server.alerting.manager.biz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
@@ -35,7 +32,6 @@ import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
 import org.springframework.context.annotation.Conditional;
@@ -97,43 +93,7 @@ public class AlertCommandService {
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
-            if (!StringUtils.hasText(alertExpression.getFrom())) {
-                throw new BizException("data-source is missed for expression [%s]", alertExpression.serializeToText());
-            }
-            ISchema schema = schemas.get(alertExpression.getFrom());
-            if (schema == null) {
-                throw new BizException("data-source [%s] does not exist for expression [%s]", alertExpression.getFrom(), alertExpression.serializeToText());
-            }
-
-            String metric = alertExpression.getSelect().getName();
-            IColumn column = schema.getColumnByName(metric);
-            if (column == null) {
-                throw new BizException("Metric [%s] in expression [%s] does not exist in data-source [%s]",
-                                       metric,
-                                       alertExpression.serializeToText(),
-                                       alertExpression.getFrom());
-            }
-            if (!AggregatorEnum.valueOf(alertExpression.getSelect().getAggregator()).isColumnSupported(column)) {
-                throw new BizException("Aggregator [%s] is not supported8 on column [%s] which has a type of [%s]",
-                                       alertExpression.getSelect().getAggregator(),
-                                       metric,
-                                       column.getDataType().name());
-            }
-
-            if (alertExpression.getWhereExpression() != null) {
-                alertExpression.getWhereExpression().accept(new IExpressionVisitor() {
-                    @Override
-                    public boolean visit(IdentifierExpression expression) {
-                        IColumn dimensionSpec = schema.getColumnByName(expression.getIdentifier());
-                        if (dimensionSpec == null) {
-                            throw new BizException("Dimension [%s] specified in expression [%s] does not exist",
-                                                   expression.getIdentifier(),
-                                                   alertExpression.serializeToText());
-                        }
-                        return false;
-                    }
-                });
-            }
+            alertExpression.validate(schemas);
         }
 
         for (String channel : alertRule.getNotifications()) {
@@ -151,7 +111,7 @@ public class AlertCommandService {
         alertObject.setPayload(AlertStorageObjectPayload.builder()
                                                         .every(alertRule.getEvery())
                                                         .expr(alertRule.getExpr())
-                                                        .forDuration(alertRule.getForDuration())
+                                                        .forTimes(alertRule.getForTimes())
                                                         .notifications(alertRule.getNotifications())
                                                         .silence(alertRule.getSilence())
                                                         .build());

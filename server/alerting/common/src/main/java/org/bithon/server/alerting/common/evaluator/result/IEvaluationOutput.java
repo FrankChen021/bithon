@@ -17,12 +17,16 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.commons.time.TimeSpan;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020-08-25 15:48:07
  */
 public interface IEvaluationOutput {
+
+    TimeSpan getStart();
+    TimeSpan getEnd();
 
     IMetricEvaluator getMetric();
 

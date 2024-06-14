@@ -40,7 +40,7 @@ public class Tables {
     public static final BithonAlertChangeLog BITHON_ALERT_CHANGE_LOG = BithonAlertChangeLog.BITHON_ALERT_CHANGE_LOG;
 
     /**
-     * Running logs of alert
+     * Evaluation logs of alert
      */
     public static final BithonAlertEvaluationLog BITHON_ALERT_EVALUATION_LOG = BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG;
 

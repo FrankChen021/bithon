@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.impl.TracingContext;
+import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -32,18 +33,18 @@ import java.util.regex.Pattern;
 public class TraceContextFactory {
     static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
-    public static ITraceContext create(SamplingMode samplingMode) {
-        return create(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
+    public static ITraceContext newContext(SamplingMode samplingMode) {
+        return newContext(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
     }
 
-    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId) {
-        return create(samplingMode,
-                      traceId,
-                      parentSpanId,
-                      Tracer.get().spanIdGenerator().newSpanId());
+    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId) {
+        return newContext(samplingMode,
+                          traceId,
+                          parentSpanId,
+                          Tracer.get().spanIdGenerator().newSpanId());
     }
 
-    public static ITraceContext create(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
+    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
         //
         // check compatibility of trace id
         //
@@ -76,5 +77,68 @@ public class TraceContextFactory {
                       .tag(Tags.Thread.ID, currentThread.getId())
                       .tag("upstreamTraceId", upstreamTraceId)
                       .context();
+    }
+
+    /**
+     * Create a span based on current span on current thread
+     */
+    public static ITraceSpan newSpan(String name) {
+        return newSpan(name, null, null);
+    }
+
+    public static <T> ITraceSpan newSpan(String name, T injectedTo, PropagationSetter<T> setter) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext == null) {
+            return null;
+        }
+
+        if (traceContext.traceMode().equals(TraceMode.LOGGING)) {
+            // No need to create SPAN under logging mode but only propagate context
+            if (injectedTo != null && setter != null) {
+                traceContext.propagate(injectedTo, setter);
+            }
+            return null;
+        }
+
+        ITraceSpan parentSpan = traceContext.currentSpan();
+        if (parentSpan == null) {
+            return null;
+        }
+
+        // create a span and save it in user-context
+        ITraceSpan span = parentSpan.newChildSpan(name);
+        if (injectedTo != null && setter != null) {
+            traceContext.propagate(injectedTo, setter);
+        }
+        return span;
+    }
+
+    /**
+     * This method copies the current trace context so that it can be used in another thread.
+     * Even current trace mode is {@link TraceMode#LOGGING}, it's still copied.
+     */
+    public static ITraceSpan newAsyncSpan(String name) {
+        return newAsyncSpan(name, null, null);
+    }
+
+    public static <T> ITraceSpan newAsyncSpan(String name, T injectedTo, PropagationSetter<T> setter) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext == null) {
+            return null;
+        }
+
+        ITraceSpan parentSpan = traceContext.currentSpan();
+        if (parentSpan == null) {
+            return null;
+        }
+
+        ITraceSpan span = traceContext.copy()
+                                      .reporter(traceContext.reporter())
+                                      .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
+                                      .component(name);
+        if (injectedTo != null && setter != null) {
+            span.context().propagate(injectedTo, setter);
+        }
+        return span;
     }
 }

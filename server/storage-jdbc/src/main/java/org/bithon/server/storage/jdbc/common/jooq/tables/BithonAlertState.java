@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row3;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
-    private static final long serialVersionUID = -289036001;
+    private static final long serialVersionUID = 1577411657;
 
     /**
      * The reference instance of <code>bithon_alert_state</code>
@@ -53,6 +53,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     public final TableField<BithonAlertStateRecord, String> ALERT_ID = createField(DSL.name("alert_id"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "");
 
     /**
+     * The column <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     */
+    public final TableField<BithonAlertStateRecord, Integer> ALERT_STATUS = createField(DSL.name("alert_status"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "See the AlertStatus enum");
+
+    /**
      * The column <code>bithon_alert_state.last_alert_at</code>.
      */
     public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_ALERT_AT = createField(DSL.name("last_alert_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
@@ -61,6 +66,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * The column <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
      */
     public final TableField<BithonAlertStateRecord, String> LAST_RECORD_ID = createField(DSL.name("last_record_id"), org.jooq.impl.SQLDataType.VARCHAR(32), this, "The PK ID in bithon_alert_record table");
+
+    /**
+     * The column <code>bithon_alert_state.update_at</code>. when the record is updated
+     */
+    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "when the record is updated");
 
     /**
      * Create a <code>bithon_alert_state</code> table reference
@@ -137,11 +147,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row3 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<String, LocalDateTime, String> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row5<String, Integer, LocalDateTime, String, LocalDateTime> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }

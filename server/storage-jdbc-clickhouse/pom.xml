@@ -24,12 +24,23 @@
     <dependency>
       <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.3.2-patch11</version>
+      <version>0.6.0-patch3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.2.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -43,6 +54,7 @@
           <ignoredUnusedDeclaredDependencies>
             <!--The driver is loaded by JDBC reflection, its classes are not directly referenced in our project-->
             <dependency>com.clickhouse:clickhouse-jdbc</dependency>
+            <dependency>org.apache.httpcomponents.client5:httpclient5</dependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>

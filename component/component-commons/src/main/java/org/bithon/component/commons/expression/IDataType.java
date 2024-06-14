@@ -265,8 +265,101 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             return null;
         }
-    };
+    },
 
+    OBJECT {
+        @Override
+        public boolean canCastFrom(IDataType dataType) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String format(Number value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isGreaterThan(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isGreaterThanOrEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isLessThan(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isLessThanOrEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Number diff(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Number scaleTo(Number value, int scale) {
+            throw new UnsupportedOperationException();
+        }
+    },
+
+    ARRAY {
+        @Override
+        public boolean canCastFrom(IDataType dataType) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String format(Number value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isGreaterThan(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isGreaterThanOrEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isLessThan(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isLessThanOrEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isEqual(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Number diff(Number left, Number right) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Number scaleTo(Number value, int scale) {
+            throw new UnsupportedOperationException();
+        }
+    };
 
     public abstract boolean canCastFrom(IDataType dataType);
 

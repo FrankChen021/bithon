@@ -51,7 +51,11 @@ public class Preconditions {
     }
 
     public static void checkIfTrue(boolean expression, String messageFormat, Object... args) {
-        if (!expression) {
+        throwIf(!expression, messageFormat, args);
+    }
+
+    public static void throwIf(boolean expression, String messageFormat, Object... args) {
+        if (expression) {
             throw new InvalidValueException(messageFormat, args);
         }
     }

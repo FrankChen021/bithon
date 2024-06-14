@@ -45,6 +45,7 @@ class TableComponent {
         this.mColumns = option.columns;
         this.mCreated = false;
         this.mPopoverShown = false;
+        this.mTotal = 0;
 
         this.mServerSort = option.serverSort;
         this.mHasPagination = option.pagination !== undefined && option.pagination.length > 0;
@@ -68,6 +69,7 @@ class TableComponent {
 
         this.mFormatters = {};
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
+        this.mFormatters['json_string'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val) => `<pre>${val.htmlEncode()}</pre>`;
@@ -129,7 +131,7 @@ class TableComponent {
             if (column.format !== undefined && column.formatter == null) {
                 // formatter is an option provided by bootstrap-table
                 column.formatter = this.mFormatters[column.format];
-                if (column.format === 'detail') {
+                if (column.format === 'detail' || column.format === 'json_string') {
                     this.mDetailViewField = column.field;
                 }
             }
@@ -313,7 +315,21 @@ class TableComponent {
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,
-                responseHandler: option.responseHandler,
+                responseHandler: (data, jqXHR) => {
+                    const ret = option.responseHandler(data);
+
+                    if (jqXHR.status == 200 && data.limit !== undefined && data.limit !== null) {
+                        if (data.limit.offset == 0) {
+                            this.mTotal = ret.total;
+                        } else {
+                            // For pagination request, the 'total' is not returned from the server,
+                            // But bootstrap-table requires the 'total' field tor refresh the pagination
+                            // So we use the cached 'total'
+                            ret.total = this.mTotal;
+                        }
+                    }
+                    return ret;
+                },
 
                 sidePagination: this.mPaginationSide,
                 pagination: this.mHasPagination,
@@ -336,10 +352,12 @@ class TableComponent {
                 stickyHeaderOffsetRight: stickyHeaderOffsetRight,
                 theadClasses: 'thead-light',
 
+
+
                 onLoadError: (status, jqXHR) => {
                     let message = jqXHR.responseText;
                     if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.message !== undefined) {
-                        message = jqXHR.responseJSON.message;
+                        message = '<pre style="margin:0 !important">' + jqXHR.responseJSON.message.htmlEncode() + '</pre>';
                     }
 
                     // Show Popover
@@ -414,7 +432,12 @@ class TableComponent {
     }
 
     #showDetail(index, row) {
-        return '<pre>' + row[this.mDetailViewField] + '</pre>';
+        let cell = row[this.mDetailViewField];
+        const column = this.mColumnMap[this.mDetailViewField];
+        if (column.format === 'json_string') {
+            cell = JSON.stringify(JSON.parse(cell), null, 2);
+        }
+        return '<pre>' + cell + '</pre>';
     }
 
     #getQueryParams(params) {

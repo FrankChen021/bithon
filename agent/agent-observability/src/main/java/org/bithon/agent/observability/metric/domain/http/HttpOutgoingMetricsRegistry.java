@@ -77,6 +77,6 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
                          long requestBytes,
                          long responseBytes) {
         String path = uri.split("\\?")[0];
-        getOrCreateMetrics(path, method, "").addByteSize(requestBytes, responseBytes);
+        getOrCreateMetrics(path, method, "").updateIOMetrics(requestBytes, responseBytes);
     }
 }

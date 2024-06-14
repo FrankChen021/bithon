@@ -17,6 +17,8 @@
 package org.bithon.agent.starter;
 
 import org.bithon.agent.AgentBuildVersion;
+import org.bithon.agent.config.AopConfig;
+import org.bithon.agent.config.AppConfig;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.PluginConfiguration;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
@@ -79,7 +81,7 @@ public class AgentStarter {
         // Install interceptors for plugins
         new InterceptorInstaller(new PluginResolver() {
             @Override
-            protected boolean resolve(Class<?> pluginClazz) {
+            protected boolean onResolved(Class<?> pluginClazz) {
                 return PluginConfiguration.load(pluginClazz);
             }
         }.resolveInterceptors())
@@ -117,11 +119,11 @@ public class AgentStarter {
     private AopDebugger createAopDebugger() {
         boolean isDebug = ConfigurationManager.getInstance().getConfig(AopConfig.class).isDebug();
 
-        String appName = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_NAME, String.class);
-        String env = ConfigurationManager.getInstance().getConfig(ConfigurationManager.BITHON_APPLICATION_ENV, String.class);
+        AppConfig appConfig = ConfigurationManager.getInstance().getConfig(AppConfig.class);
+
         File targetDirectory = AgentDirectory.getSubDirectory(AgentDirectory.TMP_DIR
                                                               + separator
-                                                              + appName + "-" + env
+                                                              + appConfig.getName() + "-" + appConfig.getEnv()
                                                               + separator
                                                               + "classes");
 

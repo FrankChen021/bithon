@@ -56,9 +56,9 @@ public class PinpointExtractor implements ITraceContextExtractor {
             spanId = Tracer.get().spanIdGenerator().newSpanId();
         }
 
-        return TraceContextFactory.create(SamplingMode.FULL,
-                                          pinpointTraceId,
-                                          parentSpanId,
-                                          spanId);
+        return TraceContextFactory.newContext(SamplingMode.FULL,
+                                              pinpointTraceId,
+                                              parentSpanId,
+                                              spanId);
     }
 }

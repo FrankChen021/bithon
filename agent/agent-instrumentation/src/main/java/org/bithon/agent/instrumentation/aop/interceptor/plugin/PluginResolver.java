@@ -50,7 +50,7 @@ public abstract class PluginResolver {
 
     public Descriptors resolveInterceptors() {
         // Load plugins
-        List<IPlugin> plugins = resolvePlugins();
+        List<IPlugin> plugins = loadPlugins();
 
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
@@ -67,8 +67,11 @@ public abstract class PluginResolver {
         return descriptors;
     }
 
+    /**
+     * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
+     */
     private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
-        LOG.info("Resolving interceptors...");
+        LOG.info("Resolving interceptor type from all enabled plugins...");
         InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoaderManager.getDefaultLoader());
 
         for (Descriptors.Descriptor descriptor : descriptors) {
@@ -85,55 +88,69 @@ public abstract class PluginResolver {
                 }
             }
         }
-        LOG.info("Resolving interceptors Completes.");
+        LOG.info("Resolving interceptor type completes.");
     }
 
-    private List<IPlugin> resolvePlugins() {
+    private List<IPlugin> loadPlugins() {
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         return pluginClassLoader.getJars()
                                 .stream()
                                 .flatMap(JarFile::stream)
-                                .filter(jarEntry -> jarEntry.getName().endsWith("Plugin.class"))
+                                // Find the plugin class, which must be located under org.bithon.agent.plugin package
+                                .filter(jarEntry -> jarEntry.getName().startsWith("org/bithon/agent/plugin/") && jarEntry.getName().endsWith("Plugin.class"))
+                                // Load plugins by its alphabetic names
                                 .sorted(Comparator.comparing(JarEntry::getName))
-                                .map((jarEntry) -> resolve(jarEntry, pluginClassLoader))
+                                // Load plugin
+                                .map((jarEntry) -> loadPlugin(jarEntry.getName(), pluginClassLoader))
                                 .filter(Objects::nonNull)
                                 .collect(Collectors.toList());
     }
 
-    private IPlugin resolve(JarEntry jarEntry, JarClassLoader pluginClassLoader) {
-        String jarEntryName = jarEntry.getName();
-        String pluginFullClassName = jarEntryName.substring(0, jarEntryName.length() - ".class".length()).replace('/', '.');
+    private IPlugin loadPlugin(String pluginJarEntryName, JarClassLoader pluginClassLoader) {
+        String pluginFullClassName = pluginJarEntryName.substring(0, pluginJarEntryName.length() - ".class".length())
+                                                       .replace('/', '.');
+
+        // A readable name for this plugin, so that users can use this name to disable one plugin
+        // Since the above method already makes sure that the plugin class located under org.bithon.agent.plugin package,
+        // we can directly use substring to get the name
+        String packageName = pluginFullClassName.substring(0, pluginFullClassName.lastIndexOf('.'));
+        String pluginName = packageName.substring("org.bithon.agent.plugin.".length());
 
         try {
             Class<?> pluginClass = Class.forName(pluginFullClassName, true, pluginClassLoader);
             if (!isPluginClass(pluginClass)) {
-                LOG.info("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change it.",
+                LOG.warn("Resource [{}] is not type of IPlugin. The class name does not comply with the plugin standard. Please change its name.",
                          pluginFullClassName);
                 return null;
             }
 
-            if (!resolve(pluginClass)) {
-                LOG.info("Found plugin {}, but it's not DISABLED by configuration", pluginClass.getSimpleName());
+            if (!onResolved(pluginClass)) {
+                LOG.info("Found plugin [{}], but it's DISABLED by configuration", pluginName);
                 return null;
             }
 
-            LOG.info("Found plugin {}", pluginClass.getSimpleName());
+            LOG.info("Found plugin [{}]", pluginName);
             return (IPlugin) pluginClass.getDeclaredConstructor().newInstance();
         } catch (Throwable e) {
-            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginFullClassName), e);
+            LOG.error(String.format(Locale.ENGLISH, "Failed to load plugin [%s]", pluginName), e);
             return null;
         }
     }
 
-    private boolean isPluginClass(Class<?> possiblePluginClass) {
-        for (Class<?> inf : possiblePluginClass.getInterfaces()) {
+    /**
+     * A plugin must implement the {@link IPlugin} interface.
+     * So we check if the given class directly or indirectly implements the interface.
+     */
+    private boolean isPluginClass(Class<?> clazz) {
+        for (Class<?> inf : clazz.getInterfaces()) {
             if (inf.equals(IPlugin.class)) {
                 return true;
             }
         }
-        Class<?> parentClass = possiblePluginClass.getSuperclass();
+
+        Class<?> parentClass = clazz.getSuperclass();
         return parentClass != null && isPluginClass(parentClass);
     }
 
-    protected abstract boolean resolve(Class<?> pluginClazz);
+    protected abstract boolean onResolved(Class<?> pluginClazz);
 }

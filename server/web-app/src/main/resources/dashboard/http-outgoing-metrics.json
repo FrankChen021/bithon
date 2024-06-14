@@ -64,12 +64,12 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },
@@ -122,12 +122,12 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },
@@ -175,12 +175,12 @@
         },
         "tracing": {
           "mappings": {
-            "targetHostPort": "tags.net.peer",
-            "method": "tags.http.method",
+            "targetHostPort": "tags['net.peer']",
+            "method": "tags['http.method']",
             "path": "url",
             "statusCode": "status"
           },
-          "filter": "name= 'httpclient' AND kind = 'CLIENT'"
+          "filter": "name= 'http-client' AND kind = 'CLIENT'"
         }
       }
     },

@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row5;
+import org.jooq.Row6;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -25,12 +25,12 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Running logs of alert
+ * Evaluation logs of alert
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLogRecord> {
 
-    private static final long serialVersionUID = -496868789;
+    private static final long serialVersionUID = 1283160472;
 
     /**
      * The reference instance of <code>bithon_alert_evaluation_log</code>
@@ -59,6 +59,11 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
      * The column <code>bithon_alert_evaluation_log.sequence</code>. Used for ordering
      */
     public final TableField<BithonAlertEvaluationLogRecord, Long> SEQUENCE = createField(DSL.name("sequence"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Used for ordering");
+
+    /**
+     * The column <code>bithon_alert_evaluation_log.instance</code>. The instance that runs the evaluation
+     */
+    public final TableField<BithonAlertEvaluationLogRecord, String> INSTANCE = createField(DSL.name("instance"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "The instance that runs the evaluation");
 
     /**
      * The column <code>bithon_alert_evaluation_log.clazz</code>. Logger Class
@@ -96,7 +101,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     }
 
     private BithonAlertEvaluationLog(Name alias, Table<BithonAlertEvaluationLogRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Running logs of alert"));
+        super(alias, null, aliased, parameters, DSL.comment("Evaluation logs of alert"));
     }
 
     public <O extends Record> BithonAlertEvaluationLog(Table<O> child, ForeignKey<O, BithonAlertEvaluationLogRecord> key) {
@@ -140,11 +145,11 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row6 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<LocalDateTime, String, Long, String, String> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row6<LocalDateTime, String, Long, String, String, String> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 }

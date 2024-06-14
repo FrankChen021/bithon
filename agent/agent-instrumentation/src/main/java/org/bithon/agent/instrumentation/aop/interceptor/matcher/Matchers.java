@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,7 +40,21 @@ import java.util.function.Function;
 public class Matchers {
     private static final ILogger log = LoggerFactory.getLogger(Matchers.class);
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
+    public static <T extends NamedElement> ElementMatcher.Junction<T> endsWith(String name) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return target.getActualName().endsWith(name);
+            }
+
+            @Override
+            public String toString() {
+                return "endsWith('" + name + "')";
+            }
+        };
+    }
+
+    public static <T extends NamedElement> ElementMatcher.Junction<T> name(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {
@@ -55,7 +68,11 @@ public class Matchers {
         };
     }
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> withNames(Set<String> names) {
+    public static <T extends NamedElement> ElementMatcher.Junction<T> names(String... names) {
+        return names(new HashSet<>(Arrays.asList(names)));
+    }
+
+    public static <T extends NamedElement> ElementMatcher.Junction<T> names(Set<String> names) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {
@@ -64,19 +81,7 @@ public class Matchers {
         };
     }
 
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> argumentSize(Function<Integer, Boolean> comparator) {
-        return new ElementMatcher.Junction.AbstractBase<T>() {
-
-            private final Function<Integer, Boolean> sizeComparator = comparator;
-
-            @Override
-            public boolean matches(T target) {
-                return sizeComparator.apply(target.getParameters().size());
-            }
-        };
-    }
-
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArguments(int size) {
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> argumentSize(int size) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
 
             @Override
@@ -109,30 +114,6 @@ public class Matchers {
         };
     }
 
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesFirstArgument(String typeName) {
-        return takesArgument(0, typeName);
-    }
-
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesLastArgument(String typeName) {
-        return new ElementMatcher.Junction.AbstractBase<T>() {
-            @Override
-            public boolean matches(T target) {
-                ParameterList<?> parameters = target.getParameters();
-                int lastIndex = parameters.size() - 1;
-                if (lastIndex < 0) {
-                    return false;
-                } else {
-                    return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
-                }
-            }
-
-            @Override
-            public String toString() {
-                return String.format(Locale.ENGLISH, "(lastArg is %s)", typeName);
-            }
-        };
-    }
-
     public static <T extends AnnotationSource> ElementMatcher.Junction<T> isAnnotatedWith(String... annotations) {
         final Set<String> annotationSet = new HashSet<>(Arrays.asList(annotations));
         return new ElementMatcher.Junction.AbstractBase<T>() {
@@ -154,11 +135,16 @@ public class Matchers {
         };
     }
 
-    public static <T extends MethodDescription> ElementMatcher.Junction<T> visibility(Visibility visibility) {
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> visibility(Visibility... visibility) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {
-                return target.getVisibility().equals(visibility);
+                for (Visibility v : visibility) {
+                    if (target.getVisibility().equals(v)) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @Override
@@ -199,13 +185,13 @@ public class Matchers {
         };
     }
 
-    public static ElementMatcher<MethodDescription> createArgumentsMatcher(boolean debug, String... args) {
+    public static ElementMatcher.Junction<MethodDescription> createArgumentsMatcher(boolean debug, String... args) {
         return new ArgumentsMatcher(debug, false, args);
     }
 
-    public static ElementMatcher<MethodDescription> createArgumentsMatcher(boolean debug,
-                                                                           boolean matchRawArgType,
-                                                                           String... args) {
+    public static ElementMatcher.Junction<MethodDescription> createArgumentsMatcher(boolean debug,
+                                                                                    boolean matchRawArgType,
+                                                                                    String... args) {
         return new ArgumentsMatcher(debug, matchRawArgType, args);
     }
 
@@ -283,6 +269,12 @@ public class Matchers {
     public static <T extends MethodDescription> ElementMatcher.Junction<T> implement(String... interfaceNames) {
         return ElementMatchers.isPublic()
                               .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(interfaceNames)))
+                              .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> declared(String... interfaceNames) {
+        return ElementMatchers.isPublic()
+                              .and(ElementMatchers.isDeclaredBy(ElementMatchers.namedOneOf(interfaceNames)))
                               .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()));
     }
 }

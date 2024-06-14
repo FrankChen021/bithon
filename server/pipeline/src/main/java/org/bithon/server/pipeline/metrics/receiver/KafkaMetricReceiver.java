@@ -21,12 +21,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
+import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.pipeline.common.kafka.AbstractKafkaConsumer;
 import org.bithon.server.pipeline.metrics.IMetricProcessor;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
+import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -49,10 +52,14 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
     private final TypeReference<SchemaMetricMessage> typeReference;
     private final Map<String, Object> props;
 
+    private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
+
     @JsonCreator
     public KafkaMetricReceiver(@JsonProperty("props") Map<String, Object> props,
+                               @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(applicationContext);
+        super(objectMapper, applicationContext);
+
         this.typeReference = new TypeReference<SchemaMetricMessage>() {
         };
         this.props = props;
@@ -89,7 +96,7 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
         for (ConsumerRecord<String, byte[]> record : records) {
             Header type = record.headers().lastHeader("type");
             if (type == null) {
-                log.error("No header in message from topic: {}", this.getTopic());
+                LOG.error("No header in message from topic: {}", this.getTopic());
                 return;
             }
             String messageType = new String(type.value(), StandardCharsets.UTF_8);
@@ -99,7 +106,7 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
                 messages.computeIfAbsent(messageType, (v) -> new SchemaMetricMessage(msg.getSchema(), new ArrayList<>()))
                         .getMetrics().addAll(msg.getMetrics());
             } catch (IOException e) {
-                log.error("Failed to process message [event] failed", e);
+                LOG.error("Failed to process metric message", e);
             }
         }
 

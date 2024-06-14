@@ -55,4 +55,9 @@ public class ToEventStorageExporter implements IEventExporter {
     public void close() throws Exception {
         this.writer.close();
     }
+
+    @Override
+    public String toString() {
+        return "export-event-to-storage";
+    }
 }

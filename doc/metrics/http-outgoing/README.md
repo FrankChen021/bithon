@@ -20,7 +20,7 @@ The following table describes all metrics under this metric set.
 | Dimension | instanceName     | The ip and port of the target application.                                                                       |
 | Dimension | targetHostPort   | The remote HTTP server that the http request is sent to                                                          |
 | Dimension | method           | The HTTP method of the outgoing HTTP request.                                                                    |
-| Dimension | path(1)          | The URL of the outgoing HTTP request.                                                                            |
+| Dimension | path             | The URL of the outgoing HTTP request.                                                                            |
 | Dimension | statusCode       | The received HTTP status of this HTTP request.                                                                   |
 | Metric    | responseTime     | The accumulated response time of this HTTP request in nanosecond.                                                |
 | Metric    | minResponseTime  | The minimum response time of HTTP requests on the same server and path in a period.                              |
@@ -36,8 +36,9 @@ The following table describes all metrics under this metric set.
 | Metric    | requestByteRate  | The byte rate of HTTP request body in given time range.                                                          |
 | Metric    | responseByteRate | The byte rate of HTTP response body in a given time range.                                                       |
 
-Note:
-1. The saved `path` is normalized and all query parameters are striped. For example, `/api/order/show/1` will be automatically normalized as `/api/order/show/*` to save space.
+> Note:
+> 
+> For the `path`, its value is normalized and all query parameters are striped. For example, `/api/order/show/1` will be automatically normalized as `/api/order/show/*` to save space.
 
 # Correlation with Distributed Tracing
 

@@ -18,6 +18,7 @@ package org.bithon.server.starter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -46,8 +47,11 @@ public class YamlFormatEnabler implements WebMvcConfigurer {
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        YAMLFactory factory = new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                                               .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+
         ObjectMapperConfigurer configurer = new ObjectMapperConfigurer();
-        ObjectMapper objectMapper = configurer.objectMapper(new Jackson2ObjectMapperBuilder().factory(new YAMLFactory()), applicationContext);
+        ObjectMapper objectMapper = configurer.objectMapper(new Jackson2ObjectMapperBuilder().factory(factory), applicationContext);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);

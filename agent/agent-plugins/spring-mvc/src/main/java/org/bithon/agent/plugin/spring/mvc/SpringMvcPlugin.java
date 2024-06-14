@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.spring.mvc;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -36,40 +34,27 @@ public class SpringMvcPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("feign.SynchronousMethodHandler$Factory")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(Matchers.withName("create")
-                                                                     .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
-                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
-                ),
-            forClass("feign.SynchronousMethodHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("invoke")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
-                )
+                .onMethod("create")
+                .andArgs(1, "feign.MethodMetadata")
+                .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
+                .build(),
 
-            /*
-            forClass(
-                "org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs(
-                                                       "registerHandlerMethod",
-                                                       "java.lang.Object",
-                                                       "java.lang.reflect.Method",
-                                                       "T")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.MethodMatchingInterceptor")
-                ),
+            forClass("feign.SynchronousMethodHandler")
+                .onMethod("invoke")
+                .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
+                .build(),
 
             forClass("org.springframework.web.client.RestTemplate")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods(
-                                                       "execute")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.RestTemplateExecuteInterceptor")
-                )
-             */
+                .onMethod("doExecute")
+                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute")
+                .onMethod("handleResponse")
+                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
+                .build(),
+
+            forClass("org.springframework.web.method.support.InvocableHandlerMethod")
+                .onMethod("doInvoke")
+                .interceptedBy("org.bithon.agent.plugin.spring.mvc.InvocableHandlerMethod$DoInvoke")
+                .build()
         );
     }
 }

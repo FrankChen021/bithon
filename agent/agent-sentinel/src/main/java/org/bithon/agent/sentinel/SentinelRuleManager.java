@@ -18,12 +18,14 @@ package org.bithon.agent.sentinel;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.IConfigurationChangedListener;
-import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.DegradingRuleDto;
+import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
-import org.bithon.agent.sentinel.flow.FlowRuleDto;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
+import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import org.bithon.shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 
 import java.util.ArrayList;
@@ -179,7 +181,7 @@ public class SentinelRuleManager {
             FlowRuleManager.loadRules(
                 flowId2Rules.values()
                             .stream()
-                            .map(FlowRuleDto::toFlowRule)
+                            .map(SentinelRuleManager::toFlowRule)
                             .collect(Collectors.toList()));
 
             SentinelRuleManager.this.listener.onFlowRuleLoaded("Config",
@@ -252,7 +254,7 @@ public class SentinelRuleManager {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradingRuleDto::toDegradeRule)
+                               .map(SentinelRuleManager::toDegradeRule)
                                .collect(Collectors.toList()));
 
             SentinelRuleManager.this.listener.onDegradeRuleLoaded("Config", changed);
@@ -282,7 +284,7 @@ public class SentinelRuleManager {
             FlowRuleManager.loadRules(
                 flowId2Rules.values()
                             .stream()
-                            .map(FlowRuleDto::toFlowRule)
+                            .map(SentinelRuleManager::toFlowRule)
                             .collect(Collectors.toList()));
 
             this.listener.onFlowRuleLoaded(source, Collections.singletonList(rule));
@@ -321,7 +323,7 @@ public class SentinelRuleManager {
             FlowRuleManager.loadRules(
                 flowId2Rules.values()
                             .stream()
-                            .map(FlowRuleDto::toFlowRule)
+                            .map(SentinelRuleManager::toFlowRule)
                             .collect(Collectors.toList()));
         }
         if (!deleteRules.isEmpty()) {
@@ -362,7 +364,7 @@ public class SentinelRuleManager {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradingRuleDto::toDegradeRule)
+                               .map(SentinelRuleManager::toDegradeRule)
                                .collect(Collectors.toList()));
 
             this.listener.onDegradeRuleLoaded(source, Collections.singletonList(rule));
@@ -401,7 +403,7 @@ public class SentinelRuleManager {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradingRuleDto::toDegradeRule)
+                               .map(SentinelRuleManager::toDegradeRule)
                                .collect(Collectors.toList()));
         }
         if (!deleteRules.isEmpty()) {
@@ -427,6 +429,33 @@ public class SentinelRuleManager {
         DegradeRuleManager.loadRules(Collections.emptyList());
 
         this.listener.onDegradeRuleUnloaded(source, deleteRules);
+    }
+
+    public static FlowRule toFlowRule(FlowRuleDto dto) {
+        FlowRule flowRule = new FlowRule();
+        flowRule.setGrade(dto.getGrade());
+        flowRule.setCount(dto.getThreshold());
+        flowRule.setResource(dto.getUri());
+        flowRule.setControlBehavior(dto.getControlBehavior());
+        flowRule.setMaxQueueingTimeMs(dto.getMaxTimeoutMs());
+        return flowRule;
+    }
+
+    public static DegradeRule toDegradeRule(DegradingRuleDto dto) {
+        DegradeRule degradeRule = new DegradeRule();
+        degradeRule.setResource(dto.getUri());
+        degradeRule.setCount(dto.getThreshold());
+        degradeRule.setGrade(dto.getGrade());
+        degradeRule.setMinRequestAmount(dto.getMinRequestAmount());
+        if (dto.getGrade() == 0) {
+            degradeRule.setCount(dto.getMaxResponseTime());
+            degradeRule.setSlowRatioThreshold(dto.getThreshold());
+        } else {
+            degradeRule.setCount(dto.getThreshold());
+        }
+        degradeRule.setTimeWindow(dto.getTimeWindow());
+        degradeRule.setStatIntervalMs(dto.getStatIntervalMs());
+        return degradeRule;
     }
 
     /**

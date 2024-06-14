@@ -18,7 +18,7 @@ package org.bithon.server.alerting.manager.api.parameter;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bithon.server.storage.alerting.pojo.LogItem;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 
 import java.util.List;
 
@@ -31,6 +31,6 @@ import java.util.List;
 public class GetEvaluationLogsResponse {
 
     private final int total;
-    private final List<LogItem> rows;
+    private final List<EvaluationLogEvent> rows;
 
 }

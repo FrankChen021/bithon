@@ -77,18 +77,17 @@ public class ExpressionSerializer implements IExpressionVisitor {
 
     @Override
     public boolean visit(LogicalExpression expression) {
+        String concatOperator = expression.getOperator();
         if (expression instanceof LogicalExpression.NOT) {
-            sb.append("NOT (");
-            expression.getOperands().get(0).accept(this);
-            sb.append(")");
-            return false;
+            sb.append("NOT ");
+            concatOperator = "AND";
         }
 
         sb.append('(');
         for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
             if (i > 0) {
                 sb.append(' ');
-                sb.append(expression.getOperator());
+                sb.append(concatOperator);
                 sb.append(' ');
             }
             expression.getOperands().get(i).accept(this);
@@ -175,7 +174,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         expression.getMap().accept(this);
         sb.append('[');
         sb.append('\'');
-        sb.append(expression.getProp());
+        sb.append(expression.getKey());
         sb.append('\'');
         sb.append(']');
         return false;

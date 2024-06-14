@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -35,34 +35,29 @@ public class PreparedStatementTraceInterceptor extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("mysql");
+        ITraceSpan span = TraceContextFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .start());
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .kind(SpanKind.CLIENT)
+                               .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceSpan mysqlSpan = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         try {
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {
-                mysqlSpan.tag(Tags.Database.STATEMENT, sql);
+                span.tag(Tags.Database.STATEMENT, sql);
             }
+            span.finish();
         } finally {
-            try {
-                mysqlSpan.finish();
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            }
-
             InterceptorContext.remove(ConnectionTraceInterceptor.KEY);
         }
     }

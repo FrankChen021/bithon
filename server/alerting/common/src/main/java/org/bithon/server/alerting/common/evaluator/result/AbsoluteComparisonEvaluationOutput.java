@@ -18,6 +18,7 @@ package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Getter;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.commons.time.TimeSpan;
 
 /**
  * @author frankchen
@@ -43,11 +44,21 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     @Getter
     private final IMetricEvaluator metric;
 
-    public AbsoluteComparisonEvaluationOutput(IMetricEvaluator metric,
+    @Getter
+    private final TimeSpan start;
+
+    @Getter
+    private final TimeSpan end;
+
+    public AbsoluteComparisonEvaluationOutput(TimeSpan start,
+                                              TimeSpan end,
+                                              IMetricEvaluator metric,
                                               String now,
                                               String threshold,
                                               String delta,
                                               boolean isMatches) {
+        this.start = start;
+        this.end = end;
         this.isMatches = isMatches;
         this.now = now;
         this.threshold = threshold;

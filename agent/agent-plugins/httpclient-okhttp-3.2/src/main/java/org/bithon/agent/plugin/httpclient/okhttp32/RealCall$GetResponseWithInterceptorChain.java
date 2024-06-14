@@ -32,7 +32,7 @@ import org.bithon.agent.observability.metric.domain.http.HttpOutgoingUriFilter;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -77,14 +77,14 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanFactory.newSpan("httpclient");
+        ITraceSpan span = TraceContextFactory.newSpan("http-client");
         if (span != null) {
-            aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                                          .tag(Tags.Http.CLIENT, "okhttp3")
-                                          .method(aopContext.getTargetClass().getName(), "execute")
-                                          .tag(Tags.Http.METHOD, request.method())
-                                          .tag(Tags.Http.URL, request.url().toString())
-                                          .start());
+            aopContext.setSpan(span.kind(SpanKind.CLIENT)
+                                   .tag(Tags.Http.CLIENT, "okhttp3")
+                                   .method(aopContext.getTargetClass().getName(), "execute")
+                                   .tag(Tags.Http.METHOD, request.method())
+                                   .tag(Tags.Http.URL, request.url().toString())
+                                   .start());
 
             // Propagate the tracing context if we can modify the header
             if (headerField != null) {
@@ -107,7 +107,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AroundInterceptor 
         //
         // Tracing Processing
         //
-        ITraceSpan span = aopContext.getUserContextAs();
+        ITraceSpan span = aopContext.getSpan();
         if (span != null) {
             //
             // Record configured response headers in tracing logs.

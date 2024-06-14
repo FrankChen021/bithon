@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -48,14 +48,13 @@ public class Channels$Write extends AroundInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpclient");
+        final ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client", httpRequest.headers(), HttpHeaders::set);
         if (span != null) {
-            aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .kind(SpanKind.CLIENT)
-                                          .tag(Tags.Http.CLIENT, "netty3")
-                                          .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
-                                          .propagate(httpRequest.headers(), HttpHeaders::set)
-                                          .start());
+            aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .kind(SpanKind.CLIENT)
+                                   .tag(Tags.Http.CLIENT, "netty3")
+                                   .tag(Tags.Http.METHOD, httpRequest.getMethod().getName())
+                                   .start());
         }
 
         return super.before(aopContext);
@@ -70,11 +69,11 @@ public class Channels$Write extends AroundInterceptor {
         final HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         final String method = httpRequest.getMethod().getName();
         final long startAt = aopContext.getStartNanoTime();
-        final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
+        final ITraceSpan span = aopContext.getSpan();
         final String uri = getUri(httpRequest);
 
         // unlink reference
-        aopContext.setUserContext(null);
+        aopContext.setSpan(null);
 
         Object ret = aopContext.getReturning();
         if (!(ret instanceof ChannelFuture)) {
@@ -88,19 +87,19 @@ public class Channels$Write extends AroundInterceptor {
             //
             if (channelFuture.getCause() != null) {
                 metricRegistry.addExceptionRequest(
-                        uri,
-                        method,
-                        System.nanoTime() - startAt
-                );
+                    uri,
+                    method,
+                    System.nanoTime() - startAt
+                                                  );
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
                 metricRegistry.addRequest(
-                        uri,
-                        method,
-                        200,
-                        System.nanoTime() - startAt
-                );
+                    uri,
+                    method,
+                    200,
+                    System.nanoTime() - startAt
+                                         );
             }
 
             //

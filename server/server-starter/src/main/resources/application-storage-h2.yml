@@ -11,6 +11,10 @@ bithon:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+      indexes:
+        # A demo of how the index works, can be removed in production
+        map:
+          "[http.method]": 1
     metric:
       provider: h2-local
       enabled: true

@@ -19,8 +19,8 @@ package org.bithon.server.pipeline.common.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.datasource.input.transformer.ExceptionSafeTransformer;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transform.transformer.ExceptionSafeTransformer;
+import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.slf4j.Logger;
 import org.springframework.context.SmartLifecycle;
 
@@ -36,11 +36,12 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle {
 
+    protected final ObjectMapper objectMapper;
     protected PipelineConfig pipelineConfig;
 
     protected final List<RECEIVER> receivers;
     protected final List<ITransformer> processors;
-    protected final List<EXPORTER> exporters;
+    protected final List<EXPORTER> exporters = new ArrayList<>();
     private boolean isRunning = false;
 
     public AbstractPipeline(Class<RECEIVER> receiverClass,
@@ -50,7 +51,9 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         this.pipelineConfig = pipelineConfig;
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
         this.processors = createProcessors(pipelineConfig, objectMapper);
-        this.exporters = createExporters(pipelineConfig, objectMapper, exporterClass);
+        this.objectMapper = objectMapper;
+
+        initializeExportersFromConfig(pipelineConfig, objectMapper, exporterClass);
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
@@ -99,30 +102,28 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         return transformers;
     }
 
-    private List<EXPORTER> createExporters(PipelineConfig pipelineConfig,
-                                           ObjectMapper objectMapper,
-                                           Class<EXPORTER> exporterClass) {
+    private void initializeExportersFromConfig(PipelineConfig pipelineConfig,
+                                               ObjectMapper objectMapper,
+                                               Class<EXPORTER> exporterClass) {
         if (!pipelineConfig.isEnabled()) {
-            return Collections.emptyList();
+            return;
         }
 
         Preconditions.checkIfTrue(!CollectionUtils.isEmpty(pipelineConfig.getExporters()),
                                   "The pipeline processing is enabled, but no exporter defined.");
 
         // No use of stream API because we need to return a modifiable list
-        List<EXPORTER> exporters = new ArrayList<>();
         for (Object exporterConfig : pipelineConfig.getExporters()) {
             try {
-                exporters.add(createObject(exporterClass, objectMapper, exporterConfig));
+                link(createObject(exporterClass, objectMapper, exporterConfig));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return exporters;
     }
 
     public EXPORTER link(EXPORTER exporter) {
-        getLogger().info("Add exporter [{}] to pipeline", exporter);
+        getLogger().info("Add exporter [{}] to {}", exporter, this.getClass().getSimpleName());
 
         synchronized (exporters) {
             exporters.add(exporter);
@@ -131,7 +132,7 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     }
 
     public EXPORTER unlink(EXPORTER exporter) {
-        getLogger().info("Remove exporter [{}] from pipeline", exporter);
+        getLogger().info("Remove exporter [{}] from {}", exporter, this.getClass().getSimpleName());
         synchronized (exporters) {
             exporters.remove(exporter);
         }
@@ -141,18 +142,18 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     @Override
     public void start() {
         if (!this.pipelineConfig.isEnabled()) {
-            getLogger().info("Pipeline is not enabled.");
+            getLogger().info("{} is not enabled.", this.getClass().getSimpleName());
             return;
         }
 
         this.registerProcessor();
 
-        getLogger().info("Starting exporters of process pipeline");
+        getLogger().info("Starting exporters of {}...", this.getClass().getSimpleName());
         for (IExporter exporter : this.exporters) {
             exporter.start();
         }
 
-        getLogger().info("Starting receivers of process pipeline...");
+        getLogger().info("Starting receivers of {}...", this.getClass().getSimpleName());
         for (IReceiver receiver : this.receivers) {
             receiver.start();
         }
@@ -171,12 +172,12 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         }
 
         // Stop the receiver first
-        getLogger().info("Stopping receivers of process pipeline...");
+        getLogger().info("Stopping receivers of {}...", this.getClass().getSimpleName());
         for (IReceiver receiver : this.receivers) {
             receiver.stop();
         }
 
-        getLogger().info("Stopping exporters of process pipeline...");
+        getLogger().info("Stopping exporters of {}...", this.getClass().getSimpleName());
         for (IExporter exporter : this.exporters) {
             try {
                 exporter.stop();

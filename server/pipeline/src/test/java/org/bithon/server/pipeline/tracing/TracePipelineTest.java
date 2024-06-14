@@ -19,12 +19,14 @@ package org.bithon.server.pipeline.tracing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.google.common.collect.ImmutableMap;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,11 +81,12 @@ public class TracePipelineTest {
 
     @Test
     public void test() {
+
         TracePipelineConfig config = new TracePipelineConfig();
         config.setEnabled(true);
         config.setReceivers(Collections.singletonList(ImmutableMap.of("type", "fake-receiver")));
         config.setExporters(Collections.singletonList(ImmutableMap.of("type", "fake-exporter")));
-        TracePipeline pipeline = new TracePipeline(config, objectMapper);
+        TracePipeline pipeline = new TracePipeline(config, Mockito.mock(IMetricInputSourceManager.class), objectMapper);
         pipeline.start();
         Assert.assertNotNull(registeredProcessor);
         Assert.assertNull(receivedTraceSpanList);

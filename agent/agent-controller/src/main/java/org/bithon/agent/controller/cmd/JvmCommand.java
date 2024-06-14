@@ -18,6 +18,7 @@ package org.bithon.agent.controller.cmd;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
+import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
 import java.lang.management.ManagementFactory;
@@ -39,9 +40,10 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
         boolean cpuTimeEnabled = threadMxBean.isThreadCpuTimeSupported() && threadMxBean.isThreadCpuTimeEnabled();
 
-        // It's not efficient enough since the stack trace are retrieved twice,
+        // It's not efficient enough since the stack traces are retrieved twice,
         // One is here, the other one is the getThreadInfo below.
-        // The reason is that under JDK 8, the ThreadInfo does not include priority/daemon properties which can only be found on Thread object.
+        // The reason is that under JDK 8,
+        // the ThreadInfo does not include priority/daemon properties which can only be found on a Thread object.
         Map<Long, Thread> threads = Thread.getAllStackTraces()
                                           .keySet()
                                           .stream()
@@ -104,6 +106,17 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
         }
     }
 
+    @Override
+    public List<String> getAssemblyCode(String className) {
+        String code = Arrays.stream(InstrumentationHelper.getInstance().getAllLoadedClasses())
+                            // It does not make any sense to return anonymous class or lambda class
+                            .filter(clazz -> !isAnonymousClassOrLambda(clazz) && clazz.getName().equals(className))
+                            .findFirst()
+                            .map((clazz) -> new ClassDisassembler(clazz).disassemble())
+                            .orElse("Class not found");
+        return Collections.singletonList(code);
+    }
+
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,
                                            boolean cpuTimeEnabled,
                                            Thread thread,
@@ -151,7 +164,7 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
 
     private boolean isAnonymousClassOrLambda(Class<?> clazz) {
         try {
-            return clazz.getName().indexOf('/') > 0 || clazz.isAnonymousClass();
+            return clazz.isAnonymousClass() || clazz.getName().indexOf('/') > 0;
         } catch (Throwable e) {
             // Sometime is throws IllegalAccessError internally, need to catch and ignore it
             return false;

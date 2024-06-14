@@ -16,39 +16,70 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.ServiceResponse;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 1/3/23 8:18 pm
  */
-public class InstanceTable extends AbstractBaseTable {
-    private final IAgentProxyApi impl;
+public class InstanceTable extends AbstractBaseTable implements IPushdownPredicateProvider {
+    private final DiscoveredServiceInvoker invoker;
 
     public InstanceTable(DiscoveredServiceInvoker invoker) {
-        this.impl = invoker.createBroadcastApi(IAgentProxyApi.class);
+        //this.impl = invoker.createBroadcastApi(IAgentControllerApi.class);
+        this.invoker = invoker;
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        ServiceResponse<IAgentProxyApi.AgentInstanceRecord> clients = impl.getAgentInstanceList();
-        if (clients.getError() != null) {
-            throw new RuntimeException(clients.getError().toString());
+        // The 'instance' can be NULL, if it's NULL, all records will be retrieved
+        String agentInstance = (String) executionContext.getParameters().get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
+
+        List<DiscoveredServiceInstance> instanceList = invoker.getInstanceList(IAgentControllerApi.class);
+
+        List<Object[]> result = new ArrayList<>();
+        CountDownLatch countDownLatch = new CountDownLatch(instanceList.size());
+
+        for (DiscoveredServiceInstance instance : instanceList) {
+            invoker.getExecutor()
+                   .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, instance)
+                                             .getAgentInstanceList(agentInstance))
+                   .thenAccept((r) -> {
+                       List<Object[]> objectLists = r.stream().map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
+                                                     .collect(Collectors.toList());
+                       synchronized (result) {
+                           result.addAll(objectLists);
+                       }
+                   })
+                   .whenComplete((ret, ex) -> countDownLatch.countDown());
         }
-        return clients.getRows()
-                      .stream()
-                      .map(IAgentProxyApi.AgentInstanceRecord::toObjectArray)
-                      .collect(Collectors.toList());
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
     }
 
     @Override
     protected Class<?> getRecordClazz() {
-        return IAgentProxyApi.AgentInstanceRecord.class;
+        return IAgentControllerApi.AgentInstanceRecord.class;
+    }
+
+    @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, false);
     }
 }

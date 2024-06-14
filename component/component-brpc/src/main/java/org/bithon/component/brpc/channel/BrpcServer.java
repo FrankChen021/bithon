@@ -27,6 +27,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
+import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
@@ -337,8 +338,8 @@ public class BrpcServer implements Closeable {
         }
 
         @Override
-        public void writeAsync(Object obj) {
-            channel.writeAndFlush(obj);
+        public void writeAsync(ServiceRequestMessageOut serviceRequest) {
+            channel.writeAndFlush(serviceRequest);
         }
     }
 }

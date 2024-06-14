@@ -67,7 +67,7 @@ public class HttpOutgoingMetrics implements IMetricSet {
         return this;
     }
 
-    public void addByteSize(long requestByteSize, long responseByteSize) {
+    public void updateIOMetrics(long requestByteSize, long responseByteSize) {
         this.requestBytes.update(requestByteSize);
         this.responseBytes.update(responseByteSize);
     }

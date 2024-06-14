@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.agent.sql.table;
 
+import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.BinaryExpression;
@@ -26,7 +27,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.discovery.declaration.controller.IAgentProxyApi;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/4/2 16:20
  */
-public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
+public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, IPushdownPredicateProvider {
     private final AgentServiceProxyFactory proxyFactory;
 
     public LoggerTable(AgentServiceProxyFactory proxyFactory) {
@@ -47,9 +48,13 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
     }
 
     @Override
+    public Map<String, Boolean> getPredicates() {
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+    }
+
+    @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(IAgentProxyApi.class,
-                                   executionContext.getParameters(),
+        return proxyFactory.create(executionContext.getParameters(),
                                    ILoggingCommand.class)
                            .getLoggers()
                            .stream()
@@ -128,8 +133,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable {
                                             "Only 'level' is allowed to updated");
         }
 
-        return proxyFactory.create(IAgentProxyApi.class,
-                                   executionContext.getParameters(),
+        return proxyFactory.create(executionContext.getParameters(),
                                    ILoggingCommand.class)
                            .setLogger((String) nameFilter.value, loggingLevel)
                            .stream().reduce(0, Integer::sum);

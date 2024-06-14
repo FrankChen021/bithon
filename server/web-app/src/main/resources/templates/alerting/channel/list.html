@@ -24,12 +24,6 @@
     </table>
 
     <script type="text/javascript">
-        function refreshPage() {
-            $('#channelTable').bootstrapTable('refreshOptions', {
-                pageNumber: 1
-            });
-        }
-
         $(document).ready(function () {
             $('#channelTable').bootstrapTable({
                 toolbar: '#toolbar',
@@ -53,6 +47,7 @@
                 queryParamsType: '',
                 queryParams: (params) => {
                     return {
+                        format: 'yaml',
                         name: params.searchText,
                         limit: {
                             limit: params.pageSize,
@@ -77,7 +72,7 @@
 
                 detailView: true,
                 detailFormatter: (index, row) => {
-                    return `<pre>${JSON.stringify(row.props, null, 2)}</pre>`;
+                    return `<pre>${row.props}</pre>`;
                 },
 
                 uniqueId: 'name',

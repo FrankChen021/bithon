@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/3/30 22:06
  */
-@ConfigurationProperties(prefix = "agent.plugin.http.outgoing.filter.uri")
+@ConfigurationProperties(path = "agent.plugin.http.outgoing.filter.uri")
 public class HttpOutgoingUriFilter {
     @JsonProperty
     private Set<String> suffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(","))

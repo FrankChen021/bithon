@@ -27,7 +27,7 @@ import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.observability.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceSpanFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -62,11 +62,11 @@ public class DefaultServerConnection {
             }
 
             // create a span and save it in user-context
-            ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
+            ITraceSpan span = TraceContextFactory.newSpan("mongodb");
             if (span != null) {
-                aopContext.setUserContext(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                              .kind(SpanKind.CLIENT)
-                                              .start());
+                aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                       .kind(SpanKind.CLIENT)
+                                       .start());
             }
 
             return InterceptionDecision.CONTINUE;
@@ -90,7 +90,7 @@ public class DefaultServerConnection {
             //
             // trace
             //
-            ITraceSpan span = aopContext.getUserContextAs();
+            ITraceSpan span = aopContext.getSpan();
             if (span != null) {
                 span.tag(aopContext.getException())
                     .tag(Tags.Net.PEER, hostAndPort)

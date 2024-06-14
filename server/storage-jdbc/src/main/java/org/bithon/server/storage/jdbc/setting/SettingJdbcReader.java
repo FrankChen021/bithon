@@ -39,11 +39,26 @@ public class SettingJdbcReader implements ISettingReader {
     }
 
     @Override
-    public List<SettingEntry> getSettings(String appName, String env, long since) {
+    public List<SettingEntry> getSettings() {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                         .fetch()
+                         .map(this::toSettingEntry);
+    }
+
+    @Override
+    public List<SettingEntry> getSettings(String appName) {
         return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
-                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                         .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since).toLocalDateTime()))
+                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(""))
+                         .fetch()
+                         .map(this::toSettingEntry);
+    }
+
+    @Override
+    public List<SettingEntry> getSettings(String appName, String env) {
+        return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
+                         .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env))
                          .fetch()
                          .map(this::toSettingEntry);
     }
@@ -63,6 +78,7 @@ public class SettingJdbcReader implements ISettingReader {
             return null;
         }
         SettingEntry entry = new SettingEntry();
+        entry.setAppName(record.get(Tables.BITHON_AGENT_SETTING.APPNAME));
         entry.setEnvironment(record.get(Tables.BITHON_AGENT_SETTING.ENVIRONMENT));
         entry.setName(record.get(Tables.BITHON_AGENT_SETTING.SETTINGNAME));
         entry.setValue(record.get(Tables.BITHON_AGENT_SETTING.SETTING));

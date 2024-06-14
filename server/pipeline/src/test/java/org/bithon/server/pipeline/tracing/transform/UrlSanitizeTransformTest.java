@@ -17,8 +17,8 @@
 package org.bithon.server.pipeline.tracing.transform;
 
 import com.google.common.collect.ImmutableMap;
+import org.bithon.server.pipeline.common.transform.transformer.AbstractTransformer;
 import org.bithon.server.pipeline.tracing.transform.sanitization.UrlSanitizeTransformer;
-import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,8 +32,8 @@ import java.util.HashMap;
 public class UrlSanitizeTransformTest {
     @Test
     public void test() {
-        ITransformer transformer = new UrlSanitizeTransformer(null, ImmutableMap.of("http.url", "password",
-                                                                                    "url", "password"));
+        AbstractTransformer transformer = new UrlSanitizeTransformer(null, ImmutableMap.of("http.url", "password",
+                                                                                           "url", "password"));
 
         TraceSpan span = TraceSpan.builder()
                                   .tags(new HashMap<>(ImmutableMap.of("http.url", "/?database=default&user=1&password=123",
