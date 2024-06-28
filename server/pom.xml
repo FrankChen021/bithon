@@ -20,13 +20,20 @@
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <java.version>17</java.version>
 
-        <!--
-        https://stackoverflow.com/questions/43102787/what-is-the-release-flag-in-the-java-9-compiler/43103038#43103038
-        -->
+        <!-- https://stackoverflow.com/questions/43102787/what-is-the-release-flag-in-the-java-9-compiler/43103038#43103038 -->
         <maven.compiler.release>17</maven.compiler.release>
 
-        <spring-boot.version>3.0.0</spring-boot.version>
-        <spring-cloud.version>2022.0.3</spring-cloud.version>
+        <!-- Dependency Note: https://github.com/spring-cloud/spring-cloud-release/wiki/Supported-Versions -->
+        <!-- Maven release: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot -->
+        <!-- Maven release: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies -->
+        <spring-boot.version>3.3.1</spring-boot.version>
+        <spring-cloud.version>2023.0.2</spring-cloud.version>
+
+        <!-- The Alibaba Nacos is used -->
+        <!-- Dependency Note: https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
+        <!-- Maven release: https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-alibaba-dependencies -->
+        <alibaba-cloud.version>2023.0.1.0</alibaba-cloud.version>
+
         <grpc.version>1.59.1</grpc.version>
 
         <!-- The version that is used by the current grpc -->
@@ -79,13 +86,10 @@
                 <scope>import</scope>
             </dependency>
 
-            <!--Alibaba Nacos
-              https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E
-            -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-                <version>2.2.6.RELEASE</version>
+                <version>${alibaba-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

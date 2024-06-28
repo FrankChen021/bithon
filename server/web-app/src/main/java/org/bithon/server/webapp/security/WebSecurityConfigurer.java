@@ -20,13 +20,15 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -53,7 +55,7 @@ public class WebSecurityConfigurer {
                                         "/js/**",
                                         "/login",
                                         "/actuator/**"
-                                       )
+                                    )
                                     .map((path) -> contextPath + path)
                                     .toArray(String[]::new);
 
@@ -70,38 +72,30 @@ public class WebSecurityConfigurer {
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
         // For simplicity, we just disable the frame option in global.
-        http.headers()
-            .frameOptions()
-            .disable();
+        http.headers((c) -> c.frameOptions((HeadersConfigurer.FrameOptionsConfig::disable)));
 
         if (!securityConfig.isEnabled()) {
             // Permit all
-            http.csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .anyRequest()
-                .permitAll();
-            return http.build();
+            return http.csrf(c -> {
+                try {
+                    c.disable().authorizeHttpRequests(r -> r.anyRequest().permitAll());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).build();
         }
 
         JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(securityConfig);
 
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .csrf().disable()
-            .authorizeHttpRequests().requestMatchers(HttpMethod.GET, "/error").permitAll()
-            .anyRequest().authenticated()
-            .and()
+        http.sessionManagement((c) -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/error").permitAll().anyRequest().authenticated())
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenComponent), OAuth2AuthorizationRequestRedirectFilter.class)
-            .oauth2Login()
-            .clientRegistrationRepository(newClientRegistrationRepo(securityConfig)).permitAll()
-            .authorizationEndpoint().authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository())
-            .and()
-            .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig))
-            .and()
-            .logout().logoutSuccessUrl("/")
-            .and()
-            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint(contextPath + "/oauth2/authorization/google"));
+            .oauth2Login(c -> c.clientRegistrationRepository(newClientRegistrationRepo(securityConfig)).permitAll()
+                               .authorizationEndpoint(a -> a.authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository()))
+                               .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig)))
+            .logout(c -> c.logoutSuccessUrl("/"))
+            .exceptionHandling(c -> c.authenticationEntryPoint(new LoginAuthenticationEntryPoint(contextPath + "/oauth2/authorization/google")));
 
         return http.build();
     }
@@ -117,7 +111,7 @@ public class WebSecurityConfigurer {
             throw new InvalidConfigurationException("bithon.web.security.oauth2.client.registration is not configured.");
         }
 
-        Map<String, ClientRegistration> registrationMap = OAuth2ClientPropertiesRegistrationAdapter.getClientRegistrations(securityConfig.getOauth2().getClient());
+        Map<String, ClientRegistration> registrationMap = new OAuth2ClientPropertiesMapper(securityConfig.getOauth2().getClient()).asClientRegistrations();
         return new InMemoryClientRegistrationRepository(registrationMap);
     }
 }
