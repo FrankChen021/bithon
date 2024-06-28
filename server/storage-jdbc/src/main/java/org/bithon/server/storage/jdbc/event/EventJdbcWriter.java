@@ -58,11 +58,11 @@ public class EventJdbcWriter implements IEventWriter {
                                                                 null));
 
         for (EventMessage message : eventMessages) {
-            step.bind(new Timestamp(message.getTimestamp()),
-                      message.getAppName(),
-                      message.getInstanceName(),
-                      message.getType(),
-                      message.getJsonArgs());
+            step = step.bind(new Timestamp(message.getTimestamp()),
+                             message.getAppName(),
+                             message.getInstanceName(),
+                             message.getType(),
+                             message.getJsonArgs());
         }
 
         step.execute();
