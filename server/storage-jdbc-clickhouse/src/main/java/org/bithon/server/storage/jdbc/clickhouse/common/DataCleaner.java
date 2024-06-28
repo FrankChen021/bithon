@@ -23,8 +23,10 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.ExecuteContext;
 import org.jooq.Table;
 import org.jooq.conf.ParamType;
+import org.jooq.impl.DefaultRenderContext;
 
 import java.sql.Timestamp;
 import java.util.Collections;

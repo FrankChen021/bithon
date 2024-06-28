@@ -16,10 +16,10 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Evaluation logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertEvaluationLogRecord> implements Record6<LocalDateTime, String, Long, String, String, String> {
 
-    private static final long serialVersionUID = -1531642153;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>bithon_alert_evaluation_log.timestamp</code>.
@@ -50,28 +50,32 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
     }
 
     /**
-     * Setter for <code>bithon_alert_evaluation_log.sequence</code>. Used for ordering
+     * Setter for <code>bithon_alert_evaluation_log.sequence</code>. Used for
+     * ordering
      */
     public void setSequence(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_evaluation_log.sequence</code>. Used for ordering
+     * Getter for <code>bithon_alert_evaluation_log.sequence</code>. Used for
+     * ordering
      */
     public Long getSequence() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>bithon_alert_evaluation_log.instance</code>. The instance that runs the evaluation
+     * Setter for <code>bithon_alert_evaluation_log.instance</code>. The
+     * instance that runs the evaluation
      */
     public void setInstance(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_evaluation_log.instance</code>. The instance that runs the evaluation
+     * Getter for <code>bithon_alert_evaluation_log.instance</code>. The
+     * instance that runs the evaluation
      */
     public String getInstance() {
         return (String) get(3);
@@ -273,11 +277,11 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
     public BithonAlertEvaluationLogRecord(LocalDateTime timestamp, String alertId, Long sequence, String instance, String clazz, String message) {
         super(BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG);
 
-        set(0, timestamp);
-        set(1, alertId);
-        set(2, sequence);
-        set(3, instance);
-        set(4, clazz);
-        set(5, message);
+        setTimestamp(timestamp);
+        setAlertId(alertId);
+        setSequence(sequence);
+        setInstance(instance);
+        setClazz(clazz);
+        setMessage(message);
     }
 }

@@ -20,52 +20,29 @@ import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonApplicati
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonMetaSchemaRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonMetricsBaselineRecord;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonWebDashboardRecord;
+import org.jooq.TableField;
 import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables of 
- * the <code></code> schema.
+ * A class modelling foreign key relationships and constraints of tables in the
+ * default schema.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Keys {
-
-    // -------------------------------------------------------------------------
-    // IDENTITY definitions
-    // -------------------------------------------------------------------------
-
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
-    public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME = UniqueKeys0.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME;
-    public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = UniqueKeys0.KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID;
-    public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = UniqueKeys0.KEY_BITHON_ALERT_STATE_UQ_ALERT_ID;
-    public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = UniqueKeys0.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE;
-    public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = UniqueKeys0.KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME;
-    public static final UniqueKey<BithonMetricsBaselineRecord> KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = UniqueKeys0.KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE;
-    public static final UniqueKey<BithonWebDashboardRecord> KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME = UniqueKeys0.KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME;
-
-    // -------------------------------------------------------------------------
-    // FOREIGN KEY definitions
-    // -------------------------------------------------------------------------
-
-
-    // -------------------------------------------------------------------------
-    // [#1459] distribute members to avoid static initialisers > 64kb
-    // -------------------------------------------------------------------------
-
-    private static class UniqueKeys0 {
-        public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
-        public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME = Internal.createUniqueKey(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL, "KEY_bithon_alert_notification_channel_alert_notification_channel_name", BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME);
-        public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Internal.createUniqueKey(BithonAlertObject.BITHON_ALERT_OBJECT, "KEY_bithon_alert_object_uq_alert_object_id", BithonAlertObject.BITHON_ALERT_OBJECT.ALERT_ID);
-        public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = Internal.createUniqueKey(BithonAlertState.BITHON_ALERT_STATE, "KEY_bithon_alert_state_uq_alert_id", BithonAlertState.BITHON_ALERT_STATE.ALERT_ID);
-        public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = Internal.createUniqueKey(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, "KEY_bithon_application_instance_uq_name_type_instance", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPTYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCENAME);
-        public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createUniqueKey(BithonMetaSchema.BITHON_META_SCHEMA, "KEY_bithon_meta_schema_idx_meta_schema_name", BithonMetaSchema.BITHON_META_SCHEMA.NAME);
-        public static final UniqueKey<BithonMetricsBaselineRecord> KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = Internal.createUniqueKey(BithonMetricsBaseline.BITHON_METRICS_BASELINE, "KEY_bithon_metrics_baseline_bithon_metrics_baseline_date", BithonMetricsBaseline.BITHON_METRICS_BASELINE.DATE);
-        public static final UniqueKey<BithonWebDashboardRecord> KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME = Internal.createUniqueKey(BithonWebDashboard.BITHON_WEB_DASHBOARD, "KEY_bithon_web_dashboard_idx_web_dashboard_name", BithonWebDashboard.BITHON_WEB_DASHBOARD.NAME);
-    }
+    public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, DSL.name("KEY_bithon_agent_setting_key_appName"), new TableField[] { BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME }, true);
+    public static final UniqueKey<BithonAlertNotificationChannelRecord> KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME = Internal.createUniqueKey(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL, DSL.name("KEY_bithon_alert_notification_channel_alert_notification_channel_name"), new TableField[] { BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME }, true);
+    public static final UniqueKey<BithonAlertObjectRecord> KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Internal.createUniqueKey(BithonAlertObject.BITHON_ALERT_OBJECT, DSL.name("KEY_bithon_alert_object_uq_alert_object_id"), new TableField[] { BithonAlertObject.BITHON_ALERT_OBJECT.ALERT_ID }, true);
+    public static final UniqueKey<BithonAlertStateRecord> KEY_BITHON_ALERT_STATE_UQ_ALERT_ID = Internal.createUniqueKey(BithonAlertState.BITHON_ALERT_STATE, DSL.name("KEY_bithon_alert_state_uq_alert_id"), new TableField[] { BithonAlertState.BITHON_ALERT_STATE.ALERT_ID }, true);
+    public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME_TYPE_INSTANCE = Internal.createUniqueKey(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, DSL.name("KEY_bithon_application_instance_uq_name_type_instance"), new TableField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPTYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCENAME }, true);
+    public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createUniqueKey(BithonMetaSchema.BITHON_META_SCHEMA, DSL.name("KEY_bithon_meta_schema_idx_meta_schema_name"), new TableField[] { BithonMetaSchema.BITHON_META_SCHEMA.NAME }, true);
+    public static final UniqueKey<BithonMetricsBaselineRecord> KEY_BITHON_METRICS_BASELINE_BITHON_METRICS_BASELINE_DATE = Internal.createUniqueKey(BithonMetricsBaseline.BITHON_METRICS_BASELINE, DSL.name("KEY_bithon_metrics_baseline_bithon_metrics_baseline_date"), new TableField[] { BithonMetricsBaseline.BITHON_METRICS_BASELINE.DATE }, true);
+    public static final UniqueKey<BithonWebDashboardRecord> KEY_BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME = Internal.createUniqueKey(BithonWebDashboard.BITHON_WEB_DASHBOARD, DSL.name("KEY_bithon_web_dashboard_idx_web_dashboard_name"), new TableField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.NAME }, true);
 }

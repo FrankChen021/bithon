@@ -16,48 +16,54 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * This table keeps the date when the metrics will be kept for ever
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonMetricsBaselineRecord extends TableRecordImpl<BithonMetricsBaselineRecord> implements Record3<String, Integer, LocalDateTime> {
 
-    private static final long serialVersionUID = 1298943498;
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>bithon_metrics_baseline.date</code>. On which day the metrics will be kept.In the format of yyyy-MM-dd
+     * Setter for <code>bithon_metrics_baseline.date</code>. On which day the
+     * metrics will be kept.In the format of yyyy-MM-dd
      */
     public void setDate(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>bithon_metrics_baseline.date</code>. On which day the metrics will be kept.In the format of yyyy-MM-dd
+     * Getter for <code>bithon_metrics_baseline.date</code>. On which day the
+     * metrics will be kept.In the format of yyyy-MM-dd
      */
     public String getDate() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>bithon_metrics_baseline.keep_days</code>. How many days the metrics will be kept. If 0, the metrics will be kept forever 
+     * Setter for <code>bithon_metrics_baseline.keep_days</code>. How many days
+     * the metrics will be kept. If 0, the metrics will be kept forever 
      */
     public void setKeepDays(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_metrics_baseline.keep_days</code>. How many days the metrics will be kept. If 0, the metrics will be kept forever 
+     * Getter for <code>bithon_metrics_baseline.keep_days</code>. How many days
+     * the metrics will be kept. If 0, the metrics will be kept forever 
      */
     public Integer getKeepDays() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>bithon_metrics_baseline.create_time</code>. Created Timestamp
+     * Setter for <code>bithon_metrics_baseline.create_time</code>. Created
+     * Timestamp
      */
     public void setCreateTime(LocalDateTime value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_metrics_baseline.create_time</code>. Created Timestamp
+     * Getter for <code>bithon_metrics_baseline.create_time</code>. Created
+     * Timestamp
      */
     public LocalDateTime getCreateTime() {
         return (LocalDateTime) get(2);
@@ -165,8 +171,8 @@ public class BithonMetricsBaselineRecord extends TableRecordImpl<BithonMetricsBa
     public BithonMetricsBaselineRecord(String date, Integer keepDays, LocalDateTime createTime) {
         super(BithonMetricsBaseline.BITHON_METRICS_BASELINE);
 
-        set(0, date);
-        set(1, keepDays);
-        set(2, createTime);
+        setDate(date);
+        setKeepDays(keepDays);
+        setCreateTime(createTime);
     }
 }
