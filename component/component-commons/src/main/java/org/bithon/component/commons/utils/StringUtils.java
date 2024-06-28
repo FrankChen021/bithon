@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -180,9 +181,9 @@ public class StringUtils {
     }
 
     /**
-     * @param input The input string that needs to be escaped.
-     *              If the input has escaped character by using leading \ character,
-     *              the escaped character will not be escaped again.
+     * @param input      The input string that needs to be escaped.
+     *                   If the input has escaped character by using leading \ character,
+     *                   the escaped character will not be escaped again.
      * @param escapeChar The character that is used to escape the single quote. Like ' or \
      */
     public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
@@ -198,7 +199,7 @@ public class StringUtils {
             while (i > 0 && input.charAt(--i) == '\\') {
             }
             if (i > 0) {
-                // Before the slash character, there're characters
+                // Before the slash character, there are characters
                 escaped.append(input, 0, i);
             }
 
@@ -226,5 +227,66 @@ public class StringUtils {
             }
         }
         return escaped.toString();
+    }
+
+    public static void extractKeyValueParis(String kvPairs,
+                                            String pairSeparator,
+                                            String kvSeparator,
+                                            BiConsumer<String, String> pairConsumer) {
+        extractKeyValueParis(kvPairs, 0, pairSeparator, kvSeparator, pairConsumer);
+    }
+
+    /**
+     * Extract key-values from a given string.For example, for below input:
+     * kvPairs: a=b&c=d
+     * pairSeparator: &
+     * kvSeparator: =
+     * <p>
+     * The result would be:
+     * (a,b)
+     * (c,d)
+     *
+     * @param kvPairs       the input string
+     * @param startingFrom  the position of the kvPairs to extract from
+     * @param pairSeparator the separator of k-v pair
+     * @param kvSeparator   the separator of key and value
+     * @param kvConsumer    the callback processing for an extracted key-value pair
+     */
+    public static void extractKeyValueParis(String kvPairs,
+                                            int startingFrom,
+                                            String pairSeparator,
+                                            String kvSeparator,
+                                            BiConsumer<String, String> kvConsumer) {
+        if (StringUtils.isEmpty(kvPairs)) {
+            return;
+        }
+
+        int tokenStart = startingFrom;
+        int tokenEnd;
+        do {
+            tokenEnd = kvPairs.indexOf(kvSeparator, tokenStart);
+            if (tokenEnd > tokenStart) {
+                // Find the parameter name
+                String name = kvPairs.substring(tokenStart, tokenEnd);
+
+                // +1 to skip the kvSeparator
+                tokenStart = tokenEnd + 1;
+
+                // Find the parameter value
+                tokenEnd = kvPairs.indexOf(pairSeparator, tokenStart);
+                if (tokenEnd == -1) { // If there's no '&' found, the whole is the value
+                    kvConsumer.accept(name, kvPairs.substring(tokenStart));
+                } else { // If there's a pair separator found, get the substring as value
+                    kvConsumer.accept(name, kvPairs.substring(tokenStart, tokenEnd));
+                }
+
+                tokenStart = tokenEnd + 1;
+            } else if (tokenEnd == tokenStart) {
+                // extra '=' found, e.g: queryString equals to kvSeparator
+                tokenStart = tokenEnd + 1;
+            } else {
+                // Not found '=', tokenEnd is -1,
+            }
+        } while (tokenEnd != -1);
     }
 }

@@ -16,6 +16,8 @@
 
 package org.bithon.server.commons.utils;
 
+import org.bithon.component.commons.utils.StringUtils;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +33,8 @@ public class UrlUtils {
         return parseURLParameters(url, null);
     }
 
-    public static Map<String, String> parseURLParameters(String url, Set<String> parameters) {
-        if (url == null) {
+    public static Map<String, String> parseURLParameters(String url, Set<String> retainParameters) {
+        if (StringUtils.isEmpty(url)) {
             return Collections.emptyMap();
         }
 
@@ -42,39 +44,12 @@ public class UrlUtils {
             return Collections.emptyMap();
         }
 
-        Map<String, String> parsed = new TreeMap<>();
-        int tokenStart = queryParameterIndex + 1;
-        int tokenEnd = 0;
-        do {
-            tokenEnd = url.indexOf('=', tokenStart);
-            if (tokenEnd > tokenStart) {
-                // Find the parameter name
-                String name = url.substring(tokenStart, tokenEnd);
-
-                // +1 to skip the '='
-                tokenStart = tokenEnd + 1;
-
-                // Find the parameter value
-                tokenEnd = url.indexOf('&', tokenStart);
-                if (tokenEnd == -1) { // If there's no '&' found, the whole is the value
-                    if (parameters == null || parameters.contains(name)) {
-                        parsed.put(name, url.substring(tokenStart));
-                    }
-                } else { // If there's a '&' found, get the substring as value
-                    if (parameters == null || parameters.contains(name)) {
-                        parsed.put(name, url.substring(tokenStart, tokenEnd));
-                    }
-                }
-
-                tokenStart = tokenEnd + 1;
-            } else if (tokenEnd == tokenStart) {
-                // extra '=' found, e.g: queryString equals to '='
-                tokenStart = tokenEnd + 1;
-            } else {
-                // Not found '=', tokenEnd is -1,
+        final Map<String, String> parsed = new TreeMap<>();
+        StringUtils.extractKeyValueParis(url, queryParameterIndex + 1, "&", "=", (k, v) -> {
+            if (retainParameters == null || retainParameters.isEmpty() || retainParameters.contains(k)) {
+                parsed.put(k, v);
             }
-        } while (tokenEnd != -1);
-
+        });
         return parsed;
     }
 
@@ -116,7 +91,7 @@ public class UrlUtils {
                 // If it's not, the current match might be a substring, we need to continue to search the left characters
                 if (url.charAt(parameterIndex) == '=') {
                     if (parameterIndex + 1 == url.length()) {
-                        // A string like 'p1&p2=' where we're searching p2
+                        // A string like 'p1&p2=' where we're searching 'p2'
                         return url;
                     }
 
