@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package org.bithon.component.brpc.example.protobuf;
+
+option java_multiple_files = true;
+
+message WebRequestMetrics {
+  string uri = 1;
+  int64 costNanoTime = 2;
+  int64 requests = 3;
+  int64 count4xx = 4;
+  int64 count5xx = 5;
+  int64 requestBytes = 6;
+  int64 responseBytes = 7;
+}

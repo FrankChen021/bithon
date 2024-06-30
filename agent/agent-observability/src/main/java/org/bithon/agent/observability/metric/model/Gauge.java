@@ -18,7 +18,7 @@ package org.bithon.agent.observability.metric.model;
 
 /**
  * Represents a cumulative value.
- * In contrast to Counter, its value will NOTE be flushed after be accessed
+ * In contrast to Counter, its value will NOT be flushed after be accessed
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/23 9:19 下午
