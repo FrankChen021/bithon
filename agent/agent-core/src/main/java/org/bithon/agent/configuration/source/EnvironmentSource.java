@@ -19,6 +19,7 @@ package org.bithon.agent.configuration.source;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -36,8 +37,9 @@ public class EnvironmentSource {
             if (name.startsWith(envPrefix) && !value.isEmpty()) {
                 name = name.substring(envPrefix.length())
                            // For env, the underscore is used as a replacement of '.' character,
-                           // Here we need to convert these characters back
-                           .replace('_', '.');
+                           // Here we need to convert these characters back.
+                           // Additionally, as the env variables are in uppercase, we need to convert them to lowercase.
+                           .replace('_', '.').toLowerCase(Locale.ENGLISH);
                 if (!name.isEmpty()) {
                     propertyText.append(name);
                     propertyText.append('=');
