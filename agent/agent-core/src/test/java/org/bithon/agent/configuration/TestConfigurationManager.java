@@ -201,6 +201,33 @@ public class TestConfigurationManager {
         }
     }
 
+    @Test
+    public void test_Environment_CaseCompatibility() {
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                    .thenReturn(Arrays.asList("-Xms512M",
+                            // A property without assignment
+                            // to verify the processing is correct with such configuration
+                            "-Dbithon.test",
+                            // Override the in file configuration
+                            "-Dbithon.test.prop=from_command_line",
+
+                            // Also set the external configuration
+                            "-Dbithon.configuration.location=" + externalConfigLocation
+                    ));
+
+            configurationMock.when(Helper::getEnvironmentVariables)
+                    .thenReturn(ImmutableMap.of("bithon_t", "t1",
+                            "bithon_test_prop", "from_env"));
+
+            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+
+            TestProp config = manager.getConfig(TestProp.class);
+            Assert.assertEquals("from_env", config.getProp());
+        }
+    }
+
+
     static class TwoProps {
         private String prop1;
         private String prop2;
