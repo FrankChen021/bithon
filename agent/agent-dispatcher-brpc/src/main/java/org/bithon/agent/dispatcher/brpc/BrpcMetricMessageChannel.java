@@ -160,7 +160,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
         try {
             boolean isDebugOn = this.dispatcherConfig.getMessageDebug().getOrDefault(messageClass, false);
             if (isDebugOn) {
-                LOG.info("[Debugging] Sending Thrift Messages: {}", message);
+                LOG.info("[Debugging] Sending Metric Messages: {}", message);
             }
             method.invoke(metricCollector, header, message);
         } catch (IllegalAccessException e) {
