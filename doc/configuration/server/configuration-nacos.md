@@ -1,9 +1,9 @@
 
 ## Nacos
 
-The servers support Alibaba Nacos as configuration center. 
+The servers support Alibaba Nacos as a configuration and service discovery center. 
 
-> Current supported nacos server is 1.4. 
+> Current supported nacos server is 2.3.1. 
 > 
 > If your nacos sever is not compatible with this version, 
 > you can change the nacos client dependency in server/server-starter/pom.xml to match your nacos server.
@@ -23,7 +23,7 @@ spring:
         enabled: false
 ```
 
-You need also change following nacos configuration items to reflect the items in nacos server.
+You also need to change the following nacos configuration items to reflect the items in nacos server.
 
 ```yaml
 spring:
