@@ -28,7 +28,6 @@ import org.bithon.agent.observability.tracing.context.propagation.ITracePropagat
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
 import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.UUIDGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
 import org.bithon.agent.observability.tracing.sampler.ISampler;
 import org.bithon.agent.observability.tracing.sampler.SamplerFactory;
@@ -50,7 +49,6 @@ public class Tracer {
 
     private final String appName;
     private final String instanceName;
-    private ITraceIdGenerator traceIdGenerator;
     private ITraceReporter reporter;
     private ITracePropagator propagator;
     private ISpanIdGenerator spanIdGenerator;
@@ -67,13 +65,14 @@ public class Tracer {
                 if (INSTANCE == null) {
                     AppInstance appInstance = AppInstance.getInstance();
                     try {
+                        TraceConfig traceConfig = ConfigurationManager.getInstance().getConfig(TraceConfig.class);
+
                         ISampler sampler = SamplerFactory.createSampler(ConfigurationManager.getInstance()
                                                                                             .getDynamicConfig("tracing.samplingConfigs.default",
                                                                                                               TraceSamplingConfig.class));
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
-                            .traceConfig(ConfigurationManager.getInstance().getConfig(TraceConfig.class))
+                            .traceConfig(traceConfig)
                             .propagator(new DefaultPropagator(sampler))
-                            .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
                             .reporter(new DefaultReporter());
                     } catch (Exception e) {
@@ -94,13 +93,10 @@ public class Tracer {
         return this.traceConfig.isDisabled();
     }
 
-    public Tracer traceIdGenerator(ITraceIdGenerator idGenerator) {
-        this.traceIdGenerator = idGenerator;
-        return this;
-    }
-
     public ITraceIdGenerator traceIdGenerator() {
-        return this.traceIdGenerator;
+        // Always return the traceIdGenerator from traceConfig
+        // so that dynamic change of traceConfig can take effect
+        return this.traceConfig.getTraceIdGenerator();
     }
 
     public Tracer spanIdGenerator(ISpanIdGenerator spanIdGenerator) {

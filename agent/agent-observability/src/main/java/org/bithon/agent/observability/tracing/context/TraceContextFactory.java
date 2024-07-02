@@ -34,7 +34,7 @@ public class TraceContextFactory {
     static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
     public static ITraceContext newContext(SamplingMode samplingMode) {
-        return newContext(samplingMode, Tracer.get().traceIdGenerator().newTraceId(), null);
+        return newContext(samplingMode, Tracer.get().traceIdGenerator().newId(), null);
     }
 
     public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId) {
@@ -51,7 +51,7 @@ public class TraceContextFactory {
         String upstreamTraceId = null;
         if (traceId.length() != 32 || !UUID_PATTERN.matcher(traceId).matches()) {
             upstreamTraceId = traceId;
-            traceId = Tracer.get().traceIdGenerator().newTraceId();
+            traceId = Tracer.get().traceIdGenerator().newId();
         }
 
         //
