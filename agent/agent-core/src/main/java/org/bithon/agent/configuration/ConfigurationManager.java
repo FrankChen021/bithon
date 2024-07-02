@@ -51,7 +51,7 @@ import static java.io.File.separator;
  * 1. The default agent configuration located under the agent-distribution/conf
  * 2. The external configuration specified via -Dbithon.configuration.location command line argument
  * 3. All parameters defined by -Dbithon.xxx
- * 4. All environment variables starting with bithon_
+ * 4. All environment variables starting with BITHON_
  * 5. Dynamic configuration from the remote controller
  *
  * Different configuration sources may contain the same property keys,
@@ -124,7 +124,7 @@ public class ConfigurationManager {
         return new ConfigurationManager(PropertySource.from(PropertySourceType.INTERNAL, defaultConfigLocation, true),
                                         ExternalSource.build(),
                                         CommandLineArgsSource.build("bithon."),
-                                        EnvironmentSource.build("bithon_"));
+                                        EnvironmentSource.build("BITHON_"));
     }
 
     // Sorted in priority
