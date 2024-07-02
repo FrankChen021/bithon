@@ -18,9 +18,8 @@ package org.bithon.server.alerting.common.evaluator.metric.absolute;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

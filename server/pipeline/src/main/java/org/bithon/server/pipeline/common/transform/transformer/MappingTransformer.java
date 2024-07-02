@@ -17,10 +17,10 @@
 package org.bithon.server.pipeline.common.transform.transformer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
-import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**

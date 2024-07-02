@@ -18,9 +18,9 @@ package org.bithon.server.commons.matcher;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 /**

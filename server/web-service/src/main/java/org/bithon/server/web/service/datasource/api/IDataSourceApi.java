@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.constraints.Min;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;

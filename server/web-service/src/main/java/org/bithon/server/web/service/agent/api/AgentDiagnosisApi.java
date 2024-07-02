@@ -19,6 +19,7 @@ package org.bithon.server.web.service.agent.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -60,8 +61,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;

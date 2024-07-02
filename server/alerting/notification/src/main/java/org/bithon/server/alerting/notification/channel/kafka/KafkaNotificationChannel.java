@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -33,7 +34,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
-import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

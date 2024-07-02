@@ -16,12 +16,11 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

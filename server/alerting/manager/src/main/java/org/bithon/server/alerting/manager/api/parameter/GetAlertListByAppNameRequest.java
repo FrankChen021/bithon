@@ -16,9 +16,8 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

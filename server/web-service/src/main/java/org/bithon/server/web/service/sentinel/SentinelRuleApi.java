@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.sentinel;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.sentinel.IDegradingRuleManager;
 import org.bithon.agent.rpc.brpc.sentinel.IFlowRuleManager;
@@ -28,8 +29,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
 
 /**
  * @author frank.chen021@outlook.com
