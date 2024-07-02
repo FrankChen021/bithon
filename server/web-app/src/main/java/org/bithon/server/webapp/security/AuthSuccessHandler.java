@@ -50,7 +50,11 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
         // Keep the ROLE_USER only
-        OAuth2UserAuthority user = (OAuth2UserAuthority) oauthUser.getAuthorities().stream().filter((auth) -> "ROLE_USER".equals(auth.getAuthority())).findFirst().get();
+        OAuth2UserAuthority user = (OAuth2UserAuthority) oauthUser.getAuthorities()
+                                                                  .stream()
+                                                                  .filter((auth) -> "OAUTH2_USER".equals(auth.getAuthority()))
+                                                                  .findFirst()
+                                                                  .get();
 
         // Keep email and name only
         String email = (String) user.getAttributes().get("email");
