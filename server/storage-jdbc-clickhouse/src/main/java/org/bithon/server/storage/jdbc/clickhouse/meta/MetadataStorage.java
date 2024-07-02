@@ -107,7 +107,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
             values[2] = inputRow.getAppType();
             values[3] = inputRow.getInstanceName();
 
-            step.bind(values);
+            step = step.bind(values);
         }
 
         // No need to ignore or update because we use ReplacingMergeTree for this table

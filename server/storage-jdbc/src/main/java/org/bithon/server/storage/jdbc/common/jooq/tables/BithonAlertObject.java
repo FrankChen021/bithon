@@ -7,6 +7,7 @@ package org.bithon.server.storage.jdbc.common.jooq.tables;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.bithon.server.storage.jdbc.common.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.common.jooq.Indexes;
@@ -14,25 +15,30 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertObjectRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function10;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row10;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
 /**
  * Alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
 
-    private static final long serialVersionUID = -169553789;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>bithon_alert_object</code>
@@ -50,58 +56,60 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     /**
      * The column <code>bithon_alert_object.alert_id</code>. UUID
      */
-    public final TableField<BithonAlertObjectRecord, String> ALERT_ID = createField(DSL.name("alert_id"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "UUID");
+    public final TableField<BithonAlertObjectRecord, String> ALERT_ID = createField(DSL.name("alert_id"), SQLDataType.VARCHAR(32).nullable(false), this, "UUID");
 
     /**
      * The column <code>bithon_alert_object.alert_name</code>.
      */
-    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>bithon_alert_object.app_name</code>.
      */
-    public final TableField<BithonAlertObjectRecord, String> APP_NAME = createField(DSL.name("app_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAlertObjectRecord, String> APP_NAME = createField(DSL.name("app_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>bithon_alert_object.namespace</code>. namespace of application
+     * The column <code>bithon_alert_object.namespace</code>. namespace of
+     * application
      */
-    public final TableField<BithonAlertObjectRecord, String> NAMESPACE = createField(DSL.name("namespace"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "namespace of application");
+    public final TableField<BithonAlertObjectRecord, String> NAMESPACE = createField(DSL.name("namespace"), SQLDataType.VARCHAR(64).nullable(false), this, "namespace of application");
 
     /**
      * The column <code>bithon_alert_object.disabled</code>.
      */
-    public final TableField<BithonAlertObjectRecord, Integer> DISABLED = createField(DSL.name("disabled"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, Integer> DISABLED = createField(DSL.name("disabled"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.deleted</code>.
      */
-    public final TableField<BithonAlertObjectRecord, Integer> DELETED = createField(DSL.name("deleted"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, Integer> DELETED = createField(DSL.name("deleted"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.payload</code>. JSON formatted alert
      */
-    public final TableField<BithonAlertObjectRecord, String> PAYLOAD = createField(DSL.name("payload"), org.jooq.impl.SQLDataType.CLOB, this, "JSON formatted alert");
+    public final TableField<BithonAlertObjectRecord, String> PAYLOAD = createField(DSL.name("payload"), SQLDataType.CLOB, this, "JSON formatted alert");
 
     /**
      * The column <code>bithon_alert_object.created_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.updated_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_object.last_operator</code>.
      */
-    public final TableField<BithonAlertObjectRecord, String> LAST_OPERATOR = createField(DSL.name("last_operator"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAlertObjectRecord, String> LAST_OPERATOR = createField(DSL.name("last_operator"), SQLDataType.VARCHAR(64).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "");
 
-    /**
-     * Create a <code>bithon_alert_object</code> table reference
-     */
-    public BithonAlertObject() {
-        this(DSL.name("bithon_alert_object"), null);
+    private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment("Alert"), TableOptions.table());
     }
 
     /**
@@ -118,12 +126,11 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
         this(alias, BITHON_ALERT_OBJECT);
     }
 
-    private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alert"));
+    /**
+     * Create a <code>bithon_alert_object</code> table reference
+     */
+    public BithonAlertObject() {
+        this(DSL.name("bithon_alert_object"), null);
     }
 
     public <O extends Record> BithonAlertObject(Table<O> child, ForeignKey<O, BithonAlertObjectRecord> key) {
@@ -132,17 +139,17 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
 
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_APP_NAME, Indexes.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_UPDATED_AT, Indexes.BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID);
+        return Arrays.asList(Indexes.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_APP_NAME, Indexes.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_UPDATED_AT);
     }
 
     @Override
-    public List<UniqueKey<BithonAlertObjectRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonAlertObjectRecord>>asList(Keys.KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID);
+    public List<UniqueKey<BithonAlertObjectRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.KEY_BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID);
     }
 
     @Override
@@ -153,6 +160,11 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     @Override
     public BithonAlertObject as(Name alias) {
         return new BithonAlertObject(alias, this);
+    }
+
+    @Override
+    public BithonAlertObject as(Table<?> alias) {
+        return new BithonAlertObject(alias.getQualifiedName(), this);
     }
 
     /**
@@ -171,6 +183,14 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
         return new BithonAlertObject(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public BithonAlertObject rename(Table<?> name) {
+        return new BithonAlertObject(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row10 type methods
     // -------------------------------------------------------------------------
@@ -178,5 +198,20 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     @Override
     public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
         return (Row10) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function10<? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

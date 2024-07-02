@@ -16,10 +16,9 @@
 
 package org.bithon.server.web.service.meta.api;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.server.storage.meta.MetadataType;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

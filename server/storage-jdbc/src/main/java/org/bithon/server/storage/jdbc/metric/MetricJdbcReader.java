@@ -34,6 +34,7 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
+import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
@@ -77,7 +78,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(new DataSourceConnectionProvider(jdbcDataSource))
                                         .set(new JooqProperties().determineSqlDialect(jdbcDataSource))
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.sqlDialect = sqlDialect;
         this.shouldCloseContext = true;
@@ -271,7 +272,6 @@ public class MetricJdbcReader implements IDataSourceReader {
                 ((DruidDataSource) cp.dataSource()).close();
             } catch (Exception ignored) {
             }
-            this.dslContext.close();
         }
     }
 }

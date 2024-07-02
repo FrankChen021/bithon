@@ -32,9 +32,10 @@ server:
 # Better to have
 #
 spring:
-  resources:
-    cache:
-      cachecontrol:
-        max-age: 3600
-        must-revalidate: true
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          must-revalidate: true
 

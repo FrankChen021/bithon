@@ -16,10 +16,9 @@
 
 package org.bithon.server.web.service.sentinel;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.agent.rpc.brpc.sentinel.FlowRuleDto;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

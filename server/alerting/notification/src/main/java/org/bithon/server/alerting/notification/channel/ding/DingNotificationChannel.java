@@ -19,6 +19,7 @@ package org.bithon.server.alerting.notification.channel.ding;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
@@ -35,8 +36,6 @@ import org.bithon.server.alerting.notification.message.format.NotificationConten
 import org.bithon.server.alerting.notification.message.format.NotificationTextSection;
 import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
 import org.bithon.server.alerting.notification.message.format.TextLine;
-
-import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com

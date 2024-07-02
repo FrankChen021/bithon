@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -149,7 +150,10 @@ public class Matchers {
 
             @Override
             public String toString() {
-                return String.format(Locale.ENGLISH, "(visible: %s)", visibility);
+                return String.format(Locale.ENGLISH, "(visible: %s)",
+                                     Arrays.stream(visibility)
+                                           .map(Enum::name)
+                                           .collect(Collectors.joining(",")));
             }
         };
     }

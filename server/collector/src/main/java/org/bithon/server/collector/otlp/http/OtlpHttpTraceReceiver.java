@@ -16,6 +16,8 @@
 
 package org.bithon.server.collector.otlp.http;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
@@ -26,8 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
@@ -37,12 +37,12 @@ import java.util.zip.InflaterInputStream;
  * @author frank.chen021@outlook.com
  * @date 2023/9/1 20:59
  */
+@Setter
 @Slf4j
 @RestController
 @ConditionalOnProperty(value = "bithon.receivers.traces.otlp-http.enabled", havingValue = "true")
 public class OtlpHttpTraceReceiver {
 
-    @Setter
     private ITraceProcessor processor;
 
     @PostMapping("/api/collector/otlp/trace")

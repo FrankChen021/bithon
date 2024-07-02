@@ -16,11 +16,11 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.bithon.server.storage.datasource.query.OrderBy;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
 import java.util.Map;
 

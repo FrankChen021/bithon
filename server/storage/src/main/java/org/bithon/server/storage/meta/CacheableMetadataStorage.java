@@ -20,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.springframework.beans.factory.DisposableBean;
 
-import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * @date 2021/3/4 12:15 上午
  */
 @Slf4j
-public class CacheableMetadataStorage implements IMetaStorage {
+public class CacheableMetadataStorage implements IMetaStorage, DisposableBean {
 
     private final IMetaStorage delegate;
 
@@ -105,12 +105,8 @@ public class CacheableMetadataStorage implements IMetaStorage {
         this.saveInstanceTask.start();
     }
 
-    /**
-     * This CacheableMetadataStorage is registered as a Spring Bean,
-     * we can use the PreDestroy to hook on destroy of this object to stop the periodic task
-     */
-    @PreDestroy
-    public void onDestroy() {
+    @Override
+    public void destroy() throws Exception {
         this.loadInstanceTask.stop();
         this.saveInstanceTask.stop();
     }
@@ -176,11 +172,11 @@ public class CacheableMetadataStorage implements IMetaStorage {
         protected void onRun() {
             log.info("Loading all application instances...");
 
-            // The metadata API retrieves data by the latest 24H, it SHOULD be optimized by reading corresponding data source
+            // The metadata API retrieves data by the latest 24H, it SHOULD be optimized by reading the corresponding data source
             // Since it has not been changed yet, here we simply keep the instance updated in 24H
             Collection<Instance> instances = delegate.getApplicationInstances(TimeSpan.now().before(1, TimeUnit.DAYS).getMilliseconds());
 
-            // do not use stream API to collect map because the instances may contain duplicated items of same instance ip
+            // do not use stream API to collect map because the instances may contain duplicated items of the same instance ip
             Set<String> applicationCache = new HashSet<>();
             Map<String, String> instance2App = new ConcurrentHashMap<>();
             for (Instance instance : instances) {

@@ -30,6 +30,7 @@ import org.bithon.server.storage.common.provider.IStorageProviderConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
+import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
@@ -65,7 +66,7 @@ public class ClickHouseStorageProviderConfiguration implements IStorageProviderC
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
                                         .set(new JooqProperties().determineSqlDialect(dataSource))
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.clickHouseConfig = objectMapper.readValue(objectMapper.writeValueAsString(props),
                                                        ClickHouseConfig.class);

@@ -31,7 +31,6 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -147,10 +146,10 @@ public class MetricJdbcStorage implements IMetricStorage {
             return;
         }
 
-        CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
-                                           .columns(table.fields())
-                                           .indexes(table.getIndexes());
-        s.execute();
+        dslContext.createTableIfNotExists(table)
+                  .columns(table.fields())
+                  .indexes(table.getIndexes())
+                  .execute();
     }
 
     @Override

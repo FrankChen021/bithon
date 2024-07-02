@@ -81,7 +81,7 @@ public class MetricTable extends TableImpl {
             metrics.add(createField(metric.getName(), metric.getDataType(), 8192));
         }
 
-        Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
+        Index index = Internal.createIndex(DSL.name("idx_" + this.getName() + "_dimensions"),
                                            this,
                                            indexesFields.toArray(new Field[0]),
                                            schema.isEnforceDuplicationCheck());

@@ -16,10 +16,9 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.server.commons.time.Period;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

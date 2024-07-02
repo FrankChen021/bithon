@@ -16,10 +16,10 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alerting History Records
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRecord> implements Record10<String, String, String, String, String, String, String, LocalDateTime, Integer, String> {
 
-    private static final long serialVersionUID = -1428718005;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>bithon_alert_record.record_id</code>.
@@ -92,28 +92,32 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
     }
 
     /**
-     * Setter for <code>bithon_alert_record.payload</code>. JSON formatted alert object
+     * Setter for <code>bithon_alert_record.payload</code>. JSON formatted alert
+     * object
      */
     public void setPayload(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_record.payload</code>. JSON formatted alert object
+     * Getter for <code>bithon_alert_record.payload</code>. JSON formatted alert
+     * object
      */
     public String getPayload() {
         return (String) get(5);
     }
 
     /**
-     * Setter for <code>bithon_alert_record.data_source</code>. JSON formatted data source configuration
+     * Setter for <code>bithon_alert_record.data_source</code>. JSON formatted
+     * data source configuration
      */
     public void setDataSource(String value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_record.data_source</code>. JSON formatted data source configuration
+     * Getter for <code>bithon_alert_record.data_source</code>. JSON formatted
+     * data source configuration
      */
     public String getDataSource() {
         return (String) get(6);
@@ -134,28 +138,32 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
     }
 
     /**
-     * Setter for <code>bithon_alert_record.notification_status</code>. -1:waiting ack，1:ACK
+     * Setter for <code>bithon_alert_record.notification_status</code>.
+     * -1:waiting ack，1:ACK
      */
     public void setNotificationStatus(Integer value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_record.notification_status</code>. -1:waiting ack，1:ACK
+     * Getter for <code>bithon_alert_record.notification_status</code>.
+     * -1:waiting ack，1:ACK
      */
     public Integer getNotificationStatus() {
         return (Integer) get(8);
     }
 
     /**
-     * Setter for <code>bithon_alert_record.notification_result</code>. JSON formatted
+     * Setter for <code>bithon_alert_record.notification_result</code>. JSON
+     * formatted
      */
     public void setNotificationResult(String value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_record.notification_result</code>. JSON formatted
+     * Getter for <code>bithon_alert_record.notification_result</code>. JSON
+     * formatted
      */
     public String getNotificationResult() {
         return (String) get(9);
@@ -417,15 +425,15 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
     public BithonAlertRecordRecord(String recordId, String alertId, String alertName, String appName, String namespace, String payload, String dataSource, LocalDateTime createdAt, Integer notificationStatus, String notificationResult) {
         super(BithonAlertRecord.BITHON_ALERT_RECORD);
 
-        set(0, recordId);
-        set(1, alertId);
-        set(2, alertName);
-        set(3, appName);
-        set(4, namespace);
-        set(5, payload);
-        set(6, dataSource);
-        set(7, createdAt);
-        set(8, notificationStatus);
-        set(9, notificationResult);
+        setRecordId(recordId);
+        setAlertId(alertId);
+        setAlertName(alertName);
+        setAppName(appName);
+        setNamespace(namespace);
+        setPayload(payload);
+        setDataSource(dataSource);
+        setCreatedAt(createdAt);
+        setNotificationStatus(notificationStatus);
+        setNotificationResult(notificationResult);
     }
 }

@@ -7,30 +7,36 @@ package org.bithon.server.storage.jdbc.common.jooq.tables;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.bithon.server.storage.jdbc.common.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertChangeLogRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function6;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row6;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableOptions;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
 /**
  * Change logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> {
 
-    private static final long serialVersionUID = -742280622;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>bithon_alert_change_log</code>
@@ -46,40 +52,45 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
     }
 
     /**
-     * The column <code>bithon_alert_change_log.alert_id</code>. ID of Alert Object
+     * The column <code>bithon_alert_change_log.alert_id</code>. ID of Alert
+     * Object
      */
-    public final TableField<BithonAlertChangeLogRecord, String> ALERT_ID = createField(DSL.name("alert_id"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "ID of Alert Object");
+    public final TableField<BithonAlertChangeLogRecord, String> ALERT_ID = createField(DSL.name("alert_id"), SQLDataType.VARCHAR(32).nullable(false), this, "ID of Alert Object");
 
     /**
      * The column <code>bithon_alert_change_log.action</code>.
      */
-    public final TableField<BithonAlertChangeLogRecord, String> ACTION = createField(DSL.name("action"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "");
+    public final TableField<BithonAlertChangeLogRecord, String> ACTION = createField(DSL.name("action"), SQLDataType.VARCHAR(32).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_alert_change_log.payload_before</code>. JSON formatted
+     * The column <code>bithon_alert_change_log.payload_before</code>. JSON
+     * formatted
      */
-    public final TableField<BithonAlertChangeLogRecord, String> PAYLOAD_BEFORE = createField(DSL.name("payload_before"), org.jooq.impl.SQLDataType.CLOB, this, "JSON formatted");
+    public final TableField<BithonAlertChangeLogRecord, String> PAYLOAD_BEFORE = createField(DSL.name("payload_before"), SQLDataType.CLOB, this, "JSON formatted");
 
     /**
-     * The column <code>bithon_alert_change_log.payload_after</code>. JSON formatted
+     * The column <code>bithon_alert_change_log.payload_after</code>. JSON
+     * formatted
      */
-    public final TableField<BithonAlertChangeLogRecord, String> PAYLOAD_AFTER = createField(DSL.name("payload_after"), org.jooq.impl.SQLDataType.CLOB, this, "JSON formatted");
+    public final TableField<BithonAlertChangeLogRecord, String> PAYLOAD_AFTER = createField(DSL.name("payload_after"), SQLDataType.CLOB, this, "JSON formatted");
 
     /**
      * The column <code>bithon_alert_change_log.editor</code>.
      */
-    public final TableField<BithonAlertChangeLogRecord, String> EDITOR = createField(DSL.name("editor"), org.jooq.impl.SQLDataType.VARCHAR(64), this, "");
+    public final TableField<BithonAlertChangeLogRecord, String> EDITOR = createField(DSL.name("editor"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>bithon_alert_change_log.created_at</code>. Create timestamp
+     * The column <code>bithon_alert_change_log.created_at</code>. Create
+     * timestamp
      */
-    public final TableField<BithonAlertChangeLogRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "Create timestamp");
+    public final TableField<BithonAlertChangeLogRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Create timestamp");
 
-    /**
-     * Create a <code>bithon_alert_change_log</code> table reference
-     */
-    public BithonAlertChangeLog() {
-        this(DSL.name("bithon_alert_change_log"), null);
+    private BithonAlertChangeLog(Name alias, Table<BithonAlertChangeLogRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private BithonAlertChangeLog(Name alias, Table<BithonAlertChangeLogRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment("Change logs of alert"), TableOptions.table());
     }
 
     /**
@@ -96,12 +107,11 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
         this(alias, BITHON_ALERT_CHANGE_LOG);
     }
 
-    private BithonAlertChangeLog(Name alias, Table<BithonAlertChangeLogRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private BithonAlertChangeLog(Name alias, Table<BithonAlertChangeLogRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Change logs of alert"));
+    /**
+     * Create a <code>bithon_alert_change_log</code> table reference
+     */
+    public BithonAlertChangeLog() {
+        this(DSL.name("bithon_alert_change_log"), null);
     }
 
     public <O extends Record> BithonAlertChangeLog(Table<O> child, ForeignKey<O, BithonAlertChangeLogRecord> key) {
@@ -110,12 +120,12 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
 
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_ALERT_ID, Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_CREATED_AT);
+        return Arrays.asList(Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_ALERT_ID, Indexes.BITHON_ALERT_CHANGE_LOG_IDX_ALERT_CHANGE_LOG_CREATED_AT);
     }
 
     @Override
@@ -126,6 +136,11 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
     @Override
     public BithonAlertChangeLog as(Name alias) {
         return new BithonAlertChangeLog(alias, this);
+    }
+
+    @Override
+    public BithonAlertChangeLog as(Table<?> alias) {
+        return new BithonAlertChangeLog(alias.getQualifiedName(), this);
     }
 
     /**
@@ -144,6 +159,14 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
         return new BithonAlertChangeLog(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public BithonAlertChangeLog rename(Table<?> name) {
+        return new BithonAlertChangeLog(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row6 type methods
     // -------------------------------------------------------------------------
@@ -151,5 +174,20 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
     @Override
     public Row6<String, String, String, String, String, LocalDateTime> fieldsRow() {
         return (Row6) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function6<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super String, ? super String, ? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

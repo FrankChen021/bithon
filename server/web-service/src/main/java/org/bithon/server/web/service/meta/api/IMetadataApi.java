@@ -16,12 +16,12 @@
 
 package org.bithon.server.web.service.meta.api;
 
+import jakarta.validation.Valid;
 import org.bithon.server.storage.meta.Metadata;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 /**

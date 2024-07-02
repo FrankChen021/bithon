@@ -16,11 +16,11 @@
 
 package org.bithon.server.alerting.common.utils;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.groups.Default;
 import org.springframework.util.CollectionUtils;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.groups.Default;
 import java.util.Set;
 
 /**
@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class Validator {
     public static Object validate(Object obj) {
-        javax.validation.Validator validator = Validation.buildDefaultValidatorFactory()
+        jakarta.validation.Validator validator = Validation.buildDefaultValidatorFactory()
                                                          .getValidator();
 
         Set<ConstraintViolation<Object>> set = validator.validate(obj, Default.class);

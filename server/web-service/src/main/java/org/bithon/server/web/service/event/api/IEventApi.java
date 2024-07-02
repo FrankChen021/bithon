@@ -16,10 +16,10 @@
 
 package org.bithon.server.web.service.event.api;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.Valid;
 import java.io.IOException;
 
 /**

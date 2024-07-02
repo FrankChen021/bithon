@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.common.evaluator.metric.absolute;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -33,7 +34,6 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;

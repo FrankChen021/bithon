@@ -16,10 +16,10 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record5<String, Integer, LocalDateTime, String, LocalDateTime> {
 
-    private static final long serialVersionUID = -1538762754;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>bithon_alert_state.alert_id</code>.
@@ -36,14 +36,16 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     /**
-     * Setter for <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     * Setter for <code>bithon_alert_state.alert_status</code>. See the
+     * AlertStatus enum
      */
     public void setAlertStatus(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     * Getter for <code>bithon_alert_state.alert_status</code>. See the
+     * AlertStatus enum
      */
     public Integer getAlertStatus() {
         return (Integer) get(1);
@@ -64,28 +66,32 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     /**
-     * Setter for <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
+     * Setter for <code>bithon_alert_state.last_record_id</code>. The PK ID in
+     * bithon_alert_record table
      */
     public void setLastRecordId(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
+     * Getter for <code>bithon_alert_state.last_record_id</code>. The PK ID in
+     * bithon_alert_record table
      */
     public String getLastRecordId() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>bithon_alert_state.update_at</code>. when the record is updated
+     * Setter for <code>bithon_alert_state.update_at</code>. when the record is
+     * updated
      */
     public void setUpdateAt(LocalDateTime value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_state.update_at</code>. when the record is updated
+     * Getter for <code>bithon_alert_state.update_at</code>. when the record is
+     * updated
      */
     public LocalDateTime getUpdateAt() {
         return (LocalDateTime) get(4);
@@ -237,10 +243,10 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId, LocalDateTime updateAt) {
         super(BithonAlertState.BITHON_ALERT_STATE);
 
-        set(0, alertId);
-        set(1, alertStatus);
-        set(2, lastAlertAt);
-        set(3, lastRecordId);
-        set(4, updateAt);
+        setAlertId(alertId);
+        setAlertStatus(alertStatus);
+        setLastAlertAt(lastAlertAt);
+        setLastRecordId(lastRecordId);
+        setUpdateAt(updateAt);
     }
 }

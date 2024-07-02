@@ -33,6 +33,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.jdbc.JDBCUtils;
+import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteListener;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 
 import java.util.Map;
@@ -78,6 +79,6 @@ public class JdbcStorageProviderConfiguration implements IStorageProviderConfigu
         this.dslContext = DSL.using(new DefaultConfiguration()
                                         .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
                                         .set(sqlDialect)
-                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+                                        .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
     }
 }

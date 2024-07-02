@@ -22,10 +22,9 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.IStorage;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,9 +37,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-public class ExpirationScheduler {
+public class ExpirationScheduler implements SmartLifecycle {
 
-    private final ScheduledThreadPoolExecutor executor;
+    private ScheduledThreadPoolExecutor executor;
     private final ApplicationContext applicationContext;
 
     /**
@@ -49,23 +48,34 @@ public class ExpirationScheduler {
     private final Map<String, Long> timestamps = new HashMap<>();
 
     public ExpirationScheduler(ApplicationContext applicationContext) {
-        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("storage-cleaner"));
         this.applicationContext = applicationContext;
     }
 
-    @PostConstruct
+    @Override
     public void start() {
         log.info("Starting storage cleaner...");
+        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("storage-cleaner"));
         this.executor.scheduleAtFixedRate(this::expireAllStorages,
                                           1,
                                           1,
                                           TimeUnit.MINUTES);
     }
 
-    @PreDestroy
+    @Override
     public void stop() {
         log.info("Shutting down storage cleaner...");
         executor.shutdownNow();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+        }
+        executor = null;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.executor != null;
     }
 
     private void expireAllStorages() {

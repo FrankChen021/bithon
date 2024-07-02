@@ -17,13 +17,13 @@
 package org.bithon.server.alerting.evaluator.storage.redis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.joda.time.Period;
 import redis.clients.jedis.Protocol;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import java.util.concurrent.TimeUnit;
 
 public class RedisConfig {

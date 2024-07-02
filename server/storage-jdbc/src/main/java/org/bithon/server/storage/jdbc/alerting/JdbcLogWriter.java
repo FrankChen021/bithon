@@ -70,7 +70,7 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                                                                 null,
                                                                 null,
                                                                 null
-                                                               ));
+                                                        ));
 
         int fieldLength = Tables.BITHON_ALERT_EVALUATION_LOG.CLAZZ.getDataType().length();
         for (EvaluationLogEvent log : logs) {
@@ -80,12 +80,12 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                 clazz = clazz.substring(clazz.length() - fieldLength);
             }
 
-            step.bind(log.getTimestamp(),
-                      log.getAlertId(),
-                      log.getSequence(),
-                      clazz,
-                      this.instance,
-                      log.getMessage());
+            step = step.bind(log.getTimestamp(),
+                             log.getAlertId(),
+                             log.getSequence(),
+                             clazz,
+                             this.instance,
+                             log.getMessage());
         }
         step.execute();
     }

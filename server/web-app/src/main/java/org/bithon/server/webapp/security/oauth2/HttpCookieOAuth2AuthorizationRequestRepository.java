@@ -16,6 +16,8 @@
 
 package org.bithon.server.webapp.security.oauth2;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.webapp.security.CookieHelper;
 import org.bithon.server.webapp.security.LoginAuthenticationEntryPoint;
@@ -25,8 +27,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.SerializationUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 
 /**
@@ -59,12 +59,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
                             .path("/")
                             .expiration(LoginAuthenticationEntryPoint.MAX_AGE)
                             .addTo(response);
-    }
-
-    @Override
-    public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request) {
-        // This interface has been deprecated, no need to implement
-        return null;
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import jakarta.validation.Valid;
 import org.bithon.component.commons.utils.Watch;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -29,7 +30,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
