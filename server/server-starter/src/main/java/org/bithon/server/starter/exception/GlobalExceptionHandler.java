@@ -35,6 +35,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 
 /**
@@ -68,7 +69,8 @@ public class GlobalExceptionHandler {
         HttpMessageNotReadableException.class,
         HttpRequestMethodNotSupportedException.class,
         HttpMediaTypeNotSupportedException.class,
-        ServletRequestBindingException.class
+        ServletRequestBindingException.class,
+        NoResourceFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, Exception exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
