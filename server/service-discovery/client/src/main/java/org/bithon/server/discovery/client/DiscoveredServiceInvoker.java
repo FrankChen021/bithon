@@ -39,6 +39,8 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * Invoke the discovered service on service provider(providers) instance(s).
@@ -109,7 +111,30 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                                                                   metadata.name()));
     }
 
-    public <T> T createUnicastApi(Class<T> serviceDeclaration, DiscoveredServiceInstance instance) {
+    public <T> T createUnicastApi(Class<T> serviceDeclaration) {
+        DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
+        if (metadata == null) {
+            throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
+                                                          serviceDeclaration.getName(),
+                                                          DiscoverableService.class.getSimpleName()));
+        }
+
+        final AtomicInteger index = new AtomicInteger();
+        Supplier<DiscoveredServiceInstance> loadBalancedInstanceSupplier = () -> {
+            List<DiscoveredServiceInstance> instanceList = this.getInstanceList(serviceDeclaration);
+            int i = index.getAndIncrement() % instanceList.size();
+            return instanceList.get(i);
+        };
+
+        //noinspection unchecked
+        return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
+                                          new Class<?>[]{serviceDeclaration},
+                                          new ServiceUnicastInvocationHandler<>(serviceDeclaration,
+                                                                                loadBalancedInstanceSupplier,
+                                                                                objectMapper));
+    }
+
+    public <T> T createUnicastApi(Class<T> serviceDeclaration, Supplier<DiscoveredServiceInstance> instanceSupplier) {
         DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -121,21 +146,21 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
                                           new Class<?>[]{serviceDeclaration},
                                           new ServiceUnicastInvocationHandler<>(serviceDeclaration,
-                                                                                instance,
+                                                                                instanceSupplier,
                                                                                 objectMapper));
     }
 
     private class ServiceUnicastInvocationHandler<T> implements InvocationHandler {
         private final ObjectMapper objectMapper;
         private final Class<T> type;
-        private final DiscoveredServiceInstance instance;
+        private final Supplier<DiscoveredServiceInstance> instanceSupplier;
 
         private ServiceUnicastInvocationHandler(Class<T> type,
-                                                DiscoveredServiceInstance instance,
+                                                Supplier<DiscoveredServiceInstance> instanceSupplier,
                                                 ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
             this.type = type;
-            this.instance = instance;
+            this.instanceSupplier = instanceSupplier;
+            this.objectMapper = objectMapper;
         }
 
         @Override
@@ -145,7 +170,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
             Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
             Object token = authentication == null ? null : authentication.getCredentials();
 
-            return new RemoteServiceCaller<>(objectMapper, type, instance, method, args, token).call();
+            return new RemoteServiceCaller<>(objectMapper, type, instanceSupplier.get(), method, args, token).call();
         }
     }
 
