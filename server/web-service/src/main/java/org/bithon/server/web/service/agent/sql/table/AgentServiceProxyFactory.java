@@ -267,15 +267,15 @@ public class AgentServiceProxyFactory {
                                           executor)
                              .thenAccept((responseBytes) -> {
                                  try {
-                                     ServiceResponseMessageIn in = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
-                                     invocationManager.onResponse(in);
+                                     ServiceResponseMessageIn response = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
+                                     invocationManager.handleResponse(response);
                                  } catch (IOException e) {
-                                     invocationManager.onClientException(txId, e);
+                                     invocationManager.handleException(txId, e);
                                  }
                              })
                              .whenComplete((v, ex) -> {
                                  if (ex != null) {
-                                     invocationManager.onClientException(txId, ex.getCause() != null ? ex.getCause() : ex);
+                                     invocationManager.handleException(txId, ex.getCause() != null ? ex.getCause() : ex);
                                  }
                              });
         }

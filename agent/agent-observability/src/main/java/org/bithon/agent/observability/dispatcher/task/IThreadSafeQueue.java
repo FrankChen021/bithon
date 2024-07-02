@@ -21,7 +21,7 @@ import java.time.Duration;
 /**
  * @author frankchen
  */
-public interface IMessageQueue {
+public interface IThreadSafeQueue {
 
     boolean offer(Object items);
 

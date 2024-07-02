@@ -60,8 +60,8 @@ public class BrpcEventMessageChannel implements IMessageChannel {
                                            .clientId("event")
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
-                                           .retryInterval(Duration.ofMillis(200))
-                                           .connectionTimeout(dispatcherConfig.getClient().getConnectionTimeout())
+                                           .retryBackOff(Duration.ofMillis(200))
+                                           .connectionTimeout(Duration.ofMillis(dispatcherConfig.getClient().getConnectionTimeout()))
                                            .build();
 
         this.dispatcherConfig = dispatcherConfig;
