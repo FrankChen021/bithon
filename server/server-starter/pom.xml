@@ -65,7 +65,7 @@
     <dependency><!-- Use our version to Support more DBMS -->
       <groupId>org.jooq</groupId>
       <artifactId>jooq</artifactId>
-      <version>3.17.27</version>
+      <version>3.17.99</version>
       <exclusions>
         <exclusion>
           <artifactId>jaxb-api</artifactId>

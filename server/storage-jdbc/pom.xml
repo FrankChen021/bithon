@@ -70,7 +70,7 @@
       <plugin>
         <groupId>org.jooq</groupId>
         <artifactId>jooq-codegen-maven</artifactId>
-        <version>3.17.27</version>
+        <version>3.17.99</version>
         <configuration>
           <jdbc>
             <driver>com.mysql.cj.jdbc.Driver</driver>
