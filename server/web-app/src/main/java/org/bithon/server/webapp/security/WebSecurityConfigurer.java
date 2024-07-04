@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -47,8 +46,11 @@ import java.util.stream.Stream;
 public class WebSecurityConfigurer {
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer(ServerProperties serverProperties) {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           ServerProperties serverProperties,
+                                           WebSecurityConfig securityConfig) throws Exception {
         String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
+
         String[] ignoreList = Stream.of("/images/**",
                                         "/css/**",
                                         "/lib/**",
@@ -58,16 +60,7 @@ public class WebSecurityConfigurer {
                                     )
                                     .map((path) -> contextPath + path)
                                     .toArray(String[]::new);
-
-        // Configure to ignore security check on static resources
-        return (web) -> web.ignoring().requestMatchers(ignoreList);
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-                                           ServerProperties serverProperties,
-                                           WebSecurityConfig securityConfig) throws Exception {
-        String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
+        http.authorizeHttpRequests((c) -> c.requestMatchers(ignoreList).permitAll());
 
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
