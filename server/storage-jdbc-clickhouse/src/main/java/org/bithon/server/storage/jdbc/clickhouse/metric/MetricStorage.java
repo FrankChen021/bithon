@@ -42,6 +42,7 @@ import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.jooq.DSLContext;
+import org.jooq.Meta;
 import org.jooq.Record;
 import org.jooq.Result;
 
@@ -138,6 +139,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected Result<? extends Record> getBaselineRecords() {
+        Meta m;
         String sql = dslContext.select(Tables.BITHON_METRICS_BASELINE.DATE, Tables.BITHON_METRICS_BASELINE.KEEP_DAYS)
                                .from(Tables.BITHON_METRICS_BASELINE)
                                .getSQL() + " FINAL ";
