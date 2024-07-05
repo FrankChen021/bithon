@@ -145,7 +145,7 @@ public class ThreadPoolNameHelper {
             try {
                 Field field = threadFactoryClass.getDeclaredField(nameField);
                 field.setAccessible(true);
-                String name = trimRight((String) field.get(threadFactoryObj), "-", ".");
+                String name = trimRight((String) field.get(threadFactoryObj), "-", ".", "-%d");
                 if (name != null) {
                     // Save the class and the name of field to save further time
                     threadFactoryNames.putIfAbsent(threadFactoryClass.getName(), nameField);
