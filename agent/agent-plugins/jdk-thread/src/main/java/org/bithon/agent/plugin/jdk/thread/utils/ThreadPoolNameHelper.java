@@ -145,7 +145,7 @@ public class ThreadPoolNameHelper {
             try {
                 Field field = threadFactoryClass.getDeclaredField(nameField);
                 field.setAccessible(true);
-                String name = stripSuffix((String) field.get(threadFactoryObj), "-");
+                String name = trimRight((String) field.get(threadFactoryObj), "-", ".");
                 if (name != null) {
                     // Save the class and the name of field to save further time
                     threadFactoryNames.putIfAbsent(threadFactoryClass.getName(), nameField);
@@ -157,14 +157,16 @@ public class ThreadPoolNameHelper {
         return null;
     }
 
-    public static String stripSuffix(String text, String suffix) {
-        if (text != null) {
+    public static String trimRight(String text, String... suffixList) {
+        if (text == null) {
+            return null;
+        }
+
+        for (String suffix : suffixList) {
             if (text.endsWith(suffix)) {
                 return text.substring(0, text.length() - suffix.length());
-            } else {
-                return text;
             }
         }
-        return null;
+        return text;
     }
 }
