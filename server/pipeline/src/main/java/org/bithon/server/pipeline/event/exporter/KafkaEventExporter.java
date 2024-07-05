@@ -36,8 +36,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -62,6 +64,17 @@ public class KafkaEventExporter implements IEventExporter {
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "event"));
         this.objectMapper = objectMapper.copy()
                                         .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
+    }
+
+    @Override
+    public void start() {
+        // Send an empty JSON payload to verify if the Kafka configuration is correct
+        // Since there are no objects inside the payload, this message will be discarded by the receiver
+        try {
+            producer.send(new ProducerRecord<>(topic, "[]".getBytes(StandardCharsets.UTF_8))).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
