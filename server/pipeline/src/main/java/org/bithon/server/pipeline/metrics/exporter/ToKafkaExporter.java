@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Sink message to Kafka.
@@ -81,6 +82,18 @@ public class ToKafkaExporter implements IMetricExporter {
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "metrics"));
 
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public void start() {
+        // Send an empty JSON payload to verify if the Kafka configuration is correct
+        // Since the receiver requires a 'type' header in the message,
+        // this empty message will be discarded by the receiver
+        try {
+            producer.send(new ProducerRecord<>(topic, "{}".getBytes(StandardCharsets.UTF_8))).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

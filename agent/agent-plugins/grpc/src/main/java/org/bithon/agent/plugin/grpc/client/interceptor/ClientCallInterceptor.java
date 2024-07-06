@@ -21,7 +21,6 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall;
-import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -99,12 +98,28 @@ public class ClientCallInterceptor implements ClientInterceptor {
         }
     }
 
-    static class TracedClientCallListener<RSP> extends ForwardingClientCallListener.SimpleForwardingClientCallListener<RSP> {
+    static class TracedClientCallListener<RSP> extends ClientCall.Listener<RSP> {
+        private final ClientCall.Listener<RSP> delegate;
         private final ITraceSpan span;
 
         public TracedClientCallListener(ITraceSpan span, ClientCall.Listener<RSP> delegate) {
-            super(delegate);
+            this.delegate = delegate;
             this.span = span;
+        }
+
+        @Override
+        public void onHeaders(Metadata headers) {
+            delegate.onHeaders(headers);
+        }
+
+        @Override
+        public void onMessage(RSP message) {
+            delegate.onMessage(message);
+        }
+
+        @Override
+        public void onReady() {
+            delegate.onReady();
         }
 
         @Override
@@ -112,7 +127,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
             span.tag(status.getCause()).tag("status", status.getCode().toString()).finish();
             span.context().finish();
 
-            super.onClose(status, trailers);
+            delegate.onClose(status, trailers);
         }
     }
 }

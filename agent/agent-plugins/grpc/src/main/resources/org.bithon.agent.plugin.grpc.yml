@@ -3,3 +3,4 @@ agent:
     grpc:
       shaded:
         - org.apache.ratis.thirdparty.io.grpc
+        - com.alibaba.nacos.shaded.io.grpc
