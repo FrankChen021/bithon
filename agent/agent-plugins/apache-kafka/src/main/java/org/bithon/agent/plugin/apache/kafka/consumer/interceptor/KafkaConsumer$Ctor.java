@@ -61,9 +61,36 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
         kafkaConsumer.setInjectedObject(kafkaPluginContext);
 
         ConsumerNetworkClient consumerNetworkClient = (ConsumerNetworkClient) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
+        if (!setContextOnNetworkClient(kafkaPluginContext, consumerNetworkClient)) {
+            // Check if the KafkaConsumer is the type of higher version.
+            // The Higher version of the Kafka client wraps the consumer into a 'delegate' property
+            Object consumerDelegate = ReflectionUtils.getFieldValue(aopContext.getTarget(), "delegate");
+            String clazzName = consumerDelegate.getClass().getSimpleName();
+            if ("LegacyKafkaConsumer".equals(clazzName)) {
+                if (consumerDelegate instanceof IBithonObject) {
+                    // The LegacyKafkaConsumer is also instrumented
+                    ((IBithonObject) consumerDelegate).setInjectedObject(kafkaPluginContext);
+                }
+
+                setContextOnNetworkClient(kafkaPluginContext, ReflectionUtils.getFieldValue(consumerDelegate, "client"));
+            } else if ("AsyncKafkaConsumer".equals(clazzName)) {
+                // TODO:
+            }
+        }
+    }
+
+    /**
+     * Set context to the {@link org.apache.kafka.clients.NetworkClient} object inside the {@link ConsumerNetworkClient}
+     *
+     * @param consumerNetworkClient type of {@link ConsumerNetworkClient}
+     */
+    private boolean setContextOnNetworkClient(KafkaPluginContext ctx, Object consumerNetworkClient) {
         Object kafkaNetworkClient = ReflectionUtils.getFieldValue(consumerNetworkClient, "client");
         if (kafkaNetworkClient instanceof IBithonObject) {
-            ((IBithonObject) kafkaNetworkClient).setInjectedObject(kafkaPluginContext);
+            ((IBithonObject) kafkaNetworkClient).setInjectedObject(ctx);
+            return true;
+        } else {
+            return false;
         }
     }
 }
