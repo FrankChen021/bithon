@@ -14,14 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.model;
+package org.bithon.agent.observability.tracing.id.impl;
+
+import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
+
+import java.util.UUID;
 
 /**
- * Represents a cumulative value.
- * In contrast to Counter, its value will NOT be flushed after be accessed
- *
  * @author frank.chen021@outlook.com
- * @date 2021/2/23 9:19 下午
+ * @date 2021/2/6 12:20 上午
  */
-public interface Gauge extends IMetricValueProvider {
+public class UUIDv4TraceIdGenerator implements ITraceIdGenerator {
+    /**
+     * generates an opentelemetry specification standard trace id
+     */
+    @Override
+    public String newId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
 }

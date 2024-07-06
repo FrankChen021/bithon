@@ -47,7 +47,7 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
     public void before(AopContext aopContext) {
         String targetClazzName = aopContext.getTargetClass().getName();
         if (shadedGrpcList.isEmpty() || targetClazzName.startsWith("io.grpc.")) {
-            // No shaded gRPC or current target is not a shaded one, then create a default interceptor
+            // No shaded gRPC, or current target is not shaded, then create a default interceptor
             // Note: use string name instead of class name because this class might be executed in a shaded grpc lib
             createInterceptor(aopContext, "org.bithon.agent.plugin.grpc.client.interceptor.ClientCallInterceptor");
             return;
@@ -113,7 +113,7 @@ public class ManagedChannelImplBuilder$Build extends BeforeInterceptor {
         try {
             Object builder = aopContext.getTarget();
 
-            // Create client call interceptor object
+            // Create the client call interceptor object
             Class<?> clazz = Class.forName(clientInterceptor, true, this.getClass().getClassLoader());
             Object interceptor = clazz.getConstructor(String.class).newInstance((String) ReflectionUtils.getFieldValue(builder, "target"));
 

@@ -16,10 +16,24 @@
 
 package org.bithon.agent.observability.tracing.id;
 
+import org.bithon.agent.observability.tracing.id.impl.UUIDv4TraceIdGenerator;
+import org.bithon.agent.observability.tracing.id.impl.UUIDv7Plus1TraceIdGenerator;
+import org.bithon.agent.observability.tracing.id.impl.UUIDv7TraceIdGenerator;
+import org.bithon.agent.observability.tracing.id.impl.UUIDv7TracePlusNTraceIdGenerator;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 12:04 上午
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = UUIDv7TraceIdGenerator.class)
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "uuidv4", value = UUIDv4TraceIdGenerator.class),
+    @JsonSubTypes.Type(name = "uuidv7", value = UUIDv7TraceIdGenerator.class),
+    @JsonSubTypes.Type(name = "uuidv7-1", value = UUIDv7Plus1TraceIdGenerator.class),
+    @JsonSubTypes.Type(name = "uuidv7-n", value = UUIDv7TracePlusNTraceIdGenerator.class),
+})
 public interface ITraceIdGenerator {
-    String newTraceId();
+    String newId();
 }

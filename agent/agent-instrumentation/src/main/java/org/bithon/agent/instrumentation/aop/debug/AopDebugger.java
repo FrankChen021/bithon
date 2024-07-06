@@ -37,7 +37,7 @@ import java.util.Set;
  * @author frankchen
  */
 public class AopDebugger extends AgentBuilder.Listener.Adapter {
-    protected static final ILogger log = LoggerFactory.getLogger(AopTransformationListener.class);
+    protected static final ILogger log = LoggerFactory.getLogger(AopDebugger.class);
 
     private final File classFileDirectory;
 

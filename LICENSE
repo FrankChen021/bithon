@@ -247,3 +247,9 @@ qos.ch
     * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/LexerFactory.java
     * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/ParserFactory.java
     * server/server-commons/src/main/java/org/bithon/server/commons/autocomplete/TransitionWrapper.java
+
+MIT License
+================================
+
+  This product contains UUIDv7 related code adapted from https://github.com/f4b6a3/uuid-creator
+    * component/component-commons/src/main/java/org/bithon/component/commons/uuid/UUIDv7Generator.java

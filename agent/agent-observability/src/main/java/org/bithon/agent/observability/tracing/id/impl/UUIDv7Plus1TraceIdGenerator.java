@@ -14,14 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.model;
+package org.bithon.agent.observability.tracing.id.impl;
+
+import org.bithon.agent.observability.tracing.id.ITraceIdGenerator;
+import org.bithon.component.commons.uuid.UUIDv7Generator;
 
 /**
- * Represents a cumulative value.
- * In contrast to Counter, its value will NOT be flushed after be accessed
- *
  * @author frank.chen021@outlook.com
- * @date 2021/2/23 9:19 下午
+ * @date 2024/6/3 20:58
  */
-public interface Gauge extends IMetricValueProvider {
+public class UUIDv7Plus1TraceIdGenerator implements ITraceIdGenerator {
+    // Use plus_1 version to get better monotonicity
+    private final UUIDv7Generator generator;
+
+    public UUIDv7Plus1TraceIdGenerator(int type) {
+        this.generator = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_PLUS_1);
+    }
+
+    @Override
+    public String newId() {
+        return generator.generate().toCompactFormat();
+    }
 }

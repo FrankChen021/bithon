@@ -63,9 +63,9 @@ public class JvmEventMessageBuilder {
         if (bootClassPath != null && !args.containsKey("runtime.bootClassPath")) {
             args.put("runtime.bootClassPath", sort(Arrays.asList(bootClassPath.split(":"))));
         }
-        String seperator = systemProperties.remove("line.separator");
-        if (seperator != null) {
-            systemProperties.put("line.separator", seperator.replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r"));
+        String separator = systemProperties.remove("line.separator");
+        if (separator != null) {
+            systemProperties.put("line.separator", separator.replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r"));
         }
         args.put("runtime.systemProperties", systemProperties);
 

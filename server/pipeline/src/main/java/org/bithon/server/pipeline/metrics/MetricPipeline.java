@@ -54,10 +54,10 @@ public class MetricPipeline extends AbstractPipeline<IMetricReceiver, IMetricExp
 
             @Override
             public void process(String messageType, SchemaMetricMessage message) {
-                IMetricExporter[] exporter = exporters.toArray(new IMetricExporter[0]);
-                for (IMetricExporter sink : exporter) {
+                IMetricExporter[] exporters = MetricPipeline.this.exporters.toArray(new IMetricExporter[0]);
+                for (IMetricExporter exporter : exporters) {
                     try {
-                        sink.process(messageType, message);
+                        exporter.process(messageType, message);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                     }
