@@ -41,20 +41,35 @@ public class KafkaPlugin implements IPlugin {
                          "org.apache.kafka.common.serialization.Deserializer<K>",
                          "org.apache.kafka.common.serialization.Deserializer<V>")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
-
-                // tracing
                 .onMethod("poll")
                 .andVisibility(Visibility.PRIVATE)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
-            forClass("org.apache.kafka.clients.consumer.internals.Fetcher")
-                // Since 0.11
-                .onMethod("parseRecord")
-                .andArgs("org.apache.kafka.common.TopicPartition",
-                         "org.apache.kafka.common.record.RecordBatch",
-                         "org.apache.kafka.common.record.Record")
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.Fetcher$ParseRecord")
+            // Metric
+            forClass("org.apache.kafka.clients.consumer.internals.Fetcher$FetchResponseMetricAggregator")
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Ctor")
+                .onMethod("record")
+                .andArgsSize(3)
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Record")
+                .build(),
+
+            // 3.7
+            forClass("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
+                .onMethod("poll")
+                .andVisibility(Visibility.PRIVATE)
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
+                .build(),
+
+            // 3.7
+            // The Fetcher$FetchResponseMetricAggregator in previous release is renamed to FetchMetricsAggregator
+            forClass("org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator")
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Ctor")
+                .onMethod("record")
+                .andArgsSize(3)
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Record")
                 .build(),
 
             // Spring Kafka, can move to an independent plugin
