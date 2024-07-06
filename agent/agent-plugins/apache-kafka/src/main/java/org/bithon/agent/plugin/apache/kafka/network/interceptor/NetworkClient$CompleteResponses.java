@@ -54,6 +54,9 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
+        if (pluginContext == null) {
+            return;
+        }
 
         List<ClientResponse> responses = aopContext.getArgAs(0);
         for (ClientResponse response : responses) {
@@ -80,7 +83,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
             String exceptionName = response.wasDisconnected() ? "Disconnected" : "";
 
-            // authenticationException is only support in some higher version(at least 1.0 version has no such exception)
+            // authenticationException is only support in some higher version (at least 1.0 version has no such exception)
             // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
             Exception exception = null;
             if (authenticationExceptionField != null) {
