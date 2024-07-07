@@ -53,7 +53,18 @@ public class ClientCallInterceptor implements ClientInterceptor {
             return result;
         }
 
-        span.method(ClientInterceptor.class.getName(), "interceptCall")
+        String serviceName;
+        String methodName;
+        String fullName = method.getFullMethodName();
+        int separator = fullName.lastIndexOf('/');
+        if (separator > 0) {
+            serviceName = fullName.substring(0, separator);
+            methodName = fullName.substring(separator + 1);
+        } else {
+            serviceName = "";
+            methodName = fullName;
+        }
+        span.method(serviceName, methodName)
             .tag(Tags.Net.PEER, this.target)
             .kind(SpanKind.CLIENT)
             .start();
@@ -72,13 +83,14 @@ public class ClientCallInterceptor implements ClientInterceptor {
         @Override
         public void start(Listener<RSP> responseListener, Metadata headers) {
             // Propagate the tracing context to remote server
-            span.context().propagate(headers, (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
+            span.context()
+                .propagate(headers,
+                           (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
 
             try {
                 // Hook the message listener to end the tracing span
-                Listener<RSP> listener = new TracedClientCallListener<>(span, responseListener);
-
-                super.start(listener, headers);
+                super.start(new TracedClientCallListener<>(span, responseListener),
+                            headers);
             } catch (Throwable t) {
                 span.tag(t).finish();
                 span.context().finish();
@@ -124,7 +136,11 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
         @Override
         public void onClose(Status status, Metadata trailers) {
-            span.tag(status.getCause()).tag("status", status.getCode().toString()).finish();
+            span.tag(status.getCause())
+                // TODO: Unify the status code
+                // Currently we use 200 to represent OK so that the code comply with HTTP Status
+                .tag("status", status.equals(Status.OK) ? "200" : status.getCode().toString())
+                .finish();
             span.context().finish();
 
             delegate.onClose(status, trailers);
