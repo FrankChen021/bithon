@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.topo.api;
 
+import jakarta.validation.Valid;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -40,7 +41,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

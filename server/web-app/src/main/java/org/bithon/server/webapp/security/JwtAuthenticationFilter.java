@@ -20,6 +20,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,10 +33,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (!authenticated && req.getRequestURI().contains("/api/")) {
             // For API endpoints, returns the 403
-            // For other endpoints, we continue the processing, and a login filter will be triggered to login
+            // For other endpoints, we continue the processing, and a login filter will be triggered to log in
             res.setStatus(HttpStatus.UNAUTHORIZED.value());
             res.setContentType(MediaType.TEXT_PLAIN.getType());
             res.getWriter().println(StringUtils.format("%s not authorized.", req.getRequestURI()));

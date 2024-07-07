@@ -16,11 +16,11 @@
 
 package org.bithon.server.storage.datasource.column;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

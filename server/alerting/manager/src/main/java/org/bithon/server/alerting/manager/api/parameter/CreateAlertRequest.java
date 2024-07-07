@@ -17,17 +17,17 @@
 package org.bithon.server.alerting.manager.api.parameter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**

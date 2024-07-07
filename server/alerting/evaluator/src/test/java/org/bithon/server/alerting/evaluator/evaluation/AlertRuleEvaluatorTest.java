@@ -81,7 +81,7 @@ public class AlertRuleEvaluatorTest {
     public void setUp() {
         ISchema schema = new DefaultSchema("test-metrics",
                                            "test-metrics",
-                                           new TimestampSpec("timestamp", null, null),
+                                           new TimestampSpec("timestamp"),
                                            Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
                                            Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
         dataSourceProvider = EasyMock.createMock(IDataSourceApi.class);

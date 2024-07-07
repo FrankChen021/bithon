@@ -16,10 +16,10 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alert Notification channels
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertNotificationChannelRecord extends TableRecordImpl<BithonAlertNotificationChannelRecord> implements Record4<String, String, String, LocalDateTime> {
 
-    private static final long serialVersionUID = -2130573694;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>bithon_alert_notification_channel.name</code>.
@@ -50,28 +50,32 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     }
 
     /**
-     * Setter for <code>bithon_alert_notification_channel.payload</code>. channel payload
+     * Setter for <code>bithon_alert_notification_channel.payload</code>.
+     * channel payload
      */
     public void setPayload(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_notification_channel.payload</code>. channel payload
+     * Getter for <code>bithon_alert_notification_channel.payload</code>.
+     * channel payload
      */
     public String getPayload() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>bithon_alert_notification_channel.created_at</code>. create time
+     * Setter for <code>bithon_alert_notification_channel.created_at</code>.
+     * create time
      */
     public void setCreatedAt(LocalDateTime value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_notification_channel.created_at</code>. create time
+     * Getter for <code>bithon_alert_notification_channel.created_at</code>.
+     * create time
      */
     public LocalDateTime getCreatedAt() {
         return (LocalDateTime) get(3);
@@ -201,9 +205,9 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     public BithonAlertNotificationChannelRecord(String name, String type, String payload, LocalDateTime createdAt) {
         super(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL);
 
-        set(0, name);
-        set(1, type);
-        set(2, payload);
-        set(3, createdAt);
+        setName(name);
+        setType(type);
+        setPayload(payload);
+        setCreatedAt(createdAt);
     }
 }

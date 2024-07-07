@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.meta.api;
 
+import jakarta.validation.Valid;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Metadata;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 /**

@@ -7,32 +7,36 @@ package org.bithon.server.storage.jdbc.common.jooq.tables;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.bithon.server.storage.jdbc.common.jooq.DefaultSchema;
-import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertNotificationChannelRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Index;
+import org.jooq.Function4;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
 /**
  * Alert Notification channels
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotificationChannelRecord> {
 
-    private static final long serialVersionUID = -1930576341;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>bithon_alert_notification_channel</code>
@@ -50,22 +54,48 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
     /**
      * The column <code>bithon_alert_notification_channel.name</code>.
      */
-    public final TableField<BithonAlertNotificationChannelRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonAlertNotificationChannelRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_alert_notification_channel.type</code>.
      */
-    public final TableField<BithonAlertNotificationChannelRecord, String> TYPE = createField(DSL.name("type"), org.jooq.impl.SQLDataType.VARCHAR(16).nullable(false), this, "");
+    public final TableField<BithonAlertNotificationChannelRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(16).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_alert_notification_channel.payload</code>. channel payload
+     * The column <code>bithon_alert_notification_channel.payload</code>.
+     * channel payload
      */
-    public final TableField<BithonAlertNotificationChannelRecord, String> PAYLOAD = createField(DSL.name("payload"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "channel payload");
+    public final TableField<BithonAlertNotificationChannelRecord, String> PAYLOAD = createField(DSL.name("payload"), SQLDataType.CLOB.nullable(false), this, "channel payload");
 
     /**
-     * The column <code>bithon_alert_notification_channel.created_at</code>. create time
+     * The column <code>bithon_alert_notification_channel.created_at</code>.
+     * create time
      */
-    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "create time");
+    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "create time");
+
+    private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment("Alert Notification channels"), TableOptions.table());
+    }
+
+    /**
+     * Create an aliased <code>bithon_alert_notification_channel</code> table
+     * reference
+     */
+    public BithonAlertNotificationChannel(String alias) {
+        this(DSL.name(alias), BITHON_ALERT_NOTIFICATION_CHANNEL);
+    }
+
+    /**
+     * Create an aliased <code>bithon_alert_notification_channel</code> table
+     * reference
+     */
+    public BithonAlertNotificationChannel(Name alias) {
+        this(alias, BITHON_ALERT_NOTIFICATION_CHANNEL);
+    }
 
     /**
      * Create a <code>bithon_alert_notification_channel</code> table reference
@@ -74,45 +104,18 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
         this(DSL.name("bithon_alert_notification_channel"), null);
     }
 
-    /**
-     * Create an aliased <code>bithon_alert_notification_channel</code> table reference
-     */
-    public BithonAlertNotificationChannel(String alias) {
-        this(DSL.name(alias), BITHON_ALERT_NOTIFICATION_CHANNEL);
-    }
-
-    /**
-     * Create an aliased <code>bithon_alert_notification_channel</code> table reference
-     */
-    public BithonAlertNotificationChannel(Name alias) {
-        this(alias, BITHON_ALERT_NOTIFICATION_CHANNEL);
-    }
-
-    private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alert Notification channels"));
-    }
-
     public <O extends Record> BithonAlertNotificationChannel(Table<O> child, ForeignKey<O, BithonAlertNotificationChannelRecord> key) {
         super(child, key, BITHON_ALERT_NOTIFICATION_CHANNEL);
     }
 
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
-    public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME);
-    }
-
-    @Override
-    public List<UniqueKey<BithonAlertNotificationChannelRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonAlertNotificationChannelRecord>>asList(Keys.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME);
+    public List<UniqueKey<BithonAlertNotificationChannelRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.KEY_BITHON_ALERT_NOTIFICATION_CHANNEL_ALERT_NOTIFICATION_CHANNEL_NAME);
     }
 
     @Override
@@ -123,6 +126,11 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
     @Override
     public BithonAlertNotificationChannel as(Name alias) {
         return new BithonAlertNotificationChannel(alias, this);
+    }
+
+    @Override
+    public BithonAlertNotificationChannel as(Table<?> alias) {
+        return new BithonAlertNotificationChannel(alias.getQualifiedName(), this);
     }
 
     /**
@@ -141,6 +149,14 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
         return new BithonAlertNotificationChannel(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public BithonAlertNotificationChannel rename(Table<?> name) {
+        return new BithonAlertNotificationChannel(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -148,5 +164,20 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
     @Override
     public Row4<String, String, String, LocalDateTime> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

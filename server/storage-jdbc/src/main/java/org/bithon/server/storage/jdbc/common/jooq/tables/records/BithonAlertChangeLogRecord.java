@@ -16,20 +16,22 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Change logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertChangeLogRecord extends TableRecordImpl<BithonAlertChangeLogRecord> implements Record6<String, String, String, String, String, LocalDateTime> {
 
-    private static final long serialVersionUID = 1925761634;
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>bithon_alert_change_log.alert_id</code>. ID of Alert Object
+     * Setter for <code>bithon_alert_change_log.alert_id</code>. ID of Alert
+     * Object
      */
     public void setAlertId(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_change_log.alert_id</code>. ID of Alert Object
+     * Getter for <code>bithon_alert_change_log.alert_id</code>. ID of Alert
+     * Object
      */
     public String getAlertId() {
         return (String) get(0);
@@ -50,28 +52,32 @@ public class BithonAlertChangeLogRecord extends TableRecordImpl<BithonAlertChang
     }
 
     /**
-     * Setter for <code>bithon_alert_change_log.payload_before</code>. JSON formatted
+     * Setter for <code>bithon_alert_change_log.payload_before</code>. JSON
+     * formatted
      */
     public void setPayloadBefore(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_change_log.payload_before</code>. JSON formatted
+     * Getter for <code>bithon_alert_change_log.payload_before</code>. JSON
+     * formatted
      */
     public String getPayloadBefore() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>bithon_alert_change_log.payload_after</code>. JSON formatted
+     * Setter for <code>bithon_alert_change_log.payload_after</code>. JSON
+     * formatted
      */
     public void setPayloadAfter(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_change_log.payload_after</code>. JSON formatted
+     * Getter for <code>bithon_alert_change_log.payload_after</code>. JSON
+     * formatted
      */
     public String getPayloadAfter() {
         return (String) get(3);
@@ -92,14 +98,16 @@ public class BithonAlertChangeLogRecord extends TableRecordImpl<BithonAlertChang
     }
 
     /**
-     * Setter for <code>bithon_alert_change_log.created_at</code>. Create timestamp
+     * Setter for <code>bithon_alert_change_log.created_at</code>. Create
+     * timestamp
      */
     public void setCreatedAt(LocalDateTime value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_change_log.created_at</code>. Create timestamp
+     * Getter for <code>bithon_alert_change_log.created_at</code>. Create
+     * timestamp
      */
     public LocalDateTime getCreatedAt() {
         return (LocalDateTime) get(5);
@@ -273,11 +281,11 @@ public class BithonAlertChangeLogRecord extends TableRecordImpl<BithonAlertChang
     public BithonAlertChangeLogRecord(String alertId, String action, String payloadBefore, String payloadAfter, String editor, LocalDateTime createdAt) {
         super(BithonAlertChangeLog.BITHON_ALERT_CHANGE_LOG);
 
-        set(0, alertId);
-        set(1, action);
-        set(2, payloadBefore);
-        set(3, payloadAfter);
-        set(4, editor);
-        set(5, createdAt);
+        setAlertId(alertId);
+        setAction(action);
+        setPayloadBefore(payloadBefore);
+        setPayloadAfter(payloadAfter);
+        setEditor(editor);
+        setCreatedAt(createdAt);
     }
 }

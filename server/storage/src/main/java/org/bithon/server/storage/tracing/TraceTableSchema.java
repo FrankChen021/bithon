@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public class TraceTableSchema implements ISchema {
 
-    private final TimestampSpec timestampSpec = new TimestampSpec("timestamp", "auto", null);
+    private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
     private final String name;
 
     private final IDataStoreSpec dataStoreSpec;

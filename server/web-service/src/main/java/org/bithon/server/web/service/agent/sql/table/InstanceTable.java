@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -36,7 +35,6 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
     private final DiscoveredServiceInvoker invoker;
 
     public InstanceTable(DiscoveredServiceInvoker invoker) {
-        //this.impl = invoker.createBroadcastApi(IAgentControllerApi.class);
         this.invoker = invoker;
     }
 
@@ -52,11 +50,12 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
 
         for (DiscoveredServiceInstance instance : instanceList) {
             invoker.getExecutor()
-                   .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, instance)
+                   .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, () -> instance)
                                              .getAgentInstanceList(agentInstance))
-                   .thenAccept((r) -> {
-                       List<Object[]> objectLists = r.stream().map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
-                                                     .collect(Collectors.toList());
+                   .thenAccept((returning) -> {
+                       List<Object[]> objectLists = returning.stream()
+                                                             .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
+                                                             .toList();
                        synchronized (result) {
                            result.addAll(objectLists);
                        }

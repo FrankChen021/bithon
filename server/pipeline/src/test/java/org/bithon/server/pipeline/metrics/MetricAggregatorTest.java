@@ -56,7 +56,7 @@ public class MetricAggregatorTest {
         DefaultSchema emptyDimensionSchema = new DefaultSchema(
             "empty-dimension-table",
             "empty-dimension-table",
-            new TimestampSpec("timestamp", null, null),
+            new TimestampSpec("timestamp"),
             Collections.emptyList(),
             Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
                           new AggregateLongMinColumn("minTime", "minTime"),
@@ -66,8 +66,8 @@ public class MetricAggregatorTest {
         DefaultSchema hasDimensionSchema = new DefaultSchema(
             "one-dimension-table",
             "one-dimension-table",
-            new TimestampSpec("timestamp", null, null),
-            Arrays.asList(new StringColumn("appName", "appName")),
+            new TimestampSpec("timestamp"),
+            List.of(new StringColumn("appName", "appName")),
             Arrays.asList(new AggregateLongSumColumn("totalCount", "totalCount"),
                           new AggregateLongMinColumn("minTime", "minTime"),
                           new AggregateLongMaxColumn("maxTime", "maxTime"))

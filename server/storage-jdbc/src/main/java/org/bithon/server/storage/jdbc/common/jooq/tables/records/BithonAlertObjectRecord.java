@@ -16,10 +16,10 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
 
-    private static final long serialVersionUID = 2083754289;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Setter for <code>bithon_alert_object.alert_id</code>. UUID
@@ -64,14 +64,16 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     /**
-     * Setter for <code>bithon_alert_object.namespace</code>. namespace of application
+     * Setter for <code>bithon_alert_object.namespace</code>. namespace of
+     * application
      */
     public void setNamespace(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_object.namespace</code>. namespace of application
+     * Getter for <code>bithon_alert_object.namespace</code>. namespace of
+     * application
      */
     public String getNamespace() {
         return (String) get(3);
@@ -417,15 +419,15 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     public BithonAlertObjectRecord(String alertId, String alertName, String appName, String namespace, Integer disabled, Integer deleted, String payload, LocalDateTime createdAt, LocalDateTime updatedAt, String lastOperator) {
         super(BithonAlertObject.BITHON_ALERT_OBJECT);
 
-        set(0, alertId);
-        set(1, alertName);
-        set(2, appName);
-        set(3, namespace);
-        set(4, disabled);
-        set(5, deleted);
-        set(6, payload);
-        set(7, createdAt);
-        set(8, updatedAt);
-        set(9, lastOperator);
+        setAlertId(alertId);
+        setAlertName(alertName);
+        setAppName(appName);
+        setNamespace(namespace);
+        setDisabled(disabled);
+        setDeleted(deleted);
+        setPayload(payload);
+        setCreatedAt(createdAt);
+        setUpdatedAt(updatedAt);
+        setLastOperator(lastOperator);
     }
 }

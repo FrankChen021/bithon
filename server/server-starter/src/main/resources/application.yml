@@ -25,3 +25,11 @@ bithon:
               scope:
                 - email
                 - profile
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - info
+          - health

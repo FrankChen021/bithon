@@ -16,10 +16,9 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 /**
  * @author frank.chen021@outlook.com

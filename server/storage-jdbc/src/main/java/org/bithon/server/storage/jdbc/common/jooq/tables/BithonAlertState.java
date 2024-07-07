@@ -7,32 +7,36 @@ package org.bithon.server.storage.jdbc.common.jooq.tables;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.bithon.server.storage.jdbc.common.jooq.DefaultSchema;
-import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Index;
+import org.jooq.Function5;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row5;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
-    private static final long serialVersionUID = 1577411657;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>bithon_alert_state</code>
@@ -50,33 +54,37 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     /**
      * The column <code>bithon_alert_state.alert_id</code>.
      */
-    public final TableField<BithonAlertStateRecord, String> ALERT_ID = createField(DSL.name("alert_id"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false), this, "");
+    public final TableField<BithonAlertStateRecord, String> ALERT_ID = createField(DSL.name("alert_id"), SQLDataType.VARCHAR(32).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_alert_state.alert_status</code>. See the AlertStatus enum
+     * The column <code>bithon_alert_state.alert_status</code>. See the
+     * AlertStatus enum
      */
-    public final TableField<BithonAlertStateRecord, Integer> ALERT_STATUS = createField(DSL.name("alert_status"), org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "See the AlertStatus enum");
+    public final TableField<BithonAlertStateRecord, Integer> ALERT_STATUS = createField(DSL.name("alert_status"), SQLDataType.INTEGER.nullable(false), this, "See the AlertStatus enum");
 
     /**
      * The column <code>bithon_alert_state.last_alert_at</code>.
      */
-    public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_ALERT_AT = createField(DSL.name("last_alert_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "");
+    public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_ALERT_AT = createField(DSL.name("last_alert_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_alert_state.last_record_id</code>. The PK ID in bithon_alert_record table
+     * The column <code>bithon_alert_state.last_record_id</code>. The PK ID in
+     * bithon_alert_record table
      */
-    public final TableField<BithonAlertStateRecord, String> LAST_RECORD_ID = createField(DSL.name("last_record_id"), org.jooq.impl.SQLDataType.VARCHAR(32), this, "The PK ID in bithon_alert_record table");
+    public final TableField<BithonAlertStateRecord, String> LAST_RECORD_ID = createField(DSL.name("last_record_id"), SQLDataType.VARCHAR(32), this, "The PK ID in bithon_alert_record table");
 
     /**
-     * The column <code>bithon_alert_state.update_at</code>. when the record is updated
+     * The column <code>bithon_alert_state.update_at</code>. when the record is
+     * updated
      */
-    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false), this, "when the record is updated");
+    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "when the record is updated");
 
-    /**
-     * Create a <code>bithon_alert_state</code> table reference
-     */
-    public BithonAlertState() {
-        this(DSL.name("bithon_alert_state"), null);
+    private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment("Alerting State"), TableOptions.table());
     }
 
     /**
@@ -93,12 +101,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
         this(alias, BITHON_ALERT_STATE);
     }
 
-    private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alerting State"));
+    /**
+     * Create a <code>bithon_alert_state</code> table reference
+     */
+    public BithonAlertState() {
+        this(DSL.name("bithon_alert_state"), null);
     }
 
     public <O extends Record> BithonAlertState(Table<O> child, ForeignKey<O, BithonAlertStateRecord> key) {
@@ -107,17 +114,12 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return aliased() ? null : DefaultSchema.DEFAULT_SCHEMA;
     }
 
     @Override
-    public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_ALERT_STATE_UQ_ALERT_ID);
-    }
-
-    @Override
-    public List<UniqueKey<BithonAlertStateRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonAlertStateRecord>>asList(Keys.KEY_BITHON_ALERT_STATE_UQ_ALERT_ID);
+    public List<UniqueKey<BithonAlertStateRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.KEY_BITHON_ALERT_STATE_UQ_ALERT_ID);
     }
 
     @Override
@@ -128,6 +130,11 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     @Override
     public BithonAlertState as(Name alias) {
         return new BithonAlertState(alias, this);
+    }
+
+    @Override
+    public BithonAlertState as(Table<?> alias) {
+        return new BithonAlertState(alias.getQualifiedName(), this);
     }
 
     /**
@@ -146,6 +153,14 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
         return new BithonAlertState(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public BithonAlertState rename(Table<?> name) {
+        return new BithonAlertState(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row5 type methods
     // -------------------------------------------------------------------------
@@ -153,5 +168,20 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     @Override
     public Row5<String, Integer, LocalDateTime, String, LocalDateTime> fieldsRow() {
         return (Row5) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

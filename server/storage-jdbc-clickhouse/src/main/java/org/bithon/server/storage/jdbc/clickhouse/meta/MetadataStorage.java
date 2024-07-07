@@ -34,12 +34,9 @@ import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.meta.Instance;
 import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.jooq.BatchBindStep;
-import org.jooq.Record;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -83,17 +80,14 @@ public class MetadataStorage extends MetadataJdbcStorage {
         sql += dslContext.renderInlined(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since).toLocalDateTime()));
         sql += " ORDER BY " + Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.getName();
 
-        List<Record> records = dslContext.fetch(sql);
-        if (records == null) {
-            return Collections.emptyList();
-        }
-
-        return records.stream().map((mapper) -> {
-            String name = mapper.get(0, String.class);
-            String type = mapper.get(1, String.class);
-            String instance = mapper.get(2, String.class);
-            return new Instance(name, type, instance);
-        }).collect(Collectors.toSet());
+        return dslContext.fetch(sql)
+                         .stream()
+                         .map((mapper) -> {
+                             String name = mapper.get(0, String.class);
+                             String type = mapper.get(1, String.class);
+                             String instance = mapper.get(2, String.class);
+                             return new Instance(name, type, instance);
+                         }).collect(Collectors.toSet());
     }
 
     @Override
@@ -107,7 +101,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
             values[2] = inputRow.getAppType();
             values[3] = inputRow.getInstanceName();
 
-            step.bind(values);
+            step = step.bind(values);
         }
 
         // No need to ignore or update because we use ReplacingMergeTree for this table

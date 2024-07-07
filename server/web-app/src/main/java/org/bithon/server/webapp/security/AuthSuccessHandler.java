@@ -16,17 +16,17 @@
 
 package org.bithon.server.webapp.security;
 
-import com.google.common.collect.ImmutableMap;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Issue JWT token and redirect to the page that launches the login
@@ -50,11 +50,15 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
         // Keep the ROLE_USER only
-        OAuth2UserAuthority user = (OAuth2UserAuthority) oauthUser.getAuthorities().stream().filter((auth) -> "ROLE_USER".equals(auth.getAuthority())).findFirst().get();
+        OAuth2UserAuthority user = (OAuth2UserAuthority) oauthUser.getAuthorities()
+                                                                  .stream()
+                                                                  .filter((auth) -> "OAUTH2_USER".equals(auth.getAuthority()))
+                                                                  .findFirst()
+                                                                  .get();
 
         // Keep email and name only
         String email = (String) user.getAttributes().get("email");
-        OAuth2UserAuthority newAuthority = new OAuth2UserAuthority(ImmutableMap.of("name", user.getAttributes().get("name")));
+        OAuth2UserAuthority newAuthority = new OAuth2UserAuthority(Map.of("name", user.getAttributes().get("name")));
 
         String newJwtToken = jwtTokenComponent.createToken(email, Collections.singletonList(newAuthority));
 

@@ -16,9 +16,8 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-
-import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com

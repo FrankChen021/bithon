@@ -26,6 +26,8 @@ import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.SortField;
 import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.UniqueKey;
 import org.jooq.impl.SQLDataType;
 
 import java.util.HashMap;
@@ -143,6 +145,22 @@ public class TableCreator {
             //
             {
                 createTableStatement.append("\nORDER BY(");
+                for (UniqueKey<?> uk : table.getKeys()) {
+                    if (uk.getFields().size() == 1 && this.secondaryIndexes.containsKey(uk.getFields().get(0).getName())) {
+                        // index on single column,
+                        // and is marked as secondary index,
+                        // no need to put this column in the ORDER-BY expression as the primary key
+                        continue;
+                    }
+
+                    for (TableField<?, ?> f : uk.getFields()) {
+                        if ("timestamp".equals(f.getName())) {
+                            createTableStatement.append(StringUtils.format("toStartOfMinute(timestamp),"));
+                        } else {
+                            createTableStatement.append(StringUtils.format("%s,", f.getName()));
+                        }
+                    }
+                }
                 for (Index idx : table.getIndexes()) {
                     if (idx.getFields().size() == 1 && this.secondaryIndexes.containsKey(idx.getFields().get(0).getName())) {
                         // index on single column,
@@ -173,7 +191,6 @@ public class TableCreator {
                 createTableStatement.append("\nSETTINGS ");
                 createTableStatement.append(config.getCreateTableSettings());
             }
-            createTableStatement.append(";");
 
             String statement = createTableStatement.toString();
             log.info("CreateIfNotExists {}", tableName);
@@ -213,7 +230,7 @@ public class TableCreator {
                     shardingKey.append(")");
                 }
             }
-            if (shardingKey.length() == 0) {
+            if (shardingKey.isEmpty()) {
                 // Set a default sharding key for random writing
                 shardingKey.append("rand()");
             }
@@ -265,7 +282,7 @@ public class TableCreator {
 
     private boolean useMapType(Table<?> table, Field<?> field) {
         return Tables.BITHON_TRACE_SPAN.ATTRIBUTES.getName().equals(field.getName())
-            && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
+               && (table.getName().equals(Tables.BITHON_TRACE_SPAN.getName()) || table.getName().equals(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()));
     }
 
     private String getIndexText() {

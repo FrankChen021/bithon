@@ -47,6 +47,13 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
+      <exclusions>
+        <!--We internally use Alibaba Druid connection pool-->
+        <exclusion>
+          <artifactId>HikariCP</artifactId>
+          <groupId>com.zaxxer</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -63,7 +70,7 @@
       <plugin>
         <groupId>org.jooq</groupId>
         <artifactId>jooq-codegen-maven</artifactId>
-        <version>3.12.4</version>
+        <version>3.17.99</version>
         <configuration>
           <jdbc>
             <driver>com.mysql.cj.jdbc.Driver</driver>

@@ -41,7 +41,7 @@ public class ExpressionValidationTest {
     private final DefaultSchema schema = new DefaultSchema(
         "schema",
         "schema",
-        new TimestampSpec("timestamp", null, null),
+        new TimestampSpec("timestamp"),
         Arrays.asList(new StringColumn("a", "a"), new LongColumn("intB", "intB")),
         Collections.emptyList()
     );
@@ -140,7 +140,7 @@ public class ExpressionValidationTest {
                                 ExpressionASTBuilder.builder()
                                                     .schema(schema)
                                                     .build("a > intB")
-                           );
+        );
     }
 
     @Test
@@ -150,6 +150,6 @@ public class ExpressionValidationTest {
                                 ExpressionASTBuilder.builder()
                                                     .schema(schema)
                                                     .build("a = 'INFO' and a")
-                           );
+        );
     }
 }

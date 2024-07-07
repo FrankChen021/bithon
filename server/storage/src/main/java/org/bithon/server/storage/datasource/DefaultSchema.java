@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
@@ -32,7 +33,6 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -123,7 +123,7 @@ public class DefaultSchema implements ISchema {
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
-        this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
+        this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp") : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;

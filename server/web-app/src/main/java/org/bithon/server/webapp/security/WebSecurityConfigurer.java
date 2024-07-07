@@ -20,18 +20,20 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -41,82 +43,57 @@ import java.util.stream.Stream;
  * @date 6/9/23 8:33 pm
  */
 @Configuration
-@EnableWebSecurity
-public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfigurer {
 
-    private final WebSecurityConfig securityConfig;
-    private final String contextPath;
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           ServerProperties serverProperties,
+                                           WebSecurityConfig securityConfig) throws Exception {
+        String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
 
-    public WebSecurityConfigurer(ServerProperties serverProperties, WebSecurityConfig securityConfig) {
-        String contextPath = serverProperties.getServlet().getContextPath();
-        this.contextPath = StringUtils.hasText(contextPath) ? contextPath : "";
-        this.securityConfig = securityConfig;
-    }
+        String[] ignoreList = Stream.of("/images/**",
+                                        "/css/**",
+                                        "/lib/**",
+                                        "/js/**",
+                                        "/login",
+                                        "/actuator/**"
+                                    )
+                                    .map((path) -> contextPath + path)
+                                    .toArray(String[]::new);
+        http.authorizeHttpRequests((c) -> c.requestMatchers(ignoreList).permitAll());
 
-    @Override
-    public void configure(WebSecurity web) {
-        Stream<String> ignoreList = Stream.of(
-            // Web application static resources
-            "/images/**",
-            "/css/**",
-            "/lib/**",
-            "/js/**",
-            "/login",
-            // Actuator for health check
-            "/actuator/**",
-            // Other APIs that do not require authentication
-            "/api/security/token/validity");
-
-        if (StringUtils.hasText(this.contextPath)) {
-            ignoreList = ignoreList.map((path) -> this.contextPath + path);
-        }
-
-        // Configure to ignore security check on static resources
-        web.ignoring()
-           .antMatchers(ignoreList.toArray(String[]::new));
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
         // H2 web UI requires disabling frameOptions.
         // This is not a graceful way. The better way is to check whether the H2 web UI is enabled in this module.
         // For simplicity, we just disable the frame option in global.
-        http.headers()
-            .frameOptions()
-            .disable();
+        http.headers((c) -> c.frameOptions((HeadersConfigurer.FrameOptionsConfig::disable)));
 
         if (!securityConfig.isEnabled()) {
             // Permit all
-            http.csrf()
-                .disable()
-                .authorizeRequests()
-                .antMatchers("/**")
-                .permitAll();
-            return;
+            return http.csrf(c -> {
+                try {
+                    c.disable().authorizeHttpRequests(r -> r.anyRequest().permitAll());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).build();
         }
 
         JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(securityConfig);
 
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/error").permitAll()
-            .anyRequest().authenticated()
-            .and()
+        http.sessionManagement((c) -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/error").permitAll().anyRequest().authenticated())
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenComponent), OAuth2AuthorizationRequestRedirectFilter.class)
-            .oauth2Login()
-            .clientRegistrationRepository(newClientRegistrationRepo()).permitAll()
-            .authorizationEndpoint().authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository())
-            .and()
-            .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig))
-            .and()
-            .logout().logoutSuccessUrl("/")
-            .and()
-            .exceptionHandling().authenticationEntryPoint(new LoginAuthenticationEntryPoint(this.contextPath + "/oauth2/authorization/google"));
+            .oauth2Login(c -> c.clientRegistrationRepository(newClientRegistrationRepo(securityConfig)).permitAll()
+                               .authorizationEndpoint(a -> a.authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository()))
+                               .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig)))
+            .logout(c -> c.logoutSuccessUrl("/"))
+            .exceptionHandling(c -> c.authenticationEntryPoint(new LoginAuthenticationEntryPoint(contextPath + "/oauth2/authorization/google")));
+
+        return http.build();
     }
 
-    private ClientRegistrationRepository newClientRegistrationRepo() {
+    private ClientRegistrationRepository newClientRegistrationRepo(WebSecurityConfig securityConfig) {
         if (securityConfig.getOauth2() == null) {
             throw new InvalidConfigurationException("bithon.web.security.oauth2 is not configured.");
         }
@@ -127,7 +104,7 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
             throw new InvalidConfigurationException("bithon.web.security.oauth2.client.registration is not configured.");
         }
 
-        Map<String, ClientRegistration> registrationMap = OAuth2ClientPropertiesRegistrationAdapter.getClientRegistrations(securityConfig.getOauth2().getClient());
+        Map<String, ClientRegistration> registrationMap = new OAuth2ClientPropertiesMapper(securityConfig.getOauth2().getClient()).asClientRegistrations();
         return new InMemoryClientRegistrationRepository(registrationMap);
     }
 }

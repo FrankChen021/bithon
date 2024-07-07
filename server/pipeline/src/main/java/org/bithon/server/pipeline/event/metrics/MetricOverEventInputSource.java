@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.pipeline.event.EventPipeline;
@@ -35,7 +36,6 @@ import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 /**

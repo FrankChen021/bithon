@@ -16,13 +16,12 @@
 
 package org.bithon.server.web.service.topo.service;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 /**
  * @author frank.chen021@outlook.com

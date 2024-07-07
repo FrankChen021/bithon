@@ -17,9 +17,8 @@
 package org.bithon.server.pipeline.common.transform.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import org.bithon.server.storage.datasource.input.IInputRow;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com

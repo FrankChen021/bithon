@@ -16,6 +16,7 @@
 
 package org.bithon.server.starter.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.exception.HttpMappableException;
@@ -34,8 +35,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author frank.chen021@outlook.com
@@ -68,7 +69,8 @@ public class GlobalExceptionHandler {
         HttpMessageNotReadableException.class,
         HttpRequestMethodNotSupportedException.class,
         HttpMediaTypeNotSupportedException.class,
-        ServletRequestBindingException.class
+        ServletRequestBindingException.class,
+        NoResourceFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleKnownExceptions(HttpServletRequest request, Exception exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()

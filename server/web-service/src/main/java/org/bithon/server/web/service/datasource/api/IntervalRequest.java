@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,6 @@ import lombok.NoArgsConstructor;
 import org.bithon.server.commons.time.TimeSpan;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotBlank;
 
 /**
  * @author Frank Chen

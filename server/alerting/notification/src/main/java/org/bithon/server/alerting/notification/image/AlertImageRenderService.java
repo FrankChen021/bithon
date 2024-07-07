@@ -155,9 +155,6 @@ public class AlertImageRenderService {
         }
 
         try (InputStream is = this.getClass().getResourceAsStream("/templates/static-threshold-echarts-option.js")) {
-            if (is == null) {
-                return null;
-            }
             String template = IOUtils.toString(is, StandardCharsets.UTF_8);
             template = template.replaceAll("%xAxisLabelData%",
                                            objectMapper.writeValueAsString(getTimestampLabels(data, "HH:mm")));
