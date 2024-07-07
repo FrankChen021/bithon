@@ -16,12 +16,6 @@
 
 package org.bithon.server.starter.config;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +23,6 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.PathContainer;
@@ -44,10 +37,18 @@ import org.springframework.web.util.ServletRequestPathUtils;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
 /**
  * The file is copied from: https://github.com/spring-projects/spring-framework/blob/main/spring-web/src/main/java/org/springframework/web/filter/UrlHandlerFilter.java
  * Its LICENSE is declared in the LICENSE file of this project.
+ * Code style is improved to comply with the project's code style.
  *
+ * <p>
  * {@link jakarta.servlet.Filter} that modifies the URL, and then redirects or
  * wraps the request to apply the change.
  *
@@ -110,8 +111,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
                     }
                 }
             }
-        }
-        finally {
+        } finally {
             if (previousPath != null) {
                 ServletRequestPathUtils.setParsedRequestPath(previousPath, request);
             }
@@ -123,9 +123,10 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 
     /**
      * Create a builder by adding a handler for URL's with a trailing slash.
+     *
      * @param pathPatterns path patterns to map the handler to, e.g.
-     * <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
-     * <code>"/path/foo/"</code>.
+     *                     <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
+     *                     <code>"/path/foo/"</code>.
      * @return a spec to configure the trailing slash handler with
      * @see Builder#trailingSlashHandler(String...)
      */
@@ -141,9 +142,10 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 
         /**
          * Add a handler for URL's with a trailing slash.
+         *
          * @param pathPatterns path patterns to map the handler to, e.g.
-         * <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
-         * <code>"/path/foo/"</code>.
+         *                     <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
+         *                     <code>"/path/foo/"</code>.
          * @return a spec to configure the handler with
          */
         TrailingSlashSpec trailingSlashHandler(String... pathPatterns);
@@ -168,6 +170,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
             /**
              * Handle requests by sending a redirect to the same URL but the
              * trailing slash trimmed.
+             *
              * @param status the redirect status to use
              * @return the top level {@link Builder}, which allows adding more
              * handlers and then building the Filter instance.
@@ -177,6 +180,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
             /**
              * Handle the request by wrapping it in order to trim the trailing
              * slash, and delegating to the rest of the filter chain.
+             *
              * @return the top level {@link Builder}, which allows adding more
              * handlers and then building the Filter instance.
              */
@@ -244,7 +248,6 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
     }
 
 
-
     /**
      * Internal handler to encapsulate different ways to handle a request.
      */
@@ -268,7 +271,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
      */
     private abstract static class AbstractTrailingSlashHandler implements Handler {
 
-        private static final Consumer<HttpServletRequest> defaultInterceptor = request -> {
+        private static final Consumer<HttpServletRequest> DEFAULT_INTERCEPTOR = request -> {
             if (logger.isTraceEnabled()) {
                 logger.trace("Handling trailing slash URL: " +
                              request.getMethod() + " " + request.getRequestURI());
@@ -278,7 +281,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
         private final Consumer<HttpServletRequest> interceptor;
 
         protected AbstractTrailingSlashHandler(@Nullable Consumer<HttpServletRequest> interceptor) {
-            this.interceptor = (interceptor != null ? interceptor : defaultInterceptor);
+            this.interceptor = (interceptor != null ? interceptor : DEFAULT_INTERCEPTOR);
         }
 
         @Override
