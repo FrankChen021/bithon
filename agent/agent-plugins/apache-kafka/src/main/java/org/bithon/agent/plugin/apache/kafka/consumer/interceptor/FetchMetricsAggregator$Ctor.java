@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 
 /**
@@ -31,8 +30,7 @@ import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 public class FetchMetricsAggregator$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
-        KafkaPluginContext kafkaPluginContext = (KafkaPluginContext) InterceptorContext.get("kafka.consumer.context");
         IBithonObject bithonObject = aopContext.getTargetAs();
-        bithonObject.setInjectedObject(kafkaPluginContext);
+        bithonObject.setInjectedObject(KafkaPluginContext.getCurrent());
     }
 }

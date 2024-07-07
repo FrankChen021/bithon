@@ -19,11 +19,10 @@ package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 
 /**
- *  * {@link org.apache.kafka.clients.consumer.internals.Fetcher.FetchResponseMetricAggregator}
+ * * {@link org.apache.kafka.clients.consumer.internals.Fetcher.FetchResponseMetricAggregator}
  *
  * @author frank.chen021@outlook.com
  * @date 6/7/24 11:14 pm
@@ -31,8 +30,7 @@ import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 public class FetchResponseMetricAggregator$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
-        KafkaPluginContext kafkaPluginContext = (KafkaPluginContext) InterceptorContext.get("kafka.consumer.context");
         IBithonObject bithonObject = aopContext.getTargetAs();
-        bithonObject.setInjectedObject(kafkaPluginContext);
+        bithonObject.setInjectedObject(KafkaPluginContext.getCurrent());
     }
 }

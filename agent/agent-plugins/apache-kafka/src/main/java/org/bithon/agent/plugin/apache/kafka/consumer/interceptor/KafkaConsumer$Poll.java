@@ -20,7 +20,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
@@ -42,19 +41,19 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
         // To be compatible with Kafka consumer before 3.x,
         // The interceptor is installed on all 'poll' methods,
         // The following check prevents recursive interception
-        if (InterceptorContext.get("kafka.consumer.context") != null) {
+        if (KafkaPluginContext.getCurrent() != null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // So that the CompletedFetch can get the context
         KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
-        InterceptorContext.set("kafka.consumer.context", pluginContext);
+        KafkaPluginContext.setCurrent(pluginContext);
 
         ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                    .tag("uri", pluginContext.uri)
-                                   .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                                   .tag(Tags.Net.PEER, pluginContext.broker)
                                    .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
                                    .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
                                    .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
@@ -74,6 +73,6 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
                 .finish();
         }
 
-        InterceptorContext.remove("kafka.consumer.context");
+        KafkaPluginContext.resetCurrent();
     }
 }

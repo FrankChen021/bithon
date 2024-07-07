@@ -25,8 +25,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.util.List;
-
 /**
  * {@link org.apache.kafka.clients.consumer.KafkaConsumer}
  *
@@ -37,20 +35,22 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        if (aopContext.hasException()) {
+            return;
+        }
+
         ConsumerConfig consumerConfig = aopContext.getArgAs(0);
         String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        List<String> bootstrapServers = consumerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        String boostrapServer = bootstrapServers.stream()
-                                                .sorted()
-                                                .findFirst()
-                                                .get();
-
         KafkaPluginContext kafkaPluginContext = new KafkaPluginContext();
         kafkaPluginContext.groupId = groupId;
         kafkaPluginContext.clientId = clientId;
-        kafkaPluginContext.clusterSupplier = () -> boostrapServer;
+        kafkaPluginContext.broker = consumerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
+                                                  .stream()
+                                                  .sorted()
+                                                  .findFirst()
+                                                  .get();
 
         Fetcher<?, ?> fetcher = (Fetcher<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "fetcher");
         if (fetcher instanceof IBithonObject) {

@@ -37,7 +37,7 @@ public class SenderMetrics$RecordRetries extends AfterInterceptor {
         int count = aopContext.getArgAs(1);
 
         KafkaPluginContext producerCtx = aopContext.getInjectedOnTargetAs();
-        metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+        metricRegistry.getOrCreateMetrics(producerCtx.broker,
                                           KafkaPluginContext.getCurrentDestination(),
                                           topic,
                                           producerCtx.clientId).retryRecordCount.update(count);

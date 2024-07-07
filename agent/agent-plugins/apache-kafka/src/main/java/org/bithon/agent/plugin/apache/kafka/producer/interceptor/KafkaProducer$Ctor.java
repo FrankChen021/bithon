@@ -25,7 +25,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -38,17 +37,19 @@ public class KafkaProducer$Ctor extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ProducerConfig producerConfig = (ProducerConfig) ReflectionUtils.getFieldValue(aopContext.getTarget(), "producerConfig");
+        if (aopContext.hasException()) {
+            return;
+        }
 
-        List<String> bootstrapServers = producerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        String boostrapServer = bootstrapServers.stream()
-                                                .sorted()
-                                                .findFirst()
-                                                .get();
+        ProducerConfig producerConfig = (ProducerConfig) ReflectionUtils.getFieldValue(aopContext.getTarget(), "producerConfig");
 
         KafkaPluginContext ctx = new KafkaPluginContext();
         ctx.clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
-        ctx.clusterSupplier = () -> boostrapServer;
+        ctx.broker = producerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
+                                   .stream()
+                                   .sorted()
+                                   .findFirst()
+                                   .get();
         ((IBithonObject) aopContext.getTarget()).setInjectedObject(ctx);
 
         //

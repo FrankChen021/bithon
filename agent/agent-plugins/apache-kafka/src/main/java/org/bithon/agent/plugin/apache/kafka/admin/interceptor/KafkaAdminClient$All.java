@@ -45,7 +45,7 @@ public class KafkaAdminClient$All extends AroundInterceptor {
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .kind(SpanKind.CLIENT)
                                .tag(Tags.Messaging.SYSTEM, "kafka")
-                               .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                               .tag(Tags.Net.PEER, pluginContext.broker)
                                .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
                                .start());
 

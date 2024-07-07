@@ -100,7 +100,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
             }
 
             NetworkMetrics metrics = metricRegistry.getOrCreateMetrics(messageType,
-                                                                       pluginContext.clusterSupplier.get(),
+                                                                       pluginContext.broker,
                                                                        nodeId,
                                                                        pluginContext.groupId,
                                                                        pluginContext.clientId,

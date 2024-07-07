@@ -48,7 +48,7 @@ public class FetchResponseMetricAggregator$Record extends AfterInterceptor {
         int bytes = aopContext.getArgAs(1);
         int records = aopContext.getArgAs(2);
 
-        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(kafkaPluginContext.clusterSupplier.get(),
+        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(kafkaPluginContext.broker,
                                                                     kafkaPluginContext.groupId,
                                                                     kafkaPluginContext.clientId,
                                                                     topicPartition.topic(),

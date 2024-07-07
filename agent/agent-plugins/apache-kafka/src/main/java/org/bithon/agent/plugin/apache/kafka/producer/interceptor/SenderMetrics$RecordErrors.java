@@ -38,7 +38,7 @@ public class SenderMetrics$RecordErrors extends AfterInterceptor {
         int count = aopContext.getArgAs(1);
 
         KafkaPluginContext producerCtx = aopContext.getInjectedOnTargetAs();
-        metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+        metricRegistry.getOrCreateMetrics(producerCtx.broker,
                                           KafkaPluginContext.getCurrentDestination(),
                                           topic,
                                           producerCtx.clientId).errorRecordCount.update(count);

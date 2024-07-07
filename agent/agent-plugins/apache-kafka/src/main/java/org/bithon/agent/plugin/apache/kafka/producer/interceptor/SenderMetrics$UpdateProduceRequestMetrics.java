@@ -85,7 +85,7 @@ public class SenderMetrics$UpdateProduceRequestMetrics extends AfterInterceptor 
                     int recordCount = (int) recordCountField.get(batch);
                     int maxRecordSize = (int) maxRecordSizeField.get(batch);
 
-                    ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(producerCtx.clusterSupplier.get(),
+                    ProducerMetrics metrics = metricRegistry.getOrCreateMetrics(producerCtx.broker,
                                                                                 nodeId,
                                                                                 topicPartition.topic(),
                                                                                 producerCtx.clientId);
