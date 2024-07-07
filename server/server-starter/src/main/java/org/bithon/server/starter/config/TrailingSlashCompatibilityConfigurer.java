@@ -32,7 +32,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class TrailingSlashCompatibilityConfigurer {
     @Bean
     public OncePerRequestFilter trailingSlashHandler() {
-        return UrlHandlerFilter.trailingSlashHandler("/**")
+        // There's a root '/' path defined in the HomeController
+        // We can't trim this root slash so we match from the 2nd level of the given path
+        return UrlHandlerFilter.trailingSlashHandler("/*/**")
                                .wrapRequest()
                                .build();
     }
