@@ -17,8 +17,6 @@
 package org.bithon.agent.plugin.apache.kafka.consumer.interceptor;
 
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.record.Record;
-import org.apache.kafka.common.record.RecordBatch;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
@@ -27,27 +25,34 @@ import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetricRegis
 import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetrics;
 
 /**
- * {@link org.apache.kafka.clients.consumer.internals.Fetcher#parseRecord(TopicPartition, RecordBatch, Record)}
- *
+ * {@link FetchMetricsAggregator#Record(TopicPartition partition, int bytes, int records)}
  * @author frank.chen021@outlook.com
- * @date 2022/12/3 15:27
+ * @date 6/7/24 11:01 pm
  */
-public class Fetcher$ParseRecord extends AfterInterceptor {
+public class FetchMetricsAggregator$Record extends AfterInterceptor {
 
     private final ConsumerMetricRegistry metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-consumer-metrics", ConsumerMetricRegistry::new);
 
     @Override
-    public void after(AopContext aopContext) {
-        TopicPartition topicPartition = aopContext.getArgAs(0);
-        Record record = aopContext.getArgAs(2);
-
+    public void after(AopContext aopContext) throws Exception {
+        if (aopContext.hasException()) {
+            return;
+        }
         KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
-        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(kafkaPluginContext.clusterSupplier.get(),
+        if (kafkaPluginContext == null) {
+            return;
+        }
+
+        TopicPartition topicPartition = aopContext.getArgAs(0);
+        int bytes = aopContext.getArgAs(1);
+        int records = aopContext.getArgAs(2);
+
+        ConsumerMetrics metrics = metricRegistry.getOrCreateMetrics(kafkaPluginContext.broker,
                                                                     kafkaPluginContext.groupId,
                                                                     kafkaPluginContext.clientId,
                                                                     topicPartition.topic(),
                                                                     String.valueOf(topicPartition.partition()));
-        metrics.consumedBytes.update(record.sizeInBytes());
-        metrics.consumedRecords.update(1);
+        metrics.consumedBytes.update(bytes);
+        metrics.consumedRecords.update(records);
     }
 }

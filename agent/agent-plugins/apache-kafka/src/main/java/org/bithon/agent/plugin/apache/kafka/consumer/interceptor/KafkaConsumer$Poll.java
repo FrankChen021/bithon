@@ -22,6 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -37,13 +38,28 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
-        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
-        if (span == null) {
+        // To be compatible with Kafka consumer before 3.x,
+        // The interceptor is installed on all 'poll' methods,
+        // The following check prevents recursive interception
+        if (KafkaPluginContext.getCurrent() != null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                               .start());
+        // So that the CompletedFetch can get the context
+        KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
+        KafkaPluginContext.setCurrent(pluginContext);
+
+        ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
+        if (span != null) {
+            aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .tag("uri", pluginContext.uri)
+                                   .tag(Tags.Net.PEER, pluginContext.broker)
+                                   .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
+                                   .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
+                                   .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
+                                   .start());
+        }
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -51,8 +67,12 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
     public void after(AopContext aopContext) {
         ConsumerRecords<?, ?> records = aopContext.getReturningAs();
         ITraceSpan span = aopContext.getSpan();
-        span.tag(aopContext.getException())
-            .tag(Tags.Messaging.COUNT, records == null ? 0 : records.count())
-            .finish();
+        if (span != null) {
+            span.tag(aopContext.getException())
+                .tag(Tags.Messaging.COUNT, records == null ? 0 : records.count())
+                .finish();
+        }
+
+        KafkaPluginContext.resetCurrent();
     }
 }

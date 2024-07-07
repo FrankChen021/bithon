@@ -44,14 +44,13 @@ public class AdminClient$Create extends AfterInterceptor {
 
         AdminClientConfig clientProperties = new AdminClientConfig(aopContext.getArgAs(0));
         List<String> bootstrapServers = clientProperties.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        String boostrapServer = bootstrapServers.stream()
-                                                .sorted()
-                                                .findFirst()
-                                                .get();
 
         KafkaPluginContext ctx = new KafkaPluginContext();
         ctx.clientId = (String) ReflectionUtils.getFieldValue(aopContext.getReturning(), "clientId");
-        ctx.clusterSupplier = () -> boostrapServer;
+        ctx.broker = bootstrapServers.stream()
+                                     .sorted()
+                                     .findFirst()
+                                     .get();
 
         IBithonObject bithonObject = aopContext.getReturningAs();
         bithonObject.setInjectedObject(ctx);

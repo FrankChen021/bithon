@@ -18,8 +18,6 @@ package org.bithon.agent.plugin.apache.kafka;
 
 import org.bithon.agent.observability.context.InterceptorContext;
 
-import java.util.function.Supplier;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/12/3 15:53
@@ -31,22 +29,33 @@ public class KafkaPluginContext {
      */
     public String groupId = "";
     public String clientId;
-    public Supplier<String> clusterSupplier;
+    public String broker;
 
     public String uri;
     public String topic;
 
     public static String getCurrentDestination() {
-        String dest = (String) InterceptorContext.get("kafka-ctx-destination");
+        String dest = (String) InterceptorContext.get("plugin.kafka.destination");
         return dest == null ? "" : dest;
     }
 
     public static void setCurrentDestination(String destination) {
-        InterceptorContext.set("kafka-ct-destination", destination);
+        InterceptorContext.set("plugin.kafka.destination", destination);
     }
 
     public static void resetCurrentDestination() {
-        InterceptorContext.remove("kafka-ctx-destination");
+        InterceptorContext.remove("plugin.kafka.destination");
     }
 
+    public static KafkaPluginContext getCurrent() {
+        return (KafkaPluginContext) InterceptorContext.get("plugin.kafka.context");
+    }
+
+    public static void setCurrent(KafkaPluginContext context) {
+        InterceptorContext.set("plugin.kafka.context", context);
+    }
+
+    public static void resetCurrent() {
+        InterceptorContext.remove("plugin.kafka.context");
+    }
 }

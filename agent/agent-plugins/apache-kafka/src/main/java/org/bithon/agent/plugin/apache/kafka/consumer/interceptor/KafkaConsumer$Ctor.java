@@ -25,8 +25,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.util.List;
-
 /**
  * {@link org.apache.kafka.clients.consumer.KafkaConsumer}
  *
@@ -37,20 +35,22 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        if (aopContext.hasException()) {
+            return;
+        }
+
         ConsumerConfig consumerConfig = aopContext.getArgAs(0);
         String groupId = consumerConfig.getString(ConsumerConfig.GROUP_ID_CONFIG);
         String clientId = (String) ReflectionUtils.getFieldValue(aopContext.getTarget(), "clientId");
 
-        List<String> bootstrapServers = consumerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
-        String boostrapServer = bootstrapServers.stream()
-                                                .sorted()
-                                                .findFirst()
-                                                .get();
-
         KafkaPluginContext kafkaPluginContext = new KafkaPluginContext();
         kafkaPluginContext.groupId = groupId;
         kafkaPluginContext.clientId = clientId;
-        kafkaPluginContext.clusterSupplier = () -> boostrapServer;
+        kafkaPluginContext.broker = consumerConfig.getList(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
+                                                  .stream()
+                                                  .sorted()
+                                                  .findFirst()
+                                                  .get();
 
         Fetcher<?, ?> fetcher = (Fetcher<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "fetcher");
         if (fetcher instanceof IBithonObject) {
@@ -61,9 +61,36 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
         kafkaConsumer.setInjectedObject(kafkaPluginContext);
 
         ConsumerNetworkClient consumerNetworkClient = (ConsumerNetworkClient) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
+        if (!setContextOnNetworkClient(kafkaPluginContext, consumerNetworkClient)) {
+            // Check if the KafkaConsumer is the type of higher version.
+            // The Higher version of the Kafka client wraps the consumer into a 'delegate' property
+            Object consumerDelegate = ReflectionUtils.getFieldValue(aopContext.getTarget(), "delegate");
+            String clazzName = consumerDelegate.getClass().getSimpleName();
+            if ("LegacyKafkaConsumer".equals(clazzName)) {
+                if (consumerDelegate instanceof IBithonObject) {
+                    // The LegacyKafkaConsumer is also instrumented
+                    ((IBithonObject) consumerDelegate).setInjectedObject(kafkaPluginContext);
+                }
+
+                setContextOnNetworkClient(kafkaPluginContext, ReflectionUtils.getFieldValue(consumerDelegate, "client"));
+            } else if ("AsyncKafkaConsumer".equals(clazzName)) {
+                // TODO:
+            }
+        }
+    }
+
+    /**
+     * Set context to the {@link org.apache.kafka.clients.NetworkClient} object inside the {@link ConsumerNetworkClient}
+     *
+     * @param consumerNetworkClient type of {@link ConsumerNetworkClient}
+     */
+    private boolean setContextOnNetworkClient(KafkaPluginContext ctx, Object consumerNetworkClient) {
         Object kafkaNetworkClient = ReflectionUtils.getFieldValue(consumerNetworkClient, "client");
         if (kafkaNetworkClient instanceof IBithonObject) {
-            ((IBithonObject) kafkaNetworkClient).setInjectedObject(kafkaPluginContext);
+            ((IBithonObject) kafkaNetworkClient).setInjectedObject(ctx);
+            return true;
+        } else {
+            return false;
         }
     }
 }
