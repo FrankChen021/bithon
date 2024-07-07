@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.column;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
@@ -28,7 +29,6 @@ import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 
-import javax.annotation.Nullable;
 
 /**
  * @author frankchen

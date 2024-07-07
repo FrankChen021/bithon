@@ -16,7 +16,6 @@
 
 package org.bithon.server.webapp.security;
 
-import com.google.common.collect.ImmutableMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
@@ -27,6 +26,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Issue JWT token and redirect to the page that launches the login
@@ -58,7 +58,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
 
         // Keep email and name only
         String email = (String) user.getAttributes().get("email");
-        OAuth2UserAuthority newAuthority = new OAuth2UserAuthority(ImmutableMap.of("name", user.getAttributes().get("name")));
+        OAuth2UserAuthority newAuthority = new OAuth2UserAuthority(Map.of("name", user.getAttributes().get("name")));
 
         String newJwtToken = jwtTokenComponent.createToken(email, Collections.singletonList(newAuthority));
 

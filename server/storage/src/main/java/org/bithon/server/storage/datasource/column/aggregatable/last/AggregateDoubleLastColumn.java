@@ -18,12 +18,12 @@ package org.bithon.server.storage.datasource.column.aggregatable.last;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.aggregator.DoubleLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

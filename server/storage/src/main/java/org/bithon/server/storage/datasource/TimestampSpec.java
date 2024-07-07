@@ -18,8 +18,8 @@ package org.bithon.server.storage.datasource;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 
 public class TimestampSpec {
     public static final String DEFAULT_COLUMN = "timestamp";

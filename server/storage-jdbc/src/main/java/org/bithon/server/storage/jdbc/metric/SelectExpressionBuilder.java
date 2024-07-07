@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import com.google.common.collect.ImmutableMap;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -44,7 +44,6 @@ import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -289,10 +288,10 @@ public class SelectExpressionBuilder {
                                                                                       sqlDialect,
                                                                                       aggregatedFields,
                                                                                       generator,
-                                                                                      ImmutableMap.of("interval",
-                                                                                                      interval.getStep() == null ? interval.getTotalLength() : interval.getStep(),
-                                                                                                      "instanceCount",
-                                                                                                      StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName"))));
+                                                                                      Map.of("interval",
+                                                                                             interval.getStep() == null ? interval.getTotalLength() : interval.getStep(),
+                                                                                             "instanceCount",
+                                                                                             StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName"))));
 
         for (ResultColumn resultColumn : this.resultColumns) {
             IASTNode columnExpression = resultColumn.getColumnExpression();

@@ -18,11 +18,11 @@ package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
-import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com

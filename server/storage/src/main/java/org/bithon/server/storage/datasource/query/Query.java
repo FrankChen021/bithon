@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.datasource.query;
 
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
@@ -24,7 +25,6 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.metrics.Interval;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

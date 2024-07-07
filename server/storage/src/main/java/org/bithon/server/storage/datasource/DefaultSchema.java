@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
@@ -32,7 +33,6 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
