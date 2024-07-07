@@ -224,7 +224,7 @@ Apache License version 2.0
  This product contains a util method from Apache commons-math
     * component/component-commons/src/main/java/org/bithon/component/commons/utils/NumberUtils.java
 
- This product contains a util method from Spring Framework (https://github.com/spring-projects/spring-framework)
+ This product contains a class from Spring Framework (https://github.com/spring-projects/spring-framework)
     * server/server-starter/src/main/java/org/bithon/server/starter/config/UrlHandlerFilter.java
 
 qos.ch
