@@ -23,6 +23,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.context.InterceptorContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -46,11 +47,17 @@ public class KafkaConsumer$Poll extends AroundInterceptor {
         }
 
         // So that the CompletedFetch can get the context
-        InterceptorContext.set("kafka.consumer.context", aopContext.getInjectedOnTargetAs());
+        KafkaPluginContext pluginContext = aopContext.getInjectedOnTargetAs();
+        InterceptorContext.set("kafka.consumer.context", pluginContext);
 
         ITraceSpan span = TraceContextFactory.newSpan(Components.KAFKA);
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .tag("uri", pluginContext.uri)
+                                   .tag(Tags.Net.PEER, pluginContext.clusterSupplier.get())
+                                   .tag(Tags.Messaging.KAFKA_TOPIC, pluginContext.topic)
+                                   .tag(Tags.Messaging.KAFKA_CONSUMER_GROUP, pluginContext.groupId)
+                                   .tag(Tags.Messaging.KAFKA_CLIENT_ID, pluginContext.clientId)
                                    .start());
         }
 
