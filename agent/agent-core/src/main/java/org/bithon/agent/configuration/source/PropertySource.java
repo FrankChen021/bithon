@@ -107,20 +107,28 @@ public class PropertySource implements Comparable<PropertySource> {
     /**
      * Merge two configuration nodes into one recursively
      */
-    public static JsonNode merge(JsonNode to, JsonNode from, boolean isReplace) {
-        if (from == null) {
-            return to;
+    public static JsonNode merge(JsonNode target, JsonNode source, boolean isReplace) {
+        if (source == null) {
+            return target;
         }
 
-        Iterator<String> names = from.fieldNames();
+        if (target instanceof ArrayNode && source instanceof ArrayNode) {
+            if (isReplace) {
+                ((ArrayNode) target).removeAll();
+            }
+            ((ArrayNode) target).addAll((ArrayNode) source);
+            return target;
+        }
+
+        Iterator<String> names = source.fieldNames();
         while (names.hasNext()) {
 
             String fieldName = names.next();
-            JsonNode targetNode = to.get(fieldName);
-            JsonNode sourceNode = from.get(fieldName);
+            JsonNode targetNode = target.get(fieldName);
+            JsonNode sourceNode = source.get(fieldName);
 
             if (targetNode == null) {
-                ((ObjectNode) to).set(fieldName, sourceNode);
+                ((ObjectNode) target).set(fieldName, sourceNode);
                 continue;
             }
 
@@ -144,15 +152,15 @@ public class PropertySource implements Comparable<PropertySource> {
                     }
                 } else {
                     // use the source node to replace the 'to' node
-                    ((ObjectNode) to).set(fieldName, sourceNode);
+                    ((ObjectNode) target).set(fieldName, sourceNode);
                 }
             } else {
                 // use the source node to replace the 'to' node
-                ((ObjectNode) to).set(fieldName, sourceNode);
+                ((ObjectNode) target).set(fieldName, sourceNode);
             }
         }
 
-        return to;
+        return target;
     }
 
     public PropertySourceType getType() {
