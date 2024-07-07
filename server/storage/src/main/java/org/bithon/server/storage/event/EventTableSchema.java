@@ -52,7 +52,7 @@ public class EventTableSchema implements ISchema {
     }
 
     private final String name;
-    private final TimestampSpec timestampSpec = new TimestampSpec("timestamp", "auto", null);
+    private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
     private final Map<String, IColumn> columnMap = new HashMap<>();
     private final IDataStoreSpec dataStoreSpec;
 

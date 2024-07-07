@@ -127,28 +127,28 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
                                      .getDimensionsSpecList()
                                      .stream()
                                      .map(dimSpec -> new StringColumn(dimSpec.getName(), dimSpec.getName()))
-                                     .collect(Collectors.toList()));
+                                     .toList());
 
         DefaultSchema schema = new DefaultSchema(message.getSchema().getName(),
                                                  message.getSchema().getName(),
-                                                 new TimestampSpec("timestamp", "auto", null),
+                                                 new TimestampSpec("timestamp"),
                                                  dimensionSpecs,
                                                  message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
-                                                           if ("longMax".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName());
-                                                           }
-                                                           if ("longMin".equals(metricSpec.getType())) {
-                                                               return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName());
-                                                           }
-                                                           if ("longSum".equals(metricSpec.getType())) {
-                                                               return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName());
-                                                           }
-                                                           if ("longLast".equals(metricSpec.getType())) {
-                                                               return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName());
-                                                           }
+                                                     if ("longMax".equals(metricSpec.getType())) {
+                                                         return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName());
+                                                     }
+                                                     if ("longMin".equals(metricSpec.getType())) {
+                                                         return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName());
+                                                     }
+                                                     if ("longSum".equals(metricSpec.getType())) {
+                                                         return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName());
+                                                     }
+                                                     if ("longLast".equals(metricSpec.getType())) {
+                                                         return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName());
+                                                     }
 
-                                                           return null;
-                                                       }).collect(Collectors.toList()));
+                                                     return null;
+                                                 }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();

@@ -123,7 +123,7 @@ public class DefaultSchema implements ISchema {
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
-        this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
+        this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp") : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;

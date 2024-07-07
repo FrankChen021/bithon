@@ -40,7 +40,7 @@ public class FilterExpressionToFiltersTest {
     private final DefaultSchema schema = new DefaultSchema(
         "schema",
         "schema",
-        new TimestampSpec("timestamp", null, null),
+        new TimestampSpec("timestamp"),
         Arrays.asList(new StringColumn("a", "a"),
                       new LongColumn("intB", "intB")),
         Collections.emptyList()
