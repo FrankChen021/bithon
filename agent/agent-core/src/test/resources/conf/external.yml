@@ -2,3 +2,5 @@
 # This file here is for test cases
 test:
   prop: "from external file"
+  arrayList:
+    - "from file a"
