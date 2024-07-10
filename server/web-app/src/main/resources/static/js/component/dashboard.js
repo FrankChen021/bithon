@@ -280,7 +280,6 @@ class Dashboard {
             }
 
             chartDescriptor.details.query.order = chartDescriptor.details.orderBy;
-            chartDescriptor.details.query.filters = chartDescriptor.details.filters;
 
             if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
                 chartDescriptor.details.query.type = "groupBy";
@@ -772,27 +771,17 @@ class Dashboard {
     }
 
     refreshTable(query, tableComponent, interval, showInterval) {
-        const filters = this.vFilter.getSelectedFilters();
-        if (query.filters !== undefined) {
-            $.each(query.filters, (index, filter) => {
-                filters.push(filter);
-            });
-        }
-
         const thisQuery = Object.assign({}, query);
         if (thisQuery.interval === undefined) {
             thisQuery.interval = {};
         }
         thisQuery.interval.startISO8601 = interval.start;
         thisQuery.interval.endISO8601 = interval.end;
-        thisQuery.filters = filters;
-
-        if (thisQuery.filter === undefined) {
-            thisQuery.filterExpression = this.#getInputFilterExpression();
-        } else {
-            thisQuery.filterExpression = thisQuery.filter;
-            delete thisQuery.filter;
-        }
+        thisQuery.filterExpression = String.join(' AND ',
+            this.vFilter.getSelectedFilterExpression(),
+            this.#getInputFilterExpression(),
+            thisQuery.filter);
+        delete thisQuery.filter;
 
         let path;
         if (query.type === 'list') {
@@ -946,13 +935,6 @@ class Dashboard {
             metricNamePrefix = '';
         }
 
-        let filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.query.filters !== undefined) {
-            $.each(chartDescriptor.query.filters, (index, filter) => {
-                filters.push(filter);
-            });
-        }
-
         const thisQuery = Object.assign({}, chartDescriptor.query);
         if (thisQuery.dataSource === undefined) {
             thisQuery.dataSource = chartDescriptor.dataSource;
@@ -965,14 +947,11 @@ class Dashboard {
         if (chartDescriptor.query.bucketCount !== undefined && chartDescriptor.query.bucketCount != null) {
             thisQuery.interval.bucketCount = chartDescriptor.query.bucketCount;
         }
-        thisQuery.filters = filters;
-
-        if (thisQuery.filter === undefined) {
-            thisQuery.filterExpression = this.#getInputFilterExpression();
-        } else {
-            thisQuery.filterExpression = thisQuery.filter;
-            delete thisQuery.filter;
-        }
+        thisQuery.filterExpression = String.join(' AND ',
+            this.vFilter.getSelectedFilterExpression(),
+            this.#getInputFilterExpression(),
+            thisQuery.filter);
+        delete thisQuery.filter;
 
         const queryFieldsCount = chartDescriptor.query.fields.length;
 

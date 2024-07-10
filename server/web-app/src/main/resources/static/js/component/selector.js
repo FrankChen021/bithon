@@ -231,7 +231,7 @@ class AppSelector {
         this.mSelectedFilters[dimensionName] = {
             field: dimensionName,
             predicate: '=',
-            expected: dimensionValue
+            expected: "'" + dimensionValue + "'"
         };
     }
 
@@ -250,13 +250,9 @@ class AppSelector {
     /**
      * @returns an array of filters
      * filter: {
-     *    dimension: dimensionName,
-     *    type: 'dimension',
-     *    nameType: 'alias',
-     *    matcher: {
-     *        type: 'equal',
-     *        pattern: dimensionValue
-     *    }
+     *            field: dimensionName,
+     *             predicate: '=',
+     *             expected: dimensionValue
      * }
      */
     getSelectedFilters() {
@@ -267,8 +263,23 @@ class AppSelector {
         return filters;
     }
 
+    getSelectedFilterExpression() {
+        return this.#getFilterExpression(this.mSelectedFilters);
+    }
+
     getSelectedFilter(name) {
         return this.mSelectedFilters[name];
+    }
+
+    #getFilterExpression(filters) {
+        let expression = '';
+        $.each(filters, (name, filter) => {
+            if (expression.length > 0) {
+                expression += ' AND ';
+            }
+            expression += `${filter.field} ${filter.predicate} ${filter.expected}`;
+        });
+        return expression;
     }
 
     #onSelectionChanged(name, value) {
@@ -376,13 +387,13 @@ class AppSelector {
                 }
 
                 const interval = this.mIntervalProviderFn();
+                const filterExpression = String.join(' AND ', this.#getFilterExpression(filters), thisFilterSpec.filterExpression);
                 return {
                     search: params.term,
 
                     dataSource: thisFilterSpec.source,
                     name: thisFilterSpec.alias,
-                    filterExpression: thisFilterSpec.filterExpression,
-                    filters: filters,
+                    filterExpression: filterExpression,
                     type: "alias",
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end
