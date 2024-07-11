@@ -10,7 +10,7 @@ class TracePage {
     constructor(options) {
         // Model
         this.mQueryParams = options.queryParams;
-        this.filterExpression = options.filterExpression
+        this.inputExpression = options.filterExpression
         this.mSelectedTags = {};
         this.mInterval = null;
 
@@ -60,9 +60,9 @@ class TracePage {
         // View
         this.vIntervalSelector = new TimeSpanSelector(window.queryParams['interval'])
             .childOf(parent)
-            .registerIntervalChangedListener((selectedModel) => {
+            .registerIntervalChangedListener(() => {
                 this.mInterval = this.vIntervalSelector.getInterval();
-                this.#updatePageURL(this.filterExpression);
+                this.#updatePageURL(this.inputExpression);
                 this.#refreshPage();
             });
         this.mInterval = this.vIntervalSelector.getInterval();
@@ -81,12 +81,11 @@ class TracePage {
         this.vTraceList = new TraceListComponent({
             parent: $('#table'),
             excludeColumns: options.excludeColumns || [],
-            getQueryParams: (params) => {
+            getQueryParams: () => {
                 return {
-                    filters: this.#getFilters(),
                     startTimeISO8601: this.mInterval.start,
                     endTimeISO8601: this.mInterval.end,
-                    expression: this.#getFilterExpressionForRequest()
+                    expression: this.#getFilterExpression()
                 };
             }
         });
@@ -100,23 +99,23 @@ class TracePage {
         }
         $.each(options.queryParams, (name, value) => {
             if (name.startsWith("tags.") && selectableTags[name] === undefined) {
-                if (this.filterExpression.length > 0) {
-                    this.filterExpression += ' AND ';
+                if (this.inputExpression.length > 0) {
+                    this.inputExpression += ' AND ';
                 }
-                this.filterExpression += `${name} = '${value}'`
+                this.inputExpression += `${name} = '${value}'`
             }
         });
 
         $("#filter-input")
-            .val(this.filterExpression)
+            .val(this.inputExpression)
             .on('keydown', (event) => {
-                const newFilterExpression = event.target.value.trim();
+                const input = event.target.value.trim();
                 if (event.keyCode === 13) {
-                    if (newFilterExpression !== this.filterExpression) {
-                        this.#updatePageURL(newFilterExpression);
+                    if (input !== this.inputExpression) {
+                        this.#updatePageURL(input);
                     }
 
-                    this.filterExpression = newFilterExpression;
+                    this.inputExpression = input;
                     this.#refreshPage();
                 }
             })
@@ -138,28 +137,21 @@ class TracePage {
         return this.mInterval;
     }
 
-    #getFilters() {
-        if (this.vFilters !== null) {
-            return this.vFilters.getSelectedFilters();
-        } else {
-            return [];
-        }
-    }
-
-    #getFilterExpressionForRequest() {
+    #getFilterExpression() {
         let tagExpression = '';
         $.each(this.mSelectedTags, (name, val) => {
-            if(tagExpression.length > 0) {
+            if (tagExpression.length > 0) {
                 tagExpression += ' AND ';
             }
             tagExpression += `tags['${name}'] = '${val}'`;
         });
 
-        if (this.filterExpression.length > 0) {
-            return tagExpression.length > 0 ? (this.filterExpression + ' AND ' + tagExpression) : this.filterExpression;
-        } else {
-            return tagExpression;
-        }
+        return String.join(
+            ' AND ',
+            this.vFilters == null ? null : this.vFilters.getSelectedFilterExpression(),
+            this.inputExpression,
+            tagExpression
+        );
     }
 
     #refreshPage() {
@@ -180,8 +172,7 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                filters: this.#getFilters(),
-                expression: this.#getFilterExpressionForRequest()
+                expression: this.#getFilterExpression()
             }),
             processResult: (data) => {
                 this._data = data;
@@ -335,7 +326,7 @@ class TracePage {
     }
 
     #onClickChart(e) {
-        for(let i = 0; i < this._data.metrics.length; i++) {
+        for (let i = 0; i < this._data.metrics.length; i++) {
             const metric = this._data.metrics[i];
             if (metric.tags[0] === 'count' && metric.values[e.dataIndex] === 0) {
                 // The 'count' metric is zero, no need to response the click event
@@ -355,7 +346,7 @@ class TracePage {
         this.vIntervalSelector.setInterval(startTimestamp, endTimestamp);
     }
 
-    #updatePageURL(filterExpression){
+    #updatePageURL(filterExpression) {
         let url = window.location.pathname + '?';
         url += `interval=${this.mInterval.id}&`;
         url += `filter=${encodeURIComponent(filterExpression)}`;

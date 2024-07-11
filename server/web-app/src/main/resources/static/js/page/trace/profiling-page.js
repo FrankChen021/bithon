@@ -41,7 +41,7 @@ class ProfilingPage {
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
-            // get new interval
+            // get the new interval
             this.mInterval = this.vIntervalSelector.getInterval();
 
             // refresh the page
@@ -60,10 +60,15 @@ class ProfilingPage {
         return this.mInterval;
     }
 
-    #getFilters() {
-        let summaryTableFilter = this.vFilters.getSelectedFilters();
-        let tagFilters = this.vTagFilter.getSelectedFilters();
-        return summaryTableFilter.concat(tagFilters);
+    #getFilterExpression() {
+        let summaryTableFilter = this.vFilters.getSelectedFilterExpression();
+        let tagFilters = this.vTagFilter.getSelectedFilterExpression();
+        return String.join(
+            ' AND ',
+            summaryTableFilter,
+            tagFilters,
+            "kind in ('SERVER', 'CONSUMER', 'TIMER')"
+            );
     }
 
     #refreshPage() {
@@ -71,11 +76,11 @@ class ProfilingPage {
     }
 
     #refreshChart() {
-        const filters = this.#getFilters();
+        const filters = this.vFilters.getSelectedFilters();
         let isAppSelected = false;
         let isInstanceSelected = false;
         for (let i = 0; i < filters.length; i++) {
-            switch (filters[i].dimension) {
+            switch (filters[i].field) {
                 case 'appName':
                     isAppSelected = true;
                     break;
@@ -101,7 +106,7 @@ class ProfilingPage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                filters: this.#getFilters(),
+                expression: this.#getFilterExpression(),
                 orderBy: 'startTime',
                 order: 'asc',
                 pageNumber: 0,
