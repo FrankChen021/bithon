@@ -68,18 +68,16 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AppInstance.getInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                       .setAppName(appInstance.getQualifiedApplicationName())
+                                       .setAppName(appInstance.getQualifiedName())
                                        .setEnv(appInstance.getEnv())
                                        .setInstanceName(appInstance.getInstanceName())
-                                       .setHostIp(appInstance.getInstanceIp())
                                        .setPort(appInstance.getPort())
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                       .setAppName(appInstance.getQualifiedApplicationName())
+                                                                       .setAppName(appInstance.getQualifiedName())
                                                                        .setEnv(appInstance.getEnv())
                                                                        .setInstanceName(appInstance.getInstanceName())
-                                                                       .setHostIp(appInstance.getInstanceIp())
                                                                        .setPort(appInstance.getPort())
                                                                        .setAppType(ApplicationType.JAVA)
                                                                        .build());

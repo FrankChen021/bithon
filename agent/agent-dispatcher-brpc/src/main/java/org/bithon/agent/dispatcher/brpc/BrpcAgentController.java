@@ -62,7 +62,7 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         brpcClient = BrpcClientBuilder.builder()
-                                      .applicationName(appInstance.getQualifiedApplicationName())
+                                      .applicationName(appInstance.getQualifiedName())
                                       .clientId("ctrl")
                                       .server(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
@@ -106,10 +106,9 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
-                                                    .setAppName(appInstance.getApplicationName())
+                                                    .setAppName(appInstance.getName())
                                                     .setEnv(appInstance.getEnv())
                                                     .setInstanceName(appInstance.getInstanceName())
-                                                    .setHostIp(appInstance.getInstanceIp())
                                                     .setPort(appInstance.getPort())
                                                     .setAppType(ApplicationType.JAVA)
                                                     .build();
