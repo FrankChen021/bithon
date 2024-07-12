@@ -34,35 +34,40 @@ public class AppInstance {
 
     private static final AppInstance INSTANCE = new AppInstance(ConfigurationManager.getInstance().getConfig(AppConfig.class));
 
-    private final String appName;
-    private final String qualifiedAppName;
-    private final String hostIp;
+    /**
+     * application name
+     */
+    private final String name;
+    private final String qualifiedName;
     private final String env;
     private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private int port;
-    private String hostAndPort;
+    private String instanceName;
+    private final boolean useConfiguredName;
 
     private AppInstance(AppConfig appConfig) {
-        this.appName = appConfig.getName();
-        this.qualifiedAppName = appName + "-" + appConfig.getEnv();
+        this.name = appConfig.getName();
+        this.qualifiedName = name + "-" + appConfig.getEnv();
         this.env = appConfig.getEnv();
         this.port = appConfig.getPort();
 
         if (StringUtils.isEmpty(appConfig.getInstance())) {
-            this.hostIp = NetworkUtils.getIpAddress().getHostAddress();
+            // Generate instance name automatically by using the current host ip address
+            String instanceIp = NetworkUtils.getIpAddress().getHostAddress();
+            this.instanceName = this.port > 0 ? instanceIp + ":" + this.port : instanceIp;
+            this.useConfiguredName = false;
         } else {
-            this.hostIp = appConfig.getInstance();
+            this.instanceName = appConfig.getInstance();
+            this.useConfiguredName = true;
         }
-
-        this.hostAndPort = this.port > 0 ? hostIp + ":" + this.port : hostIp;
     }
 
     public static AppInstance getInstance() {
         return INSTANCE;
     }
 
-    public String getQualifiedAppName() {
-        return qualifiedAppName;
+    public String getQualifiedName() {
+        return qualifiedName;
     }
 
     public int getPort() {
@@ -71,7 +76,9 @@ public class AppInstance {
 
     public void setPort(int port) {
         this.port = port;
-        this.hostAndPort = this.hostIp + ":" + this.port;
+        if (!useConfiguredName) {
+            this.instanceName = NetworkUtils.getIpAddress().getHostAddress() + ":" + this.port;
+        }
 
         // get the listeners first to avoid race condition
         IAppInstanceChangedListener[] currentListeners = listeners.toArray(new IAppInstanceChangedListener[0]);
@@ -84,16 +91,12 @@ public class AppInstance {
         }
     }
 
-    public String getAppName() {
-        return appName;
+    public String getName() {
+        return name;
     }
 
-    public String getHostIp() {
-        return hostIp;
-    }
-
-    public String getHostAndPort() {
-        return hostAndPort;
+    public String getInstanceName() {
+        return instanceName;
     }
 
     public String getEnv() {

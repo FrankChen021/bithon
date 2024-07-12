@@ -62,7 +62,7 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         brpcClient = BrpcClientBuilder.builder()
-                                      .applicationName(appInstance.getQualifiedAppName())
+                                      .applicationName(appInstance.getQualifiedName())
                                       .clientId("ctrl")
                                       .server(new RoundRobinEndPointProvider(endpoints))
                                       .workerThreads(2)
@@ -75,13 +75,13 @@ public class BrpcAgentController implements IAgentController {
 
         if (appInstance.getPort() > 0) {
             // Set the default the appId
-            brpcClient.setHeader(Headers.HEADER_APP_ID, appInstance.getHostAndPort());
+            brpcClient.setHeader(Headers.HEADER_APP_ID, appInstance.getInstanceName());
         }
 
         // Update appId once the port is configured,
         // so that the management API in the server side can find this agent by appId correctly
         appInstance.addListener((port) -> {
-            brpcClient.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getHostAndPort());
+            brpcClient.setHeader(Headers.HEADER_APP_ID, AppInstance.getInstance().getInstanceName());
 
             if (refreshListener != null) {
                 try {
@@ -106,11 +106,9 @@ public class BrpcAgentController implements IAgentController {
 
         AppInstance appInstance = AppInstance.getInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
-                                                    .setAppName(appInstance.getAppName())
+                                                    .setAppName(appInstance.getName())
                                                     .setEnv(appInstance.getEnv())
-                                                    .setInstanceName(appInstance.getHostAndPort())
-                                                    .setHostIp(appInstance.getHostIp())
-                                                    .setPort(appInstance.getPort())
+                                                    .setInstanceName(appInstance.getInstanceName())
                                                     .setAppType(ApplicationType.JAVA)
                                                     .build();
         try {

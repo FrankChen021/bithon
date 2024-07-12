@@ -73,8 +73,7 @@ public class TraceApi {
 
     @PostMapping("/api/trace/getTraceDistribution")
     public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
-        return traceService.getTraceDistribution(request.getFilters(),
-                                                 request.getExpression(),
+        return traceService.getTraceDistribution(request.getExpression(),
                                                  TimeSpan.fromISO8601(request.getStartTimeISO8601()),
                                                  TimeSpan.fromISO8601(request.getEndTimeISO8601()),
                                                  request.getBucketCount());
@@ -88,8 +87,7 @@ public class TraceApi {
         return new GetTraceListResponse(
             request.getPageNumber() == 0 ? traceService.getTraceListSize(request.getExpression(), start, end) : 0,
             request.getPageNumber(),
-            traceService.getTraceList(request.getFilters(),
-                                      request.getExpression(),
+            traceService.getTraceList(request.getExpression(),
                                       start,
                                       end,
                                       request.getOrderBy(),

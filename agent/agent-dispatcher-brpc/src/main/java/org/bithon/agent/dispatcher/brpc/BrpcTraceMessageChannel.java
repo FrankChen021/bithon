@@ -69,19 +69,15 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AppInstance.getInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                       .setAppName(appInstance.getQualifiedAppName())
+                                       .setAppName(appInstance.getQualifiedName())
                                        .setEnv(appInstance.getEnv())
-                                       .setInstanceName(appInstance.getHostAndPort())
-                                       .setHostIp(appInstance.getHostIp())
-                                       .setPort(appInstance.getPort())
+                                       .setInstanceName(appInstance.getInstanceName())
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                       .setAppName(appInstance.getQualifiedAppName())
+                                                                       .setAppName(appInstance.getQualifiedName())
                                                                        .setEnv(appInstance.getEnv())
-                                                                       .setInstanceName(appInstance.getHostAndPort())
-                                                                       .setHostIp(appInstance.getHostIp())
-                                                                       .setPort(appInstance.getPort())
+                                                                       .setInstanceName(appInstance.getInstanceName())
                                                                        .setAppType(ApplicationType.JAVA)
                                                                        .build());
     }

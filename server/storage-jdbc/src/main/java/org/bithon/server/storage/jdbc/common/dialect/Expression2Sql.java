@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.ISchema;
 public class Expression2Sql extends ExpressionSerializer {
 
     public static String from(ISchema dataSource, ISqlDialect sqlDialect, IExpression expression) {
-        return from((String) null, sqlDialect, expression);
+        return from(dataSource.getDataStoreSpec().getStore(), sqlDialect, expression);
     }
 
     public static String from(String qualifier, ISqlDialect sqlDialect, IExpression expression) {

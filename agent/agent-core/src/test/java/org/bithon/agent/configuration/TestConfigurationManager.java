@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,8 +86,8 @@ public class TestConfigurationManager {
         manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
                                                       "1",
                                                       "test.a=1\n" +
-                                                          "test.b=7\n" +
-                                                          "test.percentage=8%"));
+                                                      "test.b=7\n" +
+                                                      "test.percentage=8%"));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assert.assertEquals(1, testConfig.getA());
@@ -99,7 +100,7 @@ public class TestConfigurationManager {
         manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
                                                       "2",
                                                       "test.a=2\ntest.b=8\ntest.percentage=500%"
-                                                     ));
+        ));
         Assert.assertEquals(2, testConfig.getA());
         Assert.assertEquals(8, testConfig.getB());
         Assert.assertEquals(5, testConfig.getPercentage().intValue());
@@ -163,7 +164,7 @@ public class TestConfigurationManager {
 
                                                        // Also set the external configuration
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
-                                                      ));
+                             ));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
@@ -188,7 +189,7 @@ public class TestConfigurationManager {
 
                                                        // Also set the external configuration
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
-                                                      ));
+                             ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
                              .thenReturn(ImmutableMap.of("bithon_t", "t1",
@@ -235,7 +236,7 @@ public class TestConfigurationManager {
 
                                                        // Also set the external configuration
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
-                                                      ));
+                             ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
                              .thenReturn(ImmutableMap.of("bithon_t", "t1",
@@ -385,7 +386,7 @@ public class TestConfigurationManager {
                                                        // Override the in file configuration
                                                        "-Dbithon.test.b=true",
                                                        "-Dbithon.test.percentage=8%"
-                                                      ));
+                             ));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
@@ -408,7 +409,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.test.p[0]=8%",
                                                        "-Dbithon.test.p[2]=9%",
                                                        "-Dbithon.test.p[3]=10%"
-                                                      ));
+                             ));
 
             ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
 
@@ -417,6 +418,34 @@ public class TestConfigurationManager {
                                          HumanReadablePercentage.parse("9%"),
                                          HumanReadablePercentage.parse("10%")},
                                      manager.getConfig("test.p", HumanReadablePercentage[].class, true));
+        }
+    }
+
+    @ConfigurationProperties(path = "test.arrayList")
+    public static class StringListConfig extends ArrayList<String> {
+    }
+
+    @Test
+    public void test_BindToArray_ReplaceDefault() {
+        // If the property is not given, the default value is the one in the external configuration file
+        {
+            ConfigurationManager manager = ConfigurationManager.create(externalConfigLocation);
+            StringListConfig config = manager.getConfig(StringListConfig.class);
+            Assert.assertEquals(Collections.singletonList("from file a"), config);
+        }
+
+        // When the property is given, the default one is overridden
+        try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
+            configurationMock.when(Helper::getCommandLineInputArgs)
+                             .thenReturn(Arrays.asList("-Xms512M",
+                                                       // Array configuration
+                                                       "-Dbithon.test.arrayList[0]=1",
+                                                       "-Dbithon.test.arrayList[1]=2"
+                             ));
+
+            ConfigurationManager manager = ConfigurationManager.create(externalConfigLocation);
+            StringListConfig config = manager.getConfig(StringListConfig.class);
+            Assert.assertEquals(Arrays.asList("1", "2"), config);
         }
     }
 }
