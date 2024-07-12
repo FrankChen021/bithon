@@ -90,15 +90,17 @@ There are two configurations that need to be provided to the agent, correspondin
 > NOTE: you can also use environment variable `bithon_application_name` and `bithon_application_env` to configure these two configurations as stated in the Environment Variables section.
 
 ### Configure the instance name (Optional)
-And by default,
-the agent will automatically use the IP address of the environment
-that the application runs on to be the `instanceName` field stored in metrics.
+The agent automatically uses the IP address of the environment
+that the application runs on to generate the `instanceName` field in metrics/tracing/events message.
 
 If you want to specify the instance name by your custom rule, you can also configure it by the following JVM argument
 
 ```
 -Dbithon.application.instance=
 ```
+
+Remember that the configured value should be unique for each running application instance
+or you're not able to drill down metrics by the instance name.
 
 ### Configure the port (Optional)
 
@@ -111,13 +113,11 @@ If you want to specify the application port, you can also use the following JVM 
 -Dbithon.application.port=
 ```
 
-### Configure instance name as pod name in K8S (Recommended)
-In K8S, we can configure the instance name as the POD name
-so that it would be much easier to find out metrics of one container by its name instead of by the IP address of a POD.
+### Use the pod name in K8S as the instance name (Recommended)
+In K8S, we can use the POD name as the instance name(`bithon.application.instance`)
+so that it would be much easier to find out metrics of one container by the POD name instead of by the IP address of a POD.
 
-To do this,
-we can configure environment variable `bithon_application_instance` in the K8S configuration
-to be value of the pod name as follows:
+To do this, we can add environment variable `bithon_application_instance` in the K8S configuration to be value of the pod name as follows:
 
 ```yaml
  env:
@@ -126,7 +126,6 @@ to be value of the pod name as follows:
       fieldRef:
         fieldPath: metadata.name
 ```
-
 
 ## Dispatcher Configuration
 
