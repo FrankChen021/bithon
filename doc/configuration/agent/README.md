@@ -77,6 +77,57 @@ You can take a look at the API in the code for reference:
 
 # Configuration Instruction
 
+## Basic Configuration (Must read)
+
+### Configure the application name (Needed)
+There are two configurations that need to be provided to the agent, corresponding JVM arguments are:
+
+```
+-Dbithon.application.name=
+-Dbithon.application.env=
+```
+
+> NOTE: you can also use environment variable `bithon_application_name` and `bithon_application_env` to configure these two configurations as stated in the Environment Variables section.
+
+### Configure the instance name (Optional)
+And by default,
+the agent will automatically use the IP address of the environment
+that the application runs on to be the `instanceName` field stored in metrics.
+
+If you want to specify the instance name by your custom rule, you can also configure it by the following JVM argument
+
+```
+-Dbithon.application.instance=
+```
+
+### Configure the port (Optional)
+
+By default, the agent will automatically detect the port that the web server inside the application runs on.
+And this port will be used as part of the instance name along with the IP address or the `-Dbithon.application.instance` property. 
+
+If you want to specify the application port, you can also use the following JVM parameter to configure:
+
+```
+-Dbithon.application.port=
+```
+
+### Configure instance name as pod name in K8S (Recommended)
+In K8S, we can configure the instance name as the POD name
+so that it would be much easier to find out metrics of one container by its name instead of by the IP address of a POD.
+
+To do this,
+we can configure environment variable `bithon_application_instance` in the K8S configuration
+to be value of the pod name as follows:
+
+```yaml
+ env:
+  - name: bithon_application_instance
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+```
+
+
 ## Dispatcher Configuration
 
 The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
