@@ -20,11 +20,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Order;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,8 +33,6 @@ public class GetTraceListRequest {
 
     @NotBlank
     private String endTimeISO8601;
-
-    private List<IColumnFilter> filters = Collections.emptyList();
 
     /**
      * Filter expression

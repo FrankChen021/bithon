@@ -113,7 +113,7 @@ public class QueryBuilder {
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .schema(schema)
-                      .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression(), query.getFilters()))
+                      .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression()))
                       .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())

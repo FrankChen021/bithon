@@ -146,7 +146,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                      Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
                                                      return new ResultColumn(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
-                           .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters()))
+                           .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression()))
                            .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
                            .orderBy(request.getOrderBy())
                            .limit(request.getLimit())
@@ -164,7 +164,7 @@ public class DataSourceApi implements IDataSourceApi {
             CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we create a new AST
-                IExpression filter = FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), request.getFilters());
+                IExpression filter = FilterExpressionToFilters.toExpression(schema, request.getFilterExpression());
                 return reader.select(query.with(filter));
             }, asyncExecutor);
 
@@ -283,7 +283,7 @@ public class DataSourceApi implements IDataSourceApi {
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
                                .resultColumns(Collections.singletonList(column.getResultColumn()))
-                               .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression(), CollectionUtils.emptyOrOriginal(request.getFilters())))
+                               .filter(FilterExpressionToFilters.toExpression(schema, request.getFilterExpression()))
                                .build();
 
             return reader.distinct(query)

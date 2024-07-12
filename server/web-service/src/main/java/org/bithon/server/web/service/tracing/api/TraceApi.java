@@ -86,7 +86,7 @@ public class TraceApi {
         Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
 
         return new GetTraceListResponse(
-            request.getPageNumber() == 0 ? traceService.getTraceListSize(request.getFilters(), request.getExpression(), start, end) : 0,
+            request.getPageNumber() == 0 ? traceService.getTraceListSize(request.getExpression(), start, end) : 0,
             request.getPageNumber(),
             traceService.getTraceList(request.getFilters(),
                                       request.getExpression(),

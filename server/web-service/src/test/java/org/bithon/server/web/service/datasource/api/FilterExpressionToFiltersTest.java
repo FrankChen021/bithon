@@ -49,23 +49,23 @@ public class FilterExpressionToFiltersTest {
     @Test
     public void testValidatedFilterExpression() {
         // Unary literal is not a valid expression
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123", null));
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "'123'", null));
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123.123", null));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "'123'"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "123.123"));
 
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a", null));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "a"));
 
-        Assert.assertThrows(ExpressionValidationException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)", null));
-        FilterExpressionToFilters.toExpression(schema, "a in ('5', '6')", null);
+        Assert.assertThrows(ExpressionValidationException.class, () -> FilterExpressionToFilters.toExpression(schema, "a in ('5', 6)"));
+        FilterExpressionToFilters.toExpression(schema, "a in ('5', '6')");
 
         // Unary function expression is not a valid filter
-        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "trim(a)", null));
+        Assert.assertThrows(InvalidExpressionException.class, () -> FilterExpressionToFilters.toExpression(schema, "trim(a)"));
 
-        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "a > 'a'", null) instanceof ComparisonExpression);
-        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "a > 'a' AND a < 'a'", null) instanceof LogicalExpression);
+        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "a > 'a'") instanceof ComparisonExpression);
+        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "a > 'a' AND a < 'a'") instanceof LogicalExpression);
 
-        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "startsWith(a, 'a')", null) instanceof FunctionExpression);
-        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "endsWith(a, 'a')", null) instanceof FunctionExpression);
-        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "hasToken(a, 'a')", null) instanceof FunctionExpression);
+        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "startsWith(a, 'a')") instanceof FunctionExpression);
+        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "endsWith(a, 'a')") instanceof FunctionExpression);
+        Assert.assertTrue(FilterExpressionToFilters.toExpression(schema, "hasToken(a, 'a')") instanceof FunctionExpression);
     }
 }
