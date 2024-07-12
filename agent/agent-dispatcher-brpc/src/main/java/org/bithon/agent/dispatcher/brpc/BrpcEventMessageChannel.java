@@ -68,18 +68,18 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AppInstance.getInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                       .setAppName(appInstance.getQualifiedAppName())
+                                       .setAppName(appInstance.getQualifiedApplicationName())
                                        .setEnv(appInstance.getEnv())
-                                       .setInstanceName(appInstance.getHostAndPort())
-                                       .setHostIp(appInstance.getHostIp())
+                                       .setInstanceName(appInstance.getInstanceName())
+                                       .setHostIp(appInstance.getInstanceIp())
                                        .setPort(appInstance.getPort())
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                       .setAppName(appInstance.getQualifiedAppName())
+                                                                       .setAppName(appInstance.getQualifiedApplicationName())
                                                                        .setEnv(appInstance.getEnv())
-                                                                       .setInstanceName(appInstance.getHostAndPort())
-                                                                       .setHostIp(appInstance.getHostIp())
+                                                                       .setInstanceName(appInstance.getInstanceName())
+                                                                       .setHostIp(appInstance.getInstanceIp())
                                                                        .setPort(appInstance.getPort())
                                                                        .setAppType(ApplicationType.JAVA)
                                                                        .build());
