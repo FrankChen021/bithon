@@ -18,7 +18,8 @@ message BrpcMessageHeader {
   string appName = 1;
   string env = 2;
   string instanceName = 3;
-  string hostIp = 4;
-  int32 port = 5;
+  /*The follow two fields are deprecated*/
+  /*string hostIp = 4;*/
+  /*int32 port = 5;*/
   ApplicationType appType = 6;
 }

@@ -29,6 +29,9 @@ public class Headers extends HashMap<String, String> {
      */
     public static final String HEADER_VERSION = "version";
 
+    /**
+     * A unique id of the client
+     */
     public static final String HEADER_APP_ID = "appId";
     public static final String HEADER_START_TIME = "startTime";
 
