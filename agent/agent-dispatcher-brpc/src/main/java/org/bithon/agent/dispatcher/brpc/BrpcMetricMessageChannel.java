@@ -107,14 +107,12 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                                        .setAppName(appInstance.getQualifiedName())
                                        .setEnv(appInstance.getEnv())
                                        .setInstanceName(appInstance.getInstanceName())
-                                       .setPort(appInstance.getPort())
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
                                                                        .setAppName(appInstance.getQualifiedName())
                                                                        .setEnv(appInstance.getEnv())
                                                                        .setInstanceName(appInstance.getInstanceName())
-                                                                       .setPort(appInstance.getPort())
                                                                        .setAppType(ApplicationType.JAVA)
                                                                        .build());
     }
