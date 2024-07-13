@@ -98,11 +98,23 @@ public class H2SqlDialect implements ISqlDialect {
              */
             @Override
             public IExpression visit(ConditionalExpression expression) {
-                if (!(expression.getLeft() instanceof MapAccessExpression)) {
-                    return super.visit(expression);
+                if (expression.getLeft() instanceof MapAccessExpression) {
+                    return MapAccessExpressionTransformer.transform(expression);
                 }
 
-                return MapAccessExpressionTransformer.transform(expression);
+                if (expression instanceof ConditionalExpression.Contains) {
+                    return new ConditionalExpression.Like(expression.getLeft(),
+                                                          LiteralExpression.create("%" + ((LiteralExpression) expression.getRight()).asString() + "%"));
+                }
+                if (expression instanceof ConditionalExpression.StartsWith) {
+                    return new ConditionalExpression.Like(expression.getLeft(),
+                                                          LiteralExpression.create(((LiteralExpression) expression.getRight()).asString() + "%"));
+                }
+                if (expression instanceof ConditionalExpression.EndsWith) {
+                    return new ConditionalExpression.Like(expression.getLeft(),
+                                                          LiteralExpression.create("%" + ((LiteralExpression) expression.getRight()).asString()));
+                }
+                return super.visit(expression);
             }
 
             @Override

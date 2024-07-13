@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.jdbc.clickhouse.common.optimizer.HasTokenFunctionOptimizer;
+import org.bithon.server.storage.jdbc.clickhouse.common.optimizer.ClickHouseExpressionOptimizer;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 /**
@@ -114,6 +114,6 @@ public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression.accept(new HasTokenFunctionOptimizer());
+        return expression.accept(new ClickHouseExpressionOptimizer());
     }
 }

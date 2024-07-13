@@ -26,13 +26,13 @@ import org.junit.Test;
  * @author frank.chen021@outlook.com
  * @date 2/5/24 10:15pm
  */
-public class HasTokenFunctionOptimizerTest {
+public class ClickHouseExpressionOptimizerTest {
     @Test
     public void test_ReplaceToLIKEDirectly() {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("hasToken(a, '_ab_')")
-                                               .accept(new HasTokenFunctionOptimizer());
+                                               .accept(new ClickHouseExpressionOptimizer());
 
         Assert.assertEquals("a like '%_ab_%'", expr.serializeToText(null));
     }
@@ -42,7 +42,7 @@ public class HasTokenFunctionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("hasToken(a, 'SERVER_ERROR')")
-                                               .accept(new HasTokenFunctionOptimizer());
+                                               .accept(new ClickHouseExpressionOptimizer());
 
         Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%')",
                             expr.serializeToText(null));
@@ -53,7 +53,7 @@ public class HasTokenFunctionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("hasToken(a, '_SERVER')")
-                                               .accept(new HasTokenFunctionOptimizer());
+                                               .accept(new ClickHouseExpressionOptimizer());
 
         Assert.assertEquals("(hasToken(a, 'SERVER') AND a like '%_SERVER%')", expr.serializeToText(null));
     }
@@ -63,7 +63,7 @@ public class HasTokenFunctionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("hasToken(a, 'ERROR_')")
-                                               .accept(new HasTokenFunctionOptimizer());
+                                               .accept(new ClickHouseExpressionOptimizer());
 
         Assert.assertEquals("(hasToken(a, 'ERROR') AND a like '%ERROR_%')", expr.serializeToText(null));
     }
@@ -73,7 +73,7 @@ public class HasTokenFunctionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("hasToken(a, 'SERVER_ERROR') AND hasToken(a, 'EXCEPTION_CODE')")
-                                               .accept(new HasTokenFunctionOptimizer());
+                                               .accept(new ClickHouseExpressionOptimizer());
 
         Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER_ERROR%' AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND a like '%EXCEPTION_CODE%')", expr.serializeToText(null));
     }
