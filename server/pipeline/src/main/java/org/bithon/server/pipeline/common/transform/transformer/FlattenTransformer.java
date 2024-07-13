@@ -38,8 +38,8 @@ public class FlattenTransformer extends AbstractTransformer {
     @Getter
     private final String[] targets;
 
+    // Use getter to support the tree path
     private final List<InputRowAccessor.IGetter> valueGetters;
-    private final List<InputRowAccessor.ISetter> valueSetters;
 
     @JsonCreator
     public FlattenTransformer(@JsonProperty("sources") String[] sources,
@@ -56,10 +56,6 @@ public class FlattenTransformer extends AbstractTransformer {
         this.valueGetters = Arrays.stream(this.sources)
                                   .map(InputRowAccessor::createGetter)
                                   .toList();
-
-        this.valueSetters = Arrays.stream(this.targets)
-                                  .map(InputRowAccessor::createSetter)
-                                  .toList();
     }
 
     @Override
@@ -67,7 +63,7 @@ public class FlattenTransformer extends AbstractTransformer {
         for (int i = 0; i < sources.length; i++) {
             Object val = this.valueGetters.get(i).get(inputRow);
             if (val != null) {
-                this.valueSetters.get(i).set(inputRow, val);
+                inputRow.updateColumn(this.targets[i], val);
             }
         }
 
