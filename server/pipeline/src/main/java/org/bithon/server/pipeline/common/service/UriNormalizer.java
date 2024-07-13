@@ -23,8 +23,8 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +44,7 @@ public class UriNormalizer {
         this.configs.setGlobalRules(new UriNormalizationRuleConfig());
         this.configs.setApplicationRules(new HashMap<>());
         this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher("[0-9]+"), "*"));
-        this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher(
-            "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
+        this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
         this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher("[0-9a-f]{32}"), "*"));
     }
 
@@ -80,10 +79,7 @@ public class UriNormalizer {
     }
 
     private NormalizedResult normalize(UriNormalizationRuleConfig matchers, String path) {
-        try {
-            path = URLDecoder.decode(path, "UTF-8");
-        } catch (UnsupportedEncodingException ignored) {
-        }
+        path = URLDecoder.decode(path, StandardCharsets.UTF_8);
 
         //
         // 使用Path匹配
@@ -156,7 +152,6 @@ public class UriNormalizer {
     public static class UriNormalizationRuleConfig {
         private List<UriPattern> pathRules = new ArrayList<>();
         private List<UriPattern> partRules = new ArrayList<>();
-        private List<IMatcher> filters = new ArrayList<>();
     }
 
     @Data

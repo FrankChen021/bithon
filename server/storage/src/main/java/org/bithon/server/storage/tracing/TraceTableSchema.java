@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,9 @@ public class TraceTableSchema implements ISchema {
     private final String name;
 
     private final IDataStoreSpec dataStoreSpec;
-    private final Map<String, IColumn> columnMap = new HashMap<>();
+
+    // Use LinkedHashMap to keep the order of the input
+    private final Map<String, IColumn> columnMap = new LinkedHashMap<>();
     private final Map<String, IColumn> aliasMap = new HashMap<>();
 
     TraceTableSchema(String name, ITraceStorage storage, List<IColumn> columns) {

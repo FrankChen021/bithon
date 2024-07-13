@@ -116,3 +116,8 @@ String.prototype.htmlEncode = function () {
         .replace(/"/g, '&#34;')
         .replace(/\//, '&#x2F;');
 }
+
+String.join = function (separator, ...strings) {
+    return strings.filter(str => str != null && str !== '')
+        .join(separator);
+};

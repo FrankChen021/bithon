@@ -147,16 +147,17 @@
         </configuration>
       </plugin>
 
-      <!-- checkstyle -->
+      <!-- checkstyle
+      See: https://maven.apache.org/plugins/maven-checkstyle-plugin/history.html
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.4.0</version>
         <configuration>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <configLocation>dev/checkstyle.xml</configLocation>
           <suppressionsLocation>dev/checkstyle-suppressions.xml</suppressionsLocation>
-          <!--                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>-->
           <encoding>UTF-8</encoding>
           <headerLocation>dev/checkstyle-header.txt</headerLocation>
           <consoleOutput>true</consoleOutput>
@@ -166,7 +167,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>8.29</version>
+            <version>9.3</version>
           </dependency>
         </dependencies>
         <executions>

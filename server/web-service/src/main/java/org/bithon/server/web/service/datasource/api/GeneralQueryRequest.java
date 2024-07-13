@@ -24,7 +24,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.filter.IColumnFilter;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -47,9 +46,6 @@ public class GeneralQueryRequest {
     @NotNull
     @Valid
     private IntervalRequest interval;
-
-    @Nullable
-    private List<IColumnFilter> filters;
 
     @Nullable
     private String filterExpression;
