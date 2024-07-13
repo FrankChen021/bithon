@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A simple permission control on SET/WRITE commands to agent to ensure safety.
@@ -39,7 +38,7 @@ public class PermissionConfig {
     public void verifyPermission(ObjectMapper objectMapper, String application, String authorization) {
         List<PermissionRule> applicationRules = this.rules.stream()
                                                           .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(application))
-                                                          .collect(Collectors.toList());
+                                                          .toList();
         if (applicationRules.isEmpty()) {
             throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
                                             "No permission rule is defined for application [%s].",
