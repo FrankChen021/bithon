@@ -21,9 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
-
-import java.util.function.Function;
+import org.bithon.server.storage.datasource.input.InputRowAccessor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,19 +37,19 @@ public class TreePathFlattener implements IFlattener {
 
     @Getter
     private final String path;
-    private final Function<IInputRow, Object> valueGetter;
+    private final InputRowAccessor.IGetter valueGetter;
 
     @JsonCreator
     public TreePathFlattener(@JsonProperty("field") String field,
                              @JsonProperty("path") String path) {
         this.field = Preconditions.checkArgumentNotNull("field", field);
         this.path = Preconditions.checkArgumentNotNull("path", path);
-        this.valueGetter = InputRowAccessorFactory.createGetter(this.path);
+        this.valueGetter = InputRowAccessor.createGetter(this.path);
     }
 
     @Override
     public void flatten(IInputRow inputRow) {
-        Object obj = valueGetter.apply(inputRow);
+        Object obj = valueGetter.get(inputRow);
         if (obj != null) {
             inputRow.updateColumn(field, obj);
         }
