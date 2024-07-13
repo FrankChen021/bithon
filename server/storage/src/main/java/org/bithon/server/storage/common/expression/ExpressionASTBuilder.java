@@ -196,17 +196,12 @@ public class ExpressionASTBuilder {
             flattenLogicalExpression(operands, logicalOperatorType, ctx.getChild(0).accept(this));
             flattenLogicalExpression(operands, logicalOperatorType, ctx.getChild(2).accept(this));
 
-            switch (logicalOperatorType) {
-                case ExpressionLexer.AND:
-                    return new LogicalExpression.AND(operands);
-
-                case ExpressionLexer.OR:
-                    return new LogicalExpression.OR(operands);
-
-                default:
-                    // NOT logical expression is defined as NotExpression below, not here
-                    throw new InvalidExpressionException("Unsupported logical operator");
-            }
+            // NOT logical expression is defined as NotExpression below, not here
+            return switch (logicalOperatorType) {
+                case ExpressionLexer.AND -> new LogicalExpression.AND(operands);
+                case ExpressionLexer.OR -> new LogicalExpression.OR(operands);
+                default -> throw new InvalidExpressionException("Unsupported logical operator");
+            };
         }
 
         @Override
@@ -219,110 +214,95 @@ public class ExpressionASTBuilder {
             // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
             TerminalNode op = (TerminalNode) ctx.getChild(1);
 
-            switch (op.getSymbol().getType()) {
-                case ExpressionLexer.ADD:
-                    return new ArithmeticExpression.ADD(ctx.getChild(0).accept(this),
-                                                        ctx.getChild(2).accept(this));
+            return switch (op.getSymbol().getType()) {
+                case ExpressionLexer.ADD -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.SUB -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.MUL -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.DIV -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                default -> throw new InvalidExpressionException("Unsupported arithmetic operator");
+            };
+        }
 
-                case ExpressionLexer.SUB:
-                    return new ArithmeticExpression.SUB(ctx.getChild(0).accept(this),
-                                                        ctx.getChild(2).accept(this));
+        static class PredicateExpressionVisitor extends ExpressionBaseVisitor<IExpression> {
+            private final IExpression left;
+            private final IExpression right;
 
-                case ExpressionLexer.MUL:
-                    return new ArithmeticExpression.MUL(ctx.getChild(0).accept(this),
-                                                        ctx.getChild(2).accept(this));
+            PredicateExpressionVisitor(IExpression left, IExpression right) {
+                this.left = left;
+                this.right = right;
+            }
 
-                case ExpressionLexer.DIV:
-                    return new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
-                                                        ctx.getChild(2).accept(this));
-                default:
-                    throw new InvalidExpressionException("Unsupported arithmetic operator");
+            @Override
+            public IExpression visitSimplePredicate(ExpressionParser.SimplePredicateContext ctx) {
+                TerminalNode op = (TerminalNode) ctx.getChild(0);
+                return switch (op.getSymbol().getType()) {
+                    case ExpressionLexer.LT -> flipComparisonExpression(new ComparisonExpression.LT(left, right));
+                    case ExpressionLexer.LTE -> flipComparisonExpression(new ComparisonExpression.LTE(left, right));
+                    case ExpressionLexer.GT -> flipComparisonExpression(new ComparisonExpression.GT(left, right));
+                    case ExpressionLexer.GTE -> flipComparisonExpression(new ComparisonExpression.GTE(left, right));
+                    case ExpressionLexer.NE -> flipComparisonExpression(new ComparisonExpression.NE(left, right));
+                    case ExpressionLexer.EQ -> flipComparisonExpression(new ComparisonExpression.EQ(left, right));
+                    default -> throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
+                };
+            }
+
+            @Override
+            public IExpression visitExtraPredicate(ExpressionParser.ExtraPredicateContext ctx) {
+                TerminalNode op = (TerminalNode) ctx.getChild(0);
+                return switch (op.getSymbol().getType()) {
+                    case ExpressionLexer.LIKE -> new ConditionalExpression.Like(left, right);
+                    case ExpressionLexer.STARTSWITH -> new ConditionalExpression.StartsWith(left, right);
+                    case ExpressionLexer.ENDSWITH -> new ConditionalExpression.EndsWith(left, right);
+                    case ExpressionLexer.CONTAINS -> new ConditionalExpression.Contains(left, right);
+                    default -> throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
+                };
+            }
+
+            @Override
+            public IExpression visitNotPredicate(ExpressionParser.NotPredicateContext ctx) {
+                IExpression expr = ctx.extraPredicate().accept(this);
+                if (expr instanceof ConditionalExpression.Like) {
+                    return new ConditionalExpression.NotLike(((ConditionalExpression.Like) expr).getLeft(),
+                                                             ((ConditionalExpression.Like) expr).getRight());
+                }
+                return new LogicalExpression.NOT(expr);
+            }
+
+            // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
+            private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
+                if (comparisonExpression.getLeft() instanceof LiteralExpression) {
+                    if (comparisonExpression.getRight() instanceof LiteralExpression) {
+                        // Constant folding
+                        return LiteralExpression.create(comparisonExpression.evaluate(null));
+                    }
+                    return comparisonExpression.flip();
+                }
+                return comparisonExpression;
             }
         }
 
         @Override
         public IExpression visitComparisonExpression(ExpressionParser.ComparisonExpressionContext ctx) {
-            // There's only one TerminalNode in binaryExpression root definition, use index 0 to get that node
-            TerminalNode op = (TerminalNode) ctx.getChild(1);
+            IExpression left = ctx.getChild(0).accept(this);
+            IExpression right = ctx.getChild(2).accept(this);
 
-            ParseTree left = ctx.getChild(0);
+            return ctx.getChild(1).accept(new PredicateExpressionVisitor(left, right));
+        }
 
-            switch (op.getSymbol().getType()) {
-                case ExpressionLexer.LT:
-                    return flipComparisonExpression(new ComparisonExpression.LT(left.accept(this),
-                                                                                ctx.getChild(2).accept(this)));
+        @Override
+        public IExpression visitInExpression(ExpressionParser.InExpressionContext ctx) {
+            boolean isNot = ctx.getChild(TerminalNode.class, 0).getSymbol().getType() == ExpressionLexer.NOT;
 
-                case ExpressionLexer.LTE:
-                    return flipComparisonExpression(new ComparisonExpression.LTE(left.accept(this),
-                                                                                 ctx.getChild(2).accept(this)));
-
-                case ExpressionLexer.GT:
-                    return flipComparisonExpression(new ComparisonExpression.GT(left.accept(this),
-                                                                                ctx.getChild(2).accept(this)));
-
-                case ExpressionLexer.GTE:
-                    return flipComparisonExpression(new ComparisonExpression.GTE(left.accept(this),
-                                                                                 ctx.getChild(2).accept(this)));
-
-                case ExpressionLexer.NE:
-                    return flipComparisonExpression(new ComparisonExpression.NE(left.accept(this),
-                                                                                ctx.getChild(2).accept(this)));
-
-                case ExpressionLexer.EQ:
-                    return flipComparisonExpression(new ComparisonExpression.EQ(left.accept(this),
-                                                                                ctx.getChild(2).accept(this)));
-
-                case ExpressionLexer.LIKE:
-                    return createLikeExpression(left, ctx.getChild(2), false);
-
-                case ExpressionLexer.NOT:
-                    TerminalNode operator = (TerminalNode) ctx.getChild(2);
-                    switch (operator.getSymbol().getType()) {
-                        case ExpressionLexer.LIKE:
-                            return createLikeExpression(left, ctx.getChild(3), true);
-
-                        case ExpressionLexer.IN:
-                            return createInExpression(left, ctx.getChild(3), true);
-
-                        default:
-                            throw new InvalidExpressionException("Unsupported symbol after the NOT operator.");
-                    }
-
-                case ExpressionLexer.IN:
-                    return createInExpression(left, ctx.getChild(2), false);
-
-                default:
-                    throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
+            IExpression leftOperand = ctx.getChild(0).accept(this);
+            IExpression rightOperand;
+            if (isNot) {
+                rightOperand = ctx.getChild(3).accept(this);
+            } else {
+                rightOperand = ctx.getChild(2).accept(this);
             }
-        }
 
-        // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
-        private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
-            if (comparisonExpression.getLeft() instanceof LiteralExpression) {
-                if (comparisonExpression.getRight() instanceof LiteralExpression) {
-                    // Constant folding
-                    return LiteralExpression.create(comparisonExpression.evaluate(null));
-                }
-                return comparisonExpression.flip();
-            }
-            return comparisonExpression;
-        }
-
-        private IExpression createLikeExpression(ParseTree left, ParseTree right, boolean isNot) {
-            IExpression leftOperand = left.accept(this);
-            IExpression rightOperand = right.accept(this);
-
-            return isNot ? new ConditionalExpression.NotLike(leftOperand, rightOperand)
-                : new ConditionalExpression.Like(leftOperand, rightOperand);
-        }
-
-        private IExpression createInExpression(ParseTree left, ParseTree right, boolean isNot) {
-            IExpression leftOperand = left.accept(this);
-
-            IExpression rightOperand = right.accept(this);
-            if (rightOperand instanceof ExpressionList) {
-                ExpressionList expressionList = (ExpressionList) rightOperand;
-
+            // The visitExpressionList will optimize the returning as expression if the list has only one element
+            if (rightOperand instanceof ExpressionList expressionList) {
                 if (expressionList.getExpressions().isEmpty()) {
                     throw new RuntimeException("The elements of the IN operator is empty");
                 }
@@ -338,14 +318,23 @@ public class ExpressionASTBuilder {
             // It will be turned into EQ/NE
             ComparisonExpression comparisonExpression;
             if (isNot) {
-                comparisonExpression = new ComparisonExpression.NE(leftOperand,
-                                                                   rightOperand);
-
+                comparisonExpression = new ComparisonExpression.NE(leftOperand, rightOperand);
             } else {
-                comparisonExpression = new ComparisonExpression.EQ(leftOperand,
-                                                                   rightOperand);
+                comparisonExpression = new ComparisonExpression.EQ(leftOperand, rightOperand);
             }
             return flipComparisonExpression(comparisonExpression);
+        }
+
+        // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
+        private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
+            if (comparisonExpression.getLeft() instanceof LiteralExpression) {
+                if (comparisonExpression.getRight() instanceof LiteralExpression) {
+                    // Constant folding
+                    return LiteralExpression.create(comparisonExpression.evaluate(null));
+                }
+                return comparisonExpression.flip();
+            }
+            return comparisonExpression;
         }
 
         @Override
@@ -386,22 +375,17 @@ public class ExpressionASTBuilder {
         @Override
         public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
             TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
-            switch (literalExpressionNode.getSymbol().getType()) {
-                case ExpressionLexer.INTEGER_LITERAL: {
-                    return LiteralExpression.create(Long.parseLong(literalExpressionNode.getText()));
-                }
-                case ExpressionLexer.DECIMAL_LITERAL: {
-                    return LiteralExpression.create(Double.parseDouble(literalExpressionNode.getText()));
-                }
-                case ExpressionLexer.STRING_LITERAL: {
-                    return LiteralExpression.create(getUnQuotedString(literalExpressionNode.getSymbol()));
-                }
-                case ExpressionLexer.BOOL_LITERAL: {
-                    return LiteralExpression.create("true".equals(literalExpressionNode.getText().toLowerCase(Locale.ENGLISH)));
-                }
-                default:
-                    throw new InvalidExpressionException("unexpected right expression type");
-            }
+            return switch (literalExpressionNode.getSymbol().getType()) {
+                case ExpressionLexer.INTEGER_LITERAL ->
+                    LiteralExpression.create(Long.parseLong(literalExpressionNode.getText()));
+                case ExpressionLexer.DECIMAL_LITERAL ->
+                    LiteralExpression.create(Double.parseDouble(literalExpressionNode.getText()));
+                case ExpressionLexer.STRING_LITERAL ->
+                    LiteralExpression.create(getUnQuotedString(literalExpressionNode.getSymbol()));
+                case ExpressionLexer.BOOL_LITERAL ->
+                    LiteralExpression.create("true".equals(literalExpressionNode.getText().toLowerCase(Locale.ENGLISH)));
+                default -> throw new InvalidExpressionException("unexpected right expression type");
+            };
         }
 
         @Override

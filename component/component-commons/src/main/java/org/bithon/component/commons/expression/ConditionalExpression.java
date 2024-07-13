@@ -124,7 +124,7 @@ public abstract class ConditionalExpression extends BinaryExpression {
             String pattern = (String) right.evaluate(context);
 
             if (pattern.contains("%")) {
-                // Replace % with .* to convert SQL LIKE pattern to regex pattern
+                // Replace % with .* to convert SQL LIKE pattern to a regex pattern
                 String regexPattern = pattern.replace("%", ".*");
 
                 // Use regex matching to check if the inputString matches the pattern
@@ -157,6 +157,57 @@ public abstract class ConditionalExpression extends BinaryExpression {
         @Override
         public Object evaluate(IEvaluationContext context) {
             return !((boolean) super.evaluate(context));
+        }
+    }
+
+    public static class Contains extends ConditionalExpression {
+        public Contains(IExpression left, IExpression right) {
+            super("contains", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            String input = (String) left.evaluate(context);
+            if (input == null) {
+                return false;
+            }
+
+            String pattern = (String) right.evaluate(context);
+            return input.contains(pattern);
+        }
+    }
+
+    public static class StartsWith extends ConditionalExpression {
+        public StartsWith(IExpression left, IExpression right) {
+            super("startsWith", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            String input = (String) left.evaluate(context);
+            if (input == null) {
+                return false;
+            }
+
+            String pattern = (String) right.evaluate(context);
+            return input.startsWith(pattern);
+        }
+    }
+
+    public static class EndsWith extends ConditionalExpression {
+        public EndsWith(IExpression left, IExpression right) {
+            super("endsWith", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            String input = (String) left.evaluate(context);
+            if (input == null) {
+                return false;
+            }
+
+            String pattern = (String) right.evaluate(context);
+            return input.endsWith(pattern);
         }
     }
 }
