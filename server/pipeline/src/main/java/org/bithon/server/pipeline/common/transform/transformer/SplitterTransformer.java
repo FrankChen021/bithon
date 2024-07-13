@@ -47,7 +47,7 @@ public class SplitterTransformer implements ITransformer {
 
     @JsonIgnore
 
-    private final InputRowAccessor.IGetter sourceValueGetter;
+    private final InputRowAccessor.IGetter valueGetter;
 
     @JsonCreator
     public SplitterTransformer(@JsonProperty("field") String field,
@@ -56,12 +56,12 @@ public class SplitterTransformer implements ITransformer {
         this.field = Preconditions.checkArgumentNotNull("field", field);
         this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
         this.names = names;
-        this.sourceValueGetter = InputRowAccessor.createGetter(this.field);
+        this.valueGetter = InputRowAccessor.createGetter(this.field);
     }
 
     @Override
     public TransformResult transform(IInputRow row) {
-        Object val = sourceValueGetter.get(row);
+        Object val = valueGetter.get(row);
         if (val == null) {
             return TransformResult.CONTINUE;
         }

@@ -40,7 +40,7 @@ public class SplitTransformer extends AbstractTransformer {
     private final String[] targets;
 
     @JsonIgnore
-    private final InputRowAccessor.IGetter sourceValueGetter;
+    private final InputRowAccessor.IGetter valueGetter;
 
     @JsonCreator
     public SplitTransformer(@JsonProperty("source") String source,
@@ -53,12 +53,12 @@ public class SplitTransformer extends AbstractTransformer {
         this.by = Preconditions.checkArgumentNotNull("by", by);
         this.targets = Preconditions.checkArgumentNotNull("targets", targets);
 
-        this.sourceValueGetter = InputRowAccessor.createGetter(this.source);
+        this.valueGetter = InputRowAccessor.createGetter(this.source);
     }
 
     @Override
     protected TransformResult transformInternal(IInputRow row) {
-        Object val = sourceValueGetter.get(row);
+        Object val = valueGetter.get(row);
         if (!(val instanceof String)) {
             return TransformResult.CONTINUE;
         }
