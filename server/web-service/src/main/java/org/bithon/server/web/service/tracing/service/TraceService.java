@@ -43,8 +43,8 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
-import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
+import org.bithon.server.web.service.datasource.api.impl.QueryFilter;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -140,7 +140,7 @@ public class TraceService {
                                 Timestamp start,
                                 Timestamp end) {
         FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(FilterExpressionToFilters.toExpression(this.summaryTableSchema, filterExpression));
+        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
         return traceReader.getTraceListSize(splitter.expression,
                                             splitter.indexedTagFilters,
@@ -156,7 +156,7 @@ public class TraceService {
                                         int pageNumber,
                                         int pageSize) {
         FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(FilterExpressionToFilters.toExpression(this.summaryTableSchema, filterExpression));
+        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
         return traceReader.getTraceList(splitter.expression,
                                         splitter.indexedTagFilters,
@@ -172,7 +172,7 @@ public class TraceService {
                                                       TimeSpan end,
                                                       int bucketCount) {
         FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(FilterExpressionToFilters.toExpression(this.summaryTableSchema, filterExpression));
+        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
         List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.expression,

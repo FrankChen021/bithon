@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.datasource.api;
+package org.bithon.server.web.service.datasource.api.impl;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
@@ -34,22 +34,24 @@ import javax.annotation.Nullable;
  * @author frank.chen021@outlook.com
  * @date 2023/5/6 23:49
  */
-public class FilterExpressionToFilters {
+public class QueryFilter {
 
-    public static IExpression toExpression(ISchema schema, @Nullable String filterExpression) {
+    public static IExpression build(ISchema schema, @Nullable String filterExpression) {
         if (StringUtils.isEmpty(filterExpression)) {
             return null;
         }
 
-        return validateIfConditional(ExpressionASTBuilder.builder()
-                                                         .schema(schema)
-                                                         .functions(Functions.getInstance())
-                                                         .build(filterExpression));
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .schema(schema)
+                                               .functions(Functions.getInstance())
+                                               .build(filterExpression);
+        return validateIfConditional(expr);
     }
 
+    /**
+     * Validate if the expression is a filter and optimize if possible
+     */
     private static IExpression validateIfConditional(IExpression expression) {
-        // Validate if the expression is a filter
-        // and optimize if possible
         if (expression instanceof FunctionExpression) {
             return switch (expression.getDataType()) {
                 case STRING ->
@@ -68,7 +70,7 @@ public class FilterExpressionToFilters {
 
         if (!(expression instanceof LogicalExpression)
             && !(expression instanceof ConditionalExpression)) {
-            throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add comparators to your expression.",
+            throw new InvalidExpressionException("Expression [%s] is not a valid filter. Consider to add operators to your expression.",
                                                  expression.serializeToText());
         }
 

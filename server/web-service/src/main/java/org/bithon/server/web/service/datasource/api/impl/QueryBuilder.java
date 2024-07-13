@@ -31,7 +31,6 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
-import org.bithon.server.web.service.datasource.api.FilterExpressionToFilters;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
@@ -113,7 +112,7 @@ public class QueryBuilder {
         return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .schema(schema)
-                      .filter(FilterExpressionToFilters.toExpression(schema, query.getFilterExpression()))
+                      .filter(QueryFilter.build(schema, query.getFilterExpression()))
                       .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
