@@ -22,10 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
+import org.bithon.server.storage.datasource.input.InputRowAccessor;
 
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,10 +48,10 @@ public class ReplaceTransformer extends AbstractTransformer {
     private final String quotedReplacement;
 
     @JsonIgnore
-    private final Function<IInputRow, Object> getValue;
+    private final InputRowAccessor.IGetter valueGetter;
 
     @JsonIgnore
-    private final BiConsumer<IInputRow, String> setValue;
+    private final InputRowAccessor.ISetter valueSetter;
 
     @JsonCreator
     public ReplaceTransformer(@JsonProperty("source") String source,
@@ -66,8 +64,8 @@ public class ReplaceTransformer extends AbstractTransformer {
         this.find = Preconditions.checkArgumentNotNull("find", find);
         this.replacement = Preconditions.checkArgumentNotNull("replacement", replacement);
 
-        this.getValue = InputRowAccessorFactory.createGetter(source);
-        this.setValue = InputRowAccessorFactory.createSetter(source);
+        this.valueGetter = InputRowAccessor.createGetter(source);
+        this.valueSetter = InputRowAccessor.createSetter(source);
 
         // See the String.replace(String, String) to know more
         this.pattern = Pattern.compile(this.find, Pattern.LITERAL);
@@ -76,13 +74,13 @@ public class ReplaceTransformer extends AbstractTransformer {
 
     @Override
     protected TransformResult transformInternal(IInputRow data) {
-        Object value = getValue.apply(data);
+        Object value = valueGetter.get(data);
         if (!(value instanceof String)) {
             return TransformResult.CONTINUE;
         }
 
         String replaced = this.pattern.matcher((String) value).replaceAll(this.quotedReplacement);
-        setValue.accept(data, replaced);
+        valueSetter.set(data, replaced);
         return TransformResult.CONTINUE;
     }
 }

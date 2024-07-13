@@ -22,9 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessorFactory;
-
-import java.util.function.Function;
+import org.bithon.server.storage.datasource.input.InputRowAccessor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,7 +40,7 @@ public class SplitTransformer extends AbstractTransformer {
     private final String[] targets;
 
     @JsonIgnore
-    private final Function<IInputRow, Object> getValue;
+    private final InputRowAccessor.IGetter sourceValueGetter;
 
     @JsonCreator
     public SplitTransformer(@JsonProperty("source") String source,
@@ -55,12 +53,12 @@ public class SplitTransformer extends AbstractTransformer {
         this.by = Preconditions.checkArgumentNotNull("by", by);
         this.targets = Preconditions.checkArgumentNotNull("targets", targets);
 
-        this.getValue = InputRowAccessorFactory.createGetter(this.source);
+        this.sourceValueGetter = InputRowAccessor.createGetter(this.source);
     }
 
     @Override
     protected TransformResult transformInternal(IInputRow row) {
-        Object val = getValue.apply(row);
+        Object val = sourceValueGetter.get(row);
         if (!(val instanceof String)) {
             return TransformResult.CONTINUE;
         }

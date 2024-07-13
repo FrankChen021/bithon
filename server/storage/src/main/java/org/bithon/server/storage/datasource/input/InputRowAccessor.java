@@ -17,15 +17,24 @@
 package org.bithon.server.storage.datasource.input;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/26 22:09
  */
-public class InputRowAccessorFactory {
-    public static Function<IInputRow, Object> createGetter(String name) {
+public class InputRowAccessor {
+
+    @FunctionalInterface
+    public interface IGetter {
+        Object get(IInputRow inputRow);
+    }
+
+    @FunctionalInterface
+    public interface ISetter {
+        void set(IInputRow inputRow, Object val);
+    }
+
+    public static IGetter createGetter(String name) {
         int firstDotIndex = name.indexOf('.');
         if (firstDotIndex < 0) {
             return inputRow -> inputRow.getCol(name);
@@ -42,7 +51,7 @@ public class InputRowAccessorFactory {
         };
     }
 
-    public static BiConsumer<IInputRow, String> createSetter(String name) {
+    public static ISetter createSetter(String name) {
         int dotSeparatorIndex = name.indexOf('.');
         if (dotSeparatorIndex >= 0) {
             final String container = name.substring(0, dotSeparatorIndex);
@@ -50,7 +59,8 @@ public class InputRowAccessorFactory {
             return (inputRow, val) -> {
                 Object v = inputRow.getCol(container);
                 if (v instanceof Map) {
-                    ((Map<String, String>) v).put(nested, val);
+                    //noinspection unchecked
+                    ((Map<String, Object>) v).put(nested, val);
                 }
             };
         } else {
