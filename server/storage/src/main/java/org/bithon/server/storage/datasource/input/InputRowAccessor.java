@@ -34,37 +34,57 @@ public class InputRowAccessor {
         void set(IInputRow inputRow, Object val);
     }
 
-    public static IGetter createGetter(String name) {
-        int firstDotIndex = name.indexOf('.');
-        if (firstDotIndex < 0) {
-            return inputRow -> inputRow.getCol(name);
+    @SuppressWarnings("rawtypes")
+    public static IGetter createGetter(String path) {
+        if (path.indexOf('.') <= 0) {
+            // Not a tree path style input
+            return inputRow -> inputRow.get(path);
         }
 
-        final String container = name.substring(0, firstDotIndex);
-        final String nested = name.substring(firstDotIndex + 1);
+        final String[] parts = path.split("\\.");
         return inputRow -> {
-            Object v = inputRow.getCol(container);
-            if (v instanceof Map) {
-                return ((Map<?, ?>) v).get(nested);
+            Object obj = inputRow.get(parts[0]);
+            if (!(obj instanceof Map map)) {
+                return obj;
             }
-            return null;
+
+            for (int i = 1; i < parts.length; i++) {
+                Object o = map.get(parts[i]);
+                if (!(o instanceof Map)) {
+                    return o;
+                }
+                map = (Map) o;
+            }
+            return map;
         };
     }
 
-    public static ISetter createSetter(String name) {
-        int dotSeparatorIndex = name.indexOf('.');
-        if (dotSeparatorIndex >= 0) {
-            final String container = name.substring(0, dotSeparatorIndex);
-            final String nested = name.substring(dotSeparatorIndex + 1);
-            return (inputRow, val) -> {
-                Object v = inputRow.getCol(container);
-                if (v instanceof Map) {
-                    //noinspection unchecked
-                    ((Map<String, Object>) v).put(nested, val);
-                }
-            };
-        } else {
-            return (inputRow, val) -> inputRow.updateColumn(name, val);
+    @SuppressWarnings("rawtypes")
+    public static ISetter createSetter(String path) {
+        if (path.indexOf('.') <= 0) {
+            // Not a tree style path
+            return (inputRow, v) -> inputRow.updateColumn(path, v);
         }
+
+        final String[] parts = path.split("\\.");
+        return (inputRow, v) -> {
+            Object obj = inputRow.getCol(parts[0]);
+            if (!(obj instanceof Map map)) {
+                return;
+            }
+
+            int i = 1;
+            while (i < parts.length - 1) {
+                obj = map.get(parts[i]);
+                if (!(obj instanceof Map)) {
+                    return;
+                }
+                map = (Map) obj;
+                i++;
+            }
+
+            // noinspection unchecked
+            map.put(parts[i], v);
+        };
     }
 }
