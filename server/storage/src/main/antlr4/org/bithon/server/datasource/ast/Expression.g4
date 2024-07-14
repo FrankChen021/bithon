@@ -9,8 +9,8 @@ expression
   | expression LEFT_SQUARE_BRACKET STRING_LITERAL RIGHT_SQUARE_BRACKET  #mapAccessExpression
   | expression (MUL|DIV) expression                                     #arithmeticExpression
   | expression (ADD|SUB) expression                                     #arithmeticExpression
-  | expression (LT|LTE|GT|GTE|NE|EQ|LIKE|NOT LIKE) expression           #comparisonExpression
-  | expression (IN|NOT IN) expressionListDecl                           #comparisonExpression
+  | expression (simplePredicate | extraPredicate | notPredicate) expression           #comparisonExpression
+  | expression (IN|NOT IN) expressionListDecl                           #inExpression
   | functionExpressionDecl                                              #functionExpression
   | notExpressionDecl                                                   #notExpression
   | expression AND expression                                           #logicalExpression
@@ -21,8 +21,10 @@ expression
   | macroExpressionDecl                                                 #macroExpression
   ;
 
+// The 'endsWith' and 'startsWith' functions are supported in previous version,
+// but now they're defined as predicate, to make sure the backward compatibility, we put them in the expression below
 functionExpressionDecl
-   : IDENTIFIER expressionListDecl
+   : (IDENTIFIER | ENDSWITH | STARTSWITH) expressionListDecl
    ;
 
 notExpressionDecl
@@ -44,6 +46,18 @@ identifierExpressionDecl
 
 macroExpressionDecl
   : LEFT_CURLY_BRACE IDENTIFIER RIGHT_CURLY_BRACE
+  ;
+
+simplePredicate
+  : LT | LTE | GT | GTE | NE | EQ
+  ;
+
+extraPredicate
+  : LIKE | STARTSWITH | ENDSWITH | CONTAINS
+  ;
+
+notPredicate
+  : NOT extraPredicate
   ;
 
 INTEGER_LITERAL: '-'?[0-9]+;
@@ -78,6 +92,9 @@ AND: A N D;
 OR: O R;
 IN: I N;
 LIKE: L I K E;
+ENDSWITH: E N D S W I T H;
+STARTSWITH: S T A R T S W I T H;
+CONTAINS: C O N T A I N S;
 NOT: N O T;
 TRUE: T R U E;
 FALSE: F A L S E;

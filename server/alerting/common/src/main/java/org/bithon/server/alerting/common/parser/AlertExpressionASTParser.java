@@ -335,34 +335,33 @@ public class AlertExpressionASTParser {
             IExpression expected = ctx.literalExpression().accept(this);
 
             TerminalNode operator = ctx.getChild(TerminalNode.class, 1);
-            switch (operator.getSymbol().getType()) {
-                case AlertExpressionParser.LT:
+            return switch (operator.getSymbol().getType()) {
+                case AlertExpressionParser.LT -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '<' operator must be type of literal.");
-                    return new ComparisonExpression.LT(identifier, expected);
-
-                case AlertExpressionParser.LTE:
+                    yield new ComparisonExpression.LT(identifier, expected);
+                }
+                case AlertExpressionParser.LTE -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '<=' operator must be type of literal.");
-                    return new ComparisonExpression.LTE(identifier, expected);
-
-                case AlertExpressionParser.GT:
+                    yield new ComparisonExpression.LTE(identifier, expected);
+                }
+                case AlertExpressionParser.GT -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '>' operator must be type of literal.");
-                    return new ComparisonExpression.GT(identifier, expected);
-
-                case AlertExpressionParser.GTE:
+                    yield new ComparisonExpression.GT(identifier, expected);
+                }
+                case AlertExpressionParser.GTE -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '>=' operator must be type of literal.");
-                    return new ComparisonExpression.GTE(identifier, expected);
-
-                case AlertExpressionParser.NE:
+                    yield new ComparisonExpression.GTE(identifier, expected);
+                }
+                case AlertExpressionParser.NE -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '<>' operator must be type of literal.");
-                    return new ComparisonExpression.NE(identifier, expected);
-
-                case AlertExpressionParser.EQ:
+                    yield new ComparisonExpression.NE(identifier, expected);
+                }
+                case AlertExpressionParser.EQ -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '=' operator must be type of literal.");
-                    return new ComparisonExpression.EQ(identifier, expected);
-
-                default:
-                    throw new RuntimeException("Unsupported operator type: " + operator.getSymbol().getText());
-            }
+                    yield new ComparisonExpression.EQ(identifier, expected);
+                }
+                default -> throw new RuntimeException("Unsupported operator type: " + operator.getSymbol().getText());
+            };
         }
 
         @Override
@@ -404,21 +403,36 @@ public class AlertExpressionASTParser {
         }
 
         @Override
-        public IExpression visitEndwithExpression(AlertExpressionParser.EndwithExpressionContext ctx) {
-            //TODO:
-            return super.visitEndwithExpression(ctx);
+        public IExpression visitEndsWithExpression(AlertExpressionParser.EndsWithExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'endsWith' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'endsWith' operator must be type of String.");
+
+            return new ConditionalExpression.EndsWith(identifier, expected);
         }
 
         @Override
-        public IExpression visitStartwithExpression(AlertExpressionParser.StartwithExpressionContext ctx) {
-            //TODO:
-            return super.visitStartwithExpression(ctx);
+        public IExpression visitStartsWithExpression(AlertExpressionParser.StartsWithExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'startsWith' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'startsWith' operator must be type of String.");
+
+            return new ConditionalExpression.StartsWith(identifier, expected);
         }
 
         @Override
         public IExpression visitContainsExpression(AlertExpressionParser.ContainsExpressionContext ctx) {
-            //TODO:
-            return super.visitContainsExpression(ctx);
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'contains' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'contains' operator must be type of String.");
+
+            return new ConditionalExpression.Contains(identifier, expected);
         }
 
         @Override
@@ -432,28 +446,18 @@ public class AlertExpressionASTParser {
         @Override
         public LiteralExpression visitTerminal(TerminalNode node) {
             Token symbol = node.getSymbol();
-            switch (symbol.getType()) {
-                case AlertExpressionParser.DECIMAL_LITERAL:
-                    return LiteralExpression.create(parseDecimal(symbol.getText()));
-
-                case AlertExpressionParser.INTEGER_LITERAL:
-                    return LiteralExpression.create(Integer.parseInt(symbol.getText()));
-
-                case AlertExpressionParser.PERCENTAGE_LITERAL:
-                    return LiteralExpression.create(new HumanReadablePercentage(symbol.getText()));
-
-                case AlertExpressionParser.STRING_LITERAL:
-                    return LiteralExpression.create(getUnQuotedString(symbol));
-
-                case AlertExpressionParser.NULL_LITERAL:
-                    return null;
-
-                case AlertExpressionParser.SIZE_LITERAL:
-                    return LiteralExpression.create(HumanReadableSize.of(symbol.getText()));
-
-                default:
-                    throw new RuntimeException("Unsupported terminal type");
-            }
+            return switch (symbol.getType()) {
+                case AlertExpressionParser.DECIMAL_LITERAL -> LiteralExpression.create(parseDecimal(symbol.getText()));
+                case AlertExpressionParser.INTEGER_LITERAL ->
+                    LiteralExpression.create(Integer.parseInt(symbol.getText()));
+                case AlertExpressionParser.PERCENTAGE_LITERAL ->
+                    LiteralExpression.create(new HumanReadablePercentage(symbol.getText()));
+                case AlertExpressionParser.STRING_LITERAL -> LiteralExpression.create(getUnQuotedString(symbol));
+                case AlertExpressionParser.NULL_LITERAL -> null;
+                case AlertExpressionParser.SIZE_LITERAL ->
+                    LiteralExpression.create(HumanReadableSize.of(symbol.getText()));
+                default -> throw new RuntimeException("Unsupported terminal type");
+            };
         }
 
         static BigDecimal parseDecimal(String text) {

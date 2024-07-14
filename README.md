@@ -52,14 +52,13 @@ git submodule update --init
 
 ## 2. choose a right JDK
 
-JDK 1.8 is recommended because the agent is compatible with higher JRE that is used to run your Java applications.
-
+Since the project is built upon SpringBoot 3.0, a JDK 17 or higher is required to build this project.
 If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK.
 
 For example
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
 ```
 
 ## 3. build the project
@@ -129,7 +128,9 @@ Make sure to re-build the project after changing the configuration file above.
 
 # JDKs Compatibility
 
-The following matrix lists the JDKs that have been tested on macOS. And in theory, this matrix works both for Windows and Linux.
+Even the project is built by JDK 17 and above, the agent is compatible with JDK 1.8+.
+The following matrix lists the JDKs that are compatible with the agent on macOS. 
+And in theory, this matrix works both for Windows and Linux.
 
 | JDK           | Supported | 
 |---------------|-----------|

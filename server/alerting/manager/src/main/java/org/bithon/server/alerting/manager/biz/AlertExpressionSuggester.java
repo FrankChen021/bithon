@@ -71,8 +71,8 @@ public class AlertExpressionSuggester {
         AlertExpressionParser.LIKE,
         AlertExpressionParser.HAS,
         AlertExpressionParser.CONTAINS,
-        AlertExpressionParser.STARTWITH,
-        AlertExpressionParser.ENDWITH);
+        AlertExpressionParser.STARTSWITH,
+        AlertExpressionParser.ENDSWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;

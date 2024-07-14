@@ -177,7 +177,7 @@ public class AlertExpressionSuggesterTest {
         Collection<String> suggestions = suggest(suggester, "sum(event.count{app");
 
         // dimensions and end-of-filter are suggested
-        Assert.assertEquals(Arrays.asList("!=", "<", "<=", "<>", "=", ">", ">=", "endwith", "has", "in", "like", "not"), suggestions);
+        Assert.assertEquals(Arrays.asList("!=", "<", "<=", "<>", "=", ">", ">=", "endswith", "has", "in", "like", "not"), suggestions);
     }
 
     @Test
