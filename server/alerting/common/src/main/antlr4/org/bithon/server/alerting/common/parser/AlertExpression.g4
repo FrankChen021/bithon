@@ -50,8 +50,8 @@ filterExpression
   : IDENTIFIER (LT|LTE|GT|GTE|NE|EQ) literalExpression #comparisonExpression
   | IDENTIFIER HAS literalExpression #hasExpression
   | IDENTIFIER CONTAINS literalExpression #containsExpression
-  | IDENTIFIER STARTSWITH literalExpression #startwithExpression
-  | IDENTIFIER ENDSWITH literalExpression #endwithExpression
+  | IDENTIFIER STARTSWITH literalExpression #startsWithExpression
+  | IDENTIFIER ENDSWITH literalExpression #endsWithExpression
   | IDENTIFIER LIKE literalExpression #likeExpression
   | IDENTIFIER IN literalListExpression #inFilterExpression
   | IDENTIFIER NOT IN literalListExpression #notInFilterExpression

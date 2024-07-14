@@ -403,21 +403,36 @@ public class AlertExpressionASTParser {
         }
 
         @Override
-        public IExpression visitEndwithExpression(AlertExpressionParser.EndwithExpressionContext ctx) {
-            //TODO:
-            return super.visitEndwithExpression(ctx);
+        public IExpression visitEndsWithExpression(AlertExpressionParser.EndsWithExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'endsWith' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'endsWith' operator must be type of String.");
+
+            return new ConditionalExpression.EndsWith(identifier, expected);
         }
 
         @Override
-        public IExpression visitStartwithExpression(AlertExpressionParser.StartwithExpressionContext ctx) {
-            //TODO:
-            return super.visitStartwithExpression(ctx);
+        public IExpression visitStartsWithExpression(AlertExpressionParser.StartsWithExpressionContext ctx) {
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'startsWith' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'startsWith' operator must be type of String.");
+
+            return new ConditionalExpression.StartsWith(identifier, expected);
         }
 
         @Override
         public IExpression visitContainsExpression(AlertExpressionParser.ContainsExpressionContext ctx) {
-            //TODO:
-            return super.visitContainsExpression(ctx);
+            IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
+
+            IExpression expected = ctx.literalExpression().accept(this);
+            checkIfTrue(expected instanceof LiteralExpression, "The expected value of 'contains' operator must be type of literal.");
+            checkIfTrue(IDataType.STRING.equals(expected.getDataType()), "The literal of 'contains' operator must be type of String.");
+
+            return new ConditionalExpression.Contains(identifier, expected);
         }
 
         @Override
