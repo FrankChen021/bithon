@@ -82,12 +82,12 @@ class Dashboard {
                 html: true,
                 trigger: 'hover',
                 title: 'Syntax',
-                content: '<b>Comparators</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, LIKE, NOT LIKE, IN, NOT IN<br/>' +
+                content: '<b>Comparators</b>: &lt;, &lt;=, &gt, &gt;=, =, !=, in, not in, contains, not contains, startsWith, endsWith, not startsWith, not endsWith<br/>' +
                        '<b>Operators</b>: AND, OR, NOT<br/>' +
-                       '<b>Functions</b>: startsWith(field, \'prefix\'), endsWith(field, \'suffix\'), hasToken(field, \'xxx\')<br/><br/>' +
+                       '<b>Functions</b>: hasToken(field, \'xxx\')<br/><br/>' +
                        '<b>Example 1</b>: <u>level in (\'DEBUG\', \'INFO\')</u><br/>' +
-                       '<b>Example 2</b>: <u>message like \'%start%\' AND level = \'INFO\'</u><br/>' +
-                       '<b>Example 3</b>: <u>message like \'%start%\' AND message like \'%complete%\'</u><br/>'
+                       '<b>Example 2</b>: <u>message contains \'start\' AND level = \'INFO\'</u><br/>' +
+                       '<b>Example 3</b>: <u>message contains \'start\' AND message contains \'complete\'</u><br/>'
             });
         }
 
