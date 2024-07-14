@@ -18,6 +18,8 @@ package org.bithon.server.storage.datasource.input;
 
 import org.bithon.component.commons.expression.IEvaluationContext;
 
+import java.util.Map;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/2 4:46 下午
@@ -67,4 +69,6 @@ public interface IInputRow extends IEvaluationContext {
     }
 
     void updateColumn(String name, Object value);
+
+    Map<String, Object> toMap();
 }

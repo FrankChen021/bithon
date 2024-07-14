@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Getter
-public class MetricMessageHandler {
+public class MetricMessageHandler implements IMetricMessageHandler {
     private static volatile IMetricWriter topoMetricWriter;
 
     private final Supplier<ThreadPoolExecutor> executorSupplier;
@@ -153,7 +153,7 @@ public class MetricMessageHandler {
 
                     inputRowList.add(metricMessage);
                 } catch (Exception e) {
-                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
+                    log.error("Failed to process metric object. dataSource=[{}], message=[{}]",
                               schema.getName(),
                               metricMessage,
                               e);
@@ -180,7 +180,7 @@ public class MetricMessageHandler {
             try {
                 metricWriter.write(inputRowList);
             } catch (IOException e) {
-                log.error("Failed to save metrics [dataSource={}] due to: {}",
+                log.error("Failed to save metrics [dataSource={}]",
                           schema.getName(),
                           e);
             }
@@ -237,6 +237,7 @@ public class MetricMessageHandler {
         log.info("Shutting down executor [{}]", schema.getName() + "-handler");
         executor.shutdown();
         try {
+            //noinspection ResultOfMethodCallIgnored
             executor.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
         }

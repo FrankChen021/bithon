@@ -53,6 +53,12 @@
       <artifactId>service-discovery-client</artifactId>
     </dependency>
 
+    <!-- Call Pipeline API -->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-pipeline</artifactId>
+    </dependency>
+
     <!-- Calcite for SQL used in Diagnosis -->
     <dependency>
       <groupId>org.apache.calcite</groupId>

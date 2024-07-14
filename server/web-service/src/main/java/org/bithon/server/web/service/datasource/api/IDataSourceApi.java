@@ -56,6 +56,12 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/schema/{name}")
     ISchema getSchemaByName(@PathVariable("name") String schemaName);
 
+    /**
+     * Test and sample data by using the input source defined in given schema
+     */
+    @PostMapping("/api/datasource/schema/test")
+    List<Map<String, Object>> testSchema(@RequestBody ISchema schema);
+
     @PostMapping("/api/datasource/schema/create")
     void createSchema(@RequestBody ISchema schema);
 

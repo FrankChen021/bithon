@@ -20,6 +20,7 @@ import org.bithon.server.storage.common.ApplicationType;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -91,5 +92,10 @@ public class MetricMessage extends HashMap<String, Object> implements IInputRow 
     @Override
     public void updateColumn(String name, Object value) {
         this.set(name, value);
+    }
+
+    @Override
+    public Map<String, Object> toMap() {
+        return new HashMap<>(this);
     }
 }

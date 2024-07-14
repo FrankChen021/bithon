@@ -20,6 +20,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.storage.datasource.ISchema;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 12/4/22 11:20 AM
@@ -29,6 +33,19 @@ public interface IMetricInputSource {
 
     TransformSpec getTransformSpec();
 
+    /**
+     * Start ingestion
+     */
     void start(ISchema schema);
+
+    /**
+     * Stop ingestion
+     */
     void stop();
+
+    /**
+     * Sample ingestion
+     * @return the sample data
+     */
+    List<Map<String, Object>> sample(ISchema schema, Duration timeout);
 }

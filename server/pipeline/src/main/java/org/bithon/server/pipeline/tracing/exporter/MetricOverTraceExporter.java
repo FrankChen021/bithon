@@ -23,6 +23,7 @@ import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricsAggregator;
+import org.bithon.server.pipeline.metrics.exporter.IMetricMessageHandler;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.SchemaManager;
@@ -46,20 +47,27 @@ public class MetricOverTraceExporter implements ITraceExporter {
 
     @Getter
     private final DefaultSchema schema;
-    private final MetricMessageHandler metricHandler;
+    private final IMetricMessageHandler metricHandler;
 
     public MetricOverTraceExporter(TransformSpec transformSpec,
                                    DefaultSchema schema,
                                    IMetricStorage metricStorage,
                                    ApplicationContext applicationContext) throws IOException {
+        this(transformSpec, schema,
+             new MetricMessageHandler(schema.getName(),
+                                      applicationContext.getBean(IMetaStorage.class),
+                                      metricStorage,
+                                      applicationContext.getBean(SchemaManager.class),
+                                      null,
+                                      applicationContext.getBean(MetricPipelineConfig.class)));
+    }
+
+    public MetricOverTraceExporter(TransformSpec transformSpec,
+                                   DefaultSchema schema,
+                                   IMetricMessageHandler metricHandler) {
         this.transformSpec = transformSpec;
         this.schema = schema;
-        this.metricHandler = new MetricMessageHandler(schema.getName(),
-                                                      applicationContext.getBean(IMetaStorage.class),
-                                                      metricStorage,
-                                                      applicationContext.getBean(SchemaManager.class),
-                                                      null,
-                                                      applicationContext.getBean(MetricPipelineConfig.class));
+        this.metricHandler = metricHandler;
     }
 
     @Override
@@ -100,7 +108,11 @@ public class MetricOverTraceExporter implements ITraceExporter {
      */
     @Override
     public void close() {
-        metricHandler.close();
+        try {
+            metricHandler.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private IInputRow spanToMetrics(TraceSpan span) {

@@ -22,6 +22,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
+import org.bithon.server.pipeline.api.IPipelineApi;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
@@ -80,11 +82,13 @@ public class DataSourceApi implements IDataSourceApi {
     private final SchemaManager schemaManager;
     private final DataSourceService dataSourceService;
     private final Executor asyncExecutor;
+    private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          IMetricStorage metricStorage,
                          SchemaManager schemaManager,
-                         DataSourceService dataSourceService) {
+                         DataSourceService dataSourceService,
+                         DiscoveredServiceInvoker discoveredServiceInvoker) {
         this.storageConfig = storageConfig;
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
@@ -95,6 +99,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                     TimeUnit.SECONDS,
                                                     new SynchronousQueue<>(),
                                                     NamedThreadFactory.of("datasource-async"));
+        this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 
     @Override
@@ -237,6 +242,12 @@ public class DataSourceApi implements IDataSourceApi {
             }
         }
         return schema;
+    }
+
+    @Override
+    public List<Map<String, Object>> testSchema(ISchema schema) {
+        IPipelineApi pipelineApi = this.discoveredServiceInvoker.createUnicastApi(IPipelineApi.class);
+        return pipelineApi.sample(schema);
     }
 
     @Override

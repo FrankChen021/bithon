@@ -25,12 +25,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Internal API for the web service module to interact with.
+ * <p>
+ * In distribution deployment, the pipeline module and the web-service might be deployed in different JVMs,
+ * to allow the web-service module to call the pipeline module,
+ * we need to leverage the service-registration mechanism provided by the discovery module
+ * so that the web-service module can call the API to sample data.
+
  * @author frank.chen021@outlook.com
  * @date 2024/7/14 13:00
  */
 @DiscoverableService(name = "pipeline-api")
 public interface IPipelineApi {
 
-    @PostMapping("/api/pipeline/test")
-    List<Map<String, Object>> test(@RequestBody ISchema schema);
+    @PostMapping("/api/pipeline/sample")
+    List<Map<String, Object>> sample(@RequestBody ISchema schema);
 }

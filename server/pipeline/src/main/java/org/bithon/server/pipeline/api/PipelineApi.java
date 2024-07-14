@@ -17,14 +17,18 @@
 package org.bithon.server.pipeline.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 /**
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/7/14 13:02
  */
@@ -38,16 +42,16 @@ public class PipelineApi implements IPipelineApi {
     }
 
     @Override
-    public List<Map<String, Object>> test(ISchema schema) {
+    public List<Map<String, Object>> sample(ISchema schema) {
+        if (schema.getInputSourceSpec() == null
+        // or the the input source is a null JSON node
+            || schema.getInputSourceSpec().isNull()) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Input source is not specified in the schema");
+        }
+
         IMetricInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(),
-                                                                   // Use ths stub input source
                                                                    IMetricInputSource.class);
-        inputSource.start(schema);
-        inputSource.stop();
-        // deserialize the input source
-        // start the input source
-        // wait for a while
-        // stop the input source
-        return List.of();
+        return inputSource.sample(schema, Duration.ofSeconds(10));
     }
 }
