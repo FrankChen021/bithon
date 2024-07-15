@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.api;
+package org.bithon.server.pipeline.tracing.sampler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,23 +29,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @author frank.chen021@outlook.com
- * @date 2024/7/14 13:02
+ * @date 2024/7/15 21:02
  */
+@ConditionalOnProperty(name = "bithon.pipelines.traces.enabled", havingValue = "true", matchIfMissing = true)
 @RestController
-public class PipelineApi implements IPipelineApi {
-
+public class TraceSampler implements ITraceSampler {
     private final ObjectMapper objectMapper;
 
-    public PipelineApi(ObjectMapper objectMapper) {
+    public TraceSampler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     public List<Map<String, Object>> sample(ISchema schema) {
         if (schema.getInputSourceSpec() == null
-        // or the the input source is a null JSON node
+            // or the input source is a null JSON node
             || schema.getInputSourceSpec().isNull()) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                             "Input source is not specified in the schema");

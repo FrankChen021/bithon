@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
@@ -23,7 +24,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.pipeline.api.IPipelineApi;
+import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
@@ -246,7 +247,23 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public List<Map<String, Object>> testSchema(ISchema schema) {
-        IPipelineApi pipelineApi = this.discoveredServiceInvoker.createUnicastApi(IPipelineApi.class);
+        if (schema.getInputSourceSpec() == null || schema.getInputSourceSpec().isNull()) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Input source is not specified in the schema");
+        }
+
+        JsonNode inputSourceType = schema.getInputSourceSpec().get("type");
+        if (inputSourceType == null || inputSourceType.isNull()) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Input source type is not specified in the schema");
+        }
+
+        if (!"span".equals(inputSourceType.asText())) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Only input source [span] is supported for now");
+        }
+
+        ITraceSampler pipelineApi = this.discoveredServiceInvoker.createUnicastApi(ITraceSampler.class);
         return pipelineApi.sample(schema);
     }
 

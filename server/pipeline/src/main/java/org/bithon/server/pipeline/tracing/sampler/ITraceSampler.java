@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.api;
+package org.bithon.server.pipeline.tracing.sampler;
 
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.storage.datasource.ISchema;
@@ -31,13 +31,13 @@ import java.util.Map;
  * to allow the web-service module to call the pipeline module,
  * we need to leverage the service-registration mechanism provided by the discovery module
  * so that the web-service module can call the API to sample data.
-
+ *
  * @author frank.chen021@outlook.com
- * @date 2024/7/14 13:00
+ * @date 2024/7/15 20:58
  */
-@DiscoverableService(name = "pipeline-api")
-public interface IPipelineApi {
+@DiscoverableService(name = "pipeline-tracing-api")
+public interface ITraceSampler {
 
-    @PostMapping("/api/pipeline/sample")
+    @PostMapping("/api/pipeline/tracing/sample")
     List<Map<String, Object>> sample(@RequestBody ISchema schema);
 }
