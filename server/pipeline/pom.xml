@@ -43,6 +43,11 @@
       <artifactId>server-storage</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>service-discovery-declaration</artifactId>
+    </dependency>
+
     <!-- DataSource submodule -->
     <dependency>
       <groupId>jakarta.validation</groupId>

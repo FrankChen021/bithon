@@ -11,6 +11,7 @@ expression
   | expression (ADD|SUB) expression                                     #arithmeticExpression
   | expression (simplePredicate | extraPredicate | notPredicate) expression           #comparisonExpression
   | expression (IN|NOT IN) expressionListDecl                           #inExpression
+  | expression IS NULL                                                  #isNullExpression
   | functionExpressionDecl                                              #functionExpression
   | notExpressionDecl                                                   #notExpression
   | expression AND expression                                           #logicalExpression
@@ -19,6 +20,7 @@ expression
   | literalExpressionDecl                                               #literalExpression
   | identifierExpressionDecl                                            #identifierExpression
   | macroExpressionDecl                                                 #macroExpression
+  | expression QUESTION_MARK expression COLON expression                #ternaryExpression
   ;
 
 // The 'endsWith' and 'startsWith' functions are supported in previous version,
@@ -75,6 +77,8 @@ LEFT_CURLY_BRACE: '{';
 RIGHT_CURLY_BRACE: '}';
 LEFT_SQUARE_BRACKET: '[';
 RIGHT_SQUARE_BRACKET: ']';
+QUESTION_MARK: '?';
+COLON: ':';
 DOT: '.';
 
 COMMA: ',';
@@ -98,6 +102,8 @@ CONTAINS: C O N T A I N S;
 NOT: N O T;
 TRUE: T R U E;
 FALSE: F A L S E;
+IS: I S;
+NULL: N U L L;
 
 // case insensitive
 fragment A : [aA];

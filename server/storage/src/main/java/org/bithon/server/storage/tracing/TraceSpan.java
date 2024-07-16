@@ -121,21 +121,21 @@ public class TraceSpan implements IInputRow {
     @Override
     public String toString() {
         return "TraceSpan{" +
-                "appName='" + appName + '\'' +
-                ", instanceName='" + instanceName + '\'' +
-                ", traceId='" + traceId + '\'' +
-                ", spanId='" + spanId + '\'' +
-                ", kind='" + kind + '\'' +
-                ", parentSpanId='" + parentSpanId + '\'' +
-                ", parentApplication='" + parentApplication + '\'' +
-                ", tags=" + tags +
-                ", costTime=" + costTime +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", name='" + name + '\'' +
-                ", clazz='" + clazz + '\'' +
-                ", method='" + method + '\'' +
-                '}';
+               "appName='" + appName + '\'' +
+               ", instanceName='" + instanceName + '\'' +
+               ", traceId='" + traceId + '\'' +
+               ", spanId='" + spanId + '\'' +
+               ", kind='" + kind + '\'' +
+               ", parentSpanId='" + parentSpanId + '\'' +
+               ", parentApplication='" + parentApplication + '\'' +
+               ", tags=" + tags +
+               ", costTime=" + costTime +
+               ", startTime=" + startTime +
+               ", endTime=" + endTime +
+               ", name='" + name + '\'' +
+               ", clazz='" + clazz + '\'' +
+               ", method='" + method + '\'' +
+               '}';
     }
 
     @Override
@@ -161,6 +161,29 @@ public class TraceSpan implements IInputRow {
             properties = new HashMap<>();
         }
         properties.put(name, value);
+    }
+
+    @Override
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("appName", appName);
+        map.put("instanceName", instanceName);
+        map.put("appType", appType);
+        map.put("traceId", traceId);
+        map.put("spanId", spanId);
+        map.put("kind", kind);
+        map.put("parentSpanId", parentSpanId);
+        map.put("parentApplication", parentApplication);
+        map.put("tags", new HashMap<>(tags));
+        map.put("costTime", costTime);
+        map.put("startTime", startTime);
+        map.put("endTime", endTime);
+        map.put("name", name);
+        map.put("clazz", clazz);
+        map.put("method", method);
+        map.put("status", status);
+        map.put("normalizedUri", normalizedUri);
+        return map;
     }
 
     static class FieldAccessor {

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -61,6 +62,11 @@ public class InputRow implements IInputRow {
     @Override
     public void updateColumn(String name, Object value) {
         columns.put(name, value);
+    }
+
+    @Override
+    public Map<String, Object> toMap() {
+        return new HashMap<>(columns);
     }
 
     @Override

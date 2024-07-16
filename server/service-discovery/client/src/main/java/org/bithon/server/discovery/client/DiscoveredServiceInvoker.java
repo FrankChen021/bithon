@@ -119,18 +119,11 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                                           DiscoverableService.class.getSimpleName()));
         }
 
-        final AtomicInteger index = new AtomicInteger();
-        Supplier<DiscoveredServiceInstance> loadBalancedInstanceSupplier = () -> {
-            List<DiscoveredServiceInstance> instanceList = this.getInstanceList(serviceDeclaration);
-            int i = index.getAndIncrement() % instanceList.size();
-            return instanceList.get(i);
-        };
-
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(serviceDeclaration.getClassLoader(),
                                           new Class<?>[]{serviceDeclaration},
                                           new ServiceUnicastInvocationHandler<>(serviceDeclaration,
-                                                                                loadBalancedInstanceSupplier,
+                                                                                new LoadBalancedServiceInstanceSupplier<>(serviceDeclaration),
                                                                                 objectMapper));
     }
 
@@ -148,6 +141,25 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                           new ServiceUnicastInvocationHandler<>(serviceDeclaration,
                                                                                 instanceSupplier,
                                                                                 objectMapper));
+    }
+
+    private class LoadBalancedServiceInstanceSupplier<T> implements Supplier<DiscoveredServiceInstance> {
+        private final Class<T> serviceDeclaration;
+        private final AtomicInteger index = new AtomicInteger();
+        private List<DiscoveredServiceInstance> instanceList;
+
+        LoadBalancedServiceInstanceSupplier(Class<T> serviceDeclaration) {
+            this.serviceDeclaration = serviceDeclaration;
+        }
+
+        @Override
+        public DiscoveredServiceInstance get() {
+            if (instanceList == null) {
+                instanceList = getInstanceList(serviceDeclaration);
+            }
+            int i = index.getAndIncrement() % instanceList.size();
+            return instanceList.get(i);
+        }
     }
 
     private class ServiceUnicastInvocationHandler<T> implements InvocationHandler {

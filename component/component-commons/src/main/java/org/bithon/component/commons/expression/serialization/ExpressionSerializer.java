@@ -29,6 +29,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
+import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.List;
@@ -185,6 +186,20 @@ public class ExpressionSerializer implements IExpressionVisitor {
         sb.append('{');
         sb.append(expression.getMacro());
         sb.append('}');
+        return false;
+    }
+
+    @Override
+    public boolean visit(TernaryExpression expression) {
+        expression.getConditionExpression().accept(this);
+        sb.append(' ');
+        sb.append('?');
+        sb.append(' ');
+        expression.getTrueExpression().accept(this);
+        sb.append(' ');
+        sb.append(':');
+        sb.append(' ');
+        expression.getFalseExpression().accept(this);
         return false;
     }
 

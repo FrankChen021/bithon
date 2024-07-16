@@ -17,8 +17,15 @@
 package org.bithon.server.pipeline.metrics.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.storage.datasource.ISchema;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,6 +36,26 @@ public interface IMetricInputSource {
 
     TransformSpec getTransformSpec();
 
+    /**
+     * Start ingestion
+     */
     void start(ISchema schema);
+
+    /**
+     * Stop ingestion
+     */
     void stop();
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    class SamplingResult {
+        private List<Map<String, Object>> output;
+    }
+
+    /**
+     * Sample ingestion
+     * @return the sample data
+     */
+    SamplingResult sample(ISchema schema, Duration timeout);
 }

@@ -18,6 +18,7 @@ package org.bithon.server.web.service.datasource.api;
 
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +56,12 @@ public interface IDataSourceApi {
 
     @PostMapping("/api/datasource/schema/{name}")
     ISchema getSchemaByName(@PathVariable("name") String schemaName);
+
+    /**
+     * Test and sample data by using the input source defined in given schema
+     */
+    @PostMapping("/api/datasource/schema/test")
+    IMetricInputSource.SamplingResult testSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/schema/create")
     void createSchema(@RequestBody ISchema schema);

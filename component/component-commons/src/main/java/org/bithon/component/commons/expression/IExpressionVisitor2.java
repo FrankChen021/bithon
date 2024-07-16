@@ -58,4 +58,6 @@ public interface IExpressionVisitor2<T> {
     default T visit(MapAccessExpression expression) {
         return null;
     }
+
+    default T visit(TernaryExpression expression) { return null; }
 }

@@ -25,38 +25,8 @@ import java.util.Map;
 public class InputRowAccessor {
 
     @FunctionalInterface
-    public interface IGetter {
-        Object get(IInputRow inputRow);
-    }
-
-    @FunctionalInterface
     public interface ISetter {
         void set(IInputRow inputRow, Object val);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public static IGetter createGetter(String path) {
-        if (path.indexOf('.') <= 0) {
-            // Not a tree path style input
-            return inputRow -> inputRow.get(path);
-        }
-
-        final String[] parts = path.split("\\.");
-        return inputRow -> {
-            Object obj = inputRow.get(parts[0]);
-            if (!(obj instanceof Map map)) {
-                return obj;
-            }
-
-            for (int i = 1; i < parts.length; i++) {
-                Object o = map.get(parts[i]);
-                if (!(o instanceof Map)) {
-                    return o;
-                }
-                map = (Map) o;
-            }
-            return map;
-        };
     }
 
     @SuppressWarnings("rawtypes")

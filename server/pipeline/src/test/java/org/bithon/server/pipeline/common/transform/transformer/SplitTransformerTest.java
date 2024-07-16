@@ -65,4 +65,15 @@ public class SplitTransformerTest {
         Assert.assertEquals("1", row1.getCol("current"));
         Assert.assertEquals("5", row1.getCol("max"));
     }
+
+    @Test
+    public void splitOnNestedObject_UsingPropertyAccessException() {
+        SplitTransformer transformer = new SplitTransformer("tags['db.table']", "/", new String[]{"current", "max"}, null);
+
+        InputRow row1 = new InputRow(new HashMap<>());
+        row1.updateColumn("tags", ImmutableMap.of("db.table", "1/5"));
+        transformer.transform(row1);
+        Assert.assertEquals("1", row1.getCol("current"));
+        Assert.assertEquals("5", row1.getCol("max"));
+    }
 }

@@ -23,6 +23,7 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRowAccessor;
+import org.bithon.server.storage.datasource.input.PathExpression;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,7 +49,7 @@ public class ReplaceTransformer extends AbstractTransformer {
     private final String quotedReplacement;
 
     @JsonIgnore
-    private final InputRowAccessor.IGetter valueGetter;
+    private final PathExpression pathExpression;
 
     @JsonIgnore
     private final InputRowAccessor.ISetter valueSetter;
@@ -64,7 +65,7 @@ public class ReplaceTransformer extends AbstractTransformer {
         this.find = Preconditions.checkArgumentNotNull("find", find);
         this.replacement = Preconditions.checkArgumentNotNull("replacement", replacement);
 
-        this.valueGetter = InputRowAccessor.createGetter(source);
+        this.pathExpression = PathExpression.Builder.build(source);
         this.valueSetter = InputRowAccessor.createSetter(source);
 
         // See the String.replace(String, String) to know more
@@ -74,7 +75,7 @@ public class ReplaceTransformer extends AbstractTransformer {
 
     @Override
     protected TransformResult transformInternal(IInputRow data) {
-        Object value = valueGetter.get(data);
+        Object value = pathExpression.evaluate(data);
         if (!(value instanceof String)) {
             return TransformResult.CONTINUE;
         }

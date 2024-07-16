@@ -39,15 +39,13 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
+import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
-import org.bithon.server.datasource.ast.ExpressionLexer;
-import org.bithon.server.datasource.ast.ExpressionParser;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
@@ -431,6 +429,20 @@ public class ExpressionASTBuilder {
         @Override
         public IExpression visitMacroExpressionDecl(ExpressionParser.MacroExpressionDeclContext ctx) {
             return new MacroExpression(ctx.IDENTIFIER().getText());
+        }
+
+        @Override
+        public IExpression visitTernaryExpression(ExpressionParser.TernaryExpressionContext ctx) {
+            IExpression condition = ctx.expression(0).accept(this);
+            IExpression trueExpression = ctx.expression(1).accept(this);
+            IExpression falseExpression = ctx.expression(2).accept(this);
+            return new TernaryExpression(condition, trueExpression, falseExpression);
+        }
+
+        @Override
+        public IExpression visitIsNullExpression(ExpressionParser.IsNullExpressionContext ctx) {
+            IExpression leftExpression = ctx.expression().accept(this);
+            return new ConditionalExpression.IsNull(leftExpression);
         }
 
         static String getUnQuotedString(Token symbol) {

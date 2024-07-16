@@ -34,6 +34,7 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
+import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -83,6 +84,11 @@ public class MetricDefaultInputSource implements IMetricInputSource {
                 handler.close();
             }
         }
+    }
+
+    @Override
+    public SamplingResult sample(ISchema schema, Duration timeout) {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
