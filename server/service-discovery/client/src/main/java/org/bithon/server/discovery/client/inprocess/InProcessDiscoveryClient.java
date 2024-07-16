@@ -64,8 +64,7 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
                     if (annotation != null && serviceName.equals(annotation.name())) {
                         // Found. Return current application instance
                         return Collections.singletonList(new DiscoveredServiceInstance("localhost",
-                                                                                       applicationContext.getEnvironment()
-                                                                                           .getProperty("server.port", Integer.class)));
+                                                                                       applicationContext.getEnvironment().getProperty("server.port", Integer.class)));
                     }
                 }
 
@@ -73,6 +72,6 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
             }
         }
 
-        throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Not found any instances of service [%s]", serviceName);
+        throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(), "Not found any instance of service [%s]", serviceName);
     }
 }

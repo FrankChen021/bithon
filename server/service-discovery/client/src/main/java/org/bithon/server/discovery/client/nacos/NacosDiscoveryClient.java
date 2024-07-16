@@ -25,27 +25,32 @@ import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author frankchen
  */
 public class NacosDiscoveryClient implements IDiscoveryClient {
     private final NacosServiceDiscovery discovery;
-    private final NacosDiscoveryProperties prop;
+    private final NacosDiscoveryProperties props;
 
-    public NacosDiscoveryClient(NacosServiceDiscovery discovery, NacosDiscoveryProperties prop) {
+    public NacosDiscoveryClient(NacosServiceDiscovery discovery, NacosDiscoveryProperties props) {
         this.discovery = discovery;
-        this.prop = prop;
+        this.props = props;
     }
 
     @Override
     public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
         try {
-            return discovery.getInstances(prop.getService()).stream()
-                            .filter(serviceInstance -> serviceInstance.getMetadata().containsKey("bithon.service." + serviceName))
-                            .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(), serviceInstance.getPort()))
-                            .collect(Collectors.toList());
+            List<DiscoveredServiceInstance> instanceList = discovery.getInstances(props.getService())
+                                                                    .stream()
+                                                                    .filter(serviceInstance -> serviceInstance.getMetadata().containsKey("bithon.service." + serviceName))
+                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(), serviceInstance.getPort()))
+                                                                    .toList();
+            if (instanceList.isEmpty()) {
+                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(), "Not found any instance of service [%s]", serviceName);
+            }
+
+            return instanceList;
         } catch (NacosException e) {
             throw new HttpMappableException(e,
                                             HttpStatus.INTERNAL_SERVER_ERROR.value(),
