@@ -24,6 +24,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
@@ -246,7 +247,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public List<Map<String, Object>> testSchema(ISchema schema) {
+    public IMetricInputSource.SamplingResult testSchema(ISchema schema) {
         if (schema.getInputSourceSpec() == null || schema.getInputSourceSpec().isNull()) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                             "Input source is not specified in the schema");

@@ -25,8 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,7 +40,7 @@ public class TraceSampler implements ITraceSampler {
     }
 
     @Override
-    public List<Map<String, Object>> sample(ISchema schema) {
+    public IMetricInputSource.SamplingResult sample(ISchema schema) {
         if (schema.getInputSourceSpec() == null
             // or the input source is a null JSON node
             || schema.getInputSourceSpec().isNull()) {

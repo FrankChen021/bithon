@@ -17,6 +17,7 @@
 package org.bithon.server.pipeline.metrics.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Getter;
 import org.bithon.server.pipeline.common.transform.TransformSpec;
 import org.bithon.server.storage.datasource.ISchema;
 
@@ -43,9 +44,18 @@ public interface IMetricInputSource {
      */
     void stop();
 
+    class SamplingResult {
+        @Getter
+        private final List<Map<String, Object>> output;
+
+        public SamplingResult(List<Map<String, Object>> output) {
+            this.output = output;
+        }
+    }
+
     /**
      * Sample ingestion
      * @return the sample data
      */
-    List<Map<String, Object>> sample(ISchema schema, Duration timeout);
+    SamplingResult sample(ISchema schema, Duration timeout);
 }

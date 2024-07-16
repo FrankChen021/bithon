@@ -17,12 +17,10 @@
 package org.bithon.server.pipeline.tracing.sampler;
 
 import org.bithon.server.discovery.declaration.DiscoverableService;
+import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Internal API for the web service module to interact with.
@@ -39,5 +37,5 @@ import java.util.Map;
 public interface ITraceSampler {
 
     @PostMapping("/api/pipeline/tracing/sample")
-    List<Map<String, Object>> sample(@RequestBody ISchema schema);
+    IMetricInputSource.SamplingResult sample(@RequestBody ISchema schema);
 }

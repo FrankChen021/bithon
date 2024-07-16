@@ -41,7 +41,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -128,7 +127,7 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
     }
 
     @Override
-    public List<Map<String, Object>> sample(ISchema schema, Duration timeout) {
+    public SamplingResult sample(ISchema schema, Duration timeout) {
         if (!this.pipeline.getPipelineConfig().isEnabled()) {
             throw new RuntimeException("The trace processing pipeline is not enabled in this module.");
         }
@@ -160,9 +159,10 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
                         elapsed += 100;
                     }
 
-                    return sampler.sampled.stream()
-                                          .map(IInputRow::toMap)
-                                          .toList();
+                    return new SamplingResult(sampler.sampled
+                                                  .stream()
+                                                  .map(IInputRow::toMap)
+                                                  .toList());
                 } finally {
                     exporter.close();
                     this.pipeline.unlink(exporter);
