@@ -18,16 +18,13 @@ package org.bithon.server.pipeline.common.transform;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.pipeline.common.transform.filter.AndFilter;
-import org.bithon.server.pipeline.common.transform.filter.IInputRowFilter;
-import org.bithon.server.pipeline.common.transform.flatten.IFlattener;
 import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -43,7 +40,6 @@ import java.util.List;
  */
 @Slf4j
 @Builder
-@AllArgsConstructor
 public class TransformSpec {
     private static final Logger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
 
@@ -54,30 +50,13 @@ public class TransformSpec {
     private final Period granularity;
 
     @Getter
-    private final IInputRowFilter prefilter;
-
-    @Getter
-    private final List<IFlattener> flatteners;
-
-    @Getter
     private final List<ITransformer> transformers;
-
-    @Getter
-    private final IInputRowFilter postfilter;
 
     @JsonCreator
     public TransformSpec(@JsonProperty("granularity") @Nullable Period granularity,
-                         //a backward compatibility filter
-                         @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
-                         @JsonProperty("prefilter") IInputRowFilter prefilter,
-                         @JsonProperty("flatteners") List<IFlattener> flatteners,
-                         @JsonProperty("transformers") List<ITransformer> transformers,
-                         @JsonProperty("postfilter") IInputRowFilter postfilter) {
+                         @JsonProperty("transformers") List<ITransformer> transformers) {
         this.granularity = granularity;
-        this.flatteners = flatteners;
-        this.prefilter = prefilters != null ? new AndFilter(prefilters) : prefilter;
-        this.transformers = transformers;
-        this.postfilter = postfilter;
+        this.transformers = Preconditions.checkArgumentNotNull("transformers", transformers);
     }
 
     /**
@@ -86,30 +65,15 @@ public class TransformSpec {
      */
     public boolean transform(IInputRow inputRow) {
         try {
-            if (prefilter != null) {
-                if (!prefilter.shouldInclude(inputRow)) {
-                    return false;
-                }
-            }
-            if (flatteners != null) {
-                for (IFlattener flattener : flatteners) {
-                    flattener.flatten(inputRow);
-                }
-            }
-            if (transformers != null) {
-                for (ITransformer transformer : transformers) {
-                    try {
-                        if (transformer.transform(inputRow) == TransformResult.DROP) {
-                            return false;
-                        }
-                    } catch (ITransformer.TransformException e) {
-                        LOG.error(e.getMessage());
+            for (ITransformer transformer : transformers) {
+                try {
+                    if (transformer.transform(inputRow) == TransformResult.DROP) {
                         return false;
                     }
+                } catch (ITransformer.TransformException e) {
+                    LOG.error(e.getMessage());
+                    return false;
                 }
-            }
-            if (postfilter != null) {
-                return postfilter.shouldInclude(inputRow);
             }
             return true;
         } catch (Exception e) {
