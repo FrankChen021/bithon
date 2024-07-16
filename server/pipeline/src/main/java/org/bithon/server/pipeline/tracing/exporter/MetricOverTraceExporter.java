@@ -79,11 +79,11 @@ public class MetricOverTraceExporter implements ITraceExporter {
         //
         // transform the spans to target metrics
         //
-        List<IInputRow> metricRows = spans.stream()
-                                          .filter(transformSpec::transform)
-                                          .map(this::spanToMetrics)
-                                          .collect(Collectors.toList());
-        if (metricRows.isEmpty()) {
+        List<IInputRow> metricsList = spans.stream()
+                                           .filter(transformSpec::transform)
+                                           .map(this::spanToMetrics)
+                                           .collect(Collectors.toList());
+        if (metricsList.isEmpty()) {
             return;
         }
 
@@ -93,14 +93,14 @@ public class MetricOverTraceExporter implements ITraceExporter {
         Period granularity = transformSpec.getGranularity();
         if (granularity != null && granularity.getMilliseconds() > 0) {
             MetricsAggregator aggregator = new MetricsAggregator(schema, granularity);
-            metricRows.forEach(aggregator::aggregate);
-            metricRows = aggregator.getRows();
+            metricsList.forEach(aggregator::aggregate);
+            metricsList = aggregator.getRows();
         }
 
         //
         // sink the metrics
         //
-        metricHandler.process(metricRows);
+        metricHandler.process(metricsList);
     }
 
     /**
@@ -120,15 +120,15 @@ public class MetricOverTraceExporter implements ITraceExporter {
         // since 'count' is a special name that metricSpec can reference in the schema
         span.updateColumn("count", 1);
 
-        MetricMessage metricMessage = new MetricMessage();
+        MetricMessage metrics = new MetricMessage();
         for (IColumn column : schema.getColumns()) {
-            metricMessage.put(column.getName(), span.getCol(column.getName()));
+            metrics.put(column.getName(), span.getCol(column.getName()));
         }
-        metricMessage.setApplicationName(span.getAppName());
-        metricMessage.setInstanceName(span.getInstanceName());
-        metricMessage.setTimestamp(span.getStartTime() / 1000);
+        metrics.setApplicationName(span.getAppName());
+        metrics.setInstanceName(span.getInstanceName());
+        metrics.setTimestamp(span.getStartTime() / 1000);
 
-        return metricMessage;
+        return metrics;
     }
 
     @Override
