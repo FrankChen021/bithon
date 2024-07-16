@@ -45,9 +45,6 @@ import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.ast.ExpressionBaseVisitor;
-import org.bithon.server.datasource.ast.ExpressionLexer;
-import org.bithon.server.datasource.ast.ExpressionParser;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessor;
+import org.bithon.server.storage.datasource.input.PathExpression;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,7 +50,7 @@ public class RegExprTransformer extends AbstractTransformer {
     private final Pattern pattern;
 
     @JsonIgnore
-    private final InputRowAccessor.IGetter valueGetter;
+    private final PathExpression pathExpression;
 
     @JsonCreator
     public RegExprTransformer(@JsonProperty("field") String field,
@@ -63,13 +63,13 @@ public class RegExprTransformer extends AbstractTransformer {
         this.regexpr = Preconditions.checkArgumentNotNull("regexpr", regexpr);
         this.names = names;
 
-        this.valueGetter = InputRowAccessor.createGetter(field);
+        this.pathExpression = PathExpression.Builder.build(field);
         this.pattern = Pattern.compile(regexpr);
     }
 
     @Override
     protected TransformResult transformInternal(IInputRow inputRow) {
-        Object val = valueGetter.get(inputRow);
+        Object val = pathExpression.evaluate(inputRow);
         if (val != null) {
             Matcher matcher = this.pattern.matcher(val.toString());
             if (matcher.find() && matcher.groupCount() == names.length) {

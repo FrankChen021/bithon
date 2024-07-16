@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessor;
+import org.bithon.server.storage.datasource.input.PathExpression;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +39,7 @@ public class FlattenTransformer extends AbstractTransformer {
     private final String[] targets;
 
     // Use getter to support the tree path
-    private final List<InputRowAccessor.IGetter> valueGetters;
+    private final List<PathExpression> pathExpressions;
 
     @JsonCreator
     public FlattenTransformer(@JsonProperty("sources") String[] sources,
@@ -53,15 +53,15 @@ public class FlattenTransformer extends AbstractTransformer {
         this.sources = sources;
         this.targets = targets;
 
-        this.valueGetters = Arrays.stream(this.sources)
-                                  .map(InputRowAccessor::createGetter)
-                                  .toList();
+        this.pathExpressions = Arrays.stream(this.sources)
+                                     .map(PathExpression.Builder::build)
+                                     .toList();
     }
 
     @Override
     protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
         for (int i = 0; i < sources.length; i++) {
-            Object val = this.valueGetters.get(i).get(inputRow);
+            Object val = this.pathExpressions.get(i).evaluate(inputRow);
             if (val != null) {
                 inputRow.updateColumn(this.targets[i], val);
             }
