@@ -66,6 +66,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         }
         span.method(serviceName, methodName)
             .tag(Tags.Net.PEER, this.target)
+            .tag(Tags.Rpc.SYSTEM, "grpc")
             .kind(SpanKind.CLIENT)
             .start();
 
@@ -137,9 +138,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         @Override
         public void onClose(Status status, Metadata trailers) {
             span.tag(status.getCause())
-                // TODO: Unify the status code
-                // Currently we use 200 to represent OK so that the code comply with HTTP Status
-                .tag("status", status.equals(Status.OK) ? "200" : status.getCode().toString())
+                .tag(Tags.Rpc.GRPC_STATUS_CODE, status.getCode().toString())
                 .finish();
             span.context().finish();
 

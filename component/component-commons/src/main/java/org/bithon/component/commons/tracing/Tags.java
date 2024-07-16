@@ -190,5 +190,7 @@ public class Tags {
         public static final String SYSTEM = "rpc.system";
 
         public static final String REQUEST_META_PREFIX = "rpc.grpc.request.metadata.";
+
+        public static final String GRPC_STATUS_CODE = "rpc.grpc.status_code";
     }
 }
