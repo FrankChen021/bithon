@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.transform.transformer;
+package org.bithon.server.pipeline.common.transformer;
 
 /**
  * @author frank.chen021@outlook.com

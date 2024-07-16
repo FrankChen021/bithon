@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.transform;
+package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,8 +25,6 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
-import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;

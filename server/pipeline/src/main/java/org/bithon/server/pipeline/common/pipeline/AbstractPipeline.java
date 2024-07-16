@@ -19,8 +19,8 @@ package org.bithon.server.pipeline.common.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.pipeline.common.transform.transformer.ExceptionSafeTransformer;
-import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transformer.ExceptionSafeTransformer;
+import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.slf4j.Logger;
 import org.springframework.context.SmartLifecycle;
 
