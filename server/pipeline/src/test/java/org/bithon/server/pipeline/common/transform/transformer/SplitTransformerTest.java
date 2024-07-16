@@ -68,7 +68,7 @@ public class SplitTransformerTest {
 
     @Test
     public void splitOnNestedObject_UsingPropertyAccessException() {
-        SplitTransformer transformer = new SplitTransformer("tags[db.table]", "/", new String[]{"current", "max"}, null);
+        SplitTransformer transformer = new SplitTransformer("tags['db.table']", "/", new String[]{"current", "max"}, null);
 
         InputRow row1 = new InputRow(new HashMap<>());
         row1.updateColumn("tags", ImmutableMap.of("db.table", "1/5"));
