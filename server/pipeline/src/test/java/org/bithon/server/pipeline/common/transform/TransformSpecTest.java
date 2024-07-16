@@ -16,15 +16,11 @@
 
 package org.bithon.server.pipeline.common.transform;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.pipeline.common.transform.filter.EqualFilter;
 import org.bithon.server.pipeline.common.transform.flatten.TreePathFlattener;
-import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.tracing.TraceSpan;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -54,56 +50,5 @@ public class TransformSpecTest {
 
         // flattened property
         Assert.assertEquals("jvm-metrics", row.getCol("database"));
-    }
-
-    @Test
-    public void test2() throws JsonProcessingException {
-        String spec = """
-                      [{
-                          "type": "split",
-                          "source": "tags['clickhouse.source']",
-                          "by": ".",
-                          "targets": ["database", "parentTable"]
-                      },
-                      {
-                          "type": "split",
-                          "source": "tags['clickhouse.view']",
-                          "by": ".",
-                          "targets": ["viewDatabase", "view"]
-                      }
-                      ,{
-                          "type": "flatten",
-                          "sources": [
-                              "tags['clickhouse.read_bytes']",
-                              "tags['clickhouse.read_rows']",
-                              "tags['clickhouse.written_bytes']",
-                              "tags['clickhouse.written_rows']",
-                              "tags['clickhouse.parts']",
-                              "tags['clickhouse.duration']"
-                          ],
-                          "targets":[
-                              "readBytes",
-                              "readRows",
-                              "writtenBytes",
-                              "writtenRows",
-                              "parts",
-                              "duration"
-                          ]
-                      }]
-                      """;
-
-        ObjectMapper om = new ObjectMapper();
-        ITransformer[] transformers = om.readValue(spec, ITransformer[].class);
-
-        TraceSpan span = new TraceSpan();
-        span.tags = new HashMap<>();
-        span.setTag("clickhouse.read_bytes", "1");
-        span.setTag("clickhouse.read_rows", "2");
-        span.setTag("clickhouse.source", "src_db.src_table");
-        span.setTag("clickhouse.view", "src_db.view");
-
-        for (ITransformer transformer : transformers) {
-            transformer.transform(span);
-        }
     }
 }
