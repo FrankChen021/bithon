@@ -195,4 +195,30 @@ public class ExpressionTest {
     public void test_EscapeSingleQuote() {
         Assert.assertEquals("message like 'a\\''", ExpressionASTBuilder.builder().build("message LIKE 'a\\''").serializeToText(null));
     }
+
+    @Test
+    public void test_TernaryExpression() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .build("a > b ? 1 : 2");
+
+        Assert.assertEquals("a > b ? 1 : 2", expr.serializeToText(null));
+        long v = (long) expr.evaluate(name -> {
+            if ("a".equals(name)) {
+                return 4;
+            }
+            return 1;
+        });
+        Assert.assertEquals(1L, v);
+    }
+
+    @Test
+    public void test_Is_Null_Expression() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .build("a is null");
+
+        Assert.assertEquals("a IS null", expr.serializeToText(null));
+
+        Assert.assertTrue((boolean) expr.evaluate((name) -> null));
+        Assert.assertFalse((boolean) expr.evaluate((name) -> "value of a"));
+    }
 }

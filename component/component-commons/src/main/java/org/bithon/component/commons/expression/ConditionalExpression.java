@@ -210,4 +210,16 @@ public abstract class ConditionalExpression extends BinaryExpression {
             return input.endsWith(pattern);
         }
     }
+
+    public static class IsNull extends ConditionalExpression {
+
+        public IsNull(IExpression left) {
+            super("IS", left, LiteralExpression.NullLiteral.INSTANCE);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            return left.evaluate(context) == null;
+        }
+    }
 }

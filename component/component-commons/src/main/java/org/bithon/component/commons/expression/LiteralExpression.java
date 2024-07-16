@@ -262,4 +262,23 @@ public abstract class LiteralExpression implements IExpression {
             throw new UnsupportedOperationException();
         }
     }
+
+    public static class NullLiteral extends LiteralExpression {
+        public static final NullLiteral INSTANCE = new NullLiteral();
+
+        public NullLiteral() {
+            super("null");
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            return this;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            // May not be right
+            return IDataType.STRING;
+        }
+    }
 }

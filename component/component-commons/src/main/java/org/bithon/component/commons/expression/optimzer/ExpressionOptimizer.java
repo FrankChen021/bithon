@@ -30,6 +30,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
+import org.bithon.component.commons.expression.TernaryExpression;
 
 import java.util.Iterator;
 import java.util.List;
@@ -124,6 +125,21 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(MacroExpression expression) {
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(TernaryExpression expression) {
+            expression.setConditionExpression(expression.getConditionExpression().accept(this));
+            expression.setTrueExpression(expression.getTrueExpression().accept(this));
+            expression.setFalseExpression(expression.getFalseExpression().accept(this));
+            if (expression.getConditionExpression() instanceof LiteralExpression) {
+                if (((LiteralExpression) (expression.getConditionExpression())).asBoolean()) {
+                    return expression.getTrueExpression();
+                } else {
+                    return expression.getFalseExpression();
+                }
+            }
             return expression;
         }
     }

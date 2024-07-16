@@ -36,8 +36,10 @@ import java.util.Map;
  */
 public class PathExpression {
     private final List<String> paths;
+    private final String pathExpression;
 
-    public PathExpression(List<String> paths) {
+    public PathExpression(String pathExpression, List<String> paths) {
+        this.pathExpression = pathExpression;
         this.paths = paths;
     }
 
@@ -53,6 +55,11 @@ public class PathExpression {
         }
 
         return obj;
+    }
+
+    @Override
+    public String toString() {
+        return pathExpression;
     }
 
     public static class Builder {
@@ -87,7 +94,7 @@ public class PathExpression {
 
             Visitor visitor = new Visitor();
             parser.path().accept(visitor);
-            return visitor.toPathExpression();
+            return new PathExpression(pathExpression, visitor.paths);
         }
 
         private static class Visitor extends PathExpressionBaseVisitor<Void> {
@@ -108,6 +115,7 @@ public class PathExpression {
 
             @Override
             public Void visitPropertyAccessExpression(PathExpressionParser.PropertyAccessExpressionContext ctx) {
+                ctx.expression().accept(this);
                 paths.add(getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
                 return null;
             }
@@ -126,10 +134,6 @@ public class PathExpression {
                     int e = symbol.getStopIndex() - 1;
                     return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
                 }
-            }
-
-            public PathExpression toPathExpression() {
-                return new PathExpression(this.paths);
             }
         }
     }

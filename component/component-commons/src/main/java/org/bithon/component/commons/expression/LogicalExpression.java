@@ -97,7 +97,7 @@ public abstract class LogicalExpression implements IExpression {
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);
 
-    private static boolean toBoolean(Object value) {
+    public static boolean toBoolean(Object value) {
         if (value == null) {
             throw new RuntimeException("value is null");
         }
