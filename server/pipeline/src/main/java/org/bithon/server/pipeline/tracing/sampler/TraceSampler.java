@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.ISchema;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,8 +32,8 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2024/7/15 21:02
  */
-@ConditionalOnProperty(name = "bithon.pipelines.traces.enabled", havingValue = "true", matchIfMissing = true)
 @RestController
+@Conditional(TraceSamplingEnabler.class)
 public class TraceSampler implements ITraceSampler {
     private final ObjectMapper objectMapper;
 
