@@ -17,6 +17,8 @@
 package org.bithon.component.commons.tracing;
 
 /**
+ * https://github.com/open-telemetry/semantic-conventions/tree/main?tab=readme-ov-file
+ *
  * https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/semantic_conventions
  *
  * @author frank.chen021@outlook.com
