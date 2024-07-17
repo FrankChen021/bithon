@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.pipeline.common.transform.transformer.ITransformer;
-import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
+import org.bithon.server.pipeline.common.transformer.ITransformer;
+import org.bithon.server.pipeline.common.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.net.URI;

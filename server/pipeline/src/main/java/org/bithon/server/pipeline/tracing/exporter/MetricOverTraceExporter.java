@@ -19,7 +19,7 @@ package org.bithon.server.pipeline.tracing.exporter;
 import lombok.Getter;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.pipeline.common.transform.TransformSpec;
+import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricsAggregator;

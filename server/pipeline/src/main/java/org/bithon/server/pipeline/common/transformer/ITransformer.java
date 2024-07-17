@@ -30,7 +30,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.transform.transformer;
+package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -51,13 +51,6 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    // Deprecated
-    @JsonSubTypes.Type(name = "mapping", value = MappingTransformer.class),
-    @JsonSubTypes.Type(name = "add", value = AddFieldTransformer.class),
-    @JsonSubTypes.Type(name = "chain", value = ChainTransformer.class),
-    @JsonSubTypes.Type(name = "has", value = HasFieldTransformer.class),
-    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class),
-
     @JsonSubTypes.Type(name = "flatten", value = FlattenTransformer.class),
 
     // Text processing

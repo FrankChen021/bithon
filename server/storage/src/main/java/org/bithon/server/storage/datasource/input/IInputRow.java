@@ -32,40 +32,52 @@ public interface IInputRow extends IEvaluationContext {
 
     Object getCol(String columnName);
 
-    default Long getColAsLong(String columnName) {
-        Object val = getCol(columnName);
-        if (val instanceof Number) {
-            return ((Number) val).longValue();
-        } else {
-            return 0L;
-        }
+    default long getColAsLong(String columnName) {
+        return getColAsLong(columnName, 0);
     }
 
     default long getColAsLong(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.longValue();
+        Object number = getCol(columnName);
+        if (number == null) {
+            return defaultValue;
+        }
+        if (number instanceof Number) {
+            return ((Number) number).longValue();
+        }
+        if (number instanceof String) {
+            try {
+                return Long.parseLong((String) number);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return defaultValue;
     }
 
     default double getColAsDouble(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.doubleValue();
+        Object number = getCol(columnName);
+        if (number == null) {
+            return defaultValue;
+        }
+        if (number instanceof Number) {
+            return ((Number) number).doubleValue();
+        }
+        if (number instanceof String) {
+            try {
+                return Double.parseDouble((String) number);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return defaultValue;
     }
 
     default String getColAsString(String columnName) {
-        return getColAs(columnName, String.class);
-    }
-
-    default <T> T getColAs(String columnName, Class<T> clazz) {
-        //noinspection unchecked
-        return (T) getCol(columnName);
-    }
-
-    default <T> T getCol(String columnName, T defaultValue) {
-        // when columnName exist but its value is null, the returned obj above is NOT null
-        // So, additional check is needed to return correct default value
         Object val = getCol(columnName);
-        //noinspection unchecked
-        return val == null ? defaultValue : (T) val;
+        return val instanceof String ? (String) val : val == null ? null : val.toString();
+    }
+
+    default String getColAsString(String columnName, String defaultValue) {
+        Object val = getCol(columnName);
+        return val == null ? defaultValue : val.toString();
     }
 
     void updateColumn(String name, Object value);

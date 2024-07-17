@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.transform.transformer;
+package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,39 +24,49 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 5/8/22 11:50 AM
+ * @date 2023/6/26 22:15
  */
-public class RegExprTransformerTest {
-
+public class FlattenTransformerTest {
     @Test
     public void test() throws JsonProcessingException {
-        RegExprTransformer transformer = new RegExprTransformer("exception", "Code: ([0-9]+)", new String[]{"exceptionCode"}, null);
+        FlattenTransformer transformer = new FlattenTransformer(new String[]{"a"}, new String[]{"a1"}, null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("exception", "Code: 60, e.displayText()")));
+        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
         newTransformer.transform(row1);
-        Assert.assertEquals("60", row1.getCol("exceptionCode"));
+        Assert.assertEquals("default", row1.getCol("a"));
+        Assert.assertEquals("default", row1.getCol("a1"));
     }
 
     @Test
-    public void testRegExprOnNested() throws JsonProcessingException {
-        RegExprTransformer transformer = new RegExprTransformer("tags.exception", "Code: ([0-9]+)", new String[]{"exceptionCode"}, null);
+    public void test_Flatten_NestedProperties() throws JsonProcessingException {
+        FlattenTransformer transformer = new FlattenTransformer(new String[]{"a.b", "a.c.d"},
+                                                                new String[]{"b1", "d1"},
+                                                                null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>());
-        row1.updateColumn("tags", ImmutableMap.of("exception", "Code: 60, e.displayText()"));
+        Map<String, Map<String, Object>> map = new HashMap<>();
+        Map<String, Object> a = map.compute("a", (k, v) -> new HashMap<>());
+        a.put("b", "b-value");
+        a.put("c", ImmutableMap.of("d", "d-value"));
+
+        //noinspection unchecked
+        InputRow row1 = new InputRow((Map<String, Object>) (Map<?, ?>) map);
         newTransformer.transform(row1);
-        Assert.assertEquals("60", row1.getCol("exceptionCode"));
+
+        Assert.assertEquals("b-value", row1.getCol("b1"));
+        Assert.assertEquals("d-value", row1.getCol("d1"));
     }
 }

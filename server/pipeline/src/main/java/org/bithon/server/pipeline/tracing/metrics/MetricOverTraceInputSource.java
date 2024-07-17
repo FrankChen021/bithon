@@ -26,7 +26,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.pipeline.common.transform.TransformSpec;
+import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.exporter.IMetricMessageHandler;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.TracePipeline;

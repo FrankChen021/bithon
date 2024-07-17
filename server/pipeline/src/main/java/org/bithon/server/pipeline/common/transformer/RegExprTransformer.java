@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.common.transform.transformer;
+package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,14 +24,14 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.PathExpression;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
- * Deprecated. Use {@link SplitTransformer} instead
- *
  * @author frank.chen021@outlook.com
- * @date 11/4/22 11:52 PM
+ * @date 5/8/22 11:43 AM
  */
-@Deprecated
-public class SplitterTransformer implements ITransformer {
+public class RegExprTransformer extends AbstractTransformer {
 
     /**
      * source field
@@ -40,36 +40,45 @@ public class SplitterTransformer implements ITransformer {
     private final String field;
 
     @Getter
-    private final String splitter;
+    private final String regexpr;
 
     @Getter
     private final String[] names;
 
-    @JsonIgnore
 
+    @JsonIgnore
+    private final Pattern pattern;
+
+    @JsonIgnore
     private final PathExpression pathExpression;
 
     @JsonCreator
-    public SplitterTransformer(@JsonProperty("field") String field,
-                               @JsonProperty("splitter") String splitter,
-                               @JsonProperty("names") String... names) {
+    public RegExprTransformer(@JsonProperty("field") String field,
+                              @JsonProperty("regexpr") String regexpr,
+                              @JsonProperty("names") String[] names,
+                              @JsonProperty("where") String where) {
+        super(where);
+
         this.field = Preconditions.checkArgumentNotNull("field", field);
-        this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
+        this.regexpr = Preconditions.checkArgumentNotNull("regexpr", regexpr);
         this.names = names;
-        this.pathExpression = PathExpression.Builder.build(this.field);
+
+        this.pathExpression = PathExpression.Builder.build(field);
+        this.pattern = Pattern.compile(regexpr);
     }
 
     @Override
-    public TransformResult transform(IInputRow row) {
-        Object val = pathExpression.evaluate(row);
-        if (val == null) {
-            return TransformResult.CONTINUE;
+    protected TransformResult transformInternal(IInputRow inputRow) {
+        Object val = pathExpression.evaluate(inputRow);
+        if (val != null) {
+            Matcher matcher = this.pattern.matcher(val.toString());
+            if (matcher.find() && matcher.groupCount() == names.length) {
+                for (int i = 0; i < names.length; i++) {
+                    inputRow.updateColumn(names[i], matcher.group(i + 1));
+                }
+            }
         }
 
-        String[] values = val.toString().split(splitter);
-        for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-            row.updateColumn(names[i], values[i]);
-        }
         return TransformResult.CONTINUE;
     }
 }

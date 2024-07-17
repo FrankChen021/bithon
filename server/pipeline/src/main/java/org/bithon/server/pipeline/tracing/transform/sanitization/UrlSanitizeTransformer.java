@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.UrlUtils;
-import org.bithon.server.pipeline.common.transform.transformer.AbstractTransformer;
-import org.bithon.server.pipeline.common.transform.transformer.TransformResult;
+import org.bithon.server.pipeline.common.transformer.AbstractTransformer;
+import org.bithon.server.pipeline.common.transformer.TransformResult;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.tracing.TraceSpan;
 

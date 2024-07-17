@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.pipeline.common.transform.TransformSpec;
+import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
