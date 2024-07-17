@@ -76,7 +76,6 @@ class AppSelector {
 
     createFilterFromSchema(schema, keepAppFilter = false) {
         this.mDataSource = schema.name;
-        this.mSchema = schema;
 
         const filterSpecs = [];
         // Note: the first two dimensions MUST be app/instance
@@ -231,7 +230,7 @@ class AppSelector {
         this.mSelectedFilters[dimensionName] = {
             field: dimensionName,
             predicate: '=',
-            expected: "'" + dimensionValue + "'"
+            expected: dimensionValue
         };
     }
 
@@ -250,9 +249,9 @@ class AppSelector {
     /**
      * @returns an array of filters
      * filter: {
-     *            field: dimensionName,
-     *             predicate: '=',
-     *             expected: dimensionValue
+     *   field: name,
+     *   predicate: '=',
+     *   expected: value
      * }
      */
     getSelectedFilters() {
@@ -277,7 +276,7 @@ class AppSelector {
             if (expression.length > 0) {
                 expression += ' AND ';
             }
-            expression += `${filter.field} ${filter.predicate} ${filter.expected}`;
+            expression += `${filter.field} ${filter.predicate} '${filter.expected}'`;
         });
         return expression;
     }

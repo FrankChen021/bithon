@@ -478,7 +478,7 @@ class Dashboard {
 
         const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
         if (instanceFilter != null) {
-            filterExpression += `AND instanceName = ${instanceFilter.expected} `;
+            filterExpression += `AND instanceName = '${instanceFilter.expected}' `;
         }
 
         //

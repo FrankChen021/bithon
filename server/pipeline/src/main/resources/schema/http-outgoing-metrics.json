@@ -137,11 +137,11 @@
   "inputSourceSpec": {
     "type": "metric",
     "transformSpec": {
-      "prefilter": {
-        "type": "expression",
-        "expression": "requestCount > 0"
-      },
       "transformers": [
+        {
+          "type": "drop",
+          "expr": "requestCount <= 0"
+        },
         {
           "type": "extractHost",
           "uri": "path",
