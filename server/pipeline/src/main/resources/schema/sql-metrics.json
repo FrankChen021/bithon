@@ -90,11 +90,11 @@
   "inputSourceSpec": {
     "type": "metric",
     "transformSpec": {
-      "prefilter": {
-        "type": "expression",
-        "expression": "callCount > 0"
-      },
       "transformers": [
+        {
+          "type": "drop",
+          "expr": "callCount <= 0"
+        },
         {
           "type": "connectionString"
         }
