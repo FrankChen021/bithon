@@ -76,13 +76,13 @@ class MetricTableWriter implements IOnceTableWriter {
                 // dimensions
                 for (Field<?> dimension : table.getDimensions()) {
                     // the value might be type of integer, so Object should be used
-                    Object value = inputRow.getCol(dimension.getName(), "");
+                    Object value = inputRow.getColAsString(dimension.getName(), "");
                     statement.setObject(index++, truncateDimension ? getOrTruncateDimension(dimension, value.toString()) : value.toString());
                 }
 
                 // metrics
                 for (Field<?> metric : table.getMetrics()) {
-                    statement.setObject(index++, inputRow.getCol(metric.getName(), 0));
+                    statement.setObject(index++, inputRow.getColAsLong(metric.getName(), 0));
                 }
 
                 statement.addBatch();
