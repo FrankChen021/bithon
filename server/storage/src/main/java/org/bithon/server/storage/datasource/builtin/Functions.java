@@ -17,19 +17,10 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import org.bithon.component.commons.expression.function.IFunction;
-import org.bithon.component.commons.expression.function.builtin.string.Concat;
-import org.bithon.component.commons.expression.function.builtin.string.EndsWith;
-import org.bithon.component.commons.expression.function.builtin.string.HasToken;
-import org.bithon.component.commons.expression.function.builtin.string.Length;
-import org.bithon.component.commons.expression.function.builtin.string.Lower;
-import org.bithon.component.commons.expression.function.builtin.number.Round;
-import org.bithon.component.commons.expression.function.builtin.string.StartsWith;
-import org.bithon.component.commons.expression.function.builtin.string.Substring;
-import org.bithon.component.commons.expression.function.builtin.string.Trim;
-import org.bithon.component.commons.expression.function.builtin.string.TrimLeft;
-import org.bithon.component.commons.expression.function.builtin.string.TrimRight;
-import org.bithon.component.commons.expression.function.builtin.string.Upper;
-import org.bithon.component.commons.expression.function.builtin.time.toStartOfMinute;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.expression.function.builtin.NumberFunction;
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -58,21 +49,25 @@ public class Functions implements IFunctionProvider {
      * <a href="https://clickhouse.com/docs/en/sql-reference/functions/string-functions">ClickHouse Functions</a>
      */
     public Functions() {
-        register(new Round());
+        register(new NumberFunction.Round());
 
-        register(new StartsWith());
-        register(new EndsWith());
-        register(new HasToken());
-        register(new Lower());
-        register(new Upper());
-        register(new Substring());
-        register(new Trim());
-        register(new TrimLeft());
-        register(new TrimRight());
-        register(new Length());
-        register(new Concat());
+        register(new StringFunction.StartsWith());
+        register(new StringFunction.EndsWith());
+        register(new StringFunction.HasToken());
+        register(new StringFunction.Lower());
+        register(new StringFunction.Upper());
+        register(new StringFunction.Substring());
+        register(new StringFunction.Trim());
+        register(new StringFunction.TrimLeft());
+        register(new StringFunction.TrimRight());
+        register(new StringFunction.Length());
+        register(new StringFunction.Concat());
 
-        register(new toStartOfMinute());
+        register(new TimeFunction.toStartOfMinute());
+
+        register(new AggregateFunction.Min());
+        register(new AggregateFunction.Max());
+        register(new AggregateFunction.Sum());
     }
 
     private void register(IFunction function) {

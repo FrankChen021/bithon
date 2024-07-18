@@ -14,28 +14,32 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression.function.builtin.string;
+package org.bithon.component.commons.expression.function.builtin;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Parameter;
 
-import java.util.Collections;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/7/18 21:01
+ * @date 2024/7/18 21:29
  */
-public class Lower extends AbstractFunction {
-    public Lower() {
-        super("lower", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
-    }
+public class NumberFunction {
+    public static class Round extends AbstractFunction {
+        public Round() {
+            super("round", Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)), IDataType.DOUBLE);
+        }
 
-    @Override
-    public Object evaluate(List<Object> parameters) {
-        String str = (String) parameters.get(0);
-        return str != null ? str.toLowerCase(Locale.ENGLISH) : null;
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            double i0 = ((Number) parameters.get(0)).doubleValue();
+            int scale = ((Number) parameters.get(1)).intValue();
+            return BigDecimal.valueOf(i0).setScale(scale, RoundingMode.HALF_UP);
+        }
     }
 }

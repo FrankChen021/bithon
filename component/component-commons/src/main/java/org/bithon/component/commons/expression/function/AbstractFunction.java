@@ -90,4 +90,18 @@ public abstract class AbstractFunction implements IFunction {
             }
         }
     }
+
+    protected static class Validator {
+        public static void validateParameterSize(int expectedSize, int actualSize) {
+
+        }
+
+        public static void validateType(IDataType actual, IDataType... expected) {
+            for (IDataType ex : expected) {
+                if (actual != ex) {
+                    throw new InvalidExpressionException("The parameter must be ex of %s", actual);
+                }
+            }
+        }
+    }
 }

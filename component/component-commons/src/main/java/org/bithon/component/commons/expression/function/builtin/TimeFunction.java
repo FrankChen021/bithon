@@ -14,27 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.expression.function.builtin.string;
+package org.bithon.component.commons.expression.function.builtin;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Parameter;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/7/18 21:01
+ * @date 2024/7/18 21:31
  */
-public class Trim extends AbstractFunction {
-    public Trim() {
-        super("trim", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+public class TimeFunction {
+    public static class toStartOfMinute extends AbstractFunction {
+        public toStartOfMinute() {
+            super("toStartOfMinute", new Parameter(IDataType.LONG), IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            Object o = parameters.get(0);
+            return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
+        }
     }
 
-    @Override
-    public Object evaluate(List<Object> parameters) {
-        String str = (String) parameters.get(0);
-        return str == null ? null : str.trim();
-    }
 }
