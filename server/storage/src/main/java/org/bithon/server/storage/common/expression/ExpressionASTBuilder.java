@@ -213,10 +213,14 @@ public class ExpressionASTBuilder {
             TerminalNode op = (TerminalNode) ctx.getChild(1);
 
             return switch (op.getSymbol().getType()) {
-                case ExpressionLexer.ADD -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.SUB -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.MUL -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.DIV -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.ADD ->
+                    new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.SUB ->
+                    new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.MUL ->
+                    new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.DIV ->
+                    new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
                 default -> throw new InvalidExpressionException("Unsupported arithmetic operator");
             };
         }
@@ -420,7 +424,6 @@ public class ExpressionASTBuilder {
                     // Only allow defined functions for safe
                     throw new InvalidExpressionException("Function [%s] is not supported.", functionName);
                 }
-                function.validateParameter(parameterExpressionList);
             }
 
             return new FunctionExpression(function, parameterExpressionList);

@@ -33,7 +33,7 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     @Override
-    final public boolean isAggregator() {
+    public final boolean isAggregator() {
         return true;
     }
 

@@ -230,7 +230,7 @@ public class SelectExpressionBuilder {
                 }
             };
 
-            return new StringNode(serializer.serialize(expression.getParsedExpression()));
+            return new StringNode(serializer.serialize(expression.getParsedExpression(schema)));
         }
     }
 
@@ -331,7 +331,7 @@ public class SelectExpressionBuilder {
         FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.schema, aggregatedFields, this.sqlDialect);
         this.resultColumns.stream()
                           .filter((f) -> f.getColumnExpression() instanceof Expression)
-                          .forEach((f) -> ((Expression) f.getColumnExpression()).getParsedExpression().accept(fieldExpressionAnalyzer));
+                          .forEach((f) -> ((Expression) f.getColumnExpression()).getParsedExpression(schema).accept(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getResultColumnList().add(metric);
         }

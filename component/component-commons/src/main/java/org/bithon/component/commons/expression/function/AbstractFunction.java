@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,15 +94,25 @@ public abstract class AbstractFunction implements IFunction {
 
     protected static class Validator {
         public static void validateParameterSize(int expectedSize, int actualSize) {
-
+            if (expectedSize != actualSize) {
+                throw new InvalidExpressionException("The function requires [%d] parameters, but got [%d]",
+                                                     expectedSize,
+                                                     actualSize);
+            }
         }
 
         public static void validateType(IDataType actual, IDataType... expected) {
             for (IDataType ex : expected) {
-                if (actual != ex) {
-                    throw new InvalidExpressionException("The parameter must be ex of %s", actual);
+                if (actual.equals(ex)) {
+                    return;
                 }
             }
+
+            throw new InvalidExpressionException("The given parameter is type of [%s], but required one of [%s]",
+                                                 actual,
+                                                 Arrays.stream(expected)
+                                                       .map(Object::toString)
+                                                       .collect(Collectors.joining(",")));
         }
     }
 }

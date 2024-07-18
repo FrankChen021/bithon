@@ -18,6 +18,7 @@ package org.bithon.component.commons.expression.validation;
 
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
@@ -111,6 +112,12 @@ class ExpressionTypeValidator implements IExpressionVisitor {
                                                         expression.serializeToText(null));
             }
         }
+        return true;
+    }
+
+    @Override
+    public boolean visit(FunctionExpression expression) {
+        expression.getFunction().validateParameter(expression.getParameters());
         return true;
     }
 }
