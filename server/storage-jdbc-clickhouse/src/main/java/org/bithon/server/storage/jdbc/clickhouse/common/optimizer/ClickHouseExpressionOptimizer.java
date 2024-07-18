@@ -21,8 +21,8 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
-import org.bithon.server.storage.datasource.builtin.Functions;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -18,8 +18,8 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
 
 /**
  * @author frank.chen021@outlook.com

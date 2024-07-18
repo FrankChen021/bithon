@@ -41,13 +41,13 @@ import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.IFunctionProvider;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
 import java.util.ArrayList;
 import java.util.List;

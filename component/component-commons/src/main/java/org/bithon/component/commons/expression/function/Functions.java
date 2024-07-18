@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.builtin;
+package org.bithon.component.commons.expression.function;
 
-import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.NumberFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;

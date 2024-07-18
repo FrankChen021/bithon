@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.common.expression;
 
-import org.bithon.server.storage.datasource.builtin.Functions;
+import org.bithon.component.commons.expression.function.Functions;
 import org.junit.Assert;
 import org.junit.Test;
 

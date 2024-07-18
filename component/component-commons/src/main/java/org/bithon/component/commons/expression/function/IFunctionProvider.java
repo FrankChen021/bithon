@@ -14,9 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.builtin;
-
-import org.bithon.component.commons.expression.function.IFunction;
+package org.bithon.component.commons.expression.function;
 
 /**
  * @author frank.chen021@outlook.com
