@@ -180,7 +180,9 @@ public class AlertExpressionASTParserTest {
 
     @Test
     public void testInExpression() {
-        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a')})[5m] is null");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a')})[5m] is null");
+        Assert.assertEquals("appName in ('a')", expression.getWhereExpression().serializeToText(null));
+
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in ('a', 'b')})[5m] is null");
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in (1)})[5m] is null");
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName in (1,2)})[5m] is null");
@@ -190,7 +192,9 @@ public class AlertExpressionASTParserTest {
 
     @Test
     public void testNotInExpression() {
-        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName not in ('a')})[5m] is null");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName not in ('a')})[5m] is null");
+        Assert.assertEquals("appName not in ('a')", expression.getWhereExpression().serializeToText(null));
+
         AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName not in ('a', 'b')})[5m] is null");
 
         Assert.assertThrows(InvalidExpressionException.class, () -> AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName not in ('a', 1)})[5m] is null"));

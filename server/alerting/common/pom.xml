@@ -67,6 +67,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <libDirectory>${basedir}/src/main/antlr4/org/bithon/server/alerting/common/parser</libDirectory>
                     <listener>true</listener>
                     <visitor>true</visitor>
                     <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->

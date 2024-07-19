@@ -1,19 +1,15 @@
-grammar AlertExpression;
+grammar MetricExpression;
 
-parse
-  : expression EOF
-  ;
-
-expression
-  : selectExpression alertPredicateExpression alertExpectedExpression #alertExpression
-  | expression AND expression   #logicalAlertExpression
-  | expression OR expression    #logicalAlertExpression
-  | LEFT_PARENTHESIS expression RIGHT_PARENTHESIS            #braceAlertExpression
+alertExpression
+  : metricExpression                                    #simpleAlertExpression
+  | alertExpression AND alertExpression                 #logicalAlertExpression
+  | alertExpression OR alertExpression                  #logicalAlertExpression
+  | LEFT_PARENTHESIS alertExpression RIGHT_PARENTHESIS  #parenthesisAlertExpression
   ;
 
 // sum by (a,b,c) (metric {})
-selectExpression
-  : aggregatorExpression LEFT_PARENTHESIS metricExpression whereExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression?
+metricExpression
+  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?
   ;
 
 aggregatorExpression
@@ -24,7 +20,8 @@ groupByExpression
   : BY LEFT_PARENTHESIS IDENTIFIER (COMMA IDENTIFIER)* RIGHT_PARENTHESIS
   ;
 
-metricExpression
+// Qualifed name of a metric
+metricQNameExpression
   : dataSourceExpression DOT metricNameExpression
   ;
 
@@ -36,30 +33,28 @@ metricNameExpression
   : IDENTIFIER
   ;
 
-
-whereExpression
+labelExpression
   : LEFT_CURLY_BRACE RIGHT_CURLY_BRACE
-  | LEFT_CURLY_BRACE filterExpression (COMMA filterExpression)* RIGHT_CURLY_BRACE
+  | LEFT_CURLY_BRACE labelSelectorExpression (COMMA labelSelectorExpression)* RIGHT_CURLY_BRACE
   ;
 
 durationExpression
   : LEFT_SQUARE_BRACKET DURATION_LITERAL RIGHT_SQUARE_BRACKET
   ;
 
-filterExpression
-  : IDENTIFIER (LT|LTE|GT|GTE|NE|EQ) literalExpression #comparisonExpression
-  | IDENTIFIER HAS literalExpression #hasExpression
-  | IDENTIFIER CONTAINS literalExpression #containsExpression
-  | IDENTIFIER STARTSWITH literalExpression #startsWithExpression
-  | IDENTIFIER ENDSWITH literalExpression #endsWithExpression
-  | IDENTIFIER LIKE literalExpression #likeExpression
-  | IDENTIFIER IN literalListExpression #inFilterExpression
-  | IDENTIFIER NOT IN literalListExpression #notInFilterExpression
-  | IDENTIFIER NOT LIKE literalExpression #notLikeFilterExpression
+labelSelectorExpression
+  : IDENTIFIER labelPredicateExpression literalExpression #comparisonExpression
+  | IDENTIFIER NOT? IN literalListExpression #inExpression
   ;
 
-alertPredicateExpression
-  : LT|LTE|GT|GTE|NE|EQ|IS
+labelPredicateExpression
+  : LT|LTE|GT|GTE|NE|EQ
+  | NOT? (HAS|CONTAINS|STARTSWITH|ENDSWITH|LIKE)
+  ;
+
+metricPredicateExpression
+  : LT|LTE|GT|GTE|NE|EQ
+  | IS
  ;
 
 literalExpression
@@ -70,7 +65,7 @@ literalListExpression
   : LEFT_PARENTHESIS literalExpression (COMMA literalExpression)? RIGHT_PARENTHESIS
   ;
 
-alertExpectedExpression
+metricExpectedExpression
   : literalExpression durationExpression?
   ;
 
