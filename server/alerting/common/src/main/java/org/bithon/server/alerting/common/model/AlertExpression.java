@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.metric.expression.MetricExpression;
 
 import java.util.function.Function;
 

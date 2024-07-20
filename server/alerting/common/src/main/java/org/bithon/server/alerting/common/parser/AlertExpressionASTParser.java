@@ -40,7 +40,9 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPre
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.MetricExpression;
+import org.bithon.server.metric.expression.MetricExpression;
+import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
+import org.bithon.server.storage.common.expression.InvalidExpressionException;
 
 import java.util.List;
 

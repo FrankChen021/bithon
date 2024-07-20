@@ -6,10 +6,10 @@
         <groupId>org.bithon.server</groupId>
         <artifactId>server-all</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>server-alerting-common</artifactId>
+    <artifactId>server-metric-expression</artifactId>
 
     <dependencies>
         <dependency>
@@ -17,10 +17,6 @@
             <artifactId>component-commons</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.bithon.server</groupId>
-            <artifactId>server-metric-expression</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.bithon.server</groupId>
             <artifactId>server-web-service</artifactId>
@@ -45,12 +41,6 @@
             <artifactId>antlr4-runtime</artifactId>
         </dependency>
 
-        <!-- Caffeine Cache -->
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -71,7 +61,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <libDirectory>${basedir}/src/main/antlr4/org/bithon/server/alerting/common/parser</libDirectory>
                     <listener>true</listener>
                     <visitor>true</visitor>
                     <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.parser;
+package org.bithon.server.metric.expression;
 
 import org.bithon.component.commons.utils.StringUtils;
 

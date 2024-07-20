@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.parser;
+package org.bithon.server.metric.expression;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -37,8 +37,9 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.AggregatorEnum;
-import org.bithon.server.alerting.common.model.MetricExpression;
+import org.bithon.server.alerting.common.parser.MetricExpressionBaseVisitor;
+import org.bithon.server.alerting.common.parser.MetricExpressionLexer;
+import org.bithon.server.alerting.common.parser.MetricExpressionParser;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
