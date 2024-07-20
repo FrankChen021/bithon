@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableSize;
 import org.junit.Assert;
 import org.junit.Test;

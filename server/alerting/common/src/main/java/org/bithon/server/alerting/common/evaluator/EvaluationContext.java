@@ -19,7 +19,6 @@ package org.bithon.server.alerting.common.evaluator;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;

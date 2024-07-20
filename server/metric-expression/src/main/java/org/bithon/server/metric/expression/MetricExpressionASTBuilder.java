@@ -16,12 +16,9 @@
 
 package org.bithon.server.metric.expression;
 
-import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -33,13 +30,12 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.parser.MetricExpressionBaseVisitor;
-import org.bithon.server.alerting.common.parser.MetricExpressionLexer;
-import org.bithon.server.alerting.common.parser.MetricExpressionParser;
+import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
@@ -68,31 +64,12 @@ public class MetricExpressionASTBuilder {
     public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
-            }
-        });
+        lexer.addErrorListener(SyntaxErrorListener.of(expression));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+
         MetricExpressionParser parser = new MetricExpressionParser(tokens);
         parser.getErrorListeners().clear();
-        parser.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
-            }
-        });
+        parser.addErrorListener(SyntaxErrorListener.of(expression));
 
         MetricExpressionParser.MetricExpressionContext ctx = parser.metricExpression();
         if (tokens.LT(1).getType() != MetricExpressionParser.EOF) {
@@ -187,9 +164,9 @@ public class MetricExpressionASTBuilder {
                     }
                 }
 
-                MetricExpression.Predicate predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
-                                                                    expected,
-                                                                    expectedWindow);
+                PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
+                                                       expected,
+                                                       expectedWindow);
 
                 expression.setPredicate(predicate);
                 expression.setExpected(expected);
@@ -199,40 +176,40 @@ public class MetricExpressionASTBuilder {
             return expression;
         }
 
-        private static MetricExpression.Predicate getPredicate(int predicateToken,
-                                                               LiteralExpression expected,
-                                                               HumanReadableDuration expectedWindow) {
+        private static PredicateEnum getPredicate(int predicateToken,
+                                                  LiteralExpression expected,
+                                                  HumanReadableDuration expectedWindow) {
             switch (predicateToken) {
                 case MetricExpressionParser.LT:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<'.");
-                    return MetricExpression.Predicate.LT;
+                    return PredicateEnum.LT;
 
                 case MetricExpressionParser.LTE:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<='.");
-                    return MetricExpression.Predicate.LTE;
+                    return PredicateEnum.LTE;
 
                 case MetricExpressionParser.GT:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>'.");
-                    return MetricExpression.Predicate.GT;
+                    return PredicateEnum.GT;
 
                 case MetricExpressionParser.GTE:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>='.");
-                    return MetricExpression.Predicate.GTE;
+                    return PredicateEnum.GTE;
 
                 case MetricExpressionParser.NE:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<>'.");
                     checkIfTrue(expectedWindow == null, "<> is not allowed for relative comparison.");
-                    return MetricExpression.Predicate.NE;
+                    return PredicateEnum.NE;
 
                 case MetricExpressionParser.EQ:
                     checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '='.");
                     checkIfTrue(expectedWindow == null, "= is not allowed for relative comparison.");
-                    return MetricExpression.Predicate.EQ;
+                    return PredicateEnum.EQ;
 
                 case MetricExpressionParser.IS:
                     checkIfTrue(expected instanceof LiteralExpression.NullLiteral, "Only 'null' is allowed after the 'is' predicate.");
                     checkIfTrue(expectedWindow == null, "The expected window must be NULL if the 'is' operator is used.");
-                    return MetricExpression.Predicate.IS_NULL;
+                    return PredicateEnum.IS_NULL;
 
                 default:
                     throw new RuntimeException("Unsupported alert predicate");

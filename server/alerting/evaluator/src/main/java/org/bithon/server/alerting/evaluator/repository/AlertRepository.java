@@ -17,8 +17,8 @@
 package org.bithon.server.alerting.evaluator.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;

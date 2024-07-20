@@ -20,10 +20,10 @@ import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/7/18 21:05
+ * @date 2020/12/8 6:18 下午
  */
 public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(String messageFormat, Object... args) {
-        super(StringUtils.format(messageFormat, args));
+    public InvalidExpressionException(String format, Object... args) {
+        super(StringUtils.format(format, args));
     }
 }

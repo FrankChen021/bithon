@@ -80,7 +80,7 @@ public class AlertExpression implements IExpression {
 
     @Override
     public <T> T accept(IExpressionVisitor2<T> visitor) {
-        if(visitor instanceof IAlertExpressionVisitor2<T>) {
+        if (visitor instanceof IAlertExpressionVisitor2<T>) {
             return ((IAlertExpressionVisitor2<T>) visitor).visit(this);
         } else {
             return null;

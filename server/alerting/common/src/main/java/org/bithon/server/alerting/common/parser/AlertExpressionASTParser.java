@@ -16,15 +16,13 @@
 
 package org.bithon.server.alerting.common.parser;
 
-import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -40,9 +38,12 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPre
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.metric.expression.MetricExpression;
 import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
+import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
+import org.bithon.server.metric.expression.MetricExpressionLexer;
+import org.bithon.server.metric.expression.MetricExpressionParser;
 
 import java.util.List;
 
@@ -55,31 +56,12 @@ public class AlertExpressionASTParser {
     public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
-            }
-        });
+        lexer.addErrorListener(SyntaxErrorListener.of(expression));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+
         MetricExpressionParser parser = new MetricExpressionParser(tokens);
         parser.getErrorListeners().clear();
-        parser.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, charPositionInLine, msg);
-            }
-        });
+        parser.addErrorListener(SyntaxErrorListener.of(expression));
 
         MetricExpressionParser.AlertExpressionContext ctx = parser.alertExpression();
         if (tokens.LT(1).getType() != MetricExpressionParser.EOF) {

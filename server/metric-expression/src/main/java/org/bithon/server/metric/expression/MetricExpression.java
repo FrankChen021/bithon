@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -39,10 +40,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * NOTE: When changes are made to this class,
- * do check if the {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer} needs to be modified.
- * <p>
- * This class is constructed by {@link org.bithon.server.alerting.common.parser.AlertExpressionASTParser}
  *
  * <p>
  * Absolute comparison
@@ -55,63 +52,12 @@ import java.util.function.Function;
  * avg by (a) (data-source.metric{dim1 = 'a', dim2=''}[1m|h]) > 5%[-1d]
  * avg by (a) (data-source.metric{dim1 = 'b', dim2=''}[1m|h]) > 5%['2023-01-01']
  * <p>
- * NOTE that this class is serialized by {@link org.bithon.server.alerting.common.serializer.AlertExpressionSerializer}
  *
  * @author frankchen
  * @date 2020-08-21 14:56:50
  */
 @Data
 public class MetricExpression implements IExpression {
-
-    public enum Predicate {
-
-        LT {
-            @Override
-            public String toString() {
-                return "<";
-            }
-        },
-
-        LTE {
-            @Override
-            public String toString() {
-                return "<=";
-            }
-        },
-
-        GT {
-            @Override
-            public String toString() {
-                return ">";
-            }
-        },
-
-        GTE {
-            @Override
-            public String toString() {
-                return ">=";
-            }
-        },
-
-        NE {
-            @Override
-            public String toString() {
-                return "<>";
-            }
-        },
-        EQ {
-            @Override
-            public String toString() {
-                return "=";
-            }
-        },
-        IS_NULL {
-            @Override
-            public String toString() {
-                return "IS NULL";
-            }
-        }
-    }
 
     private String from;
     private QueryField metric;
@@ -124,7 +70,7 @@ public class MetricExpression implements IExpression {
     /**
      * Post filter
      */
-    private Predicate predicate;
+    private PredicateEnum predicate;
     private LiteralExpression expected;
 
     @Nullable

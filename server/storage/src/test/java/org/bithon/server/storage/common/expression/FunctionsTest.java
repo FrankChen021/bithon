@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +29,7 @@ import java.math.BigDecimal;
  */
 public class FunctionsTest {
 
-    private ExpressionASTBuilder builder = ExpressionASTBuilder.builder().functions(Functions.getInstance());
+    private final ExpressionASTBuilder builder = ExpressionASTBuilder.builder().functions(Functions.getInstance());
 
     @Test
     public void testRound() {

@@ -22,10 +22,10 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
 import org.bithon.server.storage.datasource.ISchema;
 
 import javax.annotation.Nullable;

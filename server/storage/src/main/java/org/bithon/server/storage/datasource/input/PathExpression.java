@@ -16,15 +16,12 @@
 
 package org.bithon.server.storage.datasource.input;
 
-import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
+import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,31 +63,11 @@ public class PathExpression {
         public static PathExpression build(String pathExpression) {
             PathExpressionLexer lexer = new PathExpressionLexer(CharStreams.fromString(pathExpression));
             lexer.getErrorListeners().clear();
-            lexer.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer,
-                                        Object offendingSymbol,
-                                        int line,
-                                        int charPositionInLine,
-                                        String msg,
-                                        RecognitionException e) {
-                    throw new InvalidExpressionException(pathExpression, offendingSymbol, line, charPositionInLine, msg);
-                }
-            });
+            lexer.addErrorListener(SyntaxErrorListener.of(pathExpression));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             PathExpressionParser parser = new PathExpressionParser(tokens);
             parser.getErrorListeners().clear();
-            parser.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer,
-                                        Object offendingSymbol,
-                                        int line,
-                                        int charPositionInLine,
-                                        String msg,
-                                        RecognitionException e) {
-                    throw new InvalidExpressionException(pathExpression, offendingSymbol, line, charPositionInLine, msg);
-                }
-            });
+            parser.addErrorListener(SyntaxErrorListener.of(pathExpression));
 
             Visitor visitor = new Visitor();
             parser.path().accept(visitor);
