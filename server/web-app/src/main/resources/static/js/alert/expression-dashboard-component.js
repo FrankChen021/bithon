@@ -20,7 +20,7 @@ class ExpressionDashboardComponent {
                     bootbox.alert({
                         backdrop: true,
                         title: "Error",
-                        message: data.message
+                        message: '<pre>' + data.message + '</pre>'
                     });
                     return;
                 }
