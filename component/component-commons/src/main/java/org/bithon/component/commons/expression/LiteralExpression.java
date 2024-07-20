@@ -285,5 +285,10 @@ public abstract class LiteralExpression implements IExpression {
             // May not be right
             return IDataType.STRING;
         }
+
+        @Override
+        public String toString() {
+            return "null";
+        }
     }
 }

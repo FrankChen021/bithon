@@ -40,11 +40,6 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-        </dependency>
-
         <!-- Caffeine Cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -59,24 +54,5 @@
     </dependencies>
     <build>
         <finalName>${project.name}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <libDirectory>${basedir}/src/main/antlr4/org/bithon/server/alerting/common/parser</libDirectory>
-                    <listener>true</listener>
-                    <visitor>true</visitor>
-                    <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>

@@ -27,8 +27,8 @@ import java.util.List;
  * @date 2024/7/18 21:31
  */
 public class TimeFunction {
-    public static class toStartOfMinute extends AbstractFunction {
-        public toStartOfMinute() {
+    public static class ToStartOfMinute extends AbstractFunction {
+        public ToStartOfMinute() {
             super("toStartOfMinute", new Parameter(IDataType.LONG), IDataType.LONG);
         }
 
