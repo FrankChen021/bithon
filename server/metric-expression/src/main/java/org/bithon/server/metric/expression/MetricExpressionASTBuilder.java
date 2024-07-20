@@ -71,8 +71,14 @@ public class MetricExpressionASTBuilder {
         parser.addErrorListener(SyntaxErrorListener.of(expression));
 
         MetricExpressionParser.MetricExpressionContext ctx = parser.metricExpression();
-        if (tokens.LT(1).getType() != MetricExpressionParser.EOF) {
-            throw new InvalidExpressionException(expression, tokens.LT(1).getStartIndex(), "Unexpected token");
+        Token last = tokens.LT(1);
+        if (last.getType() != MetricExpressionParser.EOF) {
+            throw InvalidExpressionException.format(expression,
+                                                    last.getStartIndex(),
+                                                    last.getStopIndex(),
+                                                    last.getLine(),
+                                                    last.getStartIndex(),
+                                                    "Unexpected token");
         }
 
         return build(ctx);
@@ -315,7 +321,8 @@ public class MetricExpressionASTBuilder {
                     LiteralExpression.create(Integer.parseInt(symbol.getText()));
                 case MetricExpressionParser.PERCENTAGE_LITERAL ->
                     LiteralExpression.create(new HumanReadablePercentage(symbol.getText()));
-                case MetricExpressionParser.STRING_LITERAL -> LiteralExpression.create(TokenUtils.getUnQuotedString(symbol));
+                case MetricExpressionParser.STRING_LITERAL ->
+                    LiteralExpression.create(TokenUtils.getUnQuotedString(symbol));
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
                 case MetricExpressionParser.SIZE_LITERAL ->
                     LiteralExpression.create(HumanReadableSize.of(symbol.getText()));

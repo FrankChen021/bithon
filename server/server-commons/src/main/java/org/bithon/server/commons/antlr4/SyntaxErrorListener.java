@@ -21,7 +21,6 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
-import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,36 +46,11 @@ public class SyntaxErrorListener extends BaseErrorListener {
                             RecognitionException e) {
 
         Token token = (Token) offendingSymbol;
-        throw new InvalidExpressionException(format(expression,
-                                                    token,
-                                                    line,
-                                                    charPositionInLine,
-                                                    msg));
-    }
-
-    private String format(String expression,
-                          Token offendingToken,
-                          int line,
-                          int charPositionInLine,
-                          String error) {
-        StringBuilder messages = new StringBuilder(128);
-        messages.append(StringUtils.format("Invalid expression at line %d:%d %s\n", line, charPositionInLine, error));
-
-        String[] lines = expression.split("\n");
-        String errorLine = lines[line - 1];
-
-        messages.append(errorLine);
-        messages.append('\n');
-        messages.append(" ".repeat(Math.max(0, charPositionInLine)));
-
-        int indicatorLength = 1;
-        if (offendingToken != null) {
-            int start = offendingToken.getStartIndex();
-            int stop = offendingToken.getStopIndex();
-            indicatorLength = Math.max(1, stop - start + 1);
-        }
-        messages.append("^".repeat(indicatorLength));
-
-        return messages.toString();
+        throw InvalidExpressionException.format(expression,
+                                                token.getStartIndex(),
+                                                token.getStopIndex(),
+                                                line,
+                                                charPositionInLine,
+                                                msg);
     }
 }

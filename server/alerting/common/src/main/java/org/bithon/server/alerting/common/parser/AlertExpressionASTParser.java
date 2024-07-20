@@ -18,6 +18,7 @@ package org.bithon.server.alerting.common.parser;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -64,8 +65,14 @@ public class AlertExpressionASTParser {
         parser.addErrorListener(SyntaxErrorListener.of(expression));
 
         MetricExpressionParser.AlertExpressionContext ctx = parser.alertExpression();
-        if (tokens.LT(1).getType() != MetricExpressionParser.EOF) {
-            throw new InvalidExpressionException(expression, tokens.LT(1).getStartIndex(), "Unexpected token");
+        Token last = tokens.LT(1);
+        if (last.getType() != MetricExpressionParser.EOF) {
+            throw InvalidExpressionException.format(expression,
+                                                    last.getStartIndex(),
+                                                    last.getStopIndex(),
+                                                    last.getLine(),
+                                                    last.getStartIndex(),
+                                                    "Unexpected token: " + last.getText());
         }
 
         return ctx.accept(new MetricExpressionBuilder());

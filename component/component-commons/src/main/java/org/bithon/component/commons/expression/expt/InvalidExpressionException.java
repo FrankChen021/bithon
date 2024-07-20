@@ -23,7 +23,34 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 2020/12/8 6:18 下午
  */
 public class InvalidExpressionException extends RuntimeException {
+
     public InvalidExpressionException(String format, Object... args) {
         super(StringUtils.format(format, args));
+    }
+
+    public static InvalidExpressionException format(String expression,
+                                                    int tokenStart,
+                                                    int tokenEnd,
+                                                    int line,
+                                                    int charPositionInLine,
+                                                    String error) {
+        StringBuilder messages = new StringBuilder(128);
+        messages.append(StringUtils.format("Invalid expression at line %d:%d %s\n", line, charPositionInLine, error));
+
+        String[] lines = expression.split("\n");
+        String errorLine = lines[line - 1];
+
+        messages.append(errorLine);
+        messages.append('\n');
+        for (int i = 0; i < charPositionInLine; i++) {
+            messages.append(' ');
+        }
+
+        int indicatorLength = Math.max(1, tokenEnd - tokenStart + 1);
+        for (int i = 0; i < indicatorLength; i++) {
+            messages.append('^');
+        }
+
+        return new InvalidExpressionException(messages.toString());
     }
 }
