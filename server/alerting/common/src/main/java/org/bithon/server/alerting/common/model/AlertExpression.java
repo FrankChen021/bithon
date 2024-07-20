@@ -22,22 +22,7 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.parser.InvalidExpressionException;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.web.service.datasource.api.QueryField;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -66,34 +51,37 @@ import java.util.function.Function;
 public class AlertExpression implements IExpression {
 
     private String id;
-    private String from;
-    private String where;
-    private QueryField select;
-    private HumanReadableDuration window = HumanReadableDuration.DURATION_1_MINUTE;
+    private MetricExpression metricExpression;
 
-    @Nullable
-    private List<String> groupBy;
-    private String alertPredicate;
-    private Object alertExpected;
+    @Override
+    public IDataType getDataType() {
+        return IDataType.BOOLEAN;
+    }
 
-    @Nullable
-    private HumanReadableDuration expectedWindow = null;
+    @Override
+    public String getType() {
+        return "";
+    }
 
-    /**
-     * Runtime properties
-     */
-    private IExpression whereExpression;
-    private String rawWhere;
-    private IMetricEvaluator metricEvaluator;
+    @Override
+    public Object evaluate(IEvaluationContext context) {
+        throw new UnsupportedOperationException();
+    }
 
-    public void setWhereExpression(IExpression whereExpression) {
-        this.whereExpression = whereExpression;
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        if (visitor instanceof IAlertExpressionVisitor) {
+            ((IAlertExpressionVisitor) visitor).visit(this);
+        }
+    }
 
-        // The where property holds the internal expression that will be passed to the query module
-        this.where = whereExpression == null ? null : whereExpression.serializeToText(null);
-
-        // This variable holds the raw text
-        this.rawWhere = whereExpression == null ? "" : "{" + new WhereExpressionSerializer().serialize(whereExpression) + "}";
+    @Override
+    public <T> T accept(IExpressionVisitor2<T> visitor) {
+        if(visitor instanceof IAlertExpressionVisitor2<T>) {
+            return ((IAlertExpressionVisitor2<T>) visitor).visit(this);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -107,148 +95,6 @@ public class AlertExpression implements IExpression {
     }
 
     public String serializeToText(boolean includePredication) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(select.getAggregator());
-        sb.append(StringUtils.format("(%s.%s%s)[%s]",
-                                     from,
-                                     // Use field for serialization because it holds the raw input.
-                                     // In some cases, like the 'count' aggregator, the name property has different values from the field property
-                                     // See AlertExpressionASTParser for more
-                                     select.getField(),
-                                     this.rawWhere,
-                                     window));
-
-        if (CollectionUtils.isNotEmpty(this.groupBy)) {
-            sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
-        }
-
-        if (includePredication) {
-            sb.append(' ');
-            sb.append(alertPredicate);
-            sb.append(' ');
-            sb.append(alertExpected);
-            if (expectedWindow != null) {
-                sb.append('[');
-                sb.append(expectedWindow);
-                sb.append(']');
-            }
-        }
-        return sb.toString();
-    }
-
-    static class WhereExpressionSerializer extends ExpressionSerializer {
-
-        public WhereExpressionSerializer() {
-            super(null);
-        }
-
-        @Override
-        public boolean visit(LogicalExpression expression) {
-            for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                }
-                expression.getOperands().get(i).accept(this);
-            }
-            return false;
-        }
-
-        // Use double quote to serialize the expression by default
-        @Override
-        public boolean visit(LiteralExpression expression) {
-            Object value = expression.getValue();
-            if (expression instanceof LiteralExpression.StringLiteral) {
-                sb.append('"');
-                sb.append(value);
-                sb.append('"');
-            } else {
-                sb.append(value);
-            }
-            return false;
-        }
-    }
-
-    @Override
-    public IDataType getDataType() {
-        return IDataType.BOOLEAN;
-    }
-
-    @Override
-    public String getType() {
-        // No need
-        return null;
-    }
-
-    @Override
-    public Object evaluate(IEvaluationContext context) {
-        throw new RuntimeException("Evaluate an alert expression is not supported.");
-    }
-
-    @Override
-    public void accept(IExpressionVisitor visitor) {
-        if (visitor instanceof IAlertExpressionVisitor) {
-            ((IAlertExpressionVisitor) visitor).visit(this);
-        }
-    }
-
-    @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
-        if (visitor instanceof IAlertExpressionVisitor2) {
-            return ((IAlertExpressionVisitor2<T>) visitor).visit(this);
-        }
-        return null;
-    }
-
-    public void validate(Map<String, ISchema> schemas) {
-        if (!StringUtils.hasText(this.getFrom())) {
-            throw new InvalidExpressionException("data-source expression is missed in expression [%s]", this.serializeToText());
-        }
-
-        ISchema schema = schemas.get(this.getFrom());
-        if (schema == null) {
-            throw new InvalidExpressionException("data-source expression [%s] does not exist for expression [%s]",
-                                                 this.getFrom(),
-                                                 this.serializeToText());
-        }
-
-        String metric = this.getSelect().getField();
-        IColumn column = schema.getColumnByName(metric);
-        if (column == null) {
-            throw new InvalidExpressionException("Metric [%s] in expression [%s] does not exist in data-source [%s]",
-                                                 metric,
-                                                 this.serializeToText(),
-                                                 this.getFrom());
-        }
-        if (!AggregatorEnum.valueOf(this.getSelect().getAggregator()).isColumnSupported(column)) {
-            throw new InvalidExpressionException("Aggregator [%s] is not supported8 on column [%s] which has a type of [%s]",
-                                                 this.getSelect().getAggregator(),
-                                                 metric,
-                                                 column.getDataType().name());
-        }
-
-        if (this.getWhereExpression() != null) {
-            this.getWhereExpression().accept(new IExpressionVisitor() {
-                @Override
-                public boolean visit(IdentifierExpression expression) {
-                    IColumn dimensionSpec = schema.getColumnByName(expression.getIdentifier());
-                    if (dimensionSpec == null) {
-                        throw new InvalidExpressionException("WHERE expression [%s] specified in expression [%s] does not exist",
-                                                             expression.getIdentifier(),
-                                                             serializeToText());
-                    }
-                    return false;
-                }
-            });
-        }
-
-        if (CollectionUtils.isNotEmpty(this.getGroupBy())) {
-            for (String groupBy : this.getGroupBy()) {
-                IColumn dimensionSpec = schema.getColumnByName(groupBy);
-                if (dimensionSpec == null) {
-                    throw new InvalidExpressionException("BY expression [%s] specified in expression does not exist",
-                                                         groupBy);
-                }
-            }
-        }
+        return metricExpression.serializeToText(includePredication);
     }
 }

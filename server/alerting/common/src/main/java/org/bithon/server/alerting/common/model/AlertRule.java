@@ -144,7 +144,7 @@ public class AlertRule {
 
         public String extract(IExpression astExpression) {
             astExpression.accept(((IAlertExpressionVisitor) expression -> {
-                IExpression whereExpression = expression.getWhereExpression();
+                IExpression whereExpression = expression.getMetricExpression().getLabelSelectorExpression();
                 if (whereExpression == null) {
                     return;
                 }

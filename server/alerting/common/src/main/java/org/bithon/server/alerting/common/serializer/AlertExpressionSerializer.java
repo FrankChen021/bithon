@@ -47,23 +47,23 @@ public class AlertExpressionSerializer extends JsonSerializer<AlertExpression> {
             gen.writeStringField("expressionText", expression.serializeToText());
 
             // Breakdown elements in the expression
-            gen.writeStringField("from", expression.getFrom());
-            gen.writeObjectField("select", expression.getSelect());
-            gen.writeStringField("where", expression.getWhere());
-            serializers.defaultSerializeField("window", expression.getWindow(), gen);
+            gen.writeStringField("from", expression.getMetricExpression().getFrom());
+            gen.writeObjectField("select", expression.getMetricExpression().getMetric());
+            gen.writeStringField("where", expression.getMetricExpression().getWhereText());
+            serializers.defaultSerializeField("window", expression.getMetricExpression().getWindow(), gen);
 
-            if (expression.getGroupBy() != null) {
+            if (expression.getMetricExpression().getGroupBy() != null) {
                 gen.writeArrayFieldStart("groupBy");
-                for (String group : expression.getGroupBy()) {
+                for (String group : expression.getMetricExpression().getGroupBy()) {
                     gen.writeString(group);
                 }
                 gen.writeEndArray();
             }
-            gen.writeStringField("alertPredicate", expression.getAlertPredicate());
-            gen.writeObjectField("alertExpected", expression.getAlertExpected());
+            gen.writeStringField("alertPredicate", expression.getMetricExpression().getMetricValuePredicate());
+            gen.writeObjectField("alertExpected", expression.getMetricExpression().getMetricValueExpected());
 
-            if (expression.getExpectedWindow() != null) {
-                serializers.defaultSerializeField("expectedWindow", expression.getWindow(), gen);
+            if (expression.getMetricExpression().getExpectedWindow() != null) {
+                serializers.defaultSerializeField("expectedWindow", expression.getMetricExpression().getWindow(), gen);
             }
         }
         gen.writeEndObject();

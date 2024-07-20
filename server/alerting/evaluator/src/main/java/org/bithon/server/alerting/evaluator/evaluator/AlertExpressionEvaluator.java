@@ -47,10 +47,10 @@ public class AlertExpressionEvaluator {
         TimeSpan start = end.before(expression.getWindow());
         IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
                                                                                            expression.getFrom(),
-                                                                                           expression.getSelect(),
+                                                                                           expression.getMetric(),
                                                                                            start,
                                                                                            context.getIntervalEnd(),
-                                                                                           expression.getWhere(),
+                                                                                           expression.getWhereText(),
                                                                                            expression.getGroupBy(),
                                                                                            context);
         if (output == null || !output.isMatches()) {

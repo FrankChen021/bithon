@@ -25,6 +25,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.MetricExpression;
 
 import java.util.List;
 
@@ -76,9 +77,11 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
-            AlertExpression expression = MetricExpressionASTBuilder.build(ctx.metricExpression());
-            expression.setId(String.valueOf(index++));
-            return expression;
+            MetricExpression expression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            AlertExpression alertExpression = new AlertExpression();
+            alertExpression.setMetricExpression(expression);
+            alertExpression.setId(String.valueOf(index++));
+            return alertExpression;
         }
 
         @Override

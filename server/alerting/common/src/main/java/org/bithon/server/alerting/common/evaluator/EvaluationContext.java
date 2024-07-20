@@ -58,7 +58,7 @@ public class EvaluationContext implements IEvaluationContext {
     private AlertExpression evaluatingExpression;
 
     public IMetricEvaluator getEvaluatingMetric() {
-        return evaluatingExpression.getMetricEvaluator();
+        return evaluatingExpression.getMetricExpression().getMetricEvaluator();
     }
 
     public EvaluationContext(TimeSpan intervalEnd,

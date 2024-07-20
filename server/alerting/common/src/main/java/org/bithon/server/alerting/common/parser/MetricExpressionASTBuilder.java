@@ -16,7 +16,12 @@
 
 package org.bithon.server.alerting.common.parser;
 
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -45,7 +50,7 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPre
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AggregatorEnum;
-import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.MetricExpression;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
@@ -71,20 +76,50 @@ public class MetricExpressionASTBuilder {
         }
     }
 
-    static <T> T checkNotNull(T value, String message) {
-        if (value == null) {
-            throw new InvalidExpressionException(message);
+    public static IExpression parse(String expression) {
+        MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
+        lexer.getErrorListeners().clear();
+        lexer.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer,
+                                    Object offendingSymbol,
+                                    int line,
+                                    int charPositionInLine,
+                                    String msg,
+                                    RecognitionException e) {
+                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+            }
+        });
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        MetricExpressionParser parser = new MetricExpressionParser(tokens);
+        parser.getErrorListeners().clear();
+        parser.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer,
+                                    Object offendingSymbol,
+                                    int line,
+                                    int charPositionInLine,
+                                    String msg,
+                                    RecognitionException e) {
+                throw new InvalidExpressionException(expression, charPositionInLine, msg);
+            }
+        });
+
+        MetricExpressionParser.MetricExpressionContext ctx = parser.metricExpression();
+        if (tokens.LT(1).getType() != MetricExpressionParser.EOF) {
+            throw new InvalidExpressionException(expression, tokens.LT(1).getStartIndex(), "Unexpected token");
         }
-        return value;
+
+        return build(ctx);
     }
 
-    public static AlertExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
+    public static MetricExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    private static class BuilderImpl extends MetricExpressionBaseVisitor<AlertExpression> {
+    private static class BuilderImpl extends MetricExpressionBaseVisitor<MetricExpression> {
         @Override
-        public AlertExpression visitMetricExpression(MetricExpressionParser.MetricExpressionContext ctx) {
+        public MetricExpression visitMetricExpression(MetricExpressionParser.MetricExpressionContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
@@ -230,16 +265,16 @@ public class MetricExpressionASTBuilder {
                     throw new RuntimeException("Unsupported alert predicate");
             }
 
-            AlertExpression expression = new AlertExpression();
+            MetricExpression expression = new MetricExpression();
             expression.setFrom(from);
-            expression.setWhereExpression(whereExpression);
+            expression.setLabelSelectorExpression(whereExpression);
 
             // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
-            expression.setSelect(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
+            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
             expression.setGroupBy(groupBy);
             expression.setWindow(duration);
-            expression.setAlertPredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
-            expression.setAlertExpected(expected == null ? null : expected.getValue());
+            expression.setMetricValuePredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
+            expression.setMetricValueExpected(expected instanceof LiteralExpression.NullLiteral ? null : expected.getValue());
             expression.setExpectedWindow(expectedWindow);
             expression.setMetricEvaluator(metricEvaluator);
             return expression;
@@ -271,7 +306,12 @@ public class MetricExpressionASTBuilder {
                 predicate = predicateContext.getChild(TerminalNode.class, 0);
             }
 
-            return switch (predicate.getSymbol().getType()) {
+            IExpression expression = createSelectorExpression(predicate.getSymbol().getType(), identifier, expected);
+            return isNotExpression ? new LogicalExpression.NOT(expression) : expression;
+        }
+
+        private IExpression createSelectorExpression(int predicateType, IdentifierExpression identifier, IExpression expected) {
+            return switch (predicateType) {
                 case MetricExpressionParser.LT -> {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '<' predicate must be type of literal.");
                     yield new ComparisonExpression.LT(identifier, expected);
@@ -296,11 +336,6 @@ public class MetricExpressionASTBuilder {
                     checkIfTrue(expected instanceof LiteralExpression, "The expected value of '=' predicate must be type of literal.");
                     yield new ComparisonExpression.EQ(identifier, expected);
                 }
-                case MetricExpressionParser.HAS -> {
-                    checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'has' predicate must be type of literal.");
-                    // TODO: change to HAS
-                    yield new ComparisonExpression.Contains(identifier, expected);
-                }
                 case MetricExpressionParser.CONTAINS -> {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'contains' predicate must be type of string literal.");
                     yield new ConditionalExpression.Contains(identifier, expected);
@@ -311,14 +346,14 @@ public class MetricExpressionASTBuilder {
                 }
                 case MetricExpressionParser.ENDSWITH -> {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'endsWith' predicate must be type of string literal.");
-                    yield new ConditionalExpression.StartsWith(identifier, expected);
+                    yield new ConditionalExpression.EndsWith(identifier, expected);
                 }
                 // For compatibility
                 case MetricExpressionParser.LIKE -> {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'LIKE' predicate must be type of string literal.");
                     yield new ConditionalExpression.Like(identifier, expected);
                 }
-                default -> throw new RuntimeException("Unsupported predicate type: " + predicate.getSymbol().getText());
+                default -> throw new RuntimeException("Unsupported predicate type: " + predicateType);
             };
         }
 

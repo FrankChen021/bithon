@@ -87,9 +87,9 @@ public class DingNotificationChannel implements INotificationChannel {
 
             OutputMessage output = result.getOutputs();
             text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
-                                           expression.getSelect().getAggregator(),
+                                           expression.getMetric().getAggregator(),
                                            expression.getFrom(),
-                                           expression.getSelect().getName(),
+                                           expression.getMetric().getName(),
                                            output.getCurrent(),
                                            output.getDelta()));
 

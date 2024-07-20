@@ -125,7 +125,7 @@ public class AlertImageRenderService {
         }
 
         ISchema schema = this.dataSourceApi.getSchemaByName(expression.getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getSelect().getName());
+        IColumn metricSpec = schema.getColumnByName(expression.getMetric().getName());
 
         GeneralQueryRequest request = GeneralQueryRequest.builder()
                                                          .interval(IntervalRequest.builder()
@@ -133,8 +133,8 @@ public class AlertImageRenderService {
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .build())
                                                          .dataSource(expression.getFrom())
-                                                         .filterExpression(expression.getWhere())
-                                                         .fields(Collections.singletonList(expression.getSelect()))
+                                                         .filterExpression(expression.getWhereText())
+                                                         .fields(Collections.singletonList(expression.getMetric()))
                                                          .build();
         GeneralQueryResponse response = this.dataSourceApi.timeseriesV3(request);
 
