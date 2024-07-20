@@ -14,16 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.builtin;
+package org.bithon.component.commons.expression.function;
 
-import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.function.IFunction;
-import org.bithon.component.commons.expression.function.Parameter;
-import org.bithon.server.storage.common.expression.InvalidExpressionException;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +30,6 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2022/11/2 17:31
  */
-@Getter
 public abstract class AbstractFunction implements IFunction {
     private final String name;
     private final List<Parameter> parameters;
@@ -50,6 +47,21 @@ public abstract class AbstractFunction implements IFunction {
         this.name = name;
         this.parameters = parameters;
         this.returnType = returnType;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public List<Parameter> getParameters() {
+        return this.parameters;
+    }
+
+    @Override
+    public IDataType getReturnType() {
+        return this.returnType;
     }
 
     @Override
@@ -77,6 +89,30 @@ public abstract class AbstractFunction implements IFunction {
                                                      name,
                                                      declaredType);
             }
+        }
+    }
+
+    protected static class Validator {
+        public static void validateParameterSize(int expectedSize, int actualSize) {
+            if (expectedSize != actualSize) {
+                throw new InvalidExpressionException("The function requires [%d] parameters, but got [%d]",
+                                                     expectedSize,
+                                                     actualSize);
+            }
+        }
+
+        public static void validateType(IDataType actual, IDataType... expected) {
+            for (IDataType ex : expected) {
+                if (actual.equals(ex)) {
+                    return;
+                }
+            }
+
+            throw new InvalidExpressionException("The given parameter is type of [%s], but required one of [%s]",
+                                                 actual,
+                                                 Arrays.stream(expected)
+                                                       .map(Object::toString)
+                                                       .collect(Collectors.joining(",")));
         }
     }
 }

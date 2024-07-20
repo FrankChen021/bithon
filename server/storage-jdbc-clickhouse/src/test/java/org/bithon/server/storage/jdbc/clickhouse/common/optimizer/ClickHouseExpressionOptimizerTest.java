@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.clickhouse.common.optimizer;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
 import org.junit.Assert;
 import org.junit.Test;
 

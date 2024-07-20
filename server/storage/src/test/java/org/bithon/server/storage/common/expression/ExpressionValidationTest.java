@@ -16,12 +16,12 @@
 
 package org.bithon.server.storage.common.expression;
 
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.junit.Assert;

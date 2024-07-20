@@ -36,4 +36,11 @@ public interface IFunction {
     Object evaluate(List<Object> parameters);
 
     IDataType getReturnType();
+
+    /**
+     * If the function is an aggregate function
+     */
+    default boolean isAggregator() {
+        return false;
+    }
 }

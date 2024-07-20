@@ -126,7 +126,6 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
         }
         return new AbsoluteComparisonEvaluationOutput(start,
                                                       end,
-                                                      context.getEvaluatingMetric(),
                                                       valueType.format(nowValue),
                                                       expected.toString(),
                                                       valueType.format(valueType.diff(nowValue, expectedValue)),

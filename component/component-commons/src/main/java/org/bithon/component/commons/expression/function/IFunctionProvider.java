@@ -14,20 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.parser;
-
-import org.bithon.component.commons.utils.StringUtils;
+package org.bithon.component.commons.expression.function;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/8 6:18 下午
+ * @date 2023/8/17 20:02
  */
-public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(String expression, int charPos, String parseExceptionMessage) {
-        super(StringUtils.format("Invalid expression [%s]. Pos %d, %s", expression, charPos, parseExceptionMessage));
-    }
-
-    public InvalidExpressionException(String format, Object... args) {
-        super(StringUtils.format(format, args));
-    }
+public interface IFunctionProvider {
+    IFunction getFunction(String name);
 }

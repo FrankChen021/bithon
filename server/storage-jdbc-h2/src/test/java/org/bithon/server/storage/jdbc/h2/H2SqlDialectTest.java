@@ -20,7 +20,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.server.storage.datasource.builtin.Functions;
+import org.bithon.component.commons.expression.function.Functions;
 import org.junit.Assert;
 import org.junit.Test;
 

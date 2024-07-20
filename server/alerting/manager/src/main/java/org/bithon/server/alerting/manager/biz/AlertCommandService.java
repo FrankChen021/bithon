@@ -18,12 +18,12 @@ package org.bithon.server.alerting.manager.biz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
-import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
@@ -93,7 +93,7 @@ public class AlertCommandService {
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
-            alertExpression.validate(schemas);
+            alertExpression.getMetricExpression().validate(schemas);
         }
 
         for (String channel : alertRule.getNotifications()) {

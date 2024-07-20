@@ -44,14 +44,14 @@ public class AlertExpressionEvaluator {
         context.setEvaluatingExpression(this.expression);
 
         TimeSpan end = context.getIntervalEnd();
-        TimeSpan start = end.before(expression.getWindow());
+        TimeSpan start = end.before(expression.getMetricExpression().getWindow());
         IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
-                                                                                           expression.getFrom(),
-                                                                                           expression.getSelect(),
+                                                                                           expression.getMetricExpression().getFrom(),
+                                                                                           expression.getMetricExpression().getMetric(),
                                                                                            start,
                                                                                            context.getIntervalEnd(),
-                                                                                           expression.getWhere(),
-                                                                                           expression.getGroupBy(),
+                                                                                           expression.getMetricExpression().getWhereText(),
+                                                                                           expression.getMetricExpression().getGroupBy(),
                                                                                            context);
         if (output == null || !output.isMatches()) {
             context.setEvaluationResult(expression.getId(), false, null);

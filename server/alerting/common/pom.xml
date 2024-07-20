@@ -19,6 +19,10 @@
 
         <dependency>
             <groupId>org.bithon.server</groupId>
+            <artifactId>server-metric-expression</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bithon.server</groupId>
             <artifactId>server-web-service</artifactId>
         </dependency>
         <dependency>
@@ -36,11 +40,6 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-        </dependency>
-
         <!-- Caffeine Cache -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -55,23 +54,5 @@
     </dependencies>
     <build>
         <finalName>${project.name}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <listener>true</listener>
-                    <visitor>true</visitor>
-                    <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>

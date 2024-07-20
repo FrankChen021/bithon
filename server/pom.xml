@@ -54,6 +54,7 @@
         <module>storage-jdbc-mysql</module>
         <module>opentelemetry</module>
         <module>collector</module>
+        <module>metric-expression</module>
         <module>web-service</module>
         <module>web-app</module>
 
@@ -191,6 +192,11 @@
             <dependency>
                 <groupId>org.bithon.server</groupId>
                 <artifactId>server-pipeline</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-metric-expression</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

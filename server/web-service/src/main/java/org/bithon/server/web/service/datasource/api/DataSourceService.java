@@ -21,8 +21,10 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
@@ -63,7 +65,15 @@ public class DataSourceService {
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;
                                         }
-                                        IColumn column = query.getSchema().getColumnByName(resultColumn.getResultColumnName());
+
+                                        String fieldName;
+                                        if (resultColumn.getColumnExpression() instanceof SimpleAggregateExpression) {
+                                            Column field = (Column) ((SimpleAggregateExpression) resultColumn.getColumnExpression()).getArguments().get(0);
+                                            fieldName = field.getName();
+                                        } else {
+                                            fieldName = resultColumn.getResultColumnName();
+                                        }
+                                        IColumn column = query.getSchema().getColumnByName(fieldName);
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
                                     .map((ResultColumn::getResultColumnName))

@@ -18,8 +18,9 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
+import org.bithon.server.storage.datasource.ISchema;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,13 +30,20 @@ public class Expression implements IASTNode {
 
     @Getter
     private final String expression;
-
-    @Getter
-    private final IExpression parsedExpression;
+    private IExpression parsedExpression;
 
     public Expression(String expression) {
         this.expression = expression;
-        this.parsedExpression = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(expression);
+    }
+
+    public IExpression getParsedExpression(ISchema schema) {
+        if (this.parsedExpression == null) {
+            this.parsedExpression = ExpressionASTBuilder.builder()
+                                                        .functions(Functions.getInstance())
+                                                        .schema(schema)
+                                                        .build(expression);
+        }
+        return parsedExpression;
     }
 
     @Override

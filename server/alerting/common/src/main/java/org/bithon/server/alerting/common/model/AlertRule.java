@@ -30,11 +30,11 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
-import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 
 import java.util.LinkedHashMap;
@@ -144,7 +144,7 @@ public class AlertRule {
 
         public String extract(IExpression astExpression) {
             astExpression.accept(((IAlertExpressionVisitor) expression -> {
-                IExpression whereExpression = expression.getWhereExpression();
+                IExpression whereExpression = expression.getMetricExpression().getLabelSelectorExpression();
                 if (whereExpression == null) {
                     return;
                 }

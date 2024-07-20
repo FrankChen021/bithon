@@ -14,35 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression;
+package org.bithon.component.commons.expression.expt;
 
-import org.antlr.v4.runtime.Token;
 import org.bithon.component.commons.utils.StringUtils;
-
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/11
+ * @date 2020/12/8 6:18 下午
  */
 public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(String expression,
-                                      Object offendingSymbol,
-                                      int line,
-                                      int charPositionInLine,
-                                      String msg) {
-        super(format(expression, (Token) offendingSymbol, line, charPositionInLine, msg));
-    }
 
     public InvalidExpressionException(String format, Object... args) {
-        super(String.format(Locale.ENGLISH, format, args));
+        super(StringUtils.format(format, args));
     }
 
-    public static String format(String expression,
-                                Token offendingToken,
-                                int line,
-                                int charPositionInLine,
-                                String error) {
+    public static InvalidExpressionException format(String expression,
+                                                    int tokenStart,
+                                                    int tokenEnd,
+                                                    int line,
+                                                    int charPositionInLine,
+                                                    String error) {
         StringBuilder messages = new StringBuilder(128);
         messages.append(StringUtils.format("Invalid expression at line %d:%d %s\n", line, charPositionInLine, error));
 
@@ -55,16 +46,11 @@ public class InvalidExpressionException extends RuntimeException {
             messages.append(' ');
         }
 
-        int indicatorLength = 1;
-        if (offendingToken != null) {
-            int start = offendingToken.getStartIndex();
-            int stop = offendingToken.getStopIndex();
-            indicatorLength = Math.max(1, stop - start + 1);
-        }
+        int indicatorLength = Math.max(1, tokenEnd - tokenStart + 1);
         for (int i = 0; i < indicatorLength; i++) {
             messages.append('^');
         }
 
-        return messages.toString();
+        return new InvalidExpressionException(messages.toString());
     }
 }

@@ -16,14 +16,8 @@
 
 package org.bithon.server.storage.common.expression;
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
@@ -40,14 +34,17 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.TernaryExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.IFunctionProvider;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.antlr4.SyntaxErrorListener;
+import org.bithon.server.commons.antlr4.TokenUtils;
 import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,31 +87,11 @@ public class ExpressionASTBuilder {
     public IExpression build(String expression) {
         ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
-        lexer.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
-            }
-        });
+        lexer.addErrorListener(SyntaxErrorListener.of(expression));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         ExpressionParser parser = new ExpressionParser(tokens);
         parser.getErrorListeners().clear();
-        parser.addErrorListener(new BaseErrorListener() {
-            @Override
-            public void syntaxError(Recognizer<?, ?> recognizer,
-                                    Object offendingSymbol,
-                                    int line,
-                                    int charPositionInLine,
-                                    String msg,
-                                    RecognitionException e) {
-                throw new InvalidExpressionException(expression, offendingSymbol, line, charPositionInLine, msg);
-            }
-        });
+        parser.addErrorListener(SyntaxErrorListener.of(expression));
 
         IExpression ast = parser.parse()
                                 .expression()
@@ -213,10 +190,14 @@ public class ExpressionASTBuilder {
             TerminalNode op = (TerminalNode) ctx.getChild(1);
 
             return switch (op.getSymbol().getType()) {
-                case ExpressionLexer.ADD -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.SUB -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.MUL -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.DIV -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.ADD ->
+                    new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.SUB ->
+                    new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.MUL ->
+                    new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.DIV ->
+                    new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
                 default -> throw new InvalidExpressionException("Unsupported arithmetic operator");
             };
         }
@@ -367,7 +348,7 @@ public class ExpressionASTBuilder {
                                                                         expr.getDataType().name()));
             }
 
-            return new MapAccessExpression(expr, getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
+            return new MapAccessExpression(expr, TokenUtils.getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
         }
 
         @Override
@@ -379,7 +360,7 @@ public class ExpressionASTBuilder {
                 case ExpressionLexer.DECIMAL_LITERAL ->
                     LiteralExpression.create(Double.parseDouble(literalExpressionNode.getText()));
                 case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.create(getUnQuotedString(literalExpressionNode.getSymbol()));
+                    LiteralExpression.create(TokenUtils.getUnQuotedString(literalExpressionNode.getSymbol()));
                 case ExpressionLexer.BOOL_LITERAL ->
                     LiteralExpression.create("true".equals(literalExpressionNode.getText().toLowerCase(Locale.ENGLISH)));
                 default -> throw new InvalidExpressionException("unexpected right expression type");
@@ -420,7 +401,6 @@ public class ExpressionASTBuilder {
                     // Only allow defined functions for safe
                     throw new InvalidExpressionException("Function [%s] is not supported.", functionName);
                 }
-                function.validateParameter(parameterExpressionList);
             }
 
             return new FunctionExpression(function, parameterExpressionList);
@@ -443,22 +423,6 @@ public class ExpressionASTBuilder {
         public IExpression visitIsNullExpression(ExpressionParser.IsNullExpressionContext ctx) {
             IExpression leftExpression = ctx.expression().accept(this);
             return new ConditionalExpression.IsNull(leftExpression);
-        }
-
-        static String getUnQuotedString(Token symbol) {
-            CharStream input = symbol.getInputStream();
-            if (input == null) {
-                return null;
-            } else {
-                int n = input.size();
-
-                // +1 to skip the leading quoted character
-                int s = symbol.getStartIndex() + 1;
-
-                // -1 to skip the ending quoted character
-                int e = symbol.getStopIndex() - 1;
-                return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
-            }
         }
     }
 }

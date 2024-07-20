@@ -105,6 +105,11 @@ public abstract class LiteralExpression implements IExpression {
         return value;
     }
 
+    @Override
+    public String toString() {
+        return value.toString();
+    }
+
     public static class StringLiteral extends LiteralExpression {
         public StringLiteral(String value) {
             super(value);
@@ -279,6 +284,11 @@ public abstract class LiteralExpression implements IExpression {
         public IDataType getDataType() {
             // May not be right
             return IDataType.STRING;
+        }
+
+        @Override
+        public String toString() {
+            return "null";
         }
     }
 }

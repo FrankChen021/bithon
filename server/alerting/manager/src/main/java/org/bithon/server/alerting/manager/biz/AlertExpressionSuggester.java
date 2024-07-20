@@ -21,13 +21,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Token;
-import org.bithon.server.alerting.common.parser.AlertExpressionLexer;
-import org.bithon.server.alerting.common.parser.AlertExpressionParser;
 import org.bithon.server.commons.autocomplete.AutoSuggesterBuilder;
 import org.bithon.server.commons.autocomplete.CasePreference;
 import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.metric.expression.MetricExpressionLexer;
+import org.bithon.server.metric.expression.MetricExpressionParser;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
@@ -60,33 +60,32 @@ public class AlertExpressionSuggester {
     private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
     private final Set<Integer> predicateOperators = ImmutableSet.of(
-        AlertExpressionParser.LT,
-        AlertExpressionParser.LTE,
-        AlertExpressionParser.GT,
-        AlertExpressionParser.GTE,
-        AlertExpressionParser.NE,
-        AlertExpressionParser.EQ,
-        AlertExpressionParser.IS,
-        AlertExpressionParser.NOT,
-        AlertExpressionParser.LIKE,
-        AlertExpressionParser.HAS,
-        AlertExpressionParser.CONTAINS,
-        AlertExpressionParser.STARTSWITH,
-        AlertExpressionParser.ENDSWITH);
+        MetricExpressionParser.LT,
+        MetricExpressionParser.LTE,
+        MetricExpressionParser.GT,
+        MetricExpressionParser.GTE,
+        MetricExpressionParser.NE,
+        MetricExpressionParser.EQ,
+        MetricExpressionParser.IS,
+        MetricExpressionParser.NOT,
+        MetricExpressionParser.LIKE,
+        MetricExpressionParser.CONTAINS,
+        MetricExpressionParser.STARTSWITH,
+        MetricExpressionParser.ENDSWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
 
         DefaultLexerAndParserFactory factory = new DefaultLexerAndParserFactory(
-            AlertExpressionLexer.class,
-            AlertExpressionParser.class
+            MetricExpressionLexer.class,
+            MetricExpressionParser.class
         );
         this.suggesterBuilder = AutoSuggesterBuilder.builder()
                                                     .factory(factory)
                                                     .casePreference(CasePreference.LOWER);
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
-            if (expectedToken.tokenType == AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType == MetricExpressionParser.IDENTIFIER) {
                 suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.of("Aggregator")));
                 suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.of("Aggregator")));
                 suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.of("Aggregator")));
@@ -97,8 +96,8 @@ public class AlertExpressionSuggester {
         });
 
         // Suggest column names for GROUP BY expression
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_groupByExpression, (inputs, expectedToken, suggestions) -> {
-            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_groupByExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != MetricExpressionParser.IDENTIFIER) {
                 // Auto suggestion for keyword
                 return true;
             }
@@ -106,7 +105,7 @@ public class AlertExpressionSuggester {
             int index = inputs.size() - 1;
 
             // Find the DOT separator token which is after the data source name
-            while (index > 0 && inputs.get(index).getType() != AlertExpressionParser.DOT) {
+            while (index > 0 && inputs.get(index).getType() != MetricExpressionParser.DOT) {
                 --index;
             }
 
@@ -128,15 +127,15 @@ public class AlertExpressionSuggester {
         });
 
         // Suggest data source names
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
             dataSourceApi.getSchemaNames()
                          .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("DataSource"))));
             return false;
         });
 
         // Suggest metric names for the metric name expression
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_metricNameExpression, (inputs, expectedToken, suggestions) -> {
-            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_metricNameExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != MetricExpressionParser.IDENTIFIER) {
                 return false;
             }
 
@@ -154,20 +153,20 @@ public class AlertExpressionSuggester {
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_filterExpression, (inputs, expectedToken, suggestions) -> {
-            if (expectedToken.tokenType != AlertExpressionParser.IDENTIFIER) {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_labelSelectorExpression, (inputs, expectedToken, suggestions) -> {
+            if (expectedToken.tokenType != MetricExpressionParser.IDENTIFIER) {
                 // So that operators can be suggested automatically
-                return expectedToken.tokenType != AlertExpressionParser.STRING_LITERAL
-                       && expectedToken.tokenType != AlertExpressionParser.DECIMAL_LITERAL
-                       && expectedToken.tokenType != AlertExpressionParser.DURATION_LITERAL
-                       && expectedToken.tokenType != AlertExpressionParser.INTEGER_LITERAL
-                       && expectedToken.tokenType != AlertExpressionParser.PERCENTAGE_LITERAL
-                       && expectedToken.tokenType != AlertExpressionParser.SIZE_LITERAL;
+                return expectedToken.tokenType != MetricExpressionParser.STRING_LITERAL
+                       && expectedToken.tokenType != MetricExpressionParser.DECIMAL_LITERAL
+                       && expectedToken.tokenType != MetricExpressionParser.DURATION_LITERAL
+                       && expectedToken.tokenType != MetricExpressionParser.INTEGER_LITERAL
+                       && expectedToken.tokenType != MetricExpressionParser.PERCENTAGE_LITERAL
+                       && expectedToken.tokenType != MetricExpressionParser.SIZE_LITERAL;
             }
 
             // Find the filter starter
             int i = inputs.size() - 1;
-            while (i > 0 && inputs.get(i).getType() != AlertExpressionParser.LEFT_CURLY_BRACE) {
+            while (i > 0 && inputs.get(i).getType() != MetricExpressionParser.LEFT_CURLY_BRACE) {
                 --i;
             }
 
@@ -187,28 +186,28 @@ public class AlertExpressionSuggester {
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_literalExpression, (inputs, expectedToken, suggestions) -> {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_literalExpression, (inputs, expectedToken, suggestions) -> {
             // No suggestion for literal expressions except the NULL
-            //if (expectedToken.expectedTokenType == AlertExpressionParser.NULL_LITERAL
+            //if (expectedToken.expectedTokenType == MetricExpressionParser.NULL_LITERAL
             //    && !inputs.isEmpty()
             //    && inputs.get(inputs.size() - 1).getText().equalsIgnoreCase("IS")
             //) {
             //    suggestions.add(Suggestion.of(expectedToken.expectedTokenType, "NULL"));
             //}
-            if (expectedToken.tokenType == AlertExpressionParser.STRING_LITERAL) {
+            if (expectedToken.tokenType == MetricExpressionParser.STRING_LITERAL) {
                 int index = inputs.size() - 1;
                 while (index > 0 && this.predicateOperators.contains(inputs.get(index).getType())) {
                     index--;
                 }
 
-                if (index <= 0 || inputs.get(index).getType() != AlertExpressionParser.IDENTIFIER) {
+                if (index <= 0 || inputs.get(index).getType() != MetricExpressionParser.IDENTIFIER) {
                     return false;
                 }
                 String identifier = inputs.get(index).getText();
 
                 // Make sure the literal is in the filter expression by finding the filter expression start
-                while (index > 0 && inputs.get(index).getType() != AlertExpressionParser.LEFT_CURLY_BRACE) {
-                    if (inputs.get(index).getType() == AlertExpressionParser.RIGHT_CURLY_BRACE) {
+                while (index > 0 && inputs.get(index).getType() != MetricExpressionParser.LEFT_CURLY_BRACE) {
+                    if (inputs.get(index).getType() == MetricExpressionParser.RIGHT_CURLY_BRACE) {
                         return false;
                     }
 
@@ -246,7 +245,7 @@ public class AlertExpressionSuggester {
             return false;
         });
 
-        this.suggesterBuilder.setSuggester(AlertExpressionParser.RULE_durationExpression, (inputs, expectedToken, suggestions) -> {
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_durationExpression, (inputs, expectedToken, suggestions) -> {
             // No suggestion for duration expression
             return false;
         });

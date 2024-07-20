@@ -19,11 +19,11 @@ package org.bithon.server.storage.common.expression.optimizer;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.IFunctionProvider;
 import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.builtin.Functions;
-import org.bithon.server.storage.datasource.builtin.IFunctionProvider;
 import org.junit.Assert;
 import org.junit.Test;
 

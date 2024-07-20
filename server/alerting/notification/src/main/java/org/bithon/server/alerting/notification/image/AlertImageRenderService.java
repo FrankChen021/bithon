@@ -38,8 +38,11 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
+import org.springframework.beans.BeansException;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -67,21 +70,19 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Conditional(NotificationModuleEnabler.class)
-public class AlertImageRenderService {
+public class AlertImageRenderService implements ApplicationContextAware {
 
     private final ThreadPoolExecutor executor;
     private final RenderingConfig renderingConfig;
-    private final IDataSourceApi dataSourceApi;
     private final ObjectMapper objectMapper;
     private final IEChartsConverterApi eChartsConverterApi;
+    private ApplicationContext applicationContext;
 
     public AlertImageRenderService(RenderingConfig renderingConfig,
-                                   IDataSourceApi dataSourceApi,
                                    IEChartsConverterApi converterApi,
                                    ObjectMapper objectMapper) {
         this.renderingConfig = renderingConfig;
         this.eChartsConverterApi = converterApi;
-        this.dataSourceApi = dataSourceApi;
         this.objectMapper = objectMapper;
         this.executor = new ThreadPoolExecutor(10,
                                                50,
@@ -124,19 +125,22 @@ public class AlertImageRenderService {
             return null;
         }
 
-        ISchema schema = this.dataSourceApi.getSchemaByName(expression.getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getSelect().getName());
+        // DO NOT inject the DataSourceApi in ctor
+        // See: https://github.com/FrankChen021/bithon/issues/838
+        IDataSourceApi dataSourceApi = this.applicationContext.getBean(IDataSourceApi.class);
+        ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
+        IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
 
         GeneralQueryRequest request = GeneralQueryRequest.builder()
                                                          .interval(IntervalRequest.builder()
                                                                                   .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .build())
-                                                         .dataSource(expression.getFrom())
-                                                         .filterExpression(expression.getWhere())
-                                                         .fields(Collections.singletonList(expression.getSelect()))
+                                                         .dataSource(expression.getMetricExpression().getFrom())
+                                                         .filterExpression(expression.getMetricExpression().getWhereText())
+                                                         .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
                                                          .build();
-        GeneralQueryResponse response = this.dataSourceApi.timeseriesV3(request);
+        GeneralQueryResponse response = dataSourceApi.timeseriesV3(request);
 
         TimeSeriesQueryResult data = (TimeSeriesQueryResult) response.getData();
         Number threshold = metricSpec.getDataType().scaleTo((Number) ((AbstractAbsoluteThresholdPredicate) expression.getMetricEvaluator()).getExpected(), 2);
@@ -180,6 +184,11 @@ public class AlertImageRenderService {
 
     private String getTimestampLabels(TimeSeriesQueryResult data, String format) {
         return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(data.getStartTimestamp()));
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 
     @Configuration
