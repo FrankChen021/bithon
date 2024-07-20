@@ -28,7 +28,6 @@ import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.MetricExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
@@ -108,7 +107,7 @@ public class AlertImageRenderService {
                                              TimeSpan end) {
         return this.executor.submit(() -> {
             try {
-                return renderAndSave(expression.getMetricExpression(), windowLength, start, end);
+                return renderAndSave(expression, windowLength, start, end);
             } catch (Exception e) {
                 log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alert, expression.getId()), e);
                 return null;
@@ -116,7 +115,7 @@ public class AlertImageRenderService {
         });
     }
 
-    public String renderAndSave(MetricExpression expression,
+    public String renderAndSave(AlertExpression expression,
                                 int windowLength,
                                 TimeSpan start,
                                 TimeSpan end) throws IOException {
@@ -125,17 +124,17 @@ public class AlertImageRenderService {
             return null;
         }
 
-        ISchema schema = this.dataSourceApi.getSchemaByName(expression.getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getMetric().getName());
+        ISchema schema = this.dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
+        IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
 
         GeneralQueryRequest request = GeneralQueryRequest.builder()
                                                          .interval(IntervalRequest.builder()
                                                                                   .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .build())
-                                                         .dataSource(expression.getFrom())
-                                                         .filterExpression(expression.getWhereText())
-                                                         .fields(Collections.singletonList(expression.getMetric()))
+                                                         .dataSource(expression.getMetricExpression().getFrom())
+                                                         .filterExpression(expression.getMetricExpression().getWhereText())
+                                                         .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
                                                          .build();
         GeneralQueryResponse response = this.dataSourceApi.timeseriesV3(request);
 

@@ -29,7 +29,6 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.parser.InvalidExpressionException;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -118,12 +117,16 @@ public class MetricExpression implements IExpression {
     private String from;
     private QueryField metric;
     private String whereText;
-    private HumanReadableDuration window = HumanReadableDuration.DURATION_1_MINUTE;
+    private HumanReadableDuration window;
 
     @Nullable
     private List<String> groupBy;
-    private Predicate metricValuePredicate;
-    private LiteralExpression metricValueExpected;
+
+    /**
+     * Post filter
+     */
+    private Predicate predicate;
+    private LiteralExpression expected;
 
     @Nullable
     private HumanReadableDuration expectedWindow = null;
@@ -133,7 +136,6 @@ public class MetricExpression implements IExpression {
      */
     private IExpression labelSelectorExpression;
     private String labelSelectorText;
-    private IMetricEvaluator metricEvaluator;
 
     public void setLabelSelectorExpression(IExpression labelSelectorExpression) {
         this.labelSelectorExpression = labelSelectorExpression;
@@ -158,14 +160,19 @@ public class MetricExpression implements IExpression {
     public String serializeToText(boolean includePredication) {
         StringBuilder sb = new StringBuilder();
         sb.append(metric.getAggregator());
-        sb.append(StringUtils.format("(%s.%s%s)[%s]",
+        sb.append(StringUtils.format("(%s.%s%s)",
                                      from,
                                      // Use field for serialization because it holds the raw input.
                                      // In some cases, like the 'count' aggregator, the name property has different values from the field property
                                      // See AlertExpressionASTParser for more
                                      metric.getField(),
-                                     this.labelSelectorText,
-                                     window));
+                                     this.labelSelectorText));
+
+        if (window != null) {
+            sb.append('[');
+            sb.append(window);
+            sb.append(']');
+        }
 
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
@@ -173,9 +180,9 @@ public class MetricExpression implements IExpression {
 
         if (includePredication) {
             sb.append(' ');
-            sb.append(metricValuePredicate);
+            sb.append(predicate);
             sb.append(' ');
-            sb.append(metricValueExpected);
+            sb.append(expected);
             if (expectedWindow != null) {
                 sb.append('[');
                 sb.append(expectedWindow);

@@ -93,6 +93,15 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
             MetricExpression metricExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            if (metricExpression.getPredicate() == null) {
+                // the general metric expression allows null predicate, but for alerting, it's a compulsory field
+                throw new InvalidExpressionException("Missing predicate expression");
+            }
+            if (metricExpression.getWindow() == null) {
+                // the alert expression now requires a 1-minute window
+                metricExpression.setWindow(HumanReadableDuration.DURATION_1_MINUTE);
+            }
+
             AlertExpression alertExpression = new AlertExpression();
             alertExpression.setMetricExpression(metricExpression);
             alertExpression.setId(String.valueOf(index++));
@@ -120,11 +129,11 @@ public class AlertExpressionASTParser {
     }
 
     private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
-        LiteralExpression expected = metricExpression.getMetricValueExpected();
+        LiteralExpression expected = metricExpression.getExpected();
         HumanReadableDuration expectedWindow = metricExpression.getExpectedWindow();
 
         IMetricEvaluator metricEvaluator;
-        switch (metricExpression.getMetricValuePredicate()) {
+        switch (metricExpression.getPredicate()) {
             case LT:
                 if (expectedWindow == null) {
                     metricEvaluator = new LessThanPredicate(expected.getValue());

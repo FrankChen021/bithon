@@ -120,7 +120,7 @@ public class MetricExpressionASTBuilder {
                 throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
             }
 
-            HumanReadableDuration duration = HumanReadableDuration.DURATION_1_MINUTE;
+            HumanReadableDuration duration = null;
             MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
             if (windowExpressionCtx != null) {
                 duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
@@ -156,29 +156,6 @@ public class MetricExpressionASTBuilder {
                                            .collect(Collectors.toList());
             }
 
-            //
-            // Metric Predicate
-            //
-            MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-            LiteralExpression expected = (LiteralExpression) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
-
-            HumanReadableDuration expectedWindow = null;
-            MetricExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
-            if (expectedWindowCtx != null) {
-                expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
-                if (!expectedWindow.isNegative()) {
-                    throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
-                }
-
-                if (expectedWindow.isZero()) {
-                    throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
-                }
-            }
-
-            MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
-            TerminalNode predicateTerminal = predicateExpression.getChild(TerminalNode.class, 0);
-            MetricExpression.Predicate predicate = getPredicate(predicateTerminal.getSymbol().getType(), expected, expectedWindow);
-
             MetricExpression expression = new MetricExpression();
             expression.setFrom(from);
             expression.setLabelSelectorExpression(whereExpression);
@@ -187,9 +164,37 @@ public class MetricExpressionASTBuilder {
             expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
             expression.setGroupBy(groupBy);
             expression.setWindow(duration);
-            expression.setMetricValuePredicate(predicate);
-            expression.setMetricValueExpected(expected);
-            expression.setExpectedWindow(expectedWindow);
+
+            //
+            // Metric Predicate
+            //
+            MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
+            if (predicateExpression != null) {
+                MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
+                LiteralExpression expected = (LiteralExpression) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+
+                HumanReadableDuration expectedWindow = null;
+                MetricExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
+                if (expectedWindowCtx != null) {
+                    expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
+                    if (!expectedWindow.isNegative()) {
+                        throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
+                    }
+
+                    if (expectedWindow.isZero()) {
+                        throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
+                    }
+                }
+
+                MetricExpression.Predicate predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
+                                                                    expected,
+                                                                    expectedWindow);
+
+                expression.setPredicate(predicate);
+                expression.setExpected(expected);
+                expression.setExpectedWindow(expectedWindow);
+            }
+
             return expression;
         }
 
