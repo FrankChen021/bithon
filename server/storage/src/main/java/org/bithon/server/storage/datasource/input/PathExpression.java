@@ -16,12 +16,10 @@
 
 package org.bithon.server.storage.datasource.input;
 
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
+import org.bithon.server.commons.antlr4.TokenUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,24 +91,8 @@ public class PathExpression {
             @Override
             public Void visitPropertyAccessExpression(PathExpressionParser.PropertyAccessExpressionContext ctx) {
                 ctx.expression().accept(this);
-                paths.add(getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
+                paths.add(TokenUtils.getUnQuotedString(ctx.STRING_LITERAL().getSymbol()));
                 return null;
-            }
-
-            static String getUnQuotedString(Token symbol) {
-                CharStream input = symbol.getInputStream();
-                if (input == null) {
-                    return null;
-                } else {
-                    int n = input.size();
-
-                    // +1 to skip the leading quoted character
-                    int s = symbol.getStartIndex() + 1;
-
-                    // -1 to skip the ending quoted character
-                    int e = symbol.getStopIndex() - 1;
-                    return s < n && e < n ? input.getText(Interval.of(s, e)) : "<EOF>";
-                }
             }
         }
     }
