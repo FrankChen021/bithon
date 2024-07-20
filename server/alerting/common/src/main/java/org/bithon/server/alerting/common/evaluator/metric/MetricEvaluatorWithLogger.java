@@ -74,7 +74,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                  e,
                                  "Exception during evaluation: %s",
                                  context.getEvaluatingExpression().getId(),
-                                 context.getEvaluatingMetric().toString(),
+                                 delegate.toString(),
                                  e.getMessage());
             return null;
         }

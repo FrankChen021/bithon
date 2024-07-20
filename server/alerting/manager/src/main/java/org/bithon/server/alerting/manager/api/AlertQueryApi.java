@@ -127,7 +127,7 @@ public class AlertQueryApi {
 
             List<AlertExpression> alertExpressions = new ArrayList<>();
             alertExpression.accept((IAlertExpressionVisitor) expression -> {
-                expression.validate(schemas);
+                expression.getMetricExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
             return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));

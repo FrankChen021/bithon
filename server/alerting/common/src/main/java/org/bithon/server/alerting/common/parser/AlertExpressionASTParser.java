@@ -23,7 +23,22 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.EqualPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterOrEqualPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterThanPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanOrEqualPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.NotEqualPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.absolute.NullValuePredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
+import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.MetricExpression;
 
@@ -77,10 +92,11 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
-            MetricExpression expression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            MetricExpression metricExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
             AlertExpression alertExpression = new AlertExpression();
-            alertExpression.setMetricExpression(expression);
+            alertExpression.setMetricExpression(metricExpression);
             alertExpression.setId(String.valueOf(index++));
+            alertExpression.setMetricEvaluator(createMetricEvaluator(metricExpression));
             return alertExpression;
         }
 
@@ -101,5 +117,78 @@ public class AlertExpressionASTParser {
                 return new LogicalExpression.OR(left.accept(this), right.accept(this));
             }
         }
+    }
+
+    private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
+        LiteralExpression expected = metricExpression.getMetricValueExpected();
+        HumanReadableDuration expectedWindow = metricExpression.getExpectedWindow();
+
+        IMetricEvaluator metricEvaluator;
+        switch (metricExpression.getMetricValuePredicate()) {
+            case LT:
+                if (expectedWindow == null) {
+                    metricEvaluator = new LessThanPredicate(expected.getValue());
+                } else {
+                    if (expected.getValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                    } else {
+                        metricEvaluator = new LessThanPredicate(expected.getValue());
+                    }
+                }
+                break;
+
+            case LTE:
+                if (expectedWindow == null) {
+                    metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                } else {
+                    if (expected.getValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                    } else {
+                        metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    }
+                }
+                break;
+
+            case GT:
+                if (expectedWindow == null) {
+                    metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                } else {
+                    if (expected.getValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                    } else {
+                        metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                    }
+                }
+                break;
+
+            case GTE:
+                if (expectedWindow == null) {
+                    metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                } else {
+                    if (expected.getValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                    } else {
+                        metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                    }
+                }
+                break;
+
+            case NE:
+                metricEvaluator = new NotEqualPredicate(expected.getValue());
+                break;
+
+            case EQ:
+                metricEvaluator = new EqualPredicate(expected.getValue());
+                break;
+
+            case IS_NULL:
+                metricEvaluator = new NullValuePredicate();
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unsupported predicate");
+        }
+
+        return metricEvaluator;
     }
 }

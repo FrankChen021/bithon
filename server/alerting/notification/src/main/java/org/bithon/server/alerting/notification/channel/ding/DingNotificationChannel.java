@@ -87,9 +87,9 @@ public class DingNotificationChannel implements INotificationChannel {
 
             OutputMessage output = result.getOutputs();
             text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
-                                           expression.getMetric().getAggregator(),
-                                           expression.getFrom(),
-                                           expression.getMetric().getName(),
+                                           expression.getMetricExpression().getMetric().getAggregator(),
+                                           expression.getMetricExpression().getFrom(),
+                                           expression.getMetricExpression().getMetric().getName(),
                                            output.getCurrent(),
                                            output.getDelta()));
 
@@ -128,7 +128,7 @@ public class DingNotificationChannel implements INotificationChannel {
     @Override
     public String toString() {
         return "DingNotificationChannel{" +
-            "url='" + this.props.url + '\'' +
-            '}';
+               "url='" + this.props.url + '\'' +
+               '}';
     }
 }

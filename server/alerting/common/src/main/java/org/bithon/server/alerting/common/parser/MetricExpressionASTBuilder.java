@@ -37,18 +37,6 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.EqualPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterOrEqualPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterThanPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanOrEqualPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.LessThanPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.NotEqualPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.NullValuePredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTEPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeGTPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPredicate;
-import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.MetricExpression;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -169,7 +157,7 @@ public class MetricExpressionASTBuilder {
             }
 
             //
-            // Alert Predicate
+            // Metric Predicate
             //
             MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
             LiteralExpression expected = (LiteralExpression) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
@@ -187,83 +175,9 @@ public class MetricExpressionASTBuilder {
                 }
             }
 
-            IMetricEvaluator metricEvaluator;
             MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
             TerminalNode predicateTerminal = predicateExpression.getChild(TerminalNode.class, 0);
-            switch (predicateTerminal.getSymbol().getType()) {
-                case MetricExpressionParser.LT:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<'.");
-                    if (expectedWindow == null) {
-                        metricEvaluator = new LessThanPredicate(expected.getValue());
-                    } else {
-                        if (expected.getValue() instanceof HumanReadablePercentage) {
-                            metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
-                        } else {
-                            metricEvaluator = new LessThanPredicate(expected.getValue());
-                        }
-                    }
-                    break;
-
-                case MetricExpressionParser.LTE:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<='.");
-                    if (expectedWindow == null) {
-                        metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
-                    } else {
-                        if (expected.getValue() instanceof HumanReadablePercentage) {
-                            metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
-                        } else {
-                            metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
-                        }
-                    }
-                    break;
-
-                case MetricExpressionParser.GT:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>'.");
-                    if (expectedWindow == null) {
-                        metricEvaluator = new GreaterThanPredicate(expected.getValue());
-                    } else {
-                        if (expected.getValue() instanceof HumanReadablePercentage) {
-                            metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
-                        } else {
-                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
-                        }
-                    }
-                    break;
-
-                case MetricExpressionParser.GTE:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>='.");
-                    if (expectedWindow == null) {
-                        metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
-                    } else {
-                        if (expected.getValue() instanceof HumanReadablePercentage) {
-                            metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
-                        } else {
-                            metricEvaluator = new GreaterThanPredicate(expected.getValue());
-                        }
-                    }
-                    break;
-
-                case MetricExpressionParser.NE:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<>'.");
-                    checkIfTrue(expectedWindow == null, "<> is not allowed for relative comparison.");
-                    metricEvaluator = new NotEqualPredicate(expected.getValue());
-                    break;
-
-                case MetricExpressionParser.EQ:
-                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '='.");
-                    checkIfTrue(expectedWindow == null, "= is not allowed for relative comparison.");
-                    metricEvaluator = new EqualPredicate(expected.getValue());
-                    break;
-
-                case MetricExpressionParser.IS:
-                    checkIfTrue(expected instanceof LiteralExpression.NullLiteral, "Only 'null' is allowed after the 'is' predicate.");
-                    checkIfTrue(expectedWindow == null, "The expected window must be NULL if the 'is' operator is used.");
-                    metricEvaluator = new NullValuePredicate();
-                    break;
-
-                default:
-                    throw new RuntimeException("Unsupported alert predicate");
-            }
+            MetricExpression.Predicate predicate = getPredicate(predicateTerminal.getSymbol().getType(), expected, expectedWindow);
 
             MetricExpression expression = new MetricExpression();
             expression.setFrom(from);
@@ -273,11 +187,50 @@ public class MetricExpressionASTBuilder {
             expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
             expression.setGroupBy(groupBy);
             expression.setWindow(duration);
-            expression.setMetricValuePredicate(predicateTerminal.getText().toLowerCase(Locale.ENGLISH));
-            expression.setMetricValueExpected(expected instanceof LiteralExpression.NullLiteral ? null : expected.getValue());
+            expression.setMetricValuePredicate(predicate);
+            expression.setMetricValueExpected(expected);
             expression.setExpectedWindow(expectedWindow);
-            expression.setMetricEvaluator(metricEvaluator);
             return expression;
+        }
+
+        private static MetricExpression.Predicate getPredicate(int predicateToken,
+                                                               LiteralExpression expected,
+                                                               HumanReadableDuration expectedWindow) {
+            switch (predicateToken) {
+                case MetricExpressionParser.LT:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<'.");
+                    return MetricExpression.Predicate.LT;
+
+                case MetricExpressionParser.LTE:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<='.");
+                    return MetricExpression.Predicate.LTE;
+
+                case MetricExpressionParser.GT:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>'.");
+                    return MetricExpression.Predicate.GT;
+
+                case MetricExpressionParser.GTE:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '>='.");
+                    return MetricExpression.Predicate.GTE;
+
+                case MetricExpressionParser.NE:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '<>'.");
+                    checkIfTrue(expectedWindow == null, "<> is not allowed for relative comparison.");
+                    return MetricExpression.Predicate.NE;
+
+                case MetricExpressionParser.EQ:
+                    checkIfFalse(expected instanceof LiteralExpression.NullLiteral, "null is not allowed after predicate '='.");
+                    checkIfTrue(expectedWindow == null, "= is not allowed for relative comparison.");
+                    return MetricExpression.Predicate.EQ;
+
+                case MetricExpressionParser.IS:
+                    checkIfTrue(expected instanceof LiteralExpression.NullLiteral, "Only 'null' is allowed after the 'is' predicate.");
+                    checkIfTrue(expectedWindow == null, "The expected window must be NULL if the 'is' operator is used.");
+                    return MetricExpression.Predicate.IS_NULL;
+
+                default:
+                    throw new RuntimeException("Unsupported alert predicate");
+            }
         }
     }
 

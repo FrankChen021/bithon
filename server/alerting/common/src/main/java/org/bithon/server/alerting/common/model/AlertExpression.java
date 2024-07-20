@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 
 import java.util.function.Function;
 
@@ -52,6 +53,7 @@ public class AlertExpression implements IExpression {
 
     private String id;
     private MetricExpression metricExpression;
+    private IMetricEvaluator metricEvaluator;
 
     @Override
     public IDataType getDataType() {

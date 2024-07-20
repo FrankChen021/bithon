@@ -28,6 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.MetricExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
@@ -107,7 +108,7 @@ public class AlertImageRenderService {
                                              TimeSpan end) {
         return this.executor.submit(() -> {
             try {
-                return renderAndSave(expression, windowLength, start, end);
+                return renderAndSave(expression.getMetricExpression(), windowLength, start, end);
             } catch (Exception e) {
                 log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alert, expression.getId()), e);
                 return null;
@@ -115,7 +116,7 @@ public class AlertImageRenderService {
         });
     }
 
-    public String renderAndSave(AlertExpression expression,
+    public String renderAndSave(MetricExpression expression,
                                 int windowLength,
                                 TimeSpan start,
                                 TimeSpan end) throws IOException {

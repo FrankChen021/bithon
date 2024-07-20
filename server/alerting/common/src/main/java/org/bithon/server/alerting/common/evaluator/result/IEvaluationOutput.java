@@ -16,7 +16,6 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -27,8 +26,6 @@ public interface IEvaluationOutput {
 
     TimeSpan getStart();
     TimeSpan getEnd();
-
-    IMetricEvaluator getMetric();
 
     boolean isMatches();
 

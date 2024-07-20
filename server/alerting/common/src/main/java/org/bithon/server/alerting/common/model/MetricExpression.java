@@ -65,6 +65,56 @@ import java.util.function.Function;
 @Data
 public class MetricExpression implements IExpression {
 
+    public enum Predicate {
+
+        LT {
+            @Override
+            public String toString() {
+                return "<";
+            }
+        },
+
+        LTE {
+            @Override
+            public String toString() {
+                return "<=";
+            }
+        },
+
+        GT {
+            @Override
+            public String toString() {
+                return ">";
+            }
+        },
+
+        GTE {
+            @Override
+            public String toString() {
+                return ">=";
+            }
+        },
+
+        NE {
+            @Override
+            public String toString() {
+                return "<>";
+            }
+        },
+        EQ {
+            @Override
+            public String toString() {
+                return "=";
+            }
+        },
+        IS_NULL {
+            @Override
+            public String toString() {
+                return "IS NULL";
+            }
+        }
+    }
+
     private String from;
     private QueryField metric;
     private String whereText;
@@ -72,8 +122,8 @@ public class MetricExpression implements IExpression {
 
     @Nullable
     private List<String> groupBy;
-    private String metricValuePredicate;
-    private Object metricValueExpected;
+    private Predicate metricValuePredicate;
+    private LiteralExpression metricValueExpected;
 
     @Nullable
     private HumanReadableDuration expectedWindow = null;
