@@ -72,8 +72,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
     @Override
     public boolean exists(String name) {
-        return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
-                                               .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))) > 0;
+        return dslContext.fetchCount(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL, Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name)) > 0;
     }
 
     @Override
