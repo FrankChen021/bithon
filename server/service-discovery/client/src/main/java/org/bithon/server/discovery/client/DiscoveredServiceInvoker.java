@@ -52,14 +52,13 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
     @Getter
     private final ServiceInvocationExecutor executor;
 
-    @Getter
-    private final IDiscoveryClient serviceDiscoveryClient;
+    private final IDiscoveryClient discoveryClient;
 
     private ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
 
     public DiscoveredServiceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
-        this.serviceDiscoveryClient = discoveryClient;
+        this.discoveryClient = discoveryClient;
         this.executor = executor;
     }
 
@@ -70,11 +69,6 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
     }
 
     public <T> List<DiscoveredServiceInstance> getInstanceList(Class<T> serviceDeclaration) {
-        if (serviceDiscoveryClient == null) {
-            throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                                            "This API is unavailable because Service Discovery is not configured.");
-        }
-
         DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -82,7 +76,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                                           DiscoverableService.class.getSimpleName()));
         }
 
-        return serviceDiscoveryClient.getInstanceList(metadata.name());
+        return discoveryClient.getInstanceList(metadata.name());
     }
 
     /**
@@ -197,11 +191,6 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws InterruptedException {
-            if (serviceDiscoveryClient == null) {
-                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                                                "This API is unavailable because Service Discovery is not configured.");
-            }
-
             Class<?> retType = method.getReturnType();
             if (!retType.equals(void.class)) {
                 throw new UnsupportedOperationException(StringUtils.format("method [%s#%s] returns type of [%s] which is not supported. Only void is supported now.",
@@ -216,7 +205,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
             Object token = authentication == null ? null : authentication.getCredentials();
 
             // Get all instances first
-            List<DiscoveredServiceInstance> instanceList = serviceDiscoveryClient.getInstanceList(serviceName);
+            List<DiscoveredServiceInstance> instanceList = discoveryClient.getInstanceList(serviceName);
 
             // Invoke remote service on each instance
             CountDownLatch countDownLatch = new CountDownLatch(instanceList.size());

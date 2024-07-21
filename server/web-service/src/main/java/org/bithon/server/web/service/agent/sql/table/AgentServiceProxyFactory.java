@@ -33,13 +33,11 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
+import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.client.ErrorResponseDecoder;
-import org.bithon.server.discovery.client.IDiscoveryClient;
-import org.bithon.server.discovery.client.ServiceInvocationExecutor;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -68,20 +66,17 @@ import java.util.concurrent.Future;
 public class AgentServiceProxyFactory {
 
     private final InvocationManager invocationManager = new InvocationManager();
-    private final IDiscoveryClient serviceDiscoveryClient;
-    private final ServiceInvocationExecutor executor;
+    private final DiscoveredServiceInvoker discoveryServiceInvoker;
     private final ApplicationContext applicationContext;
 
-    public AgentServiceProxyFactory(IDiscoveryClient discoveryClient,
-                                    ServiceInvocationExecutor executor,
+    public AgentServiceProxyFactory(DiscoveredServiceInvoker discoveryServiceInvoker,
                                     ApplicationContext applicationContext) {
-        this.serviceDiscoveryClient = discoveryClient;
-        this.executor = executor;
+        this.discoveryServiceInvoker = discoveryServiceInvoker;
         this.applicationContext = applicationContext;
     }
 
     /**
-     * @param context The context that contains extra invocation information
+     * @param context                 The context that contains extra invocation information
      * @param agentServiceDeclaration The service located at agent side that we want to invoke
      */
     public <T> T create(Map<String, Object> context,
@@ -101,7 +96,7 @@ public class AgentServiceProxyFactory {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
                                           new Class<?>[]{agentServiceDeclaration},
-                                          new AgentServiceBroadcastInvoker(metadata.name(),
+                                          new AgentServiceBroadcastInvoker(IAgentControllerApi.class,
                                                                            context,
                                                                            invocationManager));
     }
@@ -113,13 +108,13 @@ public class AgentServiceProxyFactory {
     private class AgentServiceBroadcastInvoker implements InvocationHandler {
 
         private final InvocationManager invocationManager;
-        private final String proxyServiceName;
+        private final Class<?> proxyService;
         private final Map<String, Object> context;
 
-        private AgentServiceBroadcastInvoker(String proxyServiceName,
+        private AgentServiceBroadcastInvoker(Class<?> proxyService,
                                              Map<String, Object> context,
                                              InvocationManager invocationManager) {
-            this.proxyServiceName = proxyServiceName;
+            this.proxyService = proxyService;
             this.invocationManager = invocationManager;
 
             // Make sure the context is modifiable because we're going to add token into the context
@@ -130,11 +125,6 @@ public class AgentServiceProxyFactory {
         public Object invoke(Object object,
                              Method agentServiceMethod,
                              Object[] args) throws Throwable {
-            if (serviceDiscoveryClient == null) {
-                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                                                "This API is unavailable because Service Discovery is not configured.");
-            }
-
             // Since the real invocation is issued from a dedicated thread-pool,
             // to make sure the task in that thread pool can access the security context, we have to explicitly
             Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
@@ -143,14 +133,14 @@ public class AgentServiceProxyFactory {
             }
 
             // Get all service provider instance from the service discovery center
-            List<DiscoveredServiceInstance> proxyServerList = serviceDiscoveryClient.getInstanceList(proxyServiceName);
+            List<DiscoveredServiceInstance> proxyServerList = discoveryServiceInvoker.getInstanceList(proxyService);
 
             //
             // Invoke remote service on each proxy server
             //
             List<Future<Collection<?>>> futures = new ArrayList<>(proxyServerList.size());
             for (DiscoveredServiceInstance proxyServer : proxyServerList) {
-                futures.add(executor.submit(() -> {
+                futures.add(discoveryServiceInvoker.getExecutor().submit(() -> {
                     try {
                         // The agent's Brpc services MUST return a type of Collection
                         return (Collection<?>) invocationManager.invoke("bithon-webservice",
@@ -248,11 +238,11 @@ public class AgentServiceProxyFactory {
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
                                                                                   .requestInterceptor(template -> {
-                                                                                 Object token = context.get("X-Bithon-Token");
-                                                                                 if (token != null) {
-                                                                                     template.header("X-Bithon-Token", token.toString());
-                                                                                 }
-                                                                             })
+                                                                                      Object token = context.get("X-Bithon-Token");
+                                                                                      if (token != null) {
+                                                                                          template.header("X-Bithon-Token", token.toString());
+                                                                                      }
+                                                                                  })
                                                                                   .target(IAgentControllerApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
@@ -264,7 +254,7 @@ public class AgentServiceProxyFactory {
                                                   throw new RuntimeException(e);
                                               }
                                           },
-                                          executor)
+                                          discoveryServiceInvoker.getExecutor())
                              .thenAccept((responseBytes) -> {
                                  try {
                                      ServiceResponseMessageIn in = ServiceResponseMessageIn.from(new ByteArrayInputStream(responseBytes));
