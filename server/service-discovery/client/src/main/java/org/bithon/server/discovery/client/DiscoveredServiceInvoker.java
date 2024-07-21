@@ -50,26 +50,22 @@ import java.util.function.Supplier;
  */
 public class DiscoveredServiceInvoker implements ApplicationContextAware {
     @Getter
-    private IDiscoveryClient serviceDiscoveryClient;
-
-    @Getter
     private final ServiceInvocationExecutor executor;
 
     @Getter
-    private final IDiscoveryClient discoveryClient;
+    private final IDiscoveryClient serviceDiscoveryClient;
 
     private ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
 
     public DiscoveredServiceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
-        this.discoveryClient = discoveryClient;
+        this.serviceDiscoveryClient = discoveryClient;
         this.executor = executor;
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-        this.serviceDiscoveryClient = discoveryClient;
         this.objectMapper = applicationContext.getBean(ObjectMapper.class);
     }
 
