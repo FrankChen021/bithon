@@ -85,7 +85,7 @@ public class DiscoveryClientAutoConfiguration {
     }
 
     @Bean
-    DiscoveredServiceInvoker serviceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+    DiscoveredServiceInvoker serviceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
         return new DiscoveredServiceInvoker(discoveryClient, executor);
     }
 }
