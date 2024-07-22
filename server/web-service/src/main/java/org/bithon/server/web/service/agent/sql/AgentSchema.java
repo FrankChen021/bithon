@@ -41,9 +41,7 @@ public class AgentSchema extends AbstractSchema {
     private final ImmutableMap<String, Table> tableMap;
 
     public AgentSchema(DiscoveredServiceInvoker serviceInvoker, ApplicationContext applicationContext) {
-        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker.getDiscoveryClient(),
-                                                                                         serviceInvoker.getExecutor(),
-                                                                                         applicationContext);
+        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(serviceInvoker, applicationContext);
         this.tableMap = ImmutableMap.of("configuration", new ConfigurationTable(agentServiceProxyFactory),
                                         "instance", new InstanceTable(serviceInvoker),
                                         "instrumented_method", new InstrumentedMethodTable(agentServiceProxyFactory),

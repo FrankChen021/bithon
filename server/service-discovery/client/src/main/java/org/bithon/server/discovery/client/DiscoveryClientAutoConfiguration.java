@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.util.List;
+
 /**
  * @author Frank Chen
  * @date 23/2/23 9:12 pm
@@ -48,20 +50,42 @@ public class DiscoveryClientAutoConfiguration {
 
     @Bean
     IDiscoveryClient discoveryClient(ApplicationContext applicationContext) {
-        try {
-            // Try to create a Nacos client first
-            applicationContext.getBean(NacosAutoServiceRegistration.class);
-            return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
-                                            applicationContext.getBean(NacosDiscoveryProperties.class));
-        } catch (NoSuchBeanDefinitionException ignored) {
-        }
+        // Create delegate lazily to avoid circular dependency
+        // See: https://github.com/FrankChen021/bithon/issues/838
+        return new IDiscoveryClient() {
+            private volatile IDiscoveryClient delegate;
 
-        // Service Discovery is not enabled, use Local
-        return new InProcessDiscoveryClient(applicationContext);
+            @Override
+            public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
+                if (delegate == null) {
+                    synchronized (this) {
+                        if (delegate == null) {
+                            delegate = createDelegate();
+                        }
+                    }
+                    this.delegate = createDelegate();
+                }
+
+                return this.delegate.getInstanceList(serviceName);
+            }
+
+            private IDiscoveryClient createDelegate() {
+                try {
+                    // Try to create a Nacos client first
+                    applicationContext.getBean(NacosAutoServiceRegistration.class);
+                    return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
+                                                    applicationContext.getBean(NacosDiscoveryProperties.class));
+                } catch (NoSuchBeanDefinitionException ignored) {
+                }
+
+                // Service Discovery is not enabled, use Local
+                return new InProcessDiscoveryClient(applicationContext);
+            }
+        };
     }
 
     @Bean
-    DiscoveredServiceInvoker serviceBroadcastInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+    DiscoveredServiceInvoker serviceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
         return new DiscoveredServiceInvoker(discoveryClient, executor);
     }
 }
