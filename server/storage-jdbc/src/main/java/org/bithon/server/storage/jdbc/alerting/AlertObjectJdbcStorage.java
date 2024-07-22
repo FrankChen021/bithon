@@ -39,6 +39,7 @@ import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -77,7 +78,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName()),
              objectMapper,
              storageConfig
-            );
+        );
     }
 
     public AlertObjectJdbcStorage(DSLContext dslContext,
@@ -126,18 +127,16 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         // use fetchCount instead of fetchExists
         // because the former one uses 'exists' subclause in the generated SQL,
         // and for ClickHouse, this clause is not recognizable
-        return dslContext.fetchCount(dslContext.selectFrom(this.quotedObjectTableSelectName)
-                                               .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
-                                               .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))) > 0;
-
+        return this.fetchCount(this.quotedObjectTableSelectName,
+                               Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId),
+                               Tables.BITHON_ALERT_OBJECT.DELETED.eq(0)) > 0;
     }
 
     @Override
     public boolean existAlertByName(String name) {
-        return dslContext.fetchCount(dslContext.selectFrom(this.quotedObjectTableSelectName)
-                                               .where(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.eq(name))
-                                               .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))) > 0;
-
+        return this.fetchCount(this.quotedObjectTableSelectName,
+                               Tables.BITHON_ALERT_OBJECT.ALERT_NAME.eq(name),
+                               Tables.BITHON_ALERT_OBJECT.DELETED.eq(0)) > 0;
     }
 
     @Override
@@ -255,16 +254,16 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public int getAlertListSize(String appName, String alertName) {
-        SelectConditionStep<?> selectSql = dslContext.selectFrom(this.quotedObjectTableSelectName).where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
+        Condition condition = Tables.BITHON_ALERT_OBJECT.DELETED.eq(0);
 
         if (StringUtils.hasText(appName)) {
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
+            condition = condition.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
         if (StringUtils.hasText(alertName)) {
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
+            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
         }
 
-        return dslContext.fetchCount(selectSql);
+        return this.fetchCount(this.quotedObjectTableSelectName, condition);
     }
 
     @Override
@@ -360,18 +359,25 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize) {
-        SelectConditionStep<?> selectSql = dslContext.selectFrom(Tables.BITHON_ALERT_CHANGE_LOG)
-                                                     .where(Tables.BITHON_ALERT_CHANGE_LOG.ALERT_ID.eq(alertId));
-
-        return new ListResult<>(dslContext.fetchCount(selectSql),
-                                selectSql.orderBy(Tables.BITHON_ALERT_CHANGE_LOG.CREATED_AT.desc())
-                                         .offset(pageNumber * pageSize)
-                                         .limit(pageSize)
-                                         .fetchInto(AlertChangeLogObject.class));
+        return new ListResult<>(dslContext.fetchCount(Tables.BITHON_ALERT_CHANGE_LOG, Tables.BITHON_ALERT_CHANGE_LOG.ALERT_ID.eq(alertId)),
+                                dslContext.selectFrom(Tables.BITHON_ALERT_CHANGE_LOG)
+                                          .where(Tables.BITHON_ALERT_CHANGE_LOG.ALERT_ID.eq(alertId))
+                                          .orderBy(Tables.BITHON_ALERT_CHANGE_LOG.CREATED_AT.desc())
+                                          .offset(pageNumber * pageSize)
+                                          .limit(pageSize)
+                                          .fetchInto(AlertChangeLogObject.class));
     }
 
     @Override
     public <T> T executeTransaction(Callable<T> callable) {
         return this.dslContext.transactionResult((configuration) -> callable.call());
+    }
+
+    private int fetchCount(String table, Condition... conditions) {
+        //noinspection DataFlowIssue
+        return dslContext.selectCount()
+                         .from(table)
+                         .where(conditions)
+                         .fetchOne(0, int.class);
     }
 }

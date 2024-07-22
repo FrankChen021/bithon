@@ -126,7 +126,8 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
         if (alertId != null) {
             sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.ALERT_ID.eq(alertId));
         }
-        return new ListResult<>(dslContext.fetchCount(sql),
+
+        return new ListResult<>(dslContext.selectCount().from(sql).fetchOne(0, int.class),
                                 ((SelectConditionStep<?>) sql).orderBy(Tables.BITHON_ALERT_RECORD.CREATED_AT.desc())
                                                               .limit(pageSize)
                                                               .offset(pageSize * pageNumber)
