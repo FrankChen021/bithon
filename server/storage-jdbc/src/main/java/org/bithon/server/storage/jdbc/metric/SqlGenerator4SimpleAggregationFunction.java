@@ -17,9 +17,9 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.ISimpleAggregateFunctionVisitor;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.query.ast.ISimpleAggregateFunctionVisitor;
+import org.bithon.server.storage.jdbc.common.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.metrics.Interval;
 
 /**

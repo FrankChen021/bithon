@@ -23,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.IColumnVisitor;
 
 
 /**
@@ -40,6 +41,11 @@ public class AggregateLongMaxColumn extends AggregateMaxColumn {
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
+    }
+
+    @Override
+    public <T> T accept(IColumnVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

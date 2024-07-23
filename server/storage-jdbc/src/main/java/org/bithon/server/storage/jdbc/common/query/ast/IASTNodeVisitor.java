@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
 /**
  * @author frank.chen021@outlook.com

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.server.storage.datasource.column.IColumnVisitor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,6 +38,11 @@ public class AggregateLongLastColumn extends AggregateLastColumn {
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
+    }
+
+    @Override
+    public <T> T accept(IColumnVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

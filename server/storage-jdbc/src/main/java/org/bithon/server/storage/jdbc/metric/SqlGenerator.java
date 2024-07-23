@@ -16,21 +16,21 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Function;
-import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
-import org.bithon.server.storage.datasource.query.ast.Table;
-import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.query.ast.Column;
+import org.bithon.server.storage.jdbc.common.query.ast.ColumnAlias;
+import org.bithon.server.storage.jdbc.common.query.ast.Expression;
+import org.bithon.server.storage.jdbc.common.query.ast.From;
+import org.bithon.server.storage.jdbc.common.query.ast.Function;
+import org.bithon.server.storage.jdbc.common.query.ast.GroupBy;
+import org.bithon.server.storage.jdbc.common.query.ast.IASTNodeVisitor;
+import org.bithon.server.storage.jdbc.common.query.ast.Limit;
+import org.bithon.server.storage.jdbc.common.query.ast.OrderBy;
+import org.bithon.server.storage.jdbc.common.query.ast.ResultColumn;
+import org.bithon.server.storage.jdbc.common.query.ast.SelectExpression;
+import org.bithon.server.storage.jdbc.common.query.ast.StringNode;
+import org.bithon.server.storage.jdbc.common.query.ast.Table;
+import org.bithon.server.storage.jdbc.common.query.ast.Where;
 
 /**
  * @author frank.chen021@outlook.com

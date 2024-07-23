@@ -14,34 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
-import lombok.Getter;
-import org.bithon.server.storage.datasource.query.Order;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/9/4 15:43
  */
-public class OrderBy implements IASTNode {
-
-    @Getter
-    private final String field;
-
-    @Getter
-    private final Order order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderBy(String field, Order order) {
-        this.field = field;
-        this.order = order;
-    }
+@Data
+public class From implements IASTNode {
+    private IASTNode expression;
+    private ColumnAlias alias;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
+        expression.accept(visitor);
+        if (alias != null) {
+            alias.accept(visitor);
+        }
     }
 }

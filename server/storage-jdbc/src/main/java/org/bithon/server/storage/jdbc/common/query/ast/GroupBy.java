@@ -14,16 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
+
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:04
+ * @date 2022/9/4 14:58
  */
-public class Table extends Name {
+public class GroupBy implements IASTNode {
+    @Getter
+    private final List<String> fields = new ArrayList<>(2);
 
-    public Table(String name) {
-        super(name);
+    public GroupBy addField(String field) {
+        this.fields.add(field);
+        return this;
+    }
+
+    public GroupBy addFields(Collection<String> fields) {
+        this.fields.addAll(fields);
+        return this;
     }
 
     @Override

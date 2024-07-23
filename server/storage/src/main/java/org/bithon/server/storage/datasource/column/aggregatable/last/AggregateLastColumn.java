@@ -17,13 +17,10 @@
 package org.bithon.server.storage.datasource.column.aggregatable.last;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,25 +34,16 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    protected final SimpleAggregateExpression aggregateExpression;
-
     @JsonCreator
     public AggregateLastColumn(String name,
                                String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);
     }
 
     @Override
     public NumberAggregator createAggregator() {
         return new LongLastAggregator();
-    }
-
-    @JsonIgnore
-    @Override
-    public SimpleAggregateExpression getAggregateExpression() {
-        return aggregateExpression;
     }
 
     @Override

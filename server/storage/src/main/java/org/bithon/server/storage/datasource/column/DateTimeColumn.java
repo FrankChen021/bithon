@@ -44,4 +44,9 @@ public class DateTimeColumn extends AbstractColumn {
     public ResultColumn getResultColumn() {
         return new ResultColumn(getName());
     }
+
+    @Override
+    public <T> T accept(IColumnVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

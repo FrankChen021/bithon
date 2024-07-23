@@ -14,12 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
+
+import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:03
+ * @date 2022/10/30 15:08
  */
-public interface IASTNode {
-    void accept(IASTNodeVisitor visitor);
+public class Limit implements IASTNode {
+
+    @Getter
+    private final int limit;
+
+    @Getter
+    private final int offset;
+
+    public Limit(int limit, int offset) {
+        this.limit = limit;
+        this.offset = offset;
+    }
+
+    @Override
+    public void accept(IASTNodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/10/30 15:08
+ * @date 2022/9/4 14:55
  */
-public class Limit implements IASTNode {
+@Getter
+public class Where implements IASTNode {
 
-    @Getter
-    private final int limit;
+    private final List<String> expressions = new ArrayList<>();
 
-    @Getter
-    private final int offset;
-
-    public Limit(int limit, int offset) {
-        this.limit = limit;
-        this.offset = offset;
+    public Where addExpression(String expression) {
+        expressions.add(expression);
+        return this;
     }
 
     @Override

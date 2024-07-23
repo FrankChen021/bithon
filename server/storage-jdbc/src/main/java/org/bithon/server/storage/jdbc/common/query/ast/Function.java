@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
 import lombok.Getter;
 
@@ -23,20 +23,23 @@ import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/9/4 16:40
  */
 @Getter
-public class Where implements IASTNode {
+public class Function implements IASTNode {
+    private final String fnName;
+    private final List<IASTNode> arguments = new ArrayList<>();
 
-    private final List<String> expressions = new ArrayList<>();
-
-    public Where addExpression(String expression) {
-        expressions.add(expression);
-        return this;
+    public Function(String fnName) {
+        this.fnName = fnName;
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+        visitor.before(this);
+        for (IASTNode arg : arguments) {
+            arg.accept(visitor);
+        }
+        visitor.after(this);
     }
 }

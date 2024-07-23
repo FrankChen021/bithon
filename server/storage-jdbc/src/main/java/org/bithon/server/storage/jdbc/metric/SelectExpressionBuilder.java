@@ -25,23 +25,23 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.IASTNode;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.Name;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
-import org.bithon.server.storage.datasource.query.ast.Table;
-import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.query.ast.Column;
+import org.bithon.server.storage.jdbc.common.query.ast.ColumnAlias;
+import org.bithon.server.storage.jdbc.common.query.ast.Expression;
+import org.bithon.server.storage.jdbc.common.query.ast.GroupBy;
+import org.bithon.server.storage.jdbc.common.query.ast.IASTNode;
+import org.bithon.server.storage.jdbc.common.query.ast.Limit;
+import org.bithon.server.storage.jdbc.common.query.ast.Name;
+import org.bithon.server.storage.jdbc.common.query.ast.OrderBy;
+import org.bithon.server.storage.jdbc.common.query.ast.ResultColumn;
+import org.bithon.server.storage.jdbc.common.query.ast.SelectExpression;
+import org.bithon.server.storage.jdbc.common.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.jdbc.common.query.ast.StringNode;
+import org.bithon.server.storage.jdbc.common.query.ast.Table;
+import org.bithon.server.storage.jdbc.common.query.ast.Where;
 import org.bithon.server.storage.metrics.Interval;
 
 import java.util.ArrayList;
@@ -145,16 +145,15 @@ public class SelectExpressionBuilder {
 
         @Override
         public void visitField(IColumn columnSpec) {
-            if (!(columnSpec instanceof IAggregatableColumn)) {
+            if (!(columnSpec instanceof IAggregatableColumn metricSpec)) {
                 throw new RuntimeException(StringUtils.format("field [%s] is not a metric", columnSpec.getName()));
             }
 
-            IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
             if (aggregatedColumn.contains(metricSpec.getName())) {
                 return;
             }
 
-            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName())) {
+            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(AggregatorFactory.create(metricSpec).getFnName())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
                 aggregatedColumn.add(metricSpec.getName());
@@ -200,9 +199,10 @@ public class SelectExpressionBuilder {
                     }
 
                     IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
+                    SimpleAggregateExpression aggregateExpression = AggregatorFactory.create(metricSpec);
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
-                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName());
+                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(aggregateExpression.getFnName());
 
                     // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
                     boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && aggregatedFields.contains(metricSpec.getName());
@@ -211,7 +211,7 @@ public class SelectExpressionBuilder {
                         sb.append(sqlDialect.quoteIdentifier(metricSpec.getName()));
                     } else {
                         // generate a aggregation expression
-                        sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
+                        sb.append(aggregateExpression.accept(sqlGenerator4SimpleAggregationFunction));
                     }
 
                     return true;
@@ -295,8 +295,7 @@ public class SelectExpressionBuilder {
 
         for (ResultColumn resultColumn : this.resultColumns) {
             IASTNode columnExpression = resultColumn.getColumnExpression();
-            if (columnExpression instanceof SimpleAggregateExpression) {
-                SimpleAggregateExpression function = (SimpleAggregateExpression) columnExpression;
+            if (columnExpression instanceof SimpleAggregateExpression function) {
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
@@ -336,8 +335,9 @@ public class SelectExpressionBuilder {
             subSelectExpression.getResultColumnList().add(metric);
         }
         for (IAggregatableColumn aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
+            String expr = AggregatorFactory.create(aggregator).accept(generator);
             subSelectExpression.getResultColumnList()
-                               .add(new StringNode(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
+                               .add(new StringNode(expr), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above

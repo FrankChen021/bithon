@@ -23,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.aggregator.LongMinAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.column.IColumnVisitor;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,6 +40,11 @@ public class AggregateLongMinColumn extends AggregateMinColumn {
     @Override
     public IDataType getDataType() {
         return IDataType.LONG;
+    }
+
+    @Override
+    public <T> T accept(IColumnVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

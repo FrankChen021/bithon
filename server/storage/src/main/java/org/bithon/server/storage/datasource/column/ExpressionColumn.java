@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -27,7 +26,6 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 
 
 /**
@@ -63,12 +61,6 @@ public class ExpressionColumn implements IColumn {
         return null;
     }
 
-    @JsonIgnore
-    @Override
-    public SimpleAggregateExpression getAggregateExpression() {
-        return null;
-    }
-
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -86,6 +78,11 @@ public class ExpressionColumn implements IColumn {
     @Override
     public ResultColumn getResultColumn() {
         return new ResultColumn(new Expression(this.expression), this.name);
+    }
+
+    @Override
+    public <T> T accept(IColumnVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

@@ -14,25 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
-
-import lombok.Data;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:43
+ * @date 2022/9/4 15:04
  */
-@Data
-public class From implements IASTNode {
-    private IASTNode expression;
-    private ColumnAlias alias;
+public class Table extends Name {
+
+    public Table(String name) {
+        super(name);
+    }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
-        expression.accept(visitor);
-        if (alias != null) {
-            alias.accept(visitor);
-        }
     }
 }

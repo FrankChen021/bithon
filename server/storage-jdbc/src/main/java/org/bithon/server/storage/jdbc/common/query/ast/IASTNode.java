@@ -14,19 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.ast;
+package org.bithon.server.storage.jdbc.common.query.ast;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:34
+ * @date 2022/9/4 15:03
  */
-public class ColumnAlias extends Name {
-    public ColumnAlias(String name) {
-        super(name);
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
-    }
+public interface IASTNode {
+    void accept(IASTNodeVisitor visitor);
 }
