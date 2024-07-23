@@ -16,11 +16,8 @@
 
 package org.bithon.server.storage.datasource.column.aggregatable.max;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,19 +31,10 @@ public abstract class AggregateMaxColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    protected final SimpleAggregateExpression aggregateExpression;
-
     public AggregateMaxColumn(String name,
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
-    }
-
-    @JsonIgnore
-    @Override
-    public SimpleAggregateExpression getAggregateExpression() {
-        return aggregateExpression;
     }
 
     @Override

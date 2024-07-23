@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,11 +37,6 @@ public class DateTimeColumn extends AbstractColumn {
     @Override
     public IDataType getDataType() {
         return IDataType.DATETIME_3;
-    }
-
-    @Override
-    public ResultColumn getResultColumn() {
-        return new ResultColumn(getName());
     }
 
     @Override

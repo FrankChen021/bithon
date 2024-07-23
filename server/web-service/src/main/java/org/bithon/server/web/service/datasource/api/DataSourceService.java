@@ -57,7 +57,7 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
-        List<String> metrics = query.getResultColumns()
+        List<String> metrics = query.getColumns()
                                     .stream()
                                     .filter((resultColumn) -> {
                                         if (resultColumn.getColumnExpression() instanceof Expression) {

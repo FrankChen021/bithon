@@ -23,11 +23,11 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.query.ast.Column;
+import org.bithon.server.storage.jdbc.common.query.ast.SelectExpression;
+import org.bithon.server.storage.jdbc.common.query.ast.StringNode;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -94,7 +94,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     public List<Map<String, Object>> timeseries(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getSchema())
-                                                                   .fields(query.getResultColumns())
+                                                                   .fields(query.getColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
@@ -129,7 +129,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     public List<?> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getSchema())
-                                                                   .fields(query.getResultColumns())
+                                                                   .fields(query.getColumns())
                                                                    .filter(query.getFilter())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
@@ -158,16 +158,15 @@ public class MetricJdbcReader implements IDataSourceReader {
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
-            query.getResultColumns()
+            query.getColumns()
                  .stream()
-                 .map(field -> {
-                     String expr = field.getColumnExpression().toString();
-                     String alias = field.getResultColumnName();
+                 .map(column -> {
+                     String alias = column.getAlias();
 
-                     return expr.equals(alias) ?
-                         StringUtils.format("\"%s\"", field.getColumnExpression())
+                     return alias == null ?
+                         StringUtils.format("\"%s\"", column.getName())
                          :
-                         StringUtils.format("\"%s\" AS \"%s\"", field.getColumnExpression(), field.getResultColumnName());
+                         StringUtils.format("\"%s\" AS \"%s\"", column.getName(), column.getAlias());
                  })
                  .collect(Collectors.joining(",")),
             sqlTableName,
@@ -230,7 +229,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         // PAY ATTENTION:
         //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        //  this is might be a bug of JDK
+        //  this might be a bug of JDK
         return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>(record.fields().length);
             for (Field<?> field : record.fields()) {
@@ -243,18 +242,19 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<String> distinct(Query query) {
         String filterText = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
-        String dimension = query.getResultColumns().get(0).getResultColumnName();
+        String name = query.getColumns().get(0).getName();
+        String output = query.getColumns().get(0).getNameOrAlias();
 
         String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
-            dimension,
-            dimension,
+            "SELECT DISTINCT(\"%s\") AS \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
+            name,
+            output,
             query.getSchema().getDataStoreSpec().getStore(),
             filterText,
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            dimension,
-            dimension
+            name,
+            output
         );
 
         log.info("Executing {}", sql);

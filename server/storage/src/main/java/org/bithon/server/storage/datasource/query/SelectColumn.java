@@ -14,33 +14,39 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.column;
+package org.bithon.server.storage.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-import org.bithon.component.commons.expression.IDataType;
+import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/11 10:16 上午
+ * @date 23/7/24 3:52 pm
  */
-public class LongColumn extends AbstractColumn {
+public class SelectColumn {
+    @Getter
+    private final String name;
+
+    @Getter
+    private final String alias;
+
+    public SelectColumn(String name) {
+        this(name, null);
+    }
 
     @JsonCreator
-    public LongColumn(@JsonProperty("name") @NotNull String name,
-                      @JsonProperty("alias") @Nullable String alias) {
-        super(name, alias);
+    public SelectColumn(@JsonProperty("name") String name,
+                        @JsonProperty("alias") @Nullable String alias) {
+        this.name = Preconditions.checkArgumentNotNull("name", name);
+        this.alias = alias;
     }
 
-    @Override
-    public IDataType getDataType() {
-        return IDataType.LONG;
-    }
-
-    @Override
-    public <T> T accept(IColumnVisitor<T> visitor) {
-        return visitor.visit(this);
+    @JsonIgnore
+    public String getNameOrAlias() {
+        return alias == null ? name : alias;
     }
 }
