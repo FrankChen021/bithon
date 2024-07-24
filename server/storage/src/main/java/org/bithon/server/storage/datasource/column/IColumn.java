@@ -30,8 +30,8 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 
 /**
  * @author Frank Chen
@@ -82,7 +82,7 @@ public interface IColumn extends IIdentifier {
     }
 
     @JsonIgnore
-    default SimpleAggregateExpression getAggregateExpression() {
+    default QueryAggregateFunction getAggregateExpression() {
         throw new UnsupportedOperationException(StringUtils.format("getAggregateExpression is not supported on type of " + this.getClass().getSimpleName()));
     }
 
@@ -90,5 +90,5 @@ public interface IColumn extends IIdentifier {
     IDataType getDataType();
 
     @JsonIgnore
-    ResultColumn getResultColumn();
+    SelectColumn getResultColumn();
 }

@@ -74,7 +74,7 @@ public class TopoApi {
 
         Query calleeQuery = Query.builder()
                                  .schema(topoSchema)
-                                 .resultColumns(Stream.of("dstEndpoint",
+                                 .selectColumns(Stream.of("dstEndpoint",
                                                           "dstEndpointType",
                                                           "callCount",
                                                           "avgResponseTime",
@@ -126,7 +126,7 @@ public class TopoApi {
 
             Query callerQuery = Query.builder()
                                      .schema(topoSchema)
-                                     .resultColumns(Stream.of("srcEndpoint",
+                                     .selectColumns(Stream.of("srcEndpoint",
                                                               "srcEndpointType",
                                                               "callCount",
                                                               "avgResponseTime",

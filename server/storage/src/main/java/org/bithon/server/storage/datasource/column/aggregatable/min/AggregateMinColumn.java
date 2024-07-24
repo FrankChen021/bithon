@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,7 +35,7 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    protected final SimpleAggregateExpression aggregateExpression;
+    protected final QueryAggregateFunction aggregateExpression;
 
     @JsonCreator
     public AggregateMinColumn(String name,
@@ -45,12 +45,12 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
-        this.aggregateExpression = new SimpleAggregateExpressions.MinAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunctions.MinAggregateExpression(name);
     }
 
     @JsonIgnore
     @Override
-    public SimpleAggregateExpression getAggregateExpression() {
+    public QueryAggregateFunction getAggregateExpression() {
         return aggregateExpression;
     }
 

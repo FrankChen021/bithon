@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 
 
 /**
@@ -41,7 +41,7 @@ public class ObjectColumn extends AbstractColumn {
         return IDataType.OBJECT;
     }
 
-    public ResultColumn getResultColumn() {
-        return new ResultColumn(getName());
+    public SelectColumn getResultColumn() {
+        return new SelectColumn(getName());
     }
 }

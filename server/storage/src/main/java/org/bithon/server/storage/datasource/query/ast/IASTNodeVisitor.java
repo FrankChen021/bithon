@@ -22,11 +22,11 @@ package org.bithon.server.storage.datasource.query.ast;
  */
 public interface IASTNodeVisitor {
 
-    void before(SelectExpression selectExpression);
+    void before(QueryExpression queryExpression);
 
-    void visit(SelectExpression selectExpression);
+    void visit(QueryExpression queryExpression);
 
-    void after(SelectExpression selectExpression);
+    void after(QueryExpression queryExpression);
 
     void visit(OrderBy orderBy);
 
@@ -44,7 +44,7 @@ public interface IASTNodeVisitor {
 
     void visit(StringNode stringNode);
 
-    void visit(int index, int count, ResultColumn resultColumn);
+    void visit(int index, int count, SelectColumn selectColumn);
 
     void visit(Column column);
 

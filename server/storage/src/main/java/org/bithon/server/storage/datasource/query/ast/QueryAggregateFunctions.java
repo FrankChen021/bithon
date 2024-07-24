@@ -27,18 +27,18 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 1/11/21 2:37 pm
  */
 
-public class SimpleAggregateExpressions {
+public class QueryAggregateFunctions {
 
-    public static SimpleAggregateExpression create(String type, String field) {
+    public static Function create(String type, String field) {
         String json = StringUtils.format("{\"type\": \"%s\", \"field\": \"%s\"}", type, field);
         try {
-            return new ObjectMapper().readValue(json, SimpleAggregateExpression.class);
+            return new ObjectMapper().readValue(json, QueryAggregateFunction.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static class CardinalityAggregateExpression extends SimpleAggregateExpression {
+    public static class CardinalityAggregateExpression extends QueryAggregateFunction {
         public static final String TYPE = "cardinality";
 
         @JsonCreator
@@ -47,12 +47,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class SumAggregateExpression extends SimpleAggregateExpression {
+    public static class SumAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "sum";
 
@@ -62,12 +62,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class CountAggregateExpression extends SimpleAggregateExpression {
+    public static class CountAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "count";
 
@@ -77,12 +77,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class AvgAggregateExpression extends SimpleAggregateExpression {
+    public static class AvgAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "avg";
 
@@ -92,12 +92,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class MaxAggregateExpression extends SimpleAggregateExpression {
+    public static class MaxAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "max";
 
@@ -107,12 +107,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class MinAggregateExpression extends SimpleAggregateExpression {
+    public static class MinAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "min";
 
@@ -122,12 +122,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class FirstAggregateExpression extends SimpleAggregateExpression {
+    public static class FirstAggregateExpression extends QueryAggregateFunction {
         public static final String TYPE = "first";
 
         @JsonCreator
@@ -136,12 +136,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class LastAggregateExpression extends SimpleAggregateExpression {
+    public static class LastAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "last";
 
@@ -151,12 +151,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class RateAggregateExpression extends SimpleAggregateExpression {
+    public static class RateAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "rate";
 
@@ -166,12 +166,12 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class GroupConcatAggregateExpression extends SimpleAggregateExpression {
+    public static class GroupConcatAggregateExpression extends QueryAggregateFunction {
 
         public static final String TYPE = "groupConcat";
 
@@ -181,7 +181,7 @@ public class SimpleAggregateExpressions {
         }
 
         @Override
-        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }

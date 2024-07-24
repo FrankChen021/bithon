@@ -27,8 +27,8 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
@@ -57,29 +57,29 @@ public class QueryBuilder {
         }
 
         // Turn into internal objects (post aggregators...)
-        List<ResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
+        List<SelectColumn> selectColumnList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
 
-                resultColumnList.add(new ResultColumn(new Expression(field.getExpression()), field.getName()));
+                selectColumnList.add(new SelectColumn(new Expression(field.getExpression()), field.getName()));
 
                 continue;
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(
+                org.bithon.server.storage.datasource.query.ast.Function function = QueryAggregateFunctions.create(
                     field.getAggregator(),
                     field.getField() == null ? field.getName() : field.getField());
-                resultColumnList.add(new ResultColumn(function, field.getName()));
+                selectColumnList.add(new SelectColumn(function, field.getName()));
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
 
-                ResultColumn resultColumn = columnSpec.getResultColumn();
+                SelectColumn selectColumn = columnSpec.getResultColumn();
                 if (columnSpec.getAlias().equals(field.getName())) {
-                    resultColumn = resultColumn.withAlias(field.getName());
+                    selectColumn = selectColumn.withAlias(field.getName());
                 }
-                resultColumnList.add(resultColumn);
+                selectColumnList.add(selectColumn);
 
                 if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
                     groupBy.add(field.getName());
@@ -110,7 +110,7 @@ public class QueryBuilder {
         }
 
         return builder.groupBy(new ArrayList<>(groupBy))
-                      .resultColumns(resultColumnList)
+                      .selectColumns(selectColumnList)
                       .schema(schema)
                       .filter(QueryFilter.build(schema, query.getFilterExpression()))
                       .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))

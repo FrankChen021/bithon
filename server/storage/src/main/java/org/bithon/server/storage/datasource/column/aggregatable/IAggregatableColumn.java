@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.column.aggregatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
  */
 public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
-    default ResultColumn getResultColumn() {
-        return new ResultColumn(getAggregateExpression(), getName());
+    default SelectColumn getResultColumn() {
+        return new SelectColumn(getAggregateExpression(), getName());
     }
 }

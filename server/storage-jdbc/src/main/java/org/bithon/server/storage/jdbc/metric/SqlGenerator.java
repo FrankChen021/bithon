@@ -25,8 +25,8 @@ import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectExpression;
+import org.bithon.server.storage.datasource.query.ast.QueryExpression;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
@@ -51,7 +51,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void before(SelectExpression selectExpression) {
+    public void before(QueryExpression queryExpression) {
         if (nestedSelect++ > 0) {
             sql.append("( ");
         }
@@ -59,12 +59,12 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(SelectExpression select) {
+    public void visit(QueryExpression select) {
         select.accept(this);
     }
 
     @Override
-    public void after(SelectExpression selectExpression) {
+    public void after(QueryExpression queryExpression) {
         if (--nestedSelect > 0) {
             sql.append(") ");
         }
@@ -114,9 +114,9 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(int index, int count, ResultColumn resultColumn) {
+    public void visit(int index, int count, SelectColumn selectColumn) {
 
-        resultColumn.accept(this);
+        selectColumn.accept(this);
 
         if (index < count - 1) {
             sql.append(',');

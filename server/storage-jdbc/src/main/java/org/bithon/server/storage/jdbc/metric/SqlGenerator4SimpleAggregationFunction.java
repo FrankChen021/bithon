@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.ISimpleAggregateFunctionVisitor;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.IQueryAggregateFunctionVisitor;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -26,7 +26,7 @@ import org.bithon.server.storage.metrics.Interval;
  * @author Frank Chen
  * @date 1/11/21 3:11 pm
  */
-public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateFunctionVisitor<String> {
+public class SqlGenerator4SimpleAggregationFunction implements IQueryAggregateFunctionVisitor<String> {
 
     private final ISqlDialect sqlDialect;
 
@@ -59,53 +59,53 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.CardinalityAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.CardinalityAggregateExpression aggregator) {
         return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.SumAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.SumAggregateExpression aggregator) {
         return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.GroupConcatAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.GroupConcatAggregateExpression aggregator) {
         // No need to pass hasAlias because this type of field can't be on an expression as of now
         return sqlDialect.stringAggregator(aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.CountAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.CountAggregateExpression aggregator) {
         return "count(1)";
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.AvgAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.AvgAggregateExpression aggregator) {
         return StringUtils.format("avg(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.FirstAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.FirstAggregateExpression aggregator) {
         throw new RuntimeException("first agg not supported now");
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.LastAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.LastAggregateExpression aggregator) {
         return sqlDialect.lastAggregator(aggregator.getTargetColumn(), windowFunctionLength);
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.RateAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.RateAggregateExpression aggregator) {
         return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()), step);
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.MaxAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.MaxAggregateExpression aggregator) {
         return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(SimpleAggregateExpressions.MinAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunctions.MinAggregateExpression aggregator) {
         return StringUtils.format("min(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 }

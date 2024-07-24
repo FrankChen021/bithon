@@ -23,8 +23,8 @@ import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
@@ -57,7 +57,7 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
-        List<String> metrics = query.getResultColumns()
+        List<String> metrics = query.getSelectColumns()
                                     .stream()
                                     .filter((resultColumn) -> {
                                         if (resultColumn.getColumnExpression() instanceof Expression) {
@@ -67,8 +67,8 @@ public class DataSourceService {
                                         }
 
                                         String fieldName;
-                                        if (resultColumn.getColumnExpression() instanceof SimpleAggregateExpression) {
-                                            Column field = (Column) ((SimpleAggregateExpression) resultColumn.getColumnExpression()).getArguments().get(0);
+                                        if (resultColumn.getColumnExpression() instanceof QueryAggregateFunction) {
+                                            Column field = (Column) ((QueryAggregateFunction) resultColumn.getColumnExpression()).getArguments().get(0);
                                             fieldName = field.getName();
                                         } else {
                                             fieldName = resultColumn.getResultColumnName();
@@ -76,7 +76,7 @@ public class DataSourceService {
                                         IColumn column = query.getSchema().getColumnByName(fieldName);
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((ResultColumn::getResultColumnName))
+                                    .map((SelectColumn::getResultColumnName))
                                     .collect(Collectors.toList());
 
         try (IDataSourceReader reader = query.getSchema()

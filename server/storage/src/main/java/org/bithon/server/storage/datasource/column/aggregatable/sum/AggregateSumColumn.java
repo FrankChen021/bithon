@@ -19,8 +19,8 @@ package org.bithon.server.storage.datasource.column.aggregatable.sum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,18 +35,18 @@ public abstract class AggregateSumColumn implements IAggregatableColumn {
     private final String alias;
 
 
-    protected final SimpleAggregateExpression aggregateExpression;
+    protected final QueryAggregateFunction aggregateExpression;
 
     public AggregateSumColumn(String name,
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new SimpleAggregateExpressions.SumAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunctions.SumAggregateExpression(name);
     }
 
     @JsonIgnore
     @Override
-    public SimpleAggregateExpression getAggregateExpression() {
+    public QueryAggregateFunction getAggregateExpression() {
         return aggregateExpression;
     }
 

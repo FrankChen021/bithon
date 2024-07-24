@@ -29,9 +29,9 @@ import lombok.Getter;
  * @date 2022/9/4 14:55
  */
 @Data
-public class SelectExpression implements IASTNode {
+public class QueryExpression implements IASTNode {
     @Getter
-    private final ResultColumnList resultColumnList = new ResultColumnList();
+    private final SelectColumnList selectColumnList = new SelectColumnList();
 
     private final From from = new From();
     private Where where;
@@ -43,7 +43,7 @@ public class SelectExpression implements IASTNode {
     public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
         {
-            resultColumnList.accept(visitor);
+            selectColumnList.accept(visitor);
             from.accept(visitor);
             if (where != null) {
                 where.accept(visitor);
