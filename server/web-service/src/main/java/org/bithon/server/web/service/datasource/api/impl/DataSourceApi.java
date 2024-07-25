@@ -310,7 +310,7 @@ public class DataSourceApi implements IDataSourceApi {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectColumns(Collections.singletonList(column.getResultColumn()))
+                               .selectColumns(Collections.singletonList(column.toSelectColumn()))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 

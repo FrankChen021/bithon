@@ -59,24 +59,24 @@ public class DataSourceService {
         // Remove any dimensions
         List<String> metrics = query.getSelectColumns()
                                     .stream()
-                                    .filter((resultColumn) -> {
-                                        if (resultColumn.getColumnExpression() instanceof Expression) {
+                                    .filter((selectColumn) -> {
+                                        if (selectColumn.getSelectExpression() instanceof Expression) {
                                             // Support the metrics defined directly at the client side.
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;
                                         }
 
                                         String fieldName;
-                                        if (resultColumn.getColumnExpression() instanceof QueryAggregateFunction) {
-                                            Column field = (Column) ((QueryAggregateFunction) resultColumn.getColumnExpression()).getArguments().get(0);
+                                        if (selectColumn.getSelectExpression() instanceof QueryAggregateFunction) {
+                                            Column field = (Column) ((QueryAggregateFunction) selectColumn.getSelectExpression()).getArguments().get(0);
                                             fieldName = field.getName();
                                         } else {
-                                            fieldName = resultColumn.getResultColumnName();
+                                            fieldName = selectColumn.getOutputName();
                                         }
                                         IColumn column = query.getSchema().getColumnByName(fieldName);
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((SelectColumn::getResultColumnName))
+                                    .map((SelectColumn::getOutputName))
                                     .collect(Collectors.toList());
 
         try (IDataSourceReader reader = query.getSchema()

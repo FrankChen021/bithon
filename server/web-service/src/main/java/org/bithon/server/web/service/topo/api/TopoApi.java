@@ -82,7 +82,7 @@ public class TopoApi {
                                                           "minResponseTime")
                                                       .map((column) -> {
                                                           IColumn spec = topoSchema.getColumnByName(column);
-                                                          return spec.getResultColumn();
+                                                          return spec.toSelectColumn();
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
@@ -134,7 +134,7 @@ public class TopoApi {
                                                               "minResponseTime")
                                                           .map((column) -> {
                                                               IColumn spec = topoSchema.getColumnByName(column);
-                                                              return spec.getResultColumn();
+                                                              return spec.toSelectColumn();
                                                           })
                                                           .collect(Collectors.toList()))
                                      .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),

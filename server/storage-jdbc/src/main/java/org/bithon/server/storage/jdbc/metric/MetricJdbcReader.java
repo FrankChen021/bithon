@@ -161,13 +161,13 @@ public class MetricJdbcReader implements IDataSourceReader {
             query.getSelectColumns()
                  .stream()
                  .map(field -> {
-                     String expr = field.getColumnExpression().toString();
-                     String alias = field.getResultColumnName();
+                     String expr = field.getSelectExpression().toString();
+                     String alias = field.getOutputName();
 
                      return expr.equals(alias) ?
-                         StringUtils.format("\"%s\"", field.getColumnExpression())
+                         StringUtils.format("\"%s\"", field.getSelectExpression())
                          :
-                         StringUtils.format("\"%s\" AS \"%s\"", field.getColumnExpression(), field.getResultColumnName());
+                         StringUtils.format("\"%s\" AS \"%s\"", field.getSelectExpression(), field.getOutputName());
                  })
                  .collect(Collectors.joining(",")),
             sqlTableName,
@@ -243,7 +243,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<String> distinct(Query query) {
         String filterText = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
-        String dimension = query.getSelectColumns().get(0).getResultColumnName();
+        String dimension = query.getSelectColumns().get(0).getOutputName();
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",

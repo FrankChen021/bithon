@@ -30,7 +30,6 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
 import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 
 /**
@@ -82,13 +81,8 @@ public interface IColumn extends IIdentifier {
     }
 
     @JsonIgnore
-    default QueryAggregateFunction getAggregateExpression() {
-        throw new UnsupportedOperationException(StringUtils.format("getAggregateExpression is not supported on type of " + this.getClass().getSimpleName()));
-    }
-
-    @JsonIgnore
     IDataType getDataType();
 
     @JsonIgnore
-    SelectColumn getResultColumn();
+    SelectColumn toSelectColumn();
 }

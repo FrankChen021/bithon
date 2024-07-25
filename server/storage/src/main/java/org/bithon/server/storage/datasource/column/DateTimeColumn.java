@@ -41,7 +41,7 @@ public class DateTimeColumn extends AbstractColumn {
     }
 
     @Override
-    public SelectColumn getResultColumn() {
+    public SelectColumn toSelectColumn() {
         return new SelectColumn(getName());
     }
 }

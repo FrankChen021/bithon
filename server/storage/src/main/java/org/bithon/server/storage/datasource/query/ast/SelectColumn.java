@@ -38,7 +38,7 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 @Getter
 public class SelectColumn implements IASTNode {
-    private final IASTNode columnExpression;
+    private final IASTNode selectExpression;
     private final ColumnAlias alias;
 
     public SelectColumn(String name) {
@@ -53,12 +53,12 @@ public class SelectColumn implements IASTNode {
         this(selectExpression, (String) null);
     }
 
-    public SelectColumn(IASTNode columnExpression, String alias) {
-        this(columnExpression, alias == null ? null : new ColumnAlias(alias));
+    public SelectColumn(IASTNode selectExpression, String alias) {
+        this(selectExpression, alias == null ? null : new ColumnAlias(alias));
     }
 
-    public SelectColumn(IASTNode columnExpression, ColumnAlias alias) {
-        this.columnExpression = columnExpression;
+    public SelectColumn(IASTNode selectExpression, ColumnAlias alias) {
+        this.selectExpression = selectExpression;
         this.alias = alias;
     }
 
@@ -66,22 +66,22 @@ public class SelectColumn implements IASTNode {
         if (this.alias != null && this.alias.getName().equals(alias)) {
             return this;
         }
-        return new SelectColumn(this.columnExpression, alias);
+        return new SelectColumn(this.selectExpression, alias);
     }
 
-    public String getResultColumnName() {
+    public String getOutputName() {
         if (alias != null) {
             return alias.getName();
         }
-        if (columnExpression instanceof Column) {
-            return ((Column) columnExpression).getName();
+        if (selectExpression instanceof Column) {
+            return ((Column) selectExpression).getName();
         }
-        throw new RuntimeException(StringUtils.format("no result name for result column [%s]", columnExpression));
+        throw new RuntimeException(StringUtils.format("no result name for result column [%s]", selectExpression));
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        columnExpression.accept(visitor);
+        selectExpression.accept(visitor);
         if (alias != null) {
             alias.accept(visitor);
         }

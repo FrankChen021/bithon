@@ -42,7 +42,7 @@ public class StringColumn extends AbstractColumn {
     }
 
     @Override
-    public SelectColumn getResultColumn() {
+    public SelectColumn toSelectColumn() {
         return new SelectColumn(getName());
     }
 }

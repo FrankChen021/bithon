@@ -269,8 +269,8 @@ public class SelectExpressionBuilder {
         // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.selectColumns.stream()
-                                                         .filter((f) -> f.getColumnExpression() instanceof QueryAggregateFunction)
-                                                         .map(resultColumn -> ((QueryAggregateFunction) resultColumn.getColumnExpression()).getTargetColumn())
+                                                         .filter((f) -> f.getSelectExpression() instanceof QueryAggregateFunction)
+                                                         .map(resultColumn -> ((QueryAggregateFunction) resultColumn.getSelectExpression()).getTargetColumn())
                                                          .collect(Collectors.toSet());
 
         QueryExpression queryExpression = new QueryExpression();
@@ -294,7 +294,7 @@ public class SelectExpressionBuilder {
                                                                                              StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName"))));
 
         for (SelectColumn selectColumn : this.selectColumns) {
-            IASTNode columnExpression = selectColumn.getColumnExpression();
+            IASTNode columnExpression = selectColumn.getSelectExpression();
             if (columnExpression instanceof QueryAggregateFunction) {
                 QueryAggregateFunction function = (QueryAggregateFunction) columnExpression;
 
@@ -330,8 +330,8 @@ public class SelectExpressionBuilder {
         // Make sure all referenced metrics in field expression are in the sub-query
         FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.schema, aggregatedFields, this.sqlDialect);
         this.selectColumns.stream()
-                          .filter((f) -> f.getColumnExpression() instanceof Expression)
-                          .forEach((f) -> ((Expression) f.getColumnExpression()).getParsedExpression(schema).accept(fieldExpressionAnalyzer));
+                          .filter((f) -> f.getSelectExpression() instanceof Expression)
+                          .forEach((f) -> ((Expression) f.getSelectExpression()).getParsedExpression(schema).accept(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subQueryExpression.getSelectColumnList().add(metric);
         }

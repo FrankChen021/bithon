@@ -92,7 +92,7 @@ public class SelectColumnList implements IASTNode {
 
     public <C> C getColumnNames(Collector<String, ?, C> collector) {
         return columns.stream()
-                      .map(SelectColumn::getResultColumnName)
+                      .map(SelectColumn::getOutputName)
                       .collect(collector);
     }
 
