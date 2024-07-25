@@ -27,7 +27,7 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
 import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
@@ -67,7 +67,7 @@ public class QueryBuilder {
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = QueryAggregateFunctions.create(
+                org.bithon.server.storage.datasource.query.ast.Function function = QueryAggregateFunction.create(
                     field.getAggregator(),
                     field.getField() == null ? field.getName() : field.getField());
                 selectColumnList.add(new SelectColumn(function, field.getName()));

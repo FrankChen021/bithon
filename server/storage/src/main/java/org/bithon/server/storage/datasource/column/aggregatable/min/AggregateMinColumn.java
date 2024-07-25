@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,7 +44,7 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
-        this.aggregateExpression = new QueryAggregateFunctions.MinAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunction.MinAggregateExpression(name);
     }
 
     @JsonIgnore

@@ -21,23 +21,23 @@ package org.bithon.server.storage.datasource.query.ast;
  * @date 1/11/21 3:12 pm
  */
 public interface IQueryAggregateFunctionVisitor<T> {
-    T visit(QueryAggregateFunctions.CardinalityAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.CardinalityAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.CountAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.CountAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.AvgAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.AvgAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.FirstAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.FirstAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.LastAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.LastAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.RateAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.RateAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.MaxAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.MaxAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.MinAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.MinAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.SumAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.SumAggregateExpression aggregator);
 
-    T visit(QueryAggregateFunctions.GroupConcatAggregateExpression aggregator);
+    T visit(QueryAggregateFunction.GroupConcatAggregateExpression aggregator);
 }

@@ -27,7 +27,7 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
@@ -85,8 +85,8 @@ public class H2SqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return QueryAggregateFunctions.FirstAggregateExpression.TYPE.equals(aggregator)
-               || QueryAggregateFunctions.LastAggregateExpression.TYPE.equals(aggregator);
+        return QueryAggregateFunction.FirstAggregateExpression.TYPE.equals(aggregator)
+               || QueryAggregateFunction.LastAggregateExpression.TYPE.equals(aggregator);
     }
 
     @Override

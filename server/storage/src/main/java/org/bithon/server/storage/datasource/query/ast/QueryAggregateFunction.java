@@ -16,8 +16,12 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 
 
@@ -29,16 +33,16 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.CardinalityAggregateExpression.TYPE, value = QueryAggregateFunctions.CardinalityAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.SumAggregateExpression.TYPE, value = QueryAggregateFunctions.SumAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.CountAggregateExpression.TYPE, value = QueryAggregateFunctions.CountAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.AvgAggregateExpression.TYPE, value = QueryAggregateFunctions.AvgAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.MinAggregateExpression.TYPE, value = QueryAggregateFunctions.MinAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.MaxAggregateExpression.TYPE, value = QueryAggregateFunctions.MaxAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.FirstAggregateExpression.TYPE, value = QueryAggregateFunctions.FirstAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.LastAggregateExpression.TYPE, value = QueryAggregateFunctions.LastAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.RateAggregateExpression.TYPE, value = QueryAggregateFunctions.RateAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunctions.GroupConcatAggregateExpression.TYPE, value = QueryAggregateFunctions.GroupConcatAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.CardinalityAggregateExpression.TYPE, value = QueryAggregateFunction.CardinalityAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.SumAggregateExpression.TYPE, value = QueryAggregateFunction.SumAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.CountAggregateExpression.TYPE, value = QueryAggregateFunction.CountAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.AvgAggregateExpression.TYPE, value = QueryAggregateFunction.AvgAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.MinAggregateExpression.TYPE, value = QueryAggregateFunction.MinAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.MaxAggregateExpression.TYPE, value = QueryAggregateFunction.MaxAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.FirstAggregateExpression.TYPE, value = QueryAggregateFunction.FirstAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.LastAggregateExpression.TYPE, value = QueryAggregateFunction.LastAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.RateAggregateExpression.TYPE, value = QueryAggregateFunction.RateAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.GroupConcatAggregateExpression.TYPE, value = QueryAggregateFunction.GroupConcatAggregateExpression.class),
 })
 public abstract class QueryAggregateFunction extends Function {
     public QueryAggregateFunction(String fnName, String field) {
@@ -58,5 +62,163 @@ public abstract class QueryAggregateFunction extends Function {
     @Override
     public String toString() {
         return StringUtils.format("%s(%s)", this.getFnName(), getTargetColumn());
+    }
+
+
+    public static Function create(String type, String field) {
+        String json = StringUtils.format("{\"type\": \"%s\", \"field\": \"%s\"}", type, field);
+        try {
+            return new ObjectMapper().readValue(json, QueryAggregateFunction.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class CardinalityAggregateExpression extends QueryAggregateFunction {
+        public static final String TYPE = "cardinality";
+
+        @JsonCreator
+        public CardinalityAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class SumAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "sum";
+
+        @JsonCreator
+        public SumAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class CountAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "count";
+
+        @JsonCreator
+        public CountAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class AvgAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "avg";
+
+        @JsonCreator
+        public AvgAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class MaxAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "max";
+
+        @JsonCreator
+        public MaxAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class MinAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "min";
+
+        @JsonCreator
+        public MinAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class FirstAggregateExpression extends QueryAggregateFunction {
+        public static final String TYPE = "first";
+
+        @JsonCreator
+        public FirstAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class LastAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "last";
+
+        @JsonCreator
+        public LastAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class RateAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "rate";
+
+        @JsonCreator
+        public RateAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class GroupConcatAggregateExpression extends QueryAggregateFunction {
+
+        public static final String TYPE = "groupConcat";
+
+        @JsonCreator
+        public GroupConcatAggregateExpression(@JsonProperty("field") String field) {
+            super(TYPE, field);
+        }
+
+        @Override
+        public <T> T accept(IQueryAggregateFunctionVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
     }
 }

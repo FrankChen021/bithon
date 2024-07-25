@@ -23,7 +23,6 @@ import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunctions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,7 +43,7 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
                                String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new QueryAggregateFunctions.LastAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunction.LastAggregateExpression(name);
     }
 
     @Override
