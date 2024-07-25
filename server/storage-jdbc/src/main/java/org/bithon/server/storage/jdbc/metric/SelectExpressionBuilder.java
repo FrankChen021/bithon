@@ -28,12 +28,11 @@ import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableCol
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
@@ -145,16 +144,15 @@ public class SelectExpressionBuilder {
 
         @Override
         public void visitField(IColumn columnSpec) {
-            if (!(columnSpec instanceof IAggregatableColumn)) {
+            if (!(columnSpec instanceof IAggregatableColumn metricSpec)) {
                 throw new RuntimeException(StringUtils.format("field [%s] is not a metric", columnSpec.getName()));
             }
 
-            IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
             if (aggregatedColumn.contains(metricSpec.getName())) {
                 return;
             }
 
-            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName())) {
+            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getExpression().getName())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
                 aggregatedColumn.add(metricSpec.getName());
@@ -202,7 +200,7 @@ public class SelectExpressionBuilder {
                     IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
-                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName());
+                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getExpression().getName());
 
                     // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
                     boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && aggregatedFields.contains(metricSpec.getName());
@@ -211,7 +209,7 @@ public class SelectExpressionBuilder {
                         sb.append(sqlDialect.quoteIdentifier(metricSpec.getName()));
                     } else {
                         // generate a aggregation expression
-                        sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
+                        sb.append(sqlGenerator4SimpleAggregationFunction.generate(metricSpec.getAggregateExpression()));
                     }
 
                     return true;
@@ -269,8 +267,8 @@ public class SelectExpressionBuilder {
         // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.selectColumns.stream()
-                                                         .filter((f) -> f.getSelectExpression() instanceof QueryAggregateFunction)
-                                                         .map(resultColumn -> ((QueryAggregateFunction) resultColumn.getSelectExpression()).getTargetColumn())
+                                                         .filter((f) -> f.getSelectExpression() instanceof Function)
+                                                         .map(selectColumn -> ((Function) selectColumn.getSelectExpression()).getField())
                                                          .collect(Collectors.toSet());
 
         QueryExpression queryExpression = new QueryExpression();
@@ -295,26 +293,25 @@ public class SelectExpressionBuilder {
 
         for (SelectColumn selectColumn : this.selectColumns) {
             IASTNode columnExpression = selectColumn.getSelectExpression();
-            if (columnExpression instanceof QueryAggregateFunction) {
-                QueryAggregateFunction function = (QueryAggregateFunction) columnExpression;
+            if (columnExpression instanceof Function function) {
 
                 // if window function is contained, the final SQL has a sub-query
-                if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
-                    subQueryExpression.getSelectColumnList().add(new StringNode(function.accept(generator)), selectColumn.getAlias());
+                if (sqlDialect.useWindowFunctionAsAggregator(function.getExpression().getName())) {
+                    subQueryExpression.getSelectColumnList().add(new StringNode(generator.generate(function)), selectColumn.getAlias());
 
                     // this window fields should be in the group-by clause and select clause,
-                    // see the javadoc above
+                    // see the Javadoc above
                     // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
                     queryExpression.getGroupBy().addField(selectColumn.getAlias().getName());
                     queryExpression.getSelectColumnList().add(selectColumn.getAlias().getName());
 
                     hasSubSelect = true;
                 } else {
-                    queryExpression.getSelectColumnList().add(new StringNode(function.accept(generator)), selectColumn.getAlias());
+                    queryExpression.getSelectColumnList().add(new StringNode(generator.generate(function)), selectColumn.getAlias());
 
-                    String underlyingFieldName = ((Name) function.getArguments().get(0)).getName();
+                    String underlyingFieldName = function.getField();
 
-                    // This metric should also be in the sub-query, see the example in the javadoc above
+                    // This metric should also be in the sub-query, see the example in the Javadoc above
                     subQueryExpression.getSelectColumnList().add(underlyingFieldName);
                 }
             } else if (columnExpression instanceof Expression) {
@@ -337,10 +334,10 @@ public class SelectExpressionBuilder {
         }
         for (IAggregatableColumn aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subQueryExpression.getSelectColumnList()
-                              .add(new StringNode(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
+                              .add(new StringNode(generator.generate(aggregator.getAggregateExpression())), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
-            // see the javadoc above
+            // see the Javadoc above
             // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
             queryExpression.getGroupBy().addField(aggregator.getName());
         }

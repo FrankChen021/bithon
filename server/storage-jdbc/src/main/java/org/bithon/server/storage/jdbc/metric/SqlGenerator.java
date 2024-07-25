@@ -99,7 +99,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void before(Function function) {
-        sql.append(function.getFnName());
+        sql.append(function.getExpression().getName());
         sql.append('(');
     }
 

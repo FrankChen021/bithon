@@ -38,8 +38,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Min extends AggregateFunction {
+        public static final String NAME = "min";
+
         public Min() {
-            super("min");
+            super(NAME);
         }
 
         @Override
@@ -55,8 +57,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Max extends AggregateFunction {
+        public static final String NAME = "max";
+
         public Max() {
-            super("max");
+            super(NAME);
         }
 
         @Override
@@ -72,8 +76,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Sum extends AggregateFunction {
+        public static final String NAME = "sum";
+
         public Sum() {
-            super("sum");
+            super(NAME);
         }
 
         @Override
@@ -87,4 +93,80 @@ public abstract class AggregateFunction extends AbstractFunction {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
+
+    public static class Count extends AggregateFunction {
+        public static final String NAME = "count";
+
+        public Count() {
+            super(NAME);
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+            Validator.validateType(parameters.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+    public static class Avg extends AggregateFunction {
+        public Avg() {
+            super("avg");
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+            Validator.validateType(parameters.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+    public static class First extends AggregateFunction {
+        public static final String NAME = "first";
+
+        public First() {
+            super(NAME);
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+            Validator.validateType(parameters.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+    public static class Last extends AggregateFunction {
+        public static final String NAME = "last";
+
+        public Last() {
+            super(NAME);
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+            Validator.validateType(parameters.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+
 }

@@ -24,10 +24,10 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.QueryAggregateFunction;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
@@ -85,8 +85,8 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return QueryAggregateFunction.First.TYPE.equals(aggregator)
-               || QueryAggregateFunction.Last.TYPE.equals(aggregator);
+        return AggregateFunction.First.NAME.equals(aggregator)
+               || AggregateFunction.Last.NAME.equals(aggregator);
     }
 
     @Override
