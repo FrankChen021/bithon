@@ -19,11 +19,11 @@ package org.bithon.server.storage.datasource.column.aggregatable.last;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,14 +37,14 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    protected final SimpleAggregateExpression aggregateExpression;
+    protected final Function aggregateExpression;
 
     @JsonCreator
     public AggregateLastColumn(String name,
                                String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new SimpleAggregateExpressions.LastAggregateExpression(name);
+        this.aggregateExpression = Function.create(AggregateFunction.Last.NAME, name);
     }
 
     @Override
@@ -54,7 +54,7 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
 
     @JsonIgnore
     @Override
-    public SimpleAggregateExpression getAggregateExpression() {
+    public Function getAggregateExpression() {
         return aggregateExpression;
     }
 

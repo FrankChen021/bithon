@@ -21,9 +21,9 @@ import org.bithon.component.commons.expression.function.builtin.NumberFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manage the definitions of all the supported functions.
@@ -39,7 +39,7 @@ public class Functions implements IFunctionProvider {
         return INSTANCE;
     }
 
-    private final Map<String, IFunction> functionMap = new HashMap<>(17);
+    private final Map<String, IFunction> functionMap = new ConcurrentHashMap<>(17);
 
     /**
      * <p>
@@ -67,9 +67,13 @@ public class Functions implements IFunctionProvider {
         register(new AggregateFunction.Min());
         register(new AggregateFunction.Max());
         register(new AggregateFunction.Sum());
+        register(new AggregateFunction.Count());
+        register(new AggregateFunction.Avg());
+        register(new AggregateFunction.First());
+        register(new AggregateFunction.Last());
     }
 
-    private void register(IFunction function) {
+    public void register(IFunction function) {
         functionMap.put(function.getName().toLowerCase(Locale.ENGLISH), function);
     }
 

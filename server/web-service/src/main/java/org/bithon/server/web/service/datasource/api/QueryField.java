@@ -24,6 +24,12 @@ import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
+ * legacy: processCpuLoad
+ * metricQL: last(processCpuLoad)
+ * json: {"name":"processCpuLoad","field":"processCpuLoad","aggregator":"last"}
+ * json: {"name":"processCpuLoad","field":"processCpuLoad","expression":"last(processCpuLoad)"}
+ *
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:40
  */

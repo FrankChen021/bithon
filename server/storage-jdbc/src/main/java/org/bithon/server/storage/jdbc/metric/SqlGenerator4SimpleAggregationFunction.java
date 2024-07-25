@@ -16,9 +16,10 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.ISimpleAggregateFunctionVisitor;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -26,7 +27,7 @@ import org.bithon.server.storage.metrics.Interval;
  * @author Frank Chen
  * @date 1/11/21 3:11 pm
  */
-public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateFunctionVisitor<String> {
+public class SqlGenerator4SimpleAggregationFunction {
 
     private final ISqlDialect sqlDialect;
 
@@ -58,54 +59,41 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
         }
     }
 
-    @Override
-    public String visit(SimpleAggregateExpressions.CardinalityAggregateExpression aggregator) {
-        return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
-    }
+    public String generate(Function function) {
+        IFunction underlyingFunction = function.getExpression().getFunction();
+        String field = function.getField();
+        if (underlyingFunction instanceof AggregateFunction.Sum) {
+            return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(field));
+        }
+        if (underlyingFunction instanceof Function.Cardinality) {
+            return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(field));
+        }
+        if (underlyingFunction instanceof Function.GroupConcat) {
+            // No need to pass hasAlias because this type of field can't be on an expression as of now
+            return sqlDialect.stringAggregator(field);
+        }
+        if (underlyingFunction instanceof AggregateFunction.Count) {
+            return "count(1)";
+        }
+        if (underlyingFunction instanceof AggregateFunction.Avg) {
+            return StringUtils.format("avg(%s)", sqlDialect.quoteIdentifier(field));
+        }
+        if (underlyingFunction instanceof AggregateFunction.First) {
+            throw new RuntimeException("first agg not supported now");
+        }
+        if (underlyingFunction instanceof AggregateFunction.Last) {
+            return sqlDialect.lastAggregator(field, windowFunctionLength);
+        }
+        if (underlyingFunction instanceof Function.Rate) {
+            return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(field), step);
+        }
+        if (underlyingFunction instanceof AggregateFunction.Max) {
+            return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(field));
+        }
+        if (underlyingFunction instanceof AggregateFunction.Min) {
+            return StringUtils.format("min(%s)", sqlDialect.quoteIdentifier(field));
+        }
 
-    @Override
-    public String visit(SimpleAggregateExpressions.SumAggregateExpression aggregator) {
-        return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.GroupConcatAggregateExpression aggregator) {
-        // No need to pass hasAlias because this type of field can't be on an expression as of now
-        return sqlDialect.stringAggregator(aggregator.getTargetColumn());
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.CountAggregateExpression aggregator) {
-        return "count(1)";
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.AvgAggregateExpression aggregator) {
-        return StringUtils.format("avg(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.FirstAggregateExpression aggregator) {
-        throw new RuntimeException("first agg not supported now");
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.LastAggregateExpression aggregator) {
-        return sqlDialect.lastAggregator(aggregator.getTargetColumn(), windowFunctionLength);
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.RateAggregateExpression aggregator) {
-        return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()), step);
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.MaxAggregateExpression aggregator) {
-        return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
-    }
-
-    @Override
-    public String visit(SimpleAggregateExpressions.MinAggregateExpression aggregator) {
-        return StringUtils.format("min(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
+        throw new RuntimeException("Not support function: " + underlyingFunction.getName());
     }
 }

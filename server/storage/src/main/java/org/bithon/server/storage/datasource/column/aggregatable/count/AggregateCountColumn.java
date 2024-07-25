@@ -23,10 +23,10 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.datasource.query.ast.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,7 +39,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
     @Getter
     private final String name;
 
-    private final SimpleAggregateExpression queryStageAggregator;
+    private final Function queryStageAggregator;
 
     @Getter
     private final String alias;
@@ -49,7 +49,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
                                 @JsonProperty("alias") @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.queryStageAggregator = new SimpleAggregateExpressions.CountAggregateExpression(name);
+        this.queryStageAggregator = Function.create(AggregateFunction.Count.NAME, name);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
 
     @JsonIgnore
     @Override
-    public SimpleAggregateExpression getAggregateExpression() {
+    public Function getAggregateExpression() {
         return queryStageAggregator;
     }
 

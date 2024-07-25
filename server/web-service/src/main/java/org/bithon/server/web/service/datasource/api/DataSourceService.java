@@ -21,10 +21,9 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.datasource.query.ast.Function;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
@@ -57,26 +56,25 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
-        List<String> metrics = query.getResultColumns()
+        List<String> metrics = query.getSelectColumns()
                                     .stream()
-                                    .filter((resultColumn) -> {
-                                        if (resultColumn.getColumnExpression() instanceof Expression) {
+                                    .filter((selectColumn) -> {
+                                        if (selectColumn.getSelectExpression() instanceof Expression) {
                                             // Support the metrics defined directly at the client side.
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;
                                         }
 
                                         String fieldName;
-                                        if (resultColumn.getColumnExpression() instanceof SimpleAggregateExpression) {
-                                            Column field = (Column) ((SimpleAggregateExpression) resultColumn.getColumnExpression()).getArguments().get(0);
-                                            fieldName = field.getName();
+                                        if (selectColumn.getSelectExpression() instanceof Function) {
+                                            fieldName = ((Function) selectColumn.getSelectExpression()).getField();
                                         } else {
-                                            fieldName = resultColumn.getResultColumnName();
+                                            fieldName = selectColumn.getOutputName();
                                         }
                                         IColumn column = query.getSchema().getColumnByName(fieldName);
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((ResultColumn::getResultColumnName))
+                                    .map((SelectColumn::getOutputName))
                                     .collect(Collectors.toList());
 
         try (IDataSourceReader reader = query.getSchema()

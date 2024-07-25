@@ -56,7 +56,7 @@ public class JdbcReader extends MetricJdbcReader {
         TimeSpan start = query.getInterval().getStartTime().floor(Duration.ofMinutes(1));
         TimeSpan end = query.getInterval().getEndTime().ceil(Duration.ofMinutes(1));
 
-        String dimension = query.getResultColumns().get(0).getResultColumnName();
+        String dimension = query.getSelectColumns().get(0).getOutputName();
         String condition = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
 
         String sql = StringUtils.format(

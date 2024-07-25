@@ -17,8 +17,15 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.utils.Preconditions;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,19 +34,86 @@ import java.util.List;
  */
 @Getter
 public class Function implements IASTNode {
-    private final String fnName;
-    private final List<IASTNode> arguments = new ArrayList<>();
 
-    public Function(String fnName) {
-        this.fnName = fnName;
+    static {
+        Functions.getInstance().register(new Cardinality());
+        Functions.getInstance().register(new Rate());
+        Functions.getInstance().register(new GroupConcat());
+    }
+
+    public static Function create(String type, String field) {
+        IFunction function = Functions.getInstance().getFunction(type);
+        Preconditions.checkNotNull(function, "Function [%s] not found.", type);
+
+        return new Function(new FunctionExpression(function,
+                                                   Collections.singletonList(new IdentifierExpression(field))),
+                            field);
+    }
+
+    private final FunctionExpression expression;
+    private final String field;
+
+    public Function(FunctionExpression expression, String field) {
+        this.expression = expression;
+        this.field = field;
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
-        for (IASTNode arg : arguments) {
-            arg.accept(visitor);
+        for (IExpression arg : this.expression.getParameters()) {
+            new Column(((IdentifierExpression)arg).getIdentifier()).accept(visitor);
         }
         visitor.after(this);
     }
+
+    public static class Cardinality extends AggregateFunction {
+        public Cardinality() {
+            super("cardinality");
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+
+    public static class Rate extends AggregateFunction {
+        public Rate() {
+            super("rate");
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
+    public static class GroupConcat extends AggregateFunction {
+        public GroupConcat() {
+            super("groupConcat");
+        }
+
+        @Override
+        public void validateParameter(List<IExpression> parameters) {
+            Validator.validateParameterSize(1, parameters.size());
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            throw new UnsupportedOperationException("Not implemented yet");
+        }
+    }
+
 }

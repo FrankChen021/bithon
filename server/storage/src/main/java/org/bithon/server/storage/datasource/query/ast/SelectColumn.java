@@ -21,56 +21,67 @@ import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword
+ * <p>
+ *     e.g.
+ * SELECT
+ *     column1, ---------------> SelectColumn(column1)
+ *     column2 AS alias2, -----> SelectColumn(column2, alias)
+ *     sum(column3), ----------> SelectColumn(AggregateFunction_SUM(column3))
+ *     avg(column4) AS alias4 -> SelectColumn(AggregateFunction_AVG(column4)), alias)
+ * FROM table
+ *
+ * MetricExpression ---> Query(object)
+ *   queryField ---> SelectColumn
  *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 16:11
  */
 @Getter
-public class ResultColumn implements IASTNode {
-    private final IASTNode columnExpression;
+public class SelectColumn implements IASTNode {
+    private final IASTNode selectExpression;
     private final ColumnAlias alias;
 
-    public ResultColumn(String name) {
+    public SelectColumn(String name) {
         this(new Column(name), (ColumnAlias) null);
     }
 
-    public ResultColumn(String name, String alias) {
+    public SelectColumn(String name, String alias) {
         this(new Column(name), alias == null ? null : new ColumnAlias(alias));
     }
 
-    ResultColumn(IASTNode columnExpression) {
-        this(columnExpression, (String) null);
+    SelectColumn(IASTNode selectExpression) {
+        this(selectExpression, (String) null);
     }
 
-    public ResultColumn(IASTNode columnExpression, String alias) {
-        this(columnExpression, alias == null ? null : new ColumnAlias(alias));
+    public SelectColumn(IASTNode selectExpression, String alias) {
+        this(selectExpression, alias == null ? null : new ColumnAlias(alias));
     }
 
-    public ResultColumn(IASTNode columnExpression, ColumnAlias alias) {
-        this.columnExpression = columnExpression;
+    public SelectColumn(IASTNode selectExpression, ColumnAlias alias) {
+        this.selectExpression = selectExpression;
         this.alias = alias;
     }
 
-    public ResultColumn withAlias(String alias) {
+    public SelectColumn withAlias(String alias) {
         if (this.alias != null && this.alias.getName().equals(alias)) {
             return this;
         }
-        return new ResultColumn(this.columnExpression, alias);
+        return new SelectColumn(this.selectExpression, alias);
     }
 
-    public String getResultColumnName() {
+    public String getOutputName() {
         if (alias != null) {
             return alias.getName();
         }
-        if (columnExpression instanceof Column) {
-            return ((Column) columnExpression).getName();
+        if (selectExpression instanceof Column) {
+            return ((Column) selectExpression).getName();
         }
-        throw new RuntimeException(StringUtils.format("no result name for result column [%s]", columnExpression));
+        throw new RuntimeException(StringUtils.format("no result name for result column [%s]", selectExpression));
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        columnExpression.accept(visitor);
+        selectExpression.accept(visitor);
         if (alias != null) {
             alias.accept(visitor);
         }

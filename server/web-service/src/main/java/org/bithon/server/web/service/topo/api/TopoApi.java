@@ -74,7 +74,7 @@ public class TopoApi {
 
         Query calleeQuery = Query.builder()
                                  .schema(topoSchema)
-                                 .resultColumns(Stream.of("dstEndpoint",
+                                 .selectColumns(Stream.of("dstEndpoint",
                                                           "dstEndpointType",
                                                           "callCount",
                                                           "avgResponseTime",
@@ -82,7 +82,7 @@ public class TopoApi {
                                                           "minResponseTime")
                                                       .map((column) -> {
                                                           IColumn spec = topoSchema.getColumnByName(column);
-                                                          return spec.getResultColumn();
+                                                          return spec.toSelectColumn();
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
@@ -126,7 +126,7 @@ public class TopoApi {
 
             Query callerQuery = Query.builder()
                                      .schema(topoSchema)
-                                     .resultColumns(Stream.of("srcEndpoint",
+                                     .selectColumns(Stream.of("srcEndpoint",
                                                               "srcEndpointType",
                                                               "callCount",
                                                               "avgResponseTime",
@@ -134,7 +134,7 @@ public class TopoApi {
                                                               "minResponseTime")
                                                           .map((column) -> {
                                                               IColumn spec = topoSchema.getColumnByName(column);
-                                                              return spec.getResultColumn();
+                                                              return spec.toSelectColumn();
                                                           })
                                                           .collect(Collectors.toList()))
                                      .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),

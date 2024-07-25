@@ -17,8 +17,10 @@
 package org.bithon.server.storage.datasource.column.aggregatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.Function;
+import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,7 +28,12 @@ import org.bithon.server.storage.datasource.query.ast.ResultColumn;
  */
 public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
-    default ResultColumn getResultColumn() {
-        return new ResultColumn(getAggregateExpression(), getName());
+    default SelectColumn toSelectColumn() {
+        return new SelectColumn(getAggregateExpression(), getName());
+    }
+
+    @JsonIgnore
+    default Function getAggregateExpression() {
+        throw new UnsupportedOperationException(StringUtils.format("getAggregateExpression is not supported on type of " + this.getClass().getSimpleName()));
     }
 }
