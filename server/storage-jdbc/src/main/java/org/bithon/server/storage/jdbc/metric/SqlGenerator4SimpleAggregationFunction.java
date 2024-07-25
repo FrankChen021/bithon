@@ -59,53 +59,53 @@ public class SqlGenerator4SimpleAggregationFunction implements IQueryAggregateFu
     }
 
     @Override
-    public String visit(QueryAggregateFunction.CardinalityAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Cardinality aggregator) {
         return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(QueryAggregateFunction.SumAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Sum aggregator) {
         return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(QueryAggregateFunction.GroupConcatAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.GroupConcat aggregator) {
         // No need to pass hasAlias because this type of field can't be on an expression as of now
         return sqlDialect.stringAggregator(aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(QueryAggregateFunction.CountAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Count aggregator) {
         return "count(1)";
     }
 
     @Override
-    public String visit(QueryAggregateFunction.AvgAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Avg aggregator) {
         return StringUtils.format("avg(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(QueryAggregateFunction.FirstAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.First aggregator) {
         throw new RuntimeException("first agg not supported now");
     }
 
     @Override
-    public String visit(QueryAggregateFunction.LastAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Last aggregator) {
         return sqlDialect.lastAggregator(aggregator.getTargetColumn(), windowFunctionLength);
     }
 
     @Override
-    public String visit(QueryAggregateFunction.RateAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Rate aggregator) {
         return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()), step);
     }
 
     @Override
-    public String visit(QueryAggregateFunction.MaxAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Max aggregator) {
         return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 
     @Override
-    public String visit(QueryAggregateFunction.MinAggregateExpression aggregator) {
+    public String visit(QueryAggregateFunction.Min aggregator) {
         return StringUtils.format("min(%s)", sqlDialect.quoteIdentifier(aggregator.getTargetColumn()));
     }
 }

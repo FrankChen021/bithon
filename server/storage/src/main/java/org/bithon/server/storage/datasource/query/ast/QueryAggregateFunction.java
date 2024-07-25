@@ -33,16 +33,16 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = QueryAggregateFunction.CardinalityAggregateExpression.TYPE, value = QueryAggregateFunction.CardinalityAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.SumAggregateExpression.TYPE, value = QueryAggregateFunction.SumAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.CountAggregateExpression.TYPE, value = QueryAggregateFunction.CountAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.AvgAggregateExpression.TYPE, value = QueryAggregateFunction.AvgAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.MinAggregateExpression.TYPE, value = QueryAggregateFunction.MinAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.MaxAggregateExpression.TYPE, value = QueryAggregateFunction.MaxAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.FirstAggregateExpression.TYPE, value = QueryAggregateFunction.FirstAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.LastAggregateExpression.TYPE, value = QueryAggregateFunction.LastAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.RateAggregateExpression.TYPE, value = QueryAggregateFunction.RateAggregateExpression.class),
-    @JsonSubTypes.Type(name = QueryAggregateFunction.GroupConcatAggregateExpression.TYPE, value = QueryAggregateFunction.GroupConcatAggregateExpression.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Cardinality.TYPE, value = QueryAggregateFunction.Cardinality.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Sum.TYPE, value = QueryAggregateFunction.Sum.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Count.TYPE, value = QueryAggregateFunction.Count.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Avg.TYPE, value = QueryAggregateFunction.Avg.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Min.TYPE, value = QueryAggregateFunction.Min.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Max.TYPE, value = QueryAggregateFunction.Max.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.First.TYPE, value = QueryAggregateFunction.First.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Last.TYPE, value = QueryAggregateFunction.Last.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.Rate.TYPE, value = QueryAggregateFunction.Rate.class),
+    @JsonSubTypes.Type(name = QueryAggregateFunction.GroupConcat.TYPE, value = QueryAggregateFunction.GroupConcat.class),
 })
 public abstract class QueryAggregateFunction extends Function {
     public QueryAggregateFunction(String fnName, String field) {
@@ -74,11 +74,11 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class CardinalityAggregateExpression extends QueryAggregateFunction {
+    public static class Cardinality extends QueryAggregateFunction {
         public static final String TYPE = "cardinality";
 
         @JsonCreator
-        public CardinalityAggregateExpression(@JsonProperty("field") String field) {
+        public Cardinality(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -88,12 +88,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class SumAggregateExpression extends QueryAggregateFunction {
+    public static class Sum extends QueryAggregateFunction {
 
         public static final String TYPE = "sum";
 
         @JsonCreator
-        public SumAggregateExpression(@JsonProperty("field") String field) {
+        public Sum(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -103,12 +103,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class CountAggregateExpression extends QueryAggregateFunction {
+    public static class Count extends QueryAggregateFunction {
 
         public static final String TYPE = "count";
 
         @JsonCreator
-        public CountAggregateExpression(@JsonProperty("field") String field) {
+        public Count(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -118,12 +118,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class AvgAggregateExpression extends QueryAggregateFunction {
+    public static class Avg extends QueryAggregateFunction {
 
         public static final String TYPE = "avg";
 
         @JsonCreator
-        public AvgAggregateExpression(@JsonProperty("field") String field) {
+        public Avg(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -133,12 +133,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class MaxAggregateExpression extends QueryAggregateFunction {
+    public static class Max extends QueryAggregateFunction {
 
         public static final String TYPE = "max";
 
         @JsonCreator
-        public MaxAggregateExpression(@JsonProperty("field") String field) {
+        public Max(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -148,12 +148,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class MinAggregateExpression extends QueryAggregateFunction {
+    public static class Min extends QueryAggregateFunction {
 
         public static final String TYPE = "min";
 
         @JsonCreator
-        public MinAggregateExpression(@JsonProperty("field") String field) {
+        public Min(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -163,11 +163,11 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class FirstAggregateExpression extends QueryAggregateFunction {
+    public static class First extends QueryAggregateFunction {
         public static final String TYPE = "first";
 
         @JsonCreator
-        public FirstAggregateExpression(@JsonProperty("field") String field) {
+        public First(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -177,12 +177,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class LastAggregateExpression extends QueryAggregateFunction {
+    public static class Last extends QueryAggregateFunction {
 
         public static final String TYPE = "last";
 
         @JsonCreator
-        public LastAggregateExpression(@JsonProperty("field") String field) {
+        public Last(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -192,12 +192,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class RateAggregateExpression extends QueryAggregateFunction {
+    public static class Rate extends QueryAggregateFunction {
 
         public static final String TYPE = "rate";
 
         @JsonCreator
-        public RateAggregateExpression(@JsonProperty("field") String field) {
+        public Rate(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -207,12 +207,12 @@ public abstract class QueryAggregateFunction extends Function {
         }
     }
 
-    public static class GroupConcatAggregateExpression extends QueryAggregateFunction {
+    public static class GroupConcat extends QueryAggregateFunction {
 
         public static final String TYPE = "groupConcat";
 
         @JsonCreator
-        public GroupConcatAggregateExpression(@JsonProperty("field") String field) {
+        public GroupConcat(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 

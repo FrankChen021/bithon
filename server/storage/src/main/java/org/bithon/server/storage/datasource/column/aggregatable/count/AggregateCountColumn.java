@@ -48,7 +48,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
                                 @JsonProperty("alias") @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.queryStageAggregator = new QueryAggregateFunction.CountAggregateExpression(name);
+        this.queryStageAggregator = new QueryAggregateFunction.Count(name);
     }
 
     @Override

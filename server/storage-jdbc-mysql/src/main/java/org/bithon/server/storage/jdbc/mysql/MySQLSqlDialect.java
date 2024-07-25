@@ -85,8 +85,8 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return QueryAggregateFunction.FirstAggregateExpression.TYPE.equals(aggregator)
-               || QueryAggregateFunction.LastAggregateExpression.TYPE.equals(aggregator);
+        return QueryAggregateFunction.First.TYPE.equals(aggregator)
+               || QueryAggregateFunction.Last.TYPE.equals(aggregator);
     }
 
     @Override

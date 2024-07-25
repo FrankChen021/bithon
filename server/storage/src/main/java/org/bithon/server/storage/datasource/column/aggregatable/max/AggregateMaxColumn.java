@@ -39,7 +39,7 @@ public abstract class AggregateMaxColumn implements IAggregatableColumn {
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new QueryAggregateFunction.MaxAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunction.Max(name);
     }
 
     @JsonIgnore

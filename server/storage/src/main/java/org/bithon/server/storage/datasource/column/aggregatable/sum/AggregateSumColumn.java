@@ -40,7 +40,7 @@ public abstract class AggregateSumColumn implements IAggregatableColumn {
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateExpression = new QueryAggregateFunction.SumAggregateExpression(name);
+        this.aggregateExpression = new QueryAggregateFunction.Sum(name);
     }
 
     @JsonIgnore
