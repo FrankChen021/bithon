@@ -68,7 +68,7 @@
           "instanceUpTime",
           {
             "name": "heapUsed",
-            "expression": "round(heapUsed * 100.0/heapMax, 2)"
+            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
           },
           "heapMax",
           "processCpuLoad"
@@ -123,7 +123,7 @@
           "errorCount",
           {
             "name": "errorRate",
-            "expression": "round(errorCount*100.0/totalCount, 2)"
+            "expression": "round(sum(errorCount)*100.0/sum(totalCount), 2)"
           },
           "avgResponseTime"
         ],
@@ -178,11 +178,11 @@
           "requestCount",
           {
             "name": "errorCount",
-            "expression": "count4xx + count5xx"
+            "expression": "sum(count4xx) + sum(count5xx)"
           },
           {
             "name": "errorRate",
-            "expression": "round((count4xx + count5xx)*100.0/requestCount, 2)"
+            "expression": "round((sum(count4xx) + sum(count5xx))*100.0/sum(requestCount), 2)"
           },
           "avgResponseTime"
         ],

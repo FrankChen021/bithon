@@ -75,12 +75,12 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "round(requestCount * 1.0 / {interval}, 2)"
+      "expression": "round(sum(requestCount) * 1.0 / {interval}, 2)"
     },
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "round(responseTime * 1.0 / requestCount, 2)",
+      "expression": "round(sum(responseTime) * 1.0 / sum(requestCount), 2)",
       "unit": "millisecond"
     }
   ],

@@ -209,7 +209,8 @@ public class SelectExpressionBuilder {
                         sb.append(sqlDialect.quoteIdentifier(metricSpec.getName()));
                     } else {
                         // generate a aggregation expression
-                        sb.append(sqlGenerator4SimpleAggregationFunction.generate(metricSpec.getAggregateExpression()));
+                        sb.append(sqlDialect.quoteIdentifier(field));
+                        //sb.append(sqlGenerator4SimpleAggregationFunction.generate(metricSpec.getAggregateExpression()));
                     }
 
                     return true;
@@ -233,32 +234,84 @@ public class SelectExpressionBuilder {
     }
 
     /**
-     * Example result SQL if window function is used for first/last aggregator
-     * <pre>
-     * SELECT
-     *   "timestamp" AS "_timestamp",
-     *   sum("totalTaskCount") AS "totalTaskCount",
-     *   queuedTaskCount
-     * FROM
-     *   (
-     *     SELECT
-     *       UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
-     *       FIRST_VALUE("queuedTaskCount") OVER (
-     *         partition by CAST(toUnixTimestamp("timestamp") / 10 AS Int64) * 10 ORDER BY "timestamp" DESC
-     *       ) AS "queuedTaskCount",
-     *       "totalTaskCount",
-     *     FROM
-     *       "bithon_thread_pool_metrics"
-     *     WHERE
-     *       "appName" = 'bithon-server-live'
-     *       AND "timestamp" >= fromUnixTimestamp(1666578760)
-     *       AND "timestamp" < fromUnixTimestamp(1666589560)
-     *   )
-     * GROUP BY
-     *   "_timestamp", queuedTaskCount
-     * ORDER BY
-     *   "_timestamp"
-     * </pre>
+     * TODO: Change the pipelines to represent the sub-queries
+     * <p>
+     * Example:
+     * Input:<pre><code>
+     *      round(sum(a)/sum(b), 2)
+     * </code></pre>
+     * Output:<pre><code>
+     *      SELECT round(a/b, 2)
+     *      FROM (
+     *          SELECT sum(a) AS a, sum(b) AS b
+     *      )
+     * </code></pre>
+     * Processing:
+     * <pre><code>
+     *      sum(a) a, sum(b) b ---> round(a/b, 2)
+     * </code></pre>
+     *
+     * 2. Example result SQL if window function is used for first/last aggregator
+     * Input:<pre><code>
+     *      (last(queuedTaskCount) + last(activeTaskCount)) / sum(totalTaskCount)
+     * </code></pre>
+     *
+     * Output:<pre><code>
+     * SELECT timestamp, (queuedTaskCount + activeTaskCount) / totalTaskCount
+     * FROM (
+     *      SELECT
+     *        "timestamp" AS "_timestamp",
+     *        sum("totalTaskCount") AS "totalTaskCount",
+     *        queuedTaskCount,
+     *        activeTaskCount,
+     *      FROM
+     *        (
+     *          SELECT
+     *            UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+     *
+     *            FIRST_VALUE("queuedTaskCount") OVER (
+     *              partition by CAST(toUnixTimestamp("timestamp") / 10 AS Int64) * 10 ORDER BY "timestamp" DESC
+     *            ) AS "queuedTaskCount",
+     *
+     *            "totalTaskCount",
+     *
+     *            FIRST_VALUE("activeTaskCount") OVER (
+     *               partition by CAST(toUnixTimestamp("timestamp") / 10 AS Int64) * 10 ORDER BY "timestamp" DESC
+     *            ) AS "activeTaskCount",
+     *          FROM
+     *            "bithon_thread_pool_metrics"
+     *          WHERE
+     *            "appName" = 'bithon-server-live'
+     *            AND "timestamp" >= fromUnixTimestamp(1666578760)
+     *            AND "timestamp" < fromUnixTimestamp(1666589560)
+     *        )
+     *      GROUP BY
+     *        "_timestamp", queuedTaskCount
+     *      ORDER BY
+     *        "_timestamp"
+     * )
+     * </code></pre>
+     *
+     * <p>
+     * Processing:<pre><code>
+     *     last(activeTaskCount)
+     * when visiting the function 'last(activeTaskCount)',
+     *  step 1: insert into step to the pipeline at first index
+     *  step 2: insert window expression of activeTaskCount to the first step in the pipeline
+     *  step 3: insert 'activeTaskCount' to the select list of the 2nd step in the pipeline
+     *  step 4: return Identifier expression so that we process it in next phase
+     *
+     * and when visiting the function expression 'last(queuedTaskCount)'
+     *  step 1: insert into step to the pipeline at first index if the first step is not a window expression
+     *  repeat step 2 - 4 above since 'last' is a window function
+     *
+     * and when visiting the function expression 'sum(totalTaskCount)'
+     *  step 1: insert into identifier expression totalTaskCount to the first step in the pipeline since the first step is a window function
+     *  step 2: insert into aggregation expression sum(totalTaskCount) to the 2nd step in the pipeline
+     *  step 3: return Identifier expression so that we process it in next phase
+     *
+     *  last step: add filter to the first step of the pipeline(push down the pre filter)
+     * </code></pre>
      */
     public QueryExpression build() {
         String sqlTableName = schema.getDataStoreSpec().getStore();

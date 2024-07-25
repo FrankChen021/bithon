@@ -104,7 +104,7 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "round(responseTime * 1.0 /requestCount, 2)",
+      "expression": "round(sum(responseTime) * 1.0 /sum(requestCount), 2)",
       "displayText": "Avg cost time",
       "unit": "nanosecond",
       "valueType": "double"
@@ -112,7 +112,7 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "round(requestCount/{interval}, 2)",
+      "expression": "round(sum(requestCount)/{interval}, 2)",
       "displayText": "QPS",
       "unit": "",
       "valueType": "double"
@@ -120,7 +120,7 @@
     {
       "type": "post",
       "name": "requestByteRate",
-      "expression": "round(requestBytes/{interval}, 2)",
+      "expression": "round(sum(requestBytes)/{interval}, 2)",
       "displayText": "Avg Request Byte Rate",
       "unit": "",
       "valueType": "double"
@@ -128,7 +128,7 @@
     {
       "type": "post",
       "name": "responseByteRate",
-      "expression": "round(responseBytes/{interval}, 2)",
+      "expression": "round(sum(responseBytes)/{interval}, 2)",
       "displayText": "Avg Response Byte Rate",
       "unit": "",
       "valueType": "double"
@@ -160,7 +160,3 @@
     }
   }
 }
-
-
-
-
