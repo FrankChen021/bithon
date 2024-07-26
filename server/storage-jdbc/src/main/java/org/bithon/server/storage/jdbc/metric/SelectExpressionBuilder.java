@@ -18,9 +18,13 @@ package org.bithon.server.storage.jdbc.metric;
 
 import jakarta.annotation.Nullable;
 import lombok.Getter;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -233,6 +237,98 @@ public class SelectExpressionBuilder {
         }
     }
 
+
+    private class HasWindowFunctionDetector implements IExpressionVisitor {
+        private boolean isTrue = false;
+
+        @Override
+        public boolean visit(FunctionExpression expression) {
+            isTrue = expression.getFunction().isAggregator() && sqlDialect.useWindowFunctionAsAggregator(expression.getName());
+            return true;
+        }
+
+        public boolean isWindowFunctionUsed(IExpression expression) {
+            expression.accept(this);
+            return isTrue;
+        }
+    }
+
+    public static class Pipeline {
+        QueryExpression queryExpression = new QueryExpression();
+        boolean isWindowOperation = false;
+    }
+
+    public QueryExpression buildPipeline() {
+        List<Pipeline> pipelines = new ArrayList<>();
+
+        List<SelectColumn> aggregators = new ArrayList<>();
+
+        // Find and replace the aggregation expression
+        for (SelectColumn selectColumn : this.selectColumns) {
+            IASTNode selectExpression = selectColumn.getSelectExpression();
+            if (selectExpression instanceof Expression) {
+                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+
+                // Replace all aggregator functions
+                // Case 1: sum(a) ===> a
+                // Case 2: round(sum(a)/sum(b), 2) ===> round(a/b, 2), sum(a), sum(b)
+                // Case 3: round(sum(a+b), 2) ===> round(a, 2), sum(a+b)
+                // Case 4: avg(sum(b)) ===> aggregator is not allowed in another aggregator
+                parsedExpression = parsedExpression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+                    private int index = 0;
+
+                    @Override
+                    public IExpression visit(FunctionExpression functionCallExpression) {
+                        if (!functionCallExpression.getFunction().isAggregator()) {
+                            return super.visit(functionCallExpression);
+                        }
+
+                        IExpression inputArg = functionCallExpression.getParameters().get(0);
+                        if (inputArg instanceof FunctionExpression && ((FunctionExpression) inputArg).getFunction().isAggregator()) {
+                            throw new InvalidExpressionException("Aggregator [%s] is not allowed in another aggregator [%s].", inputArg.serializeToText(), functionCallExpression.getName());
+                        }
+
+                        // TODO: check if the aggregation expression already exists
+                        String output = "a" + index++;
+                        aggregators.add(new SelectColumn(new Function(functionCallExpression, output), output));
+
+                        // Replace the aggregator in original expression to reference the output
+                        return new IdentifierExpression(output);
+                    }
+                });
+
+                ((Expression) selectExpression).setParsedExpression(parsedExpression);
+            }
+        }
+
+        Pipeline aggregationPipeline = new Pipeline();
+        for (SelectColumn selectColumn : aggregators) {
+            aggregationPipeline.queryExpression.getSelectColumnList().add(selectColumn.getSelectExpression(), selectColumn.getAlias());
+        }
+
+        Pipeline finalPipeline = new Pipeline();
+        for (SelectColumn selectColumn : this.selectColumns) {
+            IASTNode selectExpression = selectColumn.getSelectExpression();
+            if (selectExpression instanceof Expression) {
+                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+
+                finalPipeline.queryExpression.getSelectColumnList().add(new StringNode(Expression2Sql.from((String) null, this.sqlDialect, parsedExpression)), selectColumn.getAlias());
+            }
+        }
+
+        pipelines.add(aggregationPipeline);
+        pipelines.add(finalPipeline);
+
+        // Chain the pipeline together
+        for (int i = 1; i < pipelines.size(); i++) {
+            pipelines.get(i).queryExpression.getFrom().setExpression(pipelines.get(i - 1).queryExpression);
+        }
+
+        pipelines.get(0).queryExpression.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+
+        return pipelines.get(pipelines.size() - 1).queryExpression;
+    }
+
     /**
      * TODO: Change the pipelines to represent the sub-queries
      * <p>
@@ -250,12 +346,12 @@ public class SelectExpressionBuilder {
      * <pre><code>
      *      sum(a) a, sum(b) b ---> round(a/b, 2)
      * </code></pre>
-     *
+     * <p>
      * 2. Example result SQL if window function is used for first/last aggregator
      * Input:<pre><code>
      *      (last(queuedTaskCount) + last(activeTaskCount)) / sum(totalTaskCount)
      * </code></pre>
-     *
+     * <p>
      * Output:<pre><code>
      * SELECT timestamp, (queuedTaskCount + activeTaskCount) / totalTaskCount
      * FROM (

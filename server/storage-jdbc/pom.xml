@@ -60,6 +60,12 @@
       <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

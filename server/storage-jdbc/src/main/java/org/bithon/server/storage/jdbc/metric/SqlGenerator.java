@@ -66,7 +66,10 @@ public class SqlGenerator implements IASTNodeVisitor {
     @Override
     public void after(QueryExpression queryExpression) {
         if (--nestedSelect > 0) {
-            sql.append(") ");
+            sql.append(")");
+        }
+        if (nestedSelect > 1) {
+            sql.append(' ');
         }
     }
 
@@ -120,6 +123,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
         if (index < count - 1) {
             sql.append(',');
+            sql.append(' ');
         }
     }
 
