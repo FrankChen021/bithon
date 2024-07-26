@@ -283,7 +283,7 @@ public class SelectExpressionBuilder {
                             return super.visit(functionCallExpression);
                         }
 
-                        IExpression inputArg = functionCallExpression.getParameters().get(0);
+                        IExpression inputArg = functionCallExpression.getArgs().get(0);
                         if (inputArg instanceof FunctionExpression && ((FunctionExpression) inputArg).getFunction().isAggregator()) {
                             throw new InvalidExpressionException("Aggregator [%s] is not allowed in another aggregator [%s].", inputArg.serializeToText(), functionCallExpression.getName());
                         }

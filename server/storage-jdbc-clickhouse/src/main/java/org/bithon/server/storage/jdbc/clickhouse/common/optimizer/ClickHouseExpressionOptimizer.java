@@ -70,8 +70,8 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
     static class HasTokenFunction {
         public IExpression optimize(FunctionExpression expression) {
             // The hasToken already checks the parameter is a type of Literal
-            IExpression haystack = expression.getParameters().get(0);
-            String needle = ((LiteralExpression) expression.getParameters().get(1)).asString();
+            IExpression haystack = expression.getArgs().get(0);
+            String needle = ((LiteralExpression) expression.getArgs().get(1)).asString();
 
             int i = 0;
             int needleLength = needle.length();

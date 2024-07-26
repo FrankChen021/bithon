@@ -170,13 +170,13 @@ public class ExpressionOptimizer {
         @Override
         public IExpression visit(FunctionExpression expression) {
             int literalCount = 0;
-            for (int i = 0; i < expression.getParameters().size(); i++) {
-                IExpression newParameter = expression.getParameters().get(i).accept(this);
-                expression.getParameters().set(i, newParameter);
+            for (int i = 0; i < expression.getArgs().size(); i++) {
+                IExpression newParameter = expression.getArgs().get(i).accept(this);
+                expression.getArgs().set(i, newParameter);
 
                 literalCount += newParameter instanceof LiteralExpression ? 1 : 0;
             }
-            if (literalCount == expression.getParameters().size()) {
+            if (literalCount == expression.getArgs().size()) {
                 return LiteralExpression.create(expression.evaluate(null));
             }
             return expression;

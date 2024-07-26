@@ -149,7 +149,7 @@ public class ExpressionSerializer implements IExpressionVisitor {
         boolean first = true;
         sb.append(expression.getName());
         sb.append('(');
-        for (IExpression p : expression.getParameters()) {
+        for (IExpression p : expression.getArgs()) {
             if (first) {
                 first = false;
             } else {
