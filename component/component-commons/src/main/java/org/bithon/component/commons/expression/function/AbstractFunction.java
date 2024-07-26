@@ -55,7 +55,7 @@ public abstract class AbstractFunction implements IFunction {
     }
 
     @Override
-    public List<Parameter> getParameters() {
+    public List<Parameter> getParameterDeclarations() {
         return this.parameters;
     }
 
@@ -66,7 +66,7 @@ public abstract class AbstractFunction implements IFunction {
 
     @Override
     public void validateParameter(List<IExpression> parameters) {
-        if (getParameters().size() != parameters.size()) {
+        if (getParameterDeclarations().size() != parameters.size()) {
             throw new InvalidExpressionException("In expression [%s %s], function [%s] can only accept [%d] parameters, but got [%d]",
                                                  name,
                                                  parameters.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
@@ -81,7 +81,7 @@ public abstract class AbstractFunction implements IFunction {
 
     protected void validateParameter(IExpression parameter, int index) {
         if (parameter instanceof LiteralExpression) {
-            IDataType declaredType = this.getParameters().get(index).getType();
+            IDataType declaredType = this.getParameterDeclarations().get(index).getType();
             IDataType inputType = parameter.getDataType();
             if (!declaredType.canCastFrom(inputType)) {
                 throw new InvalidExpressionException("The parameter at index %d of function [%s] must be type of %s",

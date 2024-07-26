@@ -52,7 +52,7 @@ public class ExpressionOptimizerTest {
                 }
 
                 @Override
-                public List<Parameter> getParameters() {
+                public List<Parameter> getParameterDeclarations() {
                     return Arrays.asList(new Parameter(IDataType.LONG), new Parameter(IDataType.LONG));
                 }
 
