@@ -280,9 +280,9 @@ public class SelectExpressionBuilderTest {
                                 "totalThreadCount"
                                 FROM "test_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                                ORDER BY "timestamp" asc
                               ) AS "tbl1"
                             ) AS "tbl2"
+                            ORDER BY "timestamp" asc
                             """.trim(),
                             sqlGenerator.getSQL());
     }

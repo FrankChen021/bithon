@@ -415,11 +415,13 @@ public class SelectExpressionBuilder {
             // For MySQL, the sub-query must have an alias
             from.setAlias(new ColumnAlias("tbl" + i));
         }
+        QueryExpression outermost = pipelines.get(pipelines.size() - 1);
+        QueryExpression innermost = pipelines.get(0);
 
-        pipelines.get(0).getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+        innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
 
         //
-        // Build WhereExpression
+        // Push filter to the innermost
         //
         IExpression timestampCol = this.interval.getTimestampColumn();
         Where where = new Where();
@@ -428,20 +430,20 @@ public class SelectExpressionBuilder {
         if (filter != null) {
             where.addExpression(Expression2Sql.from(schema, sqlDialect, filter));
         }
-        pipelines.get(0).setWhere(where);
+        innermost.setWhere(where);
 
         //
-        // Build OrderBy/Limit expression to the innermost
+        // Set OrderBy/Limit expression to the outermost
         //
         if (orderBy != null) {
-            pipelines.get(0).setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+            outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
         }
         if (limit != null) {
-            pipelines.get(0).setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+            outermost.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
         }
 
         // returns the outermost pipeline
-        return pipelines.get(pipelines.size() - 1);
+        return outermost;
     }
 
     /**
