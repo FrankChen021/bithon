@@ -32,6 +32,8 @@ import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:38
@@ -41,6 +43,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     private final StringBuilder sql = new StringBuilder(512);
     private final ISqlDialect sqlDialect;
     private int nestedSelect = 0;
+    private String indent = "";
 
     public SqlGenerator(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
@@ -53,8 +56,13 @@ public class SqlGenerator implements IASTNodeVisitor {
     @Override
     public void before(QueryExpression queryExpression) {
         if (nestedSelect++ > 0) {
-            sql.append("( ");
+            sql.append('\n');
+            sql.append(indent);
+            sql.append('(');
+            sql.append('\n');
+            indent += "  ";
         }
+        sql.append(indent);
         sql.append("SELECT ");
     }
 
@@ -66,28 +74,32 @@ public class SqlGenerator implements IASTNodeVisitor {
     @Override
     public void after(QueryExpression queryExpression) {
         if (--nestedSelect > 0) {
-            sql.append(")");
-        }
-        if (nestedSelect > 1) {
-            sql.append(' ');
+            indent = indent.substring(0, indent.length() - 2);
+
+            sql.append('\n');
+            sql.append(indent);
+            sql.append(')');
         }
     }
 
     @Override
     public void visit(OrderBy orderBy) {
+        sql.append('\n');
+        sql.append(indent);
         sql.append("ORDER BY ");
         sql.append(sqlDialect.quoteIdentifier(orderBy.getField()));
 
         if (orderBy.getOrder() != null) {
             sql.append(' ');
             sql.append(orderBy.getOrder());
-            sql.append(' ');
         }
     }
 
     @Override
     public void visit(Limit limit) {
-        sql.append(" LIMIT ");
+        sql.append('\n');
+        sql.append(indent);
+        sql.append("LIMIT ");
         sql.append(limit.getLimit());
         if (limit.getOffset() > 0) {
             sql.append(" OFFSET ");
@@ -118,12 +130,11 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(int index, int count, SelectColumn selectColumn) {
-
         selectColumn.accept(this);
-
         if (index < count - 1) {
             sql.append(',');
-            sql.append(' ');
+            sql.append('\n');
+            sql.append(indent);
         }
     }
 
@@ -140,23 +151,30 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(From from) {
-        sql.append(" FROM ");
+        sql.append('\n');
+        sql.append(indent);
+        sql.append("FROM");
     }
 
     @Override
     public void visit(Table table) {
-        sql.append(sqlDialect.quoteIdentifier(table.getName()));
         sql.append(' ');
+        sql.append(sqlDialect.quoteIdentifier(table.getName()));
     }
 
     @Override
     public void visit(Where where) {
+        sql.append('\n');
+        sql.append(indent);
         sql.append("WHERE ");
-        for (String expression : where.getExpressions()) {
-            sql.append(expression);
-            sql.append(" AND ");
+
+        List<String> expressions = where.getExpressions();
+        for (int i = 0, expressionsSize = expressions.size(); i < expressionsSize; i++) {
+            if ( i != 0) {
+                sql.append(" AND ");
+            }
+            sql.append(expressions.get(i));
         }
-        sql.delete(sql.length() - 4, sql.length());
     }
 
     @Override
@@ -164,6 +182,9 @@ public class SqlGenerator implements IASTNodeVisitor {
         if (groupBy.getFields().isEmpty()) {
             return;
         }
+
+        sql.append('\n');
+        sql.append(indent);
         sql.append("GROUP BY ");
         for (String field : groupBy.getFields()) {
             sql.append(sqlDialect.quoteIdentifier(field));
