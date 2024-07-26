@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
@@ -27,12 +28,15 @@ import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateLongLastColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
+import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.metrics.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,7 +55,8 @@ public class SelectExpressionBuilderTest {
                                                      Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("instance", "instance")),
                                                      Arrays.asList(new AggregateLongSumColumn("responseTime", "responseTime"),
                                                                    new AggregateLongSumColumn("totalCount", "totalCount"),
-                                                                   new AggregateLongLastColumn("activeThreadCount", "activeThreadCount")
+                                                                   new AggregateLongLastColumn("activeThreadCount", "activeThreadCount"),
+                                                                   new AggregateLongLastColumn("totalThreadCount", "totalThreadCount")
                                                      ),
                                                      null,
                                                      new IDataStoreSpec() {
@@ -125,20 +130,82 @@ public class SelectExpressionBuilderTest {
         }
     };
 
+    final ISqlDialect h2Dialect = new ISqlDialect() {
+        @Override
+        public boolean useWindowFunctionAsAggregator(String aggregator) {
+            return "first".equals(aggregator) || "last".equals(aggregator);
+        }
+
+        @Override
+        public String quoteIdentifier(String identifier) {
+            return "\"" + identifier + "\"";
+        }
+
+        @Override
+        public String timeFloorExpression(IExpression timestampExpression, long interval) {
+            return "";
+        }
+
+        @Override
+        public boolean groupByUseRawExpression() {
+            return false;
+        }
+
+        @Override
+        public boolean allowSameAggregatorExpression() {
+            return false;
+        }
+
+        @Override
+        public String stringAggregator(String field) {
+            return "";
+        }
+
+        @Override
+        public String firstAggregator(String field, String name, long window) {
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
+                field,
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
+                name);
+        }
+
+        @Override
+        public String lastAggregator(String field, long window) {
+            // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
+                field,
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+        }
+
+        @Override
+        public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
+            return "";
+        }
+
+        @Override
+        public char getEscapeCharacter4SingleQuote() {
+            return 0;
+        }
+    };
+
     @Test
     public void testSimpleAggregation() {
         QueryExpression queryExpression = SelectExpressionBuilder.builder()
                                                                  .sqlDialect(dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("sum(totalCount)"), new ColumnAlias("totalCount"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
         SqlGenerator sqlGenerator = new SqlGenerator(dialect);
         queryExpression.accept(sqlGenerator);
 
-        // TODO: Eliminate the nest
         Assert.assertEquals("""
-                            SELECT a0 AS totalCount FROM ( SELECT sum(totalCount) AS a0 FROM test_metrics )
+                            SELECT sum(totalCount) AS totalCount
+                            FROM test_metrics
+                            WHERE timestamp >= '2024-07-26T21:22:00.000+08:00' AND timestamp < '2024-07-26T21:32:00.000+08:00'
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -148,6 +215,7 @@ public class SelectExpressionBuilderTest {
         QueryExpression queryExpression = SelectExpressionBuilder.builder()
                                                                  .sqlDialect(dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("sum(responseTime)/sum(totalCount)"), new ColumnAlias("avg"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
@@ -155,84 +223,66 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT a0 / a1 AS avg FROM ( SELECT sum(responseTime) AS a0, sum(totalCount) AS a1 FROM test_metrics )
+                            SELECT responseTime / totalCount AS avg
+                            FROM
+                            (
+                              SELECT sum(responseTime) AS responseTime,
+                              sum(totalCount) AS totalCount
+                              FROM test_metrics
+                              WHERE timestamp >= '2024-07-26T21:22:00.000+08:00' AND timestamp < '2024-07-26T21:32:00.000+08:00'
+                            ) AS tbl1
                             """.trim(),
                             sqlGenerator.getSQL());
     }
 
     @Test
     public void testWindowFunction() {
-        ISqlDialect dialect = new ISqlDialect() {
-            @Override
-            public boolean useWindowFunctionAsAggregator(String aggregator) {
-                return "first".equals(aggregator) || "last".equals(aggregator);
-            }
-
-            @Override
-            public String quoteIdentifier(String identifier) {
-                return identifier;
-            }
-
-            @Override
-            public String timeFloorExpression(IExpression timestampExpression, long interval) {
-                return "";
-            }
-
-            @Override
-            public boolean groupByUseRawExpression() {
-                return false;
-            }
-
-            @Override
-            public boolean allowSameAggregatorExpression() {
-                return false;
-            }
-
-            @Override
-            public String stringAggregator(String field) {
-                return "";
-            }
-
-            @Override
-            public String firstAggregator(String field, String name, long window) {
-                return StringUtils.format(
-                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
-                    field,
-                    this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
-                    name);
-            }
-
-            @Override
-            public String lastAggregator(String field, long window) {
-                // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
-                return StringUtils.format(
-                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
-                    field,
-                    this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
-            }
-
-            @Override
-            public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
-                return "";
-            }
-
-            @Override
-            public char getEscapeCharacter4SingleQuote() {
-                return 0;
-            }
-        };
-
         QueryExpression queryExpression = SelectExpressionBuilder.builder()
-                                                                 .sqlDialect(dialect)
+                                                                 .sqlDialect(h2Dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("first(activeThreadCount)"), new ColumnAlias("activeThreadCount"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(dialect);
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT a0 AS activeThreadCount FROM ( SELECT first(activeThreadCount) AS a0 FROM test_metrics )
+                            SELECT FIRST_VALUE("activeThreadCount") OVER (partition by  ORDER BY "timestamp") AS "activeThreadCount"
+                            FROM "test_metrics"
+                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testWindowFunctionAndAggregator() {
+        QueryExpression queryExpression = SelectExpressionBuilder.builder()
+                                                                 .sqlDialect(h2Dialect)
+                                                                 .fields(Collections.singletonList(new SelectColumn(new Expression("first(activeThreadCount)/sum(totalThreadCount)"), new ColumnAlias("ratio"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .orderBy(OrderBy.builder().name("timestamp").order(Order.asc).build())
+                                                                 .dataSource(schema)
+                                                                 .buildPipeline();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "activeThreadCount" / "totalThreadCount" AS "ratio"
+                            FROM
+                            (
+                              SELECT "activeThreadCount",
+                              sum("totalThreadCount") AS "totalThreadCount"
+                              FROM
+                              (
+                                SELECT FIRST_VALUE("activeThreadCount") OVER (partition by  ORDER BY "timestamp") AS "activeThreadCount",
+                                "totalThreadCount"
+                                FROM "test_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                ORDER BY "timestamp" asc
+                              ) AS "tbl1"
+                            ) AS "tbl2"
                             """.trim(),
                             sqlGenerator.getSQL());
     }

@@ -20,7 +20,6 @@ import jakarta.annotation.Nullable;
 import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -32,6 +31,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableCol
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.From;
 import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
@@ -49,6 +49,7 @@ import org.bithon.server.storage.metrics.Interval;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -237,32 +238,54 @@ public class SelectExpressionBuilder {
         }
     }
 
+    static class IdentifierExtractor extends FieldExpressionVisitorAdaptor2 {
+        private final ISchema schema;
 
-    private class HasWindowFunctionDetector implements IExpressionVisitor {
-        private boolean isTrue = false;
+        @Getter
+        private final Set<String> identifiers = new LinkedHashSet<>();
 
-        @Override
-        public boolean visit(FunctionExpression expression) {
-            isTrue = expression.getFunction().isAggregator() && sqlDialect.useWindowFunctionAsAggregator(expression.getName());
-            return true;
+        IdentifierExtractor(ISchema schema) {
+            this.schema = schema;
         }
 
-        public boolean isWindowFunctionUsed(IExpression expression) {
-            expression.accept(this);
-            return isTrue;
+        @Override
+        public void visitField(IColumn columnSpec) {
+            identifiers.add(columnSpec.getName());
+        }
+
+        @Override
+        protected ISchema getSchema() {
+            return schema;
+        }
+
+        public static Set<String> extractIdentifiers(ISchema schema, IExpression expression) {
+            IdentifierExtractor extractor = new IdentifierExtractor(schema);
+            expression.accept(extractor);
+            return extractor.getIdentifiers();
         }
     }
 
-    public static class Pipeline {
-        QueryExpression queryExpression = new QueryExpression();
-        boolean isWindowOperation = false;
+    static class Variable {
+        private int index;
+        private final String prefix;
+
+        Variable(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public String next() {
+            return prefix + index++;
+        }
     }
 
     public QueryExpression buildPipeline() {
-        List<Pipeline> pipelines = new ArrayList<>();
+        Variable var = new Variable("a");
 
         List<SelectColumn> aggregators = new ArrayList<>();
 
+        QueryExpression finalStep = null;
+
+        // Step 1
         // Find and replace the aggregation expression
         for (SelectColumn selectColumn : this.selectColumns) {
             IASTNode selectExpression = selectColumn.getSelectExpression();
@@ -275,8 +298,6 @@ public class SelectExpressionBuilder {
                 // Case 3: round(sum(a+b), 2) ===> round(a, 2), sum(a+b)
                 // Case 4: avg(sum(b)) ===> aggregator is not allowed in another aggregator
                 parsedExpression = parsedExpression.accept(new ExpressionOptimizer.AbstractOptimizer() {
-                    private int index = 0;
-
                     @Override
                     public IExpression visit(FunctionExpression functionCallExpression) {
                         if (!functionCallExpression.getFunction().isAggregator()) {
@@ -289,8 +310,15 @@ public class SelectExpressionBuilder {
                         }
 
                         // TODO: check if the aggregation expression already exists
-                        String output = "a" + index++;
-                        aggregators.add(new SelectColumn(new Function(functionCallExpression, output), output));
+
+                        String output;
+                        if (inputArg instanceof IdentifierExpression) {
+                            output = ((IdentifierExpression) inputArg).getIdentifier();
+                        } else {
+                            output = var.next();
+                        }
+
+                        aggregators.add(new SelectColumn(new Function(functionCallExpression, ""), output));
 
                         // Replace the aggregator in original expression to reference the output
                         return new IdentifierExpression(output);
@@ -298,35 +326,122 @@ public class SelectExpressionBuilder {
                 });
 
                 ((Expression) selectExpression).setParsedExpression(parsedExpression);
+
+                // After pushing down aggregation,
+                // if the expression still contains further calculation on the aggregation result,
+                // we need to add a step to take the calculation
+                if (!(parsedExpression instanceof IdentifierExpression)) {
+                    finalStep = new QueryExpression();
+                }
             }
         }
 
-        Pipeline aggregationPipeline = new Pipeline();
-        for (SelectColumn selectColumn : aggregators) {
-            aggregationPipeline.queryExpression.getSelectColumnList().add(selectColumn.getSelectExpression(), selectColumn.getAlias());
-        }
+        QueryExpression windowAggregationStep = null;
+        QueryExpression aggregationStep = new QueryExpression();
+        boolean needAggregationStep = false;
 
-        Pipeline finalPipeline = new Pipeline();
-        for (SelectColumn selectColumn : this.selectColumns) {
-            IASTNode selectExpression = selectColumn.getSelectExpression();
-            if (selectExpression instanceof Expression) {
-                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+        Set<String> columnsInWindowAggregations = new LinkedHashSet<>();
 
-                finalPipeline.queryExpression.getSelectColumnList().add(new StringNode(Expression2Sql.from((String) null, this.sqlDialect, parsedExpression)), selectColumn.getAlias());
+        for (int i = 0, aggregatorsSize = aggregators.size(); i < aggregatorsSize; i++) {
+            SelectColumn selectColumn = aggregators.get(i);
+            FunctionExpression functionCall = ((Function) selectColumn.getSelectExpression()).getExpression();
+
+            if (sqlDialect.useWindowFunctionAsAggregator(functionCall.getName())) { // If this function is a window function
+                if (windowAggregationStep == null) {
+                    windowAggregationStep = new QueryExpression();
+
+                    for (int j = 0; j < i; j++) {
+                        SelectColumn column = aggregators.get(j);
+                        Function aggregator = (Function) column.getSelectExpression();
+
+                        windowAggregationStep.getSelectColumnList().add(new Column(aggregator.getField()), column.getAlias());
+                    }
+                }
+
+                // For simply, currently only IdentifierExpression is allowed in window aggregators
+                String col = ((IdentifierExpression) functionCall.getArgs().get(0)).getIdentifier();
+                String output = col;
+                String windowAggregator = sqlDialect.firstAggregator(col,
+                                                                     output,
+                                                                     interval.getTotalLength());
+                windowAggregationStep.getSelectColumnList().add(new StringNode(windowAggregator), (ColumnAlias) null);
+                aggregationStep.getSelectColumnList().add(new Column(output));
+            } else { // this aggregator function is NOT a window function
+                needAggregationStep = true;
+                aggregationStep.getSelectColumnList().add(selectColumn.getSelectExpression(), selectColumn.getAlias());
+
+                if (windowAggregationStep != null) {
+                    // Push all fields referenced in the aggregator to the window aggregation step
+                    columnsInWindowAggregations.addAll(
+                        IdentifierExtractor.extractIdentifiers(schema, functionCall)
+                    );
+                }
             }
         }
 
-        pipelines.add(aggregationPipeline);
-        pipelines.add(finalPipeline);
+        if (windowAggregationStep != null) {
+            for (String column : columnsInWindowAggregations) {
+                windowAggregationStep.getSelectColumnList().add(new Column(column));
+            }
+        }
 
-        // Chain the pipeline together
+        if (finalStep != null) {
+            for (SelectColumn selectColumn : this.selectColumns) {
+                IASTNode selectExpression = selectColumn.getSelectExpression();
+                if (selectExpression instanceof Expression) {
+                    IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+
+                    finalStep.getSelectColumnList().add(new StringNode(Expression2Sql.from((String) null, this.sqlDialect, parsedExpression)), selectColumn.getAlias());
+                }
+            }
+        }
+
+        List<QueryExpression> pipelines = new ArrayList<>();
+        if (windowAggregationStep != null) {
+            pipelines.add(windowAggregationStep);
+        }
+        if (needAggregationStep) {
+            pipelines.add(aggregationStep);
+        }
+        if (finalStep != null) {
+            pipelines.add(finalStep);
+        }
+
+        // Chain the pipelines together
         for (int i = 1; i < pipelines.size(); i++) {
-            pipelines.get(i).queryExpression.getFrom().setExpression(pipelines.get(i - 1).queryExpression);
+            From from = pipelines.get(i).getFrom();
+            from.setExpression(pipelines.get(i - 1));
+
+            // For MySQL, the sub-query must have an alias
+            from.setAlias(new ColumnAlias("tbl" + i));
         }
 
-        pipelines.get(0).queryExpression.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+        pipelines.get(0).getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
 
-        return pipelines.get(pipelines.size() - 1).queryExpression;
+        //
+        // Build WhereExpression
+        //
+        IExpression timestampCol = this.interval.getTimestampColumn();
+        Where where = new Where();
+        where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getStartTime())));
+        where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampCol), sqlDialect.formatTimestamp(interval.getEndTime())));
+        if (filter != null) {
+            where.addExpression(Expression2Sql.from(schema, sqlDialect, filter));
+        }
+        pipelines.get(0).setWhere(where);
+
+        //
+        // Build OrderBy/Limit expression to the innermost
+        //
+        if (orderBy != null) {
+            pipelines.get(0).setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+        }
+        if (limit != null) {
+            pipelines.get(0).setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+        }
+
+        // returns the outermost pipeline
+        return pipelines.get(pipelines.size() - 1);
     }
 
     /**

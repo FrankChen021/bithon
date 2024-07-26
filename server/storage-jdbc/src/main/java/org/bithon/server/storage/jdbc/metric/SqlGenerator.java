@@ -170,7 +170,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
         List<String> expressions = where.getExpressions();
         for (int i = 0, expressionsSize = expressions.size(); i < expressionsSize; i++) {
-            if ( i != 0) {
+            if (i != 0) {
                 sql.append(" AND ");
             }
             sql.append(expressions.get(i));
