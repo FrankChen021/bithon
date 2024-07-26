@@ -46,6 +46,9 @@ public class TimeSpan {
         return new TimeSpan(System.currentTimeMillis());
     }
 
+    /**
+     * @param time e.g. 2020-08-24T14:55:46.000+08:00
+     */
     public static TimeSpan fromISO8601(String time) {
         return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
     }
