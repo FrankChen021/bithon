@@ -360,7 +360,7 @@ public class SelectExpressionBuilder {
         private QueryExpression windowAggregation;
         private QueryExpression aggregation = new QueryExpression();
         private QueryExpression postAggregation;
-        private boolean hasAggregation = false;
+        private boolean hasAggregation = true;
 
         private QueryExpression outermost;
         private QueryExpression innermost;
@@ -543,26 +543,35 @@ public class SelectExpressionBuilder {
                 }
             }
 
-            // All input group-by fields must appear in the aggregation/final select list
+            // All input group-by fields must appear in the select list of all steps
             // Since we always insert the column to the first place of the select list,
             // we iterate the list in reversed order
             for (int i = this.groupBy.size() - 1; i >= 0; i--) {
                 String groupBy = this.groupBy.get(i);
+
+                if (pipeline.windowAggregation != null) {
+                    pipeline.windowAggregation.getSelectColumnList().insert(new Column(groupBy));
+                }
+
                 pipeline.aggregation.getSelectColumnList().insert(new Column(groupBy));
 
-                if (outermost != null && outermost != pipeline.aggregation) {
-                    outermost.getSelectColumnList().insert(new Column(groupBy));
+                if (pipeline.postAggregation != null) {
+                    pipeline.postAggregation.getSelectColumnList().insert(new Column(groupBy));
                 }
             }
         }
 
         // We need to group the values in a time bucket
+        // See the test: testWindowFunction_TimeSeries to know more
         if (this.interval.getStep() != null) {
             StringNode expr = new StringNode(this.sqlDialect.timeFloorExpression(timestampExpression, this.interval.getStep().getSeconds()));
 
-            QueryExpression aggregationStep = pipeline.getAggregationStep();
+            // The timestamp calculation is pushed down to the window aggregation step if needed
+            QueryExpression aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;
             aggregationStep.getSelectColumnList().insert(expr, TIMESTAMP_ALIAS_NAME);
-            aggregationStep.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
+
+            // Always add the timestamp to the group-by clause of aggregation step
+            pipeline.aggregation.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
