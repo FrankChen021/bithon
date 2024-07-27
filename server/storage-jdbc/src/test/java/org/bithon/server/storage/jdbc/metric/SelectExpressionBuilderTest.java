@@ -42,6 +42,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -55,6 +56,8 @@ public class SelectExpressionBuilderTest {
                                                      Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("instance", "instance")),
                                                      Arrays.asList(new AggregateLongSumColumn("responseTime", "responseTime"),
                                                                    new AggregateLongSumColumn("totalCount", "totalCount"),
+                                                                   new AggregateLongSumColumn("count4xx", "count4xx"),
+                                                                   new AggregateLongSumColumn("count5xx", "count5xx"),
                                                                    new AggregateLongLastColumn("activeThreadCount", "activeThreadCount"),
                                                                    new AggregateLongLastColumn("totalThreadCount", "totalThreadCount")
                                                      ),
@@ -110,7 +113,7 @@ public class SelectExpressionBuilderTest {
         }
 
         @Override
-        public String firstAggregator(String field, String name, long window) {
+        public String firstAggregator(String field, long window) {
             return "";
         }
 
@@ -162,12 +165,11 @@ public class SelectExpressionBuilderTest {
         }
 
         @Override
-        public String firstAggregator(String field, String name, long window) {
+        public String firstAggregator(String field, long window) {
             return StringUtils.format(
-                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\")",
                 field,
-                this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
-                name);
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
         }
 
         @Override
@@ -196,6 +198,7 @@ public class SelectExpressionBuilderTest {
                                                                  .sqlDialect(dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("sum(totalCount)"), new ColumnAlias("totalCount"))))
                                                                  .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName"))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
@@ -203,9 +206,11 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT sum(totalCount) AS totalCount
+                            SELECT appName,
+                            sum(totalCount) AS totalCount
                             FROM test_metrics
                             WHERE timestamp >= '2024-07-26T21:22:00.000+08:00' AND timestamp < '2024-07-26T21:32:00.000+08:00'
+                            GROUP BY appName
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -216,6 +221,7 @@ public class SelectExpressionBuilderTest {
                                                                  .sqlDialect(dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("sum(responseTime)/sum(totalCount)"), new ColumnAlias("avg"))))
                                                                  .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName", "instanceName"))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
@@ -223,14 +229,84 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT responseTime / totalCount AS avg
+                            SELECT appName,
+                            instanceName,
+                            responseTime / totalCount AS avg
                             FROM
                             (
-                              SELECT sum(responseTime) AS responseTime,
+                              SELECT appName,
+                              instanceName,
+                              sum(responseTime) AS responseTime,
                               sum(totalCount) AS totalCount
                               FROM test_metrics
                               WHERE timestamp >= '2024-07-26T21:22:00.000+08:00' AND timestamp < '2024-07-26T21:32:00.000+08:00'
+                              GROUP BY appName, instanceName
                             ) AS tbl1
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostCalculationExpression_2() {
+        QueryExpression queryExpression = SelectExpressionBuilder.builder()
+                                                                 .sqlDialect(dialect)
+                                                                 .fields(Collections.singletonList(new SelectColumn(new Expression("round(sum(responseTime)/sum(totalCount), 2)"), new ColumnAlias("avg"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName", "instanceName"))
+                                                                 .dataSource(schema)
+                                                                 .buildPipeline();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT appName,
+                            instanceName,
+                            round(responseTime / totalCount, 2) AS avg
+                            FROM
+                            (
+                              SELECT appName,
+                              instanceName,
+                              sum(responseTime) AS responseTime,
+                              sum(totalCount) AS totalCount
+                              FROM test_metrics
+                              WHERE timestamp >= '2024-07-26T21:22:00.000+08:00' AND timestamp < '2024-07-26T21:32:00.000+08:00'
+                              GROUP BY appName, instanceName
+                            ) AS tbl1
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testDuplicateAggregations() {
+        QueryExpression queryExpression = SelectExpressionBuilder.builder()
+                                                                 .sqlDialect(h2Dialect)
+                                                                 .fields(List.of(new SelectColumn(new Expression("sum(count4xx) + sum(count5xx)"), new ColumnAlias("errorCount")),
+                                                                                 new SelectColumn(new Expression("round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"), new ColumnAlias("errorRate"))))
+                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName", "instanceName"))
+                                                                 .dataSource(schema)
+                                                                 .buildPipeline();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                            "instanceName",
+                            "count4xx" + "count5xx" AS "errorCount",
+                            round((("count4xx" + "count5xx") * 100.0) / "totalCount", 2) AS "errorRate"
+                            FROM
+                            (
+                              SELECT "appName",
+                              "instanceName",
+                              sum("count4xx") AS "count4xx",
+                              sum("count5xx") AS "count5xx",
+                              sum("totalCount") AS "totalCount"
+                              FROM "test_metrics"
+                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                              GROUP BY "appName", "instanceName"
+                            ) AS "tbl1"
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -241,6 +317,7 @@ public class SelectExpressionBuilderTest {
                                                                  .sqlDialect(h2Dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("first(activeThreadCount)"), new ColumnAlias("activeThreadCount"))))
                                                                  .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName", "instanceName"))
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
 
@@ -248,7 +325,9 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT FIRST_VALUE("activeThreadCount") OVER (partition by  ORDER BY "timestamp") AS "activeThreadCount"
+                            SELECT "appName",
+                            "instanceName",
+                            FIRST_VALUE("activeThreadCount") OVER (partition by  ORDER BY "timestamp") AS "activeThreadCount"
                             FROM "test_metrics"
                             WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                             """.trim(),
@@ -261,6 +340,7 @@ public class SelectExpressionBuilderTest {
                                                                  .sqlDialect(h2Dialect)
                                                                  .fields(Collections.singletonList(new SelectColumn(new Expression("first(activeThreadCount)/sum(totalThreadCount)"), new ColumnAlias("ratio"))))
                                                                  .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                 .groupBys(List.of("appName", "instanceName"))
                                                                  .orderBy(OrderBy.builder().name("timestamp").order(Order.asc).build())
                                                                  .dataSource(schema)
                                                                  .buildPipeline();
@@ -269,10 +349,14 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT "activeThreadCount" / "totalThreadCount" AS "ratio"
+                            SELECT "appName",
+                            "instanceName",
+                            "activeThreadCount" / "totalThreadCount" AS "ratio"
                             FROM
                             (
-                              SELECT "activeThreadCount",
+                              SELECT "appName",
+                              "instanceName",
+                              "activeThreadCount",
                               sum("totalThreadCount") AS "totalThreadCount"
                               FROM
                               (
@@ -281,6 +365,7 @@ public class SelectExpressionBuilderTest {
                                 FROM "test_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               ) AS "tbl1"
+                              GROUP BY "appName", "instanceName", "activeThreadCount", "totalThreadCount"
                             ) AS "tbl2"
                             ORDER BY "timestamp" asc
                             """.trim(),

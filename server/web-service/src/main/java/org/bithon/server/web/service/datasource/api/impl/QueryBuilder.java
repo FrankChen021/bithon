@@ -17,12 +17,11 @@
 package org.bithon.server.web.service.datasource.api.impl;
 
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.Query;
@@ -113,7 +112,7 @@ public class QueryBuilder {
                       .selectColumns(selectColumnList)
                       .schema(schema)
                       .filter(QueryFilter.build(schema, query.getFilterExpression()))
-                      .interval(Interval.of(start, end, step, ExpressionASTBuilder.builder().functions(Functions.getInstance()).build(timestampColumn)))
+                      .interval(Interval.of(start, end, step, new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null

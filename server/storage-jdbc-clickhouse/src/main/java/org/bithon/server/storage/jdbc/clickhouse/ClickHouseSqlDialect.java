@@ -93,8 +93,8 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String firstAggregator(String field, String name, long window) {
-        return StringUtils.format("argMin(%s, %s) AS %s", quoteIdentifier(field), quoteIdentifier("timestamp"), quoteIdentifier(name));
+    public String firstAggregator(String field, long window) {
+        return StringUtils.format("argMin(%s, %s)", quoteIdentifier(field), quoteIdentifier("timestamp"));
     }
 
     @Override

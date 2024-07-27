@@ -111,7 +111,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             queryExpression.getSelectColumnList().insert(new Column(TIMESTAMP_ALIAS_NAME));
         }
 
-        // Add timestamp expression to sub-query
+        // Add timestamp expression to the innermost query
         timestampFilterExpression.getSelectColumnList()
                                  .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
                                                                            sqlDialect.timeFloorExpression(query.getInterval().getTimestampColumn(),

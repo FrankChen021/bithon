@@ -66,12 +66,11 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String firstAggregator(String field, String name, long window) {
+    public String firstAggregator(String field, long window) {
         return StringUtils.format(
-            "FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp`) AS `%s`",
+            "FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp`)",
             field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
-            name);
+            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
     }
 
     @Override

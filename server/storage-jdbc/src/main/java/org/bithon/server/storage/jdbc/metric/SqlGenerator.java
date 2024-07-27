@@ -186,10 +186,13 @@ public class SqlGenerator implements IASTNodeVisitor {
         sql.append('\n');
         sql.append(indent);
         sql.append("GROUP BY ");
-        for (String field : groupBy.getFields()) {
-            sql.append(sqlDialect.quoteIdentifier(field));
-            sql.append(" ,");
+
+        List<String> fields = groupBy.getFields();
+        for (int i = 0, fieldsSize = fields.size(); i < fieldsSize; i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append(sqlDialect.quoteIdentifier(fields.get(i)));
         }
-        sql.delete(sql.length() - 1, sql.length());
     }
 }

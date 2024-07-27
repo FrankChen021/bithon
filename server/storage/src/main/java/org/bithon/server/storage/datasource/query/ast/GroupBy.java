@@ -36,7 +36,9 @@ public class GroupBy implements IASTNode {
     }
 
     public GroupBy addFields(Collection<String> fields) {
-        this.fields.addAll(fields);
+        if (fields != null) {
+            this.fields.addAll(fields);
+        }
         return this;
     }
 

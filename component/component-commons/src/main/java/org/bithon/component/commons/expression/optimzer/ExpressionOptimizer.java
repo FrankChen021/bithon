@@ -96,6 +96,7 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(FunctionExpression expression) {
+            expression.getArgs().replaceAll(iExpression -> iExpression.accept(this));
             return expression;
         }
 
@@ -270,11 +271,11 @@ public class ExpressionOptimizer {
                     }
                 }
             } else if (subExpression instanceof ConditionalExpression.NotIn) {
-                // Turn the expression: 'NOT a not in ('xxx')' into 'a in (xxx)'
+                // Turn the expression: 'NOT var not in ('xxx')' into 'var in (xxx)'
                 return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLeft(),
                                                     (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRight());
             } else if (subExpression instanceof ConditionalExpression.NotLike) {
-                // Turn the expression: 'NOT a not like 'xxx'' into 'a like (xxx)'
+                // Turn the expression: 'NOT var not like 'xxx'' into 'var like (xxx)'
                 return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLeft(),
                                                       ((ConditionalExpression.NotLike) subExpression).getRight());
             } else if (subExpression instanceof ConditionalExpression.In) {

@@ -92,7 +92,7 @@ public interface ISqlDialect {
 
     String stringAggregator(String field);
 
-    String firstAggregator(String field, String name, long window);
+    String firstAggregator(String field, long window);
 
     /**
      * @param window in seconds
