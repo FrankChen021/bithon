@@ -86,7 +86,7 @@ public class DataSourceService {
             // Convert to the result format and fills in missed data points
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                query.getInterval().getEndTime(),
-                                               query.getInterval().getStep(),
+                                               query.getInterval().getStep().getSeconds(),
                                                result,
                                                TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
                                                query.getGroupBy(),

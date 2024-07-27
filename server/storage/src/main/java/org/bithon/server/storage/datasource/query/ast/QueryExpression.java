@@ -35,7 +35,7 @@ public class QueryExpression implements IASTNode {
 
     private final From from = new From();
     private Where where;
-    private GroupBy groupBy;
+    private GroupBy groupBy = new GroupBy();
     private OrderBy orderBy;
     private Limit limit;
 

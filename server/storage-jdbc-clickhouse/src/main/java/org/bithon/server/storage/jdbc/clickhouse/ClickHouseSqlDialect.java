@@ -38,8 +38,8 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long interval) {
-        if (interval == 60L) {
+    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+        if (intervalSeconds == 60L) {
             if (timestampExpression instanceof FunctionExpression) {
                 if ("toStartOfMinute".equals(((FunctionExpression) timestampExpression).getName())) {
                     // If the user already specifies the toStartOfMinute function call,
@@ -49,22 +49,22 @@ public class ClickHouseSqlDialect implements ISqlDialect {
             }
             return StringUtils.format("toUnixTimestamp(toStartOfMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
-        if (interval == 60 * 5) {
+        if (intervalSeconds == 60 * 5) {
             return StringUtils.format("toUnixTimestamp(toStartOfFiveMinute(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
-        if (interval == 60 * 15) {
+        if (intervalSeconds == 60 * 15) {
             return StringUtils.format("toUnixTimestamp(toStartOfFifteenMinutes(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
-        if (interval == 3600) {
+        if (intervalSeconds == 3600) {
             return StringUtils.format("toUnixTimestamp(toStartOfHour(%s))", timestampExpression.serializeToText(this::quoteIdentifier));
         }
 
-        if (interval > 60 && interval % 60 == 0) {
+        if (intervalSeconds > 60 && intervalSeconds % 60 == 0) {
             return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d MINUTE))",
                                       timestampExpression.serializeToText(this::quoteIdentifier),
-                                      interval / 60);
+                                      intervalSeconds / 60);
         } else {
-            return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d SECOND))", timestampExpression.serializeToText(this::quoteIdentifier), interval);
+            return StringUtils.format("toUnixTimestamp(toStartOfInterval(%s, INTERVAL %d SECOND))", timestampExpression.serializeToText(this::quoteIdentifier), intervalSeconds);
         }
     }
 

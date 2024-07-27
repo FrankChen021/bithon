@@ -46,8 +46,8 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
+    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), intervalSeconds, intervalSeconds);
     }
 
     @Override

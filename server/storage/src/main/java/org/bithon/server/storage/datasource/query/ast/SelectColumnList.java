@@ -45,11 +45,23 @@ public class SelectColumnList implements IASTNode {
     /**
      * insert the column at first place
      */
+    public SelectColumnList insert(String columnName) {
+        this.columns.add(0, new SelectColumn(columnName));
+        return this;
+    }
+
+    /**
+     * insert the column at first place
+     */
     public SelectColumnList insert(IASTNode columnExpression) {
+        return insert(columnExpression, null);
+    }
+
+    public SelectColumnList insert(IASTNode columnExpression, String alias) {
         if (columnExpression instanceof SelectColumn) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        columns.add(0, new SelectColumn(columnExpression));
+        columns.add(0, new SelectColumn(columnExpression, alias));
         return this;
     }
 

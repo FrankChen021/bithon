@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
@@ -62,6 +61,8 @@ import java.util.stream.Collectors;
  * @date 2022/10/30 11:52
  */
 public class SelectExpressionBuilder {
+
+    public static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     private ISchema schema;
 
@@ -359,7 +360,7 @@ public class SelectExpressionBuilder {
         private QueryExpression windowAggregation;
         private QueryExpression aggregation = new QueryExpression();
         private QueryExpression postAggregation;
-        private boolean needAggregationStep = false;
+        private boolean hasAggregation = false;
 
         private QueryExpression outermost;
         private QueryExpression innermost;
@@ -369,7 +370,7 @@ public class SelectExpressionBuilder {
             if (windowAggregation != null) {
                 pipelines.add(windowAggregation);
             }
-            if (needAggregationStep) {
+            if (hasAggregation) {
                 pipelines.add(aggregation);
             }
             if (postAggregation != null) {
@@ -386,6 +387,10 @@ public class SelectExpressionBuilder {
 
             this.outermost = pipelines.get(pipelines.size() - 1);
             this.innermost = pipelines.get(0);
+        }
+
+        public QueryExpression getAggregationStep() {
+            return hasAggregation ? aggregation : windowAggregation;
         }
     }
 
@@ -473,7 +478,7 @@ public class SelectExpressionBuilder {
                 pipeline.windowAggregation.getSelectColumnList().add(new StringNode(windowAggregator), output);
                 pipeline.aggregation.getSelectColumnList().add(new Column(output));
             } else { // this aggregator function is NOT a window function
-                pipeline.needAggregationStep = true;
+                pipeline.hasAggregation = true;
                 pipeline.aggregation.getSelectColumnList().add(new Function(aggregator.expression, ""), aggregator.output);
 
                 if (pipeline.windowAggregation != null) {
@@ -486,12 +491,14 @@ public class SelectExpressionBuilder {
             }
         }
 
+        // All columns in the aggregation step must appear in the window aggregation step
         if (pipeline.windowAggregation != null) {
             for (String column : nonWindowAggregators) {
                 pipeline.windowAggregation.getSelectColumnList().add(new Column(column));
             }
         }
 
+        // Add post aggregation column expressions
         if (pipeline.postAggregation != null) {
             for (SelectColumn selectColumn : this.selectColumns) {
                 IASTNode selectExpression = selectColumn.getSelectExpression();
@@ -526,8 +533,7 @@ public class SelectExpressionBuilder {
         //
         // Set GroupBy expression to the aggregation
         //
-        if (CollectionUtils.isNotEmpty(groupBy) || pipeline.windowAggregation != null) {
-            pipeline.aggregation.setGroupBy(new GroupBy());
+        if (pipeline.hasAggregation) {
             pipeline.aggregation.getGroupBy().addFields(groupBy);
 
             // All window aggregation output must appear in the group-by clause
@@ -537,7 +543,7 @@ public class SelectExpressionBuilder {
                 }
             }
 
-            // All input group-by fields must appear in the select list
+            // All input group-by fields must appear in the aggregation/final select list
             // Since we always insert the column to the first place of the select list,
             // we iterate the list in reversed order
             for (int i = this.groupBy.size() - 1; i >= 0; i--) {
@@ -547,6 +553,20 @@ public class SelectExpressionBuilder {
                 if (outermost != null && outermost != pipeline.aggregation) {
                     outermost.getSelectColumnList().insert(new Column(groupBy));
                 }
+            }
+        }
+
+        // We need to group the values in a time bucket
+        if (this.interval.getStep() != null) {
+            StringNode expr = new StringNode(this.sqlDialect.timeFloorExpression(timestampExpression, this.interval.getStep().getSeconds()));
+
+            QueryExpression aggregationStep = pipeline.getAggregationStep();
+            aggregationStep.getSelectColumnList().insert(expr, TIMESTAMP_ALIAS_NAME);
+            aggregationStep.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
+
+            // Add timestamp to the SELECT list of the final step
+            if (pipeline.postAggregation != null) {
+                pipeline.postAggregation.getSelectColumnList().insert(TIMESTAMP_ALIAS_NAME);
             }
         }
 

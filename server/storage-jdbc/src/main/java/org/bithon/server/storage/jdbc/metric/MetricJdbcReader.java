@@ -23,9 +23,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.jooq.DSLContext;
@@ -100,8 +98,8 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                  .groupBys(query.getGroupBy())
                                                                  .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
                                                                  .sqlDialect(this.sqlDialect)
-                                                                 .build();
-
+                                                                 .buildPipeline();
+/*
         QueryExpression timestampFilterExpression = queryExpression;
         if (queryExpression.getFrom().getExpression() instanceof QueryExpression) {
             // Has a sub-query, timestampExpression will be put in sub-query
@@ -119,7 +117,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                            TIMESTAMP_ALIAS_NAME)));
 
         queryExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
-
+*/
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         queryExpression.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
@@ -136,7 +134,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                  .orderBy(query.getOrderBy())
                                                                  .limit(query.getLimit())
                                                                  .sqlDialect(this.sqlDialect)
-                                                                 .build();
+                                                                 .buildPipeline();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         queryExpression.accept(sqlGenerator);

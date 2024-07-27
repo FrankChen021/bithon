@@ -34,15 +34,15 @@ public class SqlGenerator4SimpleAggregationFunction {
     /**
      * in second
      */
-    private final int step;
+    private final long step;
     private long windowFunctionLength;
 
     public SqlGenerator4SimpleAggregationFunction(ISqlDialect sqlDialect, Interval interval) {
         this.sqlDialect = sqlDialect;
 
         if (interval.getStep() != null) {
-            windowFunctionLength = interval.getStep();
-            step = interval.getStep();
+            windowFunctionLength = interval.getStep().getSeconds();
+            step = interval.getStep().getSeconds();
         } else {
             /**
              * For Window functions, since the timestamp of records might cross two windows,

@@ -46,8 +46,8 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(`%s`) div %d * %d", timestampExpression.serializeToText(null), interval, interval);
+    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+        return StringUtils.format("UNIX_TIMESTAMP(`%s`) div %d * %d", timestampExpression.serializeToText(null), intervalSeconds, intervalSeconds);
     }
 
     @Override

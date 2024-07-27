@@ -40,6 +40,11 @@ public class Expression implements IASTNode {
         this.expression = expression;
     }
 
+    public Expression(IExpression expression) {
+        this.expression = expression.serializeToText();
+        this.parsedExpression = expression;
+    }
+
     public IExpression getParsedExpression(ISchema schema) {
         if (this.parsedExpression == null) {
             this.parsedExpression = ExpressionASTBuilder.builder()

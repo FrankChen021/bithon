@@ -33,6 +33,7 @@ import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class QueryBuilder {
                 org.bithon.server.storage.datasource.query.ast.Function function = Function.create(
                     field.getAggregator(),
                     field.getField() == null ? field.getName() : field.getField());
-                selectColumnList.add(new SelectColumn(function, field.getName()));
+                selectColumnList.add(new SelectColumn(new Expression(function.getExpression()), field.getName()));
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
@@ -89,22 +90,26 @@ public class QueryBuilder {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        Integer step = null;
+        Duration step = null;
         if (bucketTimestamp) {
             if (query.getInterval().getBucketCount() == null) {
-                step = TimeBucket.calculate(start, end);
+                step = Duration.ofSeconds(TimeBucket.calculate(start, end));
             } else {
-                step = TimeBucket.calculate(start.getMilliseconds(),
-                                            end.getMilliseconds(),
-                                            query.getInterval().getBucketCount()).getLength();
+                step = Duration.ofSeconds(TimeBucket.calculate(start.getMilliseconds(),
+                                                               end.getMilliseconds(),
+                                                               query.getInterval().getBucketCount()).getLength());
             }
             if (query.getInterval().getMinBucketLength() != null) {
-                step = Math.max(step, query.getInterval().getMinBucketLength());
+                int minStep = query.getInterval().getMinBucketLength();
+                if (minStep > step.getSeconds()) {
+                    step = Duration.ofSeconds(minStep);
+                }
             }
         }
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
+            // Try to use query's timestamp column if provided
             timestampColumn = query.getInterval().getTimestampColumn();
         }
 

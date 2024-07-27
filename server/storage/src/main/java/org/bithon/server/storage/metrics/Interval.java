@@ -21,6 +21,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.server.commons.time.TimeSpan;
 
+import java.time.Duration;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 3:03 pm
@@ -31,13 +33,13 @@ public class Interval {
     private final TimeSpan endTime;
 
     /**
-     * in second
+     * precision: in second
      */
-    private final Integer step;
+    private final Duration step;
 
     private final IExpression timestampColumn;
 
-    private Interval(TimeSpan startTime, TimeSpan endTime, Integer step, IExpression timestampColumn) {
+    private Interval(TimeSpan startTime, TimeSpan endTime, Duration step, IExpression timestampColumn) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.step = step;
@@ -52,7 +54,7 @@ public class Interval {
         return of(start, end, null, new IdentifierExpression("timestamp"));
     }
 
-    public static Interval of(TimeSpan start, TimeSpan end, Integer step, IExpression timestampColumn) {
+    public static Interval of(TimeSpan start, TimeSpan end, Duration step, IExpression timestampColumn) {
         return new Interval(start, end, step, timestampColumn);
     }
 

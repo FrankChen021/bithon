@@ -34,9 +34,9 @@ public interface ISqlDialect {
     /**
      * different DBMS has different functions to support time_floor semantics
      *
-     * @param interval in seconds
+     * @param intervalSeconds in seconds
      */
-    String timeFloorExpression(IExpression timestampExpression, long interval);
+    String timeFloorExpression(IExpression timestampExpression, long intervalSeconds);
 
     /**
      * Some DBMS requires the group-by expression to be the same as the expression in field list
