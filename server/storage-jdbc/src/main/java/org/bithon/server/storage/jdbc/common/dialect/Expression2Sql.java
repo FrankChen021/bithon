@@ -43,7 +43,7 @@ public class Expression2Sql extends ExpressionSerializer {
         return new Expression2Sql(qualifier, sqlDialect).serialize(transformed);
     }
 
-    private final ISqlDialect sqlDialect;
+    protected final ISqlDialect sqlDialect;
 
     public Expression2Sql(String qualifier, ISqlDialect sqlDialect) {
         super(qualifier, sqlDialect::quoteIdentifier);

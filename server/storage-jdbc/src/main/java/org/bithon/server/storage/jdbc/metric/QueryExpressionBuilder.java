@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
@@ -149,10 +150,26 @@ public class QueryExpressionBuilder {
 
     static class Expression2SqlSerializer extends Expression2Sql {
         protected final Map<String, Object> variables;
+        private long windowFunctionLength;
 
-        Expression2SqlSerializer(ISqlDialect sqlDialect, Map<String, Object> variables) {
+        Expression2SqlSerializer(ISqlDialect sqlDialect, Map<String, Object> variables, Interval interval) {
             super(null, sqlDialect);
             this.variables = variables;
+
+            if (interval.getStep() != null) {
+                windowFunctionLength = interval.getStep().getSeconds();
+            } else {
+                /**
+                 * For Window functions, since the timestamp of records might cross two windows,
+                 * we need to make sure the record in the given time range has only one window.
+                 */
+                long endTime = interval.getEndTime().getMilliseconds();
+                long startTime = interval.getStartTime().getMilliseconds();
+                windowFunctionLength = (endTime - startTime) / 1000;
+                while (startTime / windowFunctionLength != endTime / windowFunctionLength) {
+                    windowFunctionLength *= 2;
+                }
+            }
         }
 
         @Override
@@ -173,6 +190,27 @@ public class QueryExpressionBuilder {
                 sb.append("count(distinct ");
                 expression.getArgs().get(0).accept(this);
                 sb.append(")");
+                return false;
+            }
+
+            if (expression.getFunction() instanceof QueryStageFunctions.GroupConcat) {
+                // Currently, only identifier expression is supported in the group concat aggregator
+                String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
+                sb.append(this.sqlDialect.stringAggregator(column));
+                return false;
+            }
+
+            if (expression.getFunction() instanceof AggregateFunction.Last) {
+                // Currently, only identifier expression is supported in the last aggregator
+                String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
+                sb.append(this.sqlDialect.lastAggregator(column, windowFunctionLength));
+                return false;
+            }
+
+            if (expression.getFunction() instanceof AggregateFunction.First) {
+                // Currently, only identifier expression is supported in the first aggregator
+                String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
+                sb.append(this.sqlDialect.firstAggregator(column, windowFunctionLength));
                 return false;
             }
 
@@ -456,7 +494,7 @@ public class QueryExpressionBuilder {
                 pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output);
                 pipeline.aggregation.getSelectorList().add(new Column(aggregator.output));
             } else { // this aggregator function is NOT a window function
-                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(aggregator.aggregateFunction)),
+                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)),
                                                            aggregator.output);
 
                 if (pipeline.windowAggregation != null) {
@@ -484,7 +522,7 @@ public class QueryExpressionBuilder {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
                     pipeline.postAggregation.getSelectorList()
-                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(parsedExpression)), selector.getOutput());
+                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput());
                 }
             }
         }
