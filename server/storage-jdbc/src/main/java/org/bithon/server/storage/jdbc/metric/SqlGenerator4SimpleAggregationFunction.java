@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.Function;
+import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -67,13 +67,18 @@ public class SqlGenerator4SimpleAggregationFunction {
         if (underlyingFunction instanceof AggregateFunction.Sum) {
             return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(field));
         }
-        if (underlyingFunction instanceof Function.Cardinality) {
+
+        if (underlyingFunction instanceof QueryStageFunctions.Cardinality) {
             return StringUtils.format("count(DISTINCT %s)", sqlDialect.quoteIdentifier(field));
         }
-        if (underlyingFunction instanceof Function.GroupConcat) {
+        if (underlyingFunction instanceof QueryStageFunctions.GroupConcat) {
             // No need to pass hasAlias because this type of field can't be on an expression as of now
             return sqlDialect.stringAggregator(field);
         }
+        if (underlyingFunction instanceof QueryStageFunctions.Rate) {
+            return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(field), step);
+        }
+
         if (underlyingFunction instanceof AggregateFunction.Count) {
             return "count(1)";
         }
@@ -85,9 +90,6 @@ public class SqlGenerator4SimpleAggregationFunction {
         }
         if (underlyingFunction instanceof AggregateFunction.Last) {
             return sqlDialect.lastAggregator(field, windowFunctionLength);
-        }
-        if (underlyingFunction instanceof Function.Rate) {
-            return StringUtils.format("sum(%s)/%d", sqlDialect.quoteIdentifier(field), step);
         }
         if (underlyingFunction instanceof AggregateFunction.Max) {
             return StringUtils.format("max(%s)", sqlDialect.quoteIdentifier(field));

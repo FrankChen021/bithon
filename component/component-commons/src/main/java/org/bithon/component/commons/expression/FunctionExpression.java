@@ -16,7 +16,9 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.Arrays;
 import java.util.List;
@@ -81,5 +83,17 @@ public class FunctionExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
+    }
+
+    public static FunctionExpression create(String functionName, String... args) {
+        IFunction function = Functions.getInstance().getFunction(functionName);
+        Preconditions.checkNotNull(function, "Function [%s] not found.", functionName);
+
+        Preconditions.checkIfTrue(function.getParameterDeclarations().size() == args.length, "Function [%s] requires [%d] parameters, but [%s] given.");
+
+        return new FunctionExpression(function,
+                                      Arrays.stream(args)
+                                            .map(IdentifierExpression::new)
+                                            .collect(Collectors.toList()));
     }
 }

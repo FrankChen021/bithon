@@ -39,39 +39,39 @@ import org.bithon.component.commons.utils.StringUtils;
 @Getter
 public class SelectColumn implements IASTNode {
     private final IASTNode selectExpression;
-    private final ColumnAlias alias;
+    private final ColumnAlias output;
 
     public SelectColumn(String name) {
         this(new Column(name), (ColumnAlias) null);
     }
 
-    public SelectColumn(String name, String alias) {
-        this(new Column(name), alias == null ? null : new ColumnAlias(alias));
+    public SelectColumn(String name, String output) {
+        this(new Column(name), output == null ? null : new ColumnAlias(output));
     }
 
     SelectColumn(IASTNode selectExpression) {
         this(selectExpression, (String) null);
     }
 
-    public SelectColumn(IASTNode selectExpression, String alias) {
-        this(selectExpression, alias == null ? null : new ColumnAlias(alias));
+    public SelectColumn(IASTNode selectExpression, String output) {
+        this(selectExpression, output == null ? null : new ColumnAlias(output));
     }
 
-    public SelectColumn(IASTNode selectExpression, ColumnAlias alias) {
+    public SelectColumn(IASTNode selectExpression, ColumnAlias output) {
         this.selectExpression = selectExpression;
-        this.alias = alias;
+        this.output = output;
     }
 
-    public SelectColumn withAlias(String alias) {
-        if (this.alias != null && this.alias.getName().equals(alias)) {
+    public SelectColumn withOutput(String alias) {
+        if (this.output != null && this.output.getName().equals(alias)) {
             return this;
         }
         return new SelectColumn(this.selectExpression, alias);
     }
 
     public String getOutputName() {
-        if (alias != null) {
-            return alias.getName();
+        if (output != null) {
+            return output.getName();
         }
         if (selectExpression instanceof Column) {
             return ((Column) selectExpression).getName();
@@ -82,8 +82,8 @@ public class SelectColumn implements IASTNode {
     @Override
     public void accept(IASTNodeVisitor visitor) {
         selectExpression.accept(visitor);
-        if (alias != null) {
-            alias.accept(visitor);
+        if (output != null) {
+            output.accept(visitor);
         }
     }
 }

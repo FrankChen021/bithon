@@ -21,7 +21,6 @@ import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,7 +41,7 @@ public abstract class AggregateSumColumn implements IAggregatableColumn {
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateFunctionExpression = Function.create(AggregateFunction.Sum.NAME, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Sum.NAME, name);
     }
 
     @JsonIgnore

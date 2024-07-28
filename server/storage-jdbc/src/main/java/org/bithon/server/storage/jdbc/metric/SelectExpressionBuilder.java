@@ -505,7 +505,7 @@ public class SelectExpressionBuilder {
                 if (selectExpression instanceof Expression) {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
-                    pipeline.postAggregation.getSelectColumnList().add(new StringNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(parsedExpression)), selectColumn.getAlias());
+                    pipeline.postAggregation.getSelectColumnList().add(new StringNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(parsedExpression)), selectColumn.getOutput());
                 }
             }
         }
@@ -714,17 +714,17 @@ public class SelectExpressionBuilder {
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getExpression().getName())) {
-                    subQueryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getAlias());
+                    subQueryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getOutput());
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the Javadoc above
                     // Use name in the groupBy expression because we have alias for the corresponding field in sub-query expression
-                    queryExpression.getGroupBy().addField(selectColumn.getAlias().getName());
-                    queryExpression.getSelectColumnList().add(selectColumn.getAlias().getName());
+                    queryExpression.getGroupBy().addField(selectColumn.getOutput().getName());
+                    queryExpression.getSelectColumnList().add(selectColumn.getOutput().getName());
 
                     hasSubSelect = true;
                 } else {
-                    queryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getAlias());
+                    queryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getOutput());
 
                     String underlyingFieldName = function.getField();
 
@@ -733,9 +733,9 @@ public class SelectExpressionBuilder {
                 }
             } else if (columnExpression instanceof Expression) {
                 queryExpression.getSelectColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
-                                                          selectColumn.getAlias());
+                                                          selectColumn.getOutput());
             } else if (columnExpression instanceof Column) {
-                queryExpression.getSelectColumnList().add(columnExpression, selectColumn.getAlias());
+                queryExpression.getSelectColumnList().add(columnExpression, selectColumn.getOutput());
             } else {
                 throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", selectColumn.toString(), selectColumn.getClass().getName()));
             }
