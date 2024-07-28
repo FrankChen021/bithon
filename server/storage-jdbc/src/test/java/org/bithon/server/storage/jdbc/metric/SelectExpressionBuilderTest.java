@@ -476,7 +476,7 @@ public class SelectExpressionBuilderTest {
                                 FROM "bithon_jvm_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               ) AS "tbl1"
-                              GROUP BY "appName", "instanceName", "activeThreads", "totalThreads"
+                              GROUP BY "appName", "instanceName", "activeThreads"
                             ) AS "tbl2"
                             ORDER BY "timestamp" asc
                             """.trim(),

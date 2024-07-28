@@ -539,7 +539,9 @@ public class SelectExpressionBuilder {
             // All window aggregation output must appear in the group-by clause
             if (pipeline.windowAggregation != null) {
                 for (SelectColumn column : pipeline.windowAggregation.getSelectColumnList().getColumns()) {
-                    pipeline.aggregation.getGroupBy().addField(column.getOutputName());
+                    if (!(column.getSelectExpression() instanceof Column)) {
+                        pipeline.aggregation.getGroupBy().addField(column.getOutputName());
+                    }
                 }
             }
 
