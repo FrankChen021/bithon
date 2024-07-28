@@ -443,7 +443,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("activeThreads"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("a"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
@@ -455,16 +455,16 @@ public class QueryExpressionBuilderTest {
         Assert.assertEquals("""
                             SELECT "appName",
                                    "instanceName",
-                                   "activeThreads"
+                                   "a"
                             FROM
                             (
                               SELECT "appName",
                                      "instanceName",
-                                     FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads"
+                                     FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "a"
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                             ) AS "tbl1"
-                            GROUP BY "appName", "instanceName", "activeThreads"
+                            GROUP BY "appName", "instanceName", "a"
                             """.trim(),
                             sqlGenerator.getSQL());
     }

@@ -417,10 +417,9 @@ public class QueryExpressionBuilder {
                 }
 
                 String col = identifierExpression.getIdentifier();
-                String output = col;
                 String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
-                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), output);
-                pipeline.aggregation.getSelectorList().add(new Column(output));
+                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output);
+                pipeline.aggregation.getSelectorList().add(new Column(aggregator.output));
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(aggregator.aggregateFunction)),
                                                            aggregator.output);
