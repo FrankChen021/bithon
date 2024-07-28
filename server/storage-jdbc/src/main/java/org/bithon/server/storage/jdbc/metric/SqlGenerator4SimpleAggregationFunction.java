@@ -57,7 +57,7 @@ public class SqlGenerator4SimpleAggregationFunction {
                 windowFunctionLength *= 2;
             }
 
-            step = interval.getTotalLength();
+            step = interval.getTotalSeconds();
         }
     }
 

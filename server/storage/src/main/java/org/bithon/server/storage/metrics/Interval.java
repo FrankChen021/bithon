@@ -61,7 +61,7 @@ public class Interval {
     /**
      * @return the length of interval in seconds
      */
-    public int getTotalLength() {
+    public int getTotalSeconds() {
         return (int) (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;
     }
 }

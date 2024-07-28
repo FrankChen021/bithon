@@ -303,14 +303,14 @@ public class SelectExpressionBuilder {
     }
 
     static class Aggregator {
-        private final FunctionExpression expression;
+        private final FunctionExpression aggregateFunction;
         private final String output;
         private final boolean isSimpleAggregation;
 
-        Aggregator(FunctionExpression expression, String output) {
-            this.expression = expression;
+        Aggregator(FunctionExpression aggregateFunction, String output) {
+            this.aggregateFunction = aggregateFunction;
             this.output = output;
-            this.isSimpleAggregation = expression.getArgs().get(0) instanceof IdentifierExpression;
+            this.isSimpleAggregation = aggregateFunction.getArgs().get(0) instanceof IdentifierExpression;
         }
     }
 
@@ -338,11 +338,11 @@ public class SelectExpressionBuilder {
                                       return false;
                                   }
 
-                                  if (!aggregator.expression.getName().equals(functionExpression.getName())) {
+                                  if (!aggregator.aggregateFunction.getName().equals(functionExpression.getName())) {
                                       return false;
                                   }
 
-                                  String col = ((IdentifierExpression) aggregator.expression.getArgs().get(0)).getIdentifier();
+                                  String col = ((IdentifierExpression) aggregator.aggregateFunction.getArgs().get(0)).getIdentifier();
                                   return col.equals(((IdentifierExpression) functionExpression.getArgs().get(0)).getIdentifier());
                               });
         }
@@ -360,7 +360,6 @@ public class SelectExpressionBuilder {
         private QueryExpression windowAggregation;
         private QueryExpression aggregation = new QueryExpression();
         private QueryExpression postAggregation;
-        private boolean hasAggregation = true;
 
         private QueryExpression outermost;
         private QueryExpression innermost;
@@ -370,9 +369,9 @@ public class SelectExpressionBuilder {
             if (windowAggregation != null) {
                 pipelines.add(windowAggregation);
             }
-            if (hasAggregation) {
-                pipelines.add(aggregation);
-            }
+
+            pipelines.add(aggregation);
+
             if (postAggregation != null) {
                 pipelines.add(postAggregation);
             }
@@ -388,16 +387,12 @@ public class SelectExpressionBuilder {
             this.outermost = pipelines.get(pipelines.size() - 1);
             this.innermost = pipelines.get(0);
         }
-
-        public QueryExpression getAggregationStep() {
-            return hasAggregation ? aggregation : windowAggregation;
-        }
     }
 
     public QueryExpression buildPipeline() {
         Variable var = new Variable("a");
 
-        Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalLength() : interval.getStep(),
+        Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
                                             "instanceCount", StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName")));
 
         Pipeline pipeline = new Pipeline();
@@ -436,8 +431,11 @@ public class SelectExpressionBuilder {
                             // Is there such input: sum(round(a/b,2))
                             output = var.next();
                         }
-
                         aggregators.add(functionCallExpression, output);
+
+                        if (pipeline.windowAggregation == null && sqlDialect.useWindowFunctionAsAggregator(functionCallExpression.getName())) {
+                            pipeline.windowAggregation = new QueryExpression();
+                        }
 
                         // Replace the aggregator in original expression to reference the output
                         return new IdentifierExpression(output);
@@ -459,33 +457,28 @@ public class SelectExpressionBuilder {
 
         for (int i = 0, aggregatorsSize = aggregators.size(); i < aggregatorsSize; i++) {
             Aggregator aggregator = aggregators.get(i);
-            FunctionExpression functionCall = aggregator.expression;
+            FunctionExpression aggregateFunction = aggregator.aggregateFunction;
 
-            if (sqlDialect.useWindowFunctionAsAggregator(functionCall.getName())) { // If this function is a window function
-                if (pipeline.windowAggregation == null) {
-                    pipeline.windowAggregation = new QueryExpression();
-                }
-
-                if (!(functionCall.getArgs().get(0) instanceof IdentifierExpression identifierExpression)) {
+            if (sqlDialect.useWindowFunctionAsAggregator(aggregateFunction.getName())) { // If this function is a window function
+                if (!(aggregateFunction.getArgs().get(0) instanceof IdentifierExpression identifierExpression)) {
                     // For simply, currently only IdentifierExpression is allowed in window aggregators
-                    throw new InvalidExpressionException("Only field is allowed in aggregator [%s]", functionCall.getName());
+                    throw new InvalidExpressionException("Only field is allowed in aggregator [%s]", aggregateFunction.getName());
                 }
 
                 String col = identifierExpression.getIdentifier();
                 String output = col;
                 String windowAggregator = sqlDialect.firstAggregator(col,
-                                                                     interval.getTotalLength());
+                                                                     interval.getTotalSeconds());
                 pipeline.windowAggregation.getSelectColumnList().add(new StringNode(windowAggregator), output);
                 pipeline.aggregation.getSelectColumnList().add(new Column(output));
             } else { // this aggregator function is NOT a window function
-                pipeline.hasAggregation = true;
-                pipeline.aggregation.getSelectColumnList().add(new Function(aggregator.expression, ""), aggregator.output);
+                pipeline.aggregation.getSelectColumnList().add(new Function(aggregator.aggregateFunction, ""), aggregator.output);
 
                 if (pipeline.windowAggregation != null) {
 
                     // Push all fields referenced in the aggregator to the window aggregation step
                     nonWindowAggregators.addAll(
-                        IdentifierExtractor.extractIdentifiers(schema, functionCall)
+                        IdentifierExtractor.extractIdentifiers(schema, aggregateFunction)
                     );
                 }
             }
@@ -533,7 +526,7 @@ public class SelectExpressionBuilder {
         //
         // Set GroupBy expression to the aggregation
         //
-        if (pipeline.hasAggregation) {
+        {
             pipeline.aggregation.getGroupBy().addFields(groupBy);
 
             // All window aggregation output must appear in the group-by clause
@@ -706,7 +699,7 @@ public class SelectExpressionBuilder {
                                                                                       aggregatedFields,
                                                                                       generator,
                                                                                       Map.of("interval",
-                                                                                             interval.getStep() == null ? interval.getTotalLength() : interval.getStep(),
+                                                                                             interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep(),
                                                                                              "instanceCount",
                                                                                              StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName"))));
 
