@@ -181,7 +181,7 @@ public class SelectExpressionBuilder {
                 return;
             }
 
-            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getExpression().getName())) {
+            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateFunctionExpression().getName())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
                 aggregatedColumn.add(metricSpec.getName());
@@ -229,7 +229,7 @@ public class SelectExpressionBuilder {
                     IAggregatableColumn metricSpec = (IAggregatableColumn) columnSpec;
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
-                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getExpression().getName());
+                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateFunctionExpression().getName());
 
                     // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
                     boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && aggregatedFields.contains(metricSpec.getName());
@@ -570,8 +570,12 @@ public class SelectExpressionBuilder {
             QueryExpression aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;
             aggregationStep.getSelectColumnList().insert(expr, TIMESTAMP_ALIAS_NAME);
 
-            // Always add the timestamp to the group-by clause of aggregation step
+            // Always add the timestamp to the group-by clause of the aggregation step
             pipeline.aggregation.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
+            if (aggregationStep != pipeline.aggregation) {
+                // Add timestamp to the SELECT list of the aggregation step
+                pipeline.aggregation.getSelectColumnList().insert(TIMESTAMP_ALIAS_NAME);
+            }
 
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
@@ -710,7 +714,7 @@ public class SelectExpressionBuilder {
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getExpression().getName())) {
-                    subQueryExpression.getSelectColumnList().add(new StringNode(generator.generate(function)), selectColumn.getAlias());
+                    subQueryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getAlias());
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the Javadoc above
@@ -720,7 +724,7 @@ public class SelectExpressionBuilder {
 
                     hasSubSelect = true;
                 } else {
-                    queryExpression.getSelectColumnList().add(new StringNode(generator.generate(function)), selectColumn.getAlias());
+                    queryExpression.getSelectColumnList().add(new StringNode(generator.generate(function.getExpression())), selectColumn.getAlias());
 
                     String underlyingFieldName = function.getField();
 
@@ -747,7 +751,7 @@ public class SelectExpressionBuilder {
         }
         for (IAggregatableColumn aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subQueryExpression.getSelectColumnList()
-                              .add(new StringNode(generator.generate(aggregator.getAggregateExpression())), aggregator.getName());
+                              .add(new StringNode(generator.generate(aggregator.getAggregateFunctionExpression())), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the Javadoc above

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
@@ -39,7 +40,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
     @Getter
     private final String name;
 
-    private final Function queryStageAggregator;
+    private final FunctionExpression aggregateFunctionExpression;
 
     @Getter
     private final String alias;
@@ -49,7 +50,7 @@ public class AggregateCountColumn implements IAggregatableColumn {
                                 @JsonProperty("alias") @Nullable String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.queryStageAggregator = Function.create(AggregateFunction.Count.NAME, name);
+        this.aggregateFunctionExpression = Function.create(AggregateFunction.Count.NAME, name);
     }
 
     @Override
@@ -96,8 +97,8 @@ public class AggregateCountColumn implements IAggregatableColumn {
 
     @JsonIgnore
     @Override
-    public Function getAggregateExpression() {
-        return queryStageAggregator;
+    public FunctionExpression getAggregateFunctionExpression() {
+        return aggregateFunctionExpression;
     }
 
     @Override

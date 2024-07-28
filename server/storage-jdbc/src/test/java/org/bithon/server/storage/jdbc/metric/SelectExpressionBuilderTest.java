@@ -425,7 +425,8 @@ public class SelectExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT "appName",
+                            SELECT "_timestamp",
+                            "appName",
                             "instanceName",
                             "activeThreads"
                             FROM

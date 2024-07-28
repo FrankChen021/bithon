@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.utils.StringUtils;
@@ -59,9 +61,9 @@ public class SqlGenerator4SimpleAggregationFunction {
         }
     }
 
-    public String generate(Function function) {
-        IFunction underlyingFunction = function.getExpression().getFunction();
-        String field = function.getField();
+    public String generate(FunctionExpression function) {
+        IFunction underlyingFunction = function.getFunction();
+        String field = ((IdentifierExpression) function.getArgs().get(0)).getIdentifier();
         if (underlyingFunction instanceof AggregateFunction.Sum) {
             return StringUtils.format("sum(%s)", sqlDialect.quoteIdentifier(field));
         }

@@ -41,13 +41,11 @@ public class Function implements IASTNode {
         Functions.getInstance().register(new GroupConcat());
     }
 
-    public static Function create(String type, String field) {
+    public static FunctionExpression create(String type, String arg) {
         IFunction function = Functions.getInstance().getFunction(type);
         Preconditions.checkNotNull(function, "Function [%s] not found.", type);
 
-        return new Function(new FunctionExpression(function,
-                                                   Collections.singletonList(new IdentifierExpression(field))),
-                            field);
+        return new FunctionExpression(function, Collections.singletonList(new IdentifierExpression(arg)));
     }
 
     private final FunctionExpression expression;
@@ -62,7 +60,7 @@ public class Function implements IASTNode {
     public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
         for (IExpression arg : this.expression.getArgs()) {
-            new Column(((IdentifierExpression)arg).getIdentifier()).accept(visitor);
+            new Column(((IdentifierExpression) arg).getIdentifier()).accept(visitor);
         }
         visitor.after(this);
     }

@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -67,10 +68,8 @@ public class QueryBuilder {
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = Function.create(
-                    field.getAggregator(),
-                    field.getField() == null ? field.getName() : field.getField());
-                selectColumnList.add(new SelectColumn(new Expression(function.getExpression()), field.getName()));
+                FunctionExpression function = Function.create(field.getAggregator(), field.getField() == null ? field.getName() : field.getField());
+                selectColumnList.add(new SelectColumn(new Expression(function), field.getName()));
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
