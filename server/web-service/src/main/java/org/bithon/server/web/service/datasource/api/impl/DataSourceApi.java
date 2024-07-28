@@ -34,7 +34,7 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -145,12 +145,12 @@ public class DataSourceApi implements IDataSourceApi {
 
         Query query = Query.builder()
                            .schema(schema)
-                           .selectColumns(request.getFields()
-                                                 .stream()
-                                                 .map((field) -> {
+                           .selectors(request.getFields()
+                                             .stream()
+                                             .map((field) -> {
                                                      IColumn spec = schema.getColumnByName(field.getField());
                                                      Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
-                                                     return new SelectColumn(spec.getName(), field.getName());
+                                                     return new Selector(spec.getName(), field.getName());
                                                  }).collect(Collectors.toList()))
                            .filter(QueryFilter.build(schema, request.getFilterExpression()))
                            .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
@@ -310,7 +310,7 @@ public class DataSourceApi implements IDataSourceApi {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectColumns(Collections.singletonList(column.toSelectColumn()))
+                               .selectors(Collections.singletonList(column.toSelectColumn()))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 

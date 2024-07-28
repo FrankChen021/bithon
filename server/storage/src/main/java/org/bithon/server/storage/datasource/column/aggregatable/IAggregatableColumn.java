@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,8 +29,8 @@ import org.bithon.server.storage.datasource.query.ast.SelectColumn;
  */
 public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
-    default SelectColumn toSelectColumn() {
-        return new SelectColumn(new Expression(getAggregateFunctionExpression()), getName());
+    default Selector toSelectColumn() {
+        return new Selector(new Expression(getAggregateFunctionExpression()), getName());
     }
 
     @JsonIgnore

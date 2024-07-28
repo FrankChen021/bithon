@@ -30,7 +30,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLongMinColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateDoubleSumColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 
 /**
  * @author Frank Chen
@@ -84,5 +84,5 @@ public interface IColumn extends IIdentifier {
     IDataType getDataType();
 
     @JsonIgnore
-    SelectColumn toSelectColumn();
+    Selector toSelectColumn();
 }

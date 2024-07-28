@@ -25,7 +25,7 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 
 
 /**
@@ -76,8 +76,8 @@ public class ExpressionColumn implements IColumn {
     }
 
     @Override
-    public SelectColumn toSelectColumn() {
-        return new SelectColumn(new Expression(this.expression), this.name);
+    public Selector toSelectColumn() {
+        return new Selector(new Expression(this.expression), this.name);
     }
 
     @Override

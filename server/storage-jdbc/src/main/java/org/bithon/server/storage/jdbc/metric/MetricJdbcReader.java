@@ -92,7 +92,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     public List<Map<String, Object>> timeseries(Query query) {
         QueryExpression queryExpression = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getSchema())
-                                                                 .fields(query.getSelectColumns())
+                                                                 .fields(query.getSelectors())
                                                                  .filter(query.getFilter())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -127,7 +127,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     public List<?> groupBy(Query query) {
         QueryExpression queryExpression = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getSchema())
-                                                                 .fields(query.getSelectColumns())
+                                                                 .fields(query.getSelectors())
                                                                  .filter(query.getFilter())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -156,7 +156,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
-            query.getSelectColumns()
+            query.getSelectors()
                  .stream()
                  .map(field -> {
                      String expr = field.getSelectExpression().toString();
@@ -241,7 +241,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<String> distinct(Query query) {
         String filterText = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
-        String dimension = query.getSelectColumns().get(0).getOutputName();
+        String dimension = query.getSelectors().get(0).getOutputName();
 
         String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",

@@ -22,7 +22,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableCol
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
@@ -55,7 +55,7 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
-        List<String> metrics = query.getSelectColumns()
+        List<String> metrics = query.getSelectors()
                                     .stream()
                                     .filter((selectColumn) -> {
                                         if (selectColumn.getSelectExpression() instanceof Expression) {
@@ -67,7 +67,7 @@ public class DataSourceService {
                                         IColumn column = query.getSchema().getColumnByName(selectColumn.getOutputName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((SelectColumn::getOutputName))
+                                    .map((Selector::getOutputName))
                                     .collect(Collectors.toList());
 
         try (IDataSourceReader reader = query.getSchema()

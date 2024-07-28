@@ -17,31 +17,24 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-import org.bithon.component.commons.expression.FunctionExpression;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IdentifierExpression;
 
 /**
+ *
+ * An expression that uses string to hold raw string
+ *
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:40
+ * @date 2022/9/4 16:49
  */
-@Getter
-public class Function implements IASTNode {
+public class TextNode implements IASTNode {
+    @Getter
+    private final String str;
 
-    private final FunctionExpression expression;
-    private final String field;
-
-    public Function(FunctionExpression expression, String field) {
-        this.expression = expression;
-        this.field = field;
+    public TextNode(String str) {
+        this.str = str;
     }
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        //visitor.before(this);
-        for (IExpression arg : this.expression.getArgs()) {
-            new Column(((IdentifierExpression) arg).getIdentifier()).accept(visitor);
-        }
-        //visitor.after(this);
+        visitor.visit(this);
     }
 }

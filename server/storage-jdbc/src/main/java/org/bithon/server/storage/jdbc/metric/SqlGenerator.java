@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
@@ -26,9 +26,9 @@ import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
-import org.bithon.server.storage.datasource.query.ast.StringNode;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
@@ -115,13 +115,13 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(StringNode stringNode) {
-        sql.append(stringNode.getStr());
+    public void visit(TextNode textNode) {
+        sql.append(textNode.getStr());
     }
 
     @Override
-    public void visit(int index, int count, SelectColumn selectColumn) {
-        selectColumn.accept(this);
+    public void visit(int index, int count, Selector selector) {
+        selector.accept(this);
         if (index < count - 1) {
             sql.append(',');
             sql.append('\n');
@@ -135,7 +135,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(ColumnAlias alias) {
+    public void visit(Alias alias) {
         sql.append(" AS ");
         sql.append(sqlDialect.quoteIdentifier(alias.getName()));
     }

@@ -25,7 +25,7 @@ import lombok.Data;
 @Data
 public class From implements IASTNode {
     private IASTNode expression;
-    private ColumnAlias alias;
+    private Alias alias;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {

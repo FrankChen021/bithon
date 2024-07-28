@@ -37,36 +37,36 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 2022/9/4 16:11
  */
 @Getter
-public class SelectColumn implements IASTNode {
+public class Selector implements IASTNode {
     private final IASTNode selectExpression;
-    private final ColumnAlias output;
+    private final Alias output;
 
-    public SelectColumn(String name) {
-        this(new Column(name), (ColumnAlias) null);
+    public Selector(String name) {
+        this(new Column(name), (Alias) null);
     }
 
-    public SelectColumn(String name, String output) {
-        this(new Column(name), output == null ? null : new ColumnAlias(output));
+    public Selector(String name, String output) {
+        this(new Column(name), output == null ? null : new Alias(output));
     }
 
-    SelectColumn(IASTNode selectExpression) {
+    Selector(IASTNode selectExpression) {
         this(selectExpression, (String) null);
     }
 
-    public SelectColumn(IASTNode selectExpression, String output) {
-        this(selectExpression, output == null ? null : new ColumnAlias(output));
+    public Selector(IASTNode selectExpression, String output) {
+        this(selectExpression, output == null ? null : new Alias(output));
     }
 
-    public SelectColumn(IASTNode selectExpression, ColumnAlias output) {
+    public Selector(IASTNode selectExpression, Alias output) {
         this.selectExpression = selectExpression;
         this.output = output;
     }
 
-    public SelectColumn withOutput(String alias) {
+    public Selector withOutput(String alias) {
         if (this.output != null && this.output.getName().equals(alias)) {
             return this;
         }
-        return new SelectColumn(this.selectExpression, alias);
+        return new Selector(this.selectExpression, alias);
     }
 
     public String getOutputName() {
