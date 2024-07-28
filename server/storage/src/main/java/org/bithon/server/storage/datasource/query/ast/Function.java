@@ -38,10 +38,10 @@ public class Function implements IASTNode {
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
-        visitor.before(this);
+        //visitor.before(this);
         for (IExpression arg : this.expression.getArgs()) {
             new Column(((IdentifierExpression) arg).getIdentifier()).accept(visitor);
         }
-        visitor.after(this);
+        //visitor.after(this);
     }
 }

@@ -22,7 +22,6 @@ import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableCol
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.SelectColumn;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -65,13 +64,7 @@ public class DataSourceService {
                                             return true;
                                         }
 
-                                        String fieldName;
-                                        if (selectColumn.getSelectExpression() instanceof Function) {
-                                            fieldName = ((Function) selectColumn.getSelectExpression()).getField();
-                                        } else {
-                                            fieldName = selectColumn.getOutputName();
-                                        }
-                                        IColumn column = query.getSchema().getColumnByName(fieldName);
+                                        IColumn column = query.getSchema().getColumnByName(selectColumn.getOutputName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
                                     .map((SelectColumn::getOutputName))

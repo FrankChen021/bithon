@@ -32,7 +32,6 @@ import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.Limit;
@@ -472,7 +471,7 @@ public class SelectExpressionBuilder {
                 pipeline.windowAggregation.getSelectColumnList().add(new StringNode(windowAggregator), output);
                 pipeline.aggregation.getSelectColumnList().add(new Column(output));
             } else { // this aggregator function is NOT a window function
-                pipeline.aggregation.getSelectColumnList().add(new Function(aggregator.aggregateFunction, ""), aggregator.output);
+                pipeline.aggregation.getSelectColumnList().add(new StringNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(aggregator.aggregateFunction)), aggregator.output);
 
                 if (pipeline.windowAggregation != null) {
 
@@ -679,8 +678,8 @@ public class SelectExpressionBuilder {
         // Turn some metrics (those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.selectColumns.stream()
-                                                         .filter((f) -> f.getSelectExpression() instanceof Function)
-                                                         .map(selectColumn -> ((Function) selectColumn.getSelectExpression()).getField())
+                                                         .filter((f) -> f.getSelectExpression() instanceof Expression)
+                                                         .map(selectColumn -> ((Expression) selectColumn.getSelectExpression()).toString())
                                                          .collect(Collectors.toSet());
 
         QueryExpression queryExpression = new QueryExpression();
@@ -705,6 +704,7 @@ public class SelectExpressionBuilder {
 
         for (SelectColumn selectColumn : this.selectColumns) {
             IASTNode columnExpression = selectColumn.getSelectExpression();
+            /*
             if (columnExpression instanceof Function function) {
 
                 // if window function is contained, the final SQL has a sub-query
@@ -726,7 +726,8 @@ public class SelectExpressionBuilder {
                     // This metric should also be in the sub-query, see the example in the Javadoc above
                     subQueryExpression.getSelectColumnList().add(underlyingFieldName);
                 }
-            } else if (columnExpression instanceof Expression) {
+            } else */
+            if (columnExpression instanceof Expression) {
                 queryExpression.getSelectColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
                                                           selectColumn.getOutput());
             } else if (columnExpression instanceof Column) {

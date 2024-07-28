@@ -16,11 +16,11 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
@@ -44,6 +44,8 @@ public class SqlGenerator implements IASTNodeVisitor {
     private final ISqlDialect sqlDialect;
     private int nestedSelect = 0;
     private String indent = "";
+
+    private ExpressionSerializer expressionSerializer;
 
     public SqlGenerator(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
@@ -109,18 +111,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(Expression expression) {
-
-    }
-
-    @Override
-    public void before(Function function) {
-        sql.append(function.getExpression().getName());
-        sql.append('(');
-    }
-
-    @Override
-    public void after(Function function) {
-        sql.append(')');
+        sql.append(expressionSerializer.serialize(expression.getParsedExpression()));
     }
 
     @Override
