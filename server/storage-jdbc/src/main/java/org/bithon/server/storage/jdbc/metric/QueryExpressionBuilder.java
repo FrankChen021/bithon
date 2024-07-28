@@ -21,6 +21,7 @@ import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
@@ -35,6 +36,7 @@ import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
+import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
@@ -142,6 +144,39 @@ public class QueryExpressionBuilder {
             IdentifierExtractor extractor = new IdentifierExtractor(schema);
             expression.accept(extractor);
             return extractor.getIdentifiers();
+        }
+    }
+
+    static class Expression2SqlSerializer extends Expression2Sql {
+        protected final Map<String, Object> variables;
+
+        Expression2SqlSerializer(ISqlDialect sqlDialect, Map<String, Object> variables) {
+            super(null, sqlDialect);
+            this.variables = variables;
+        }
+
+        @Override
+        public boolean visit(MacroExpression expression) {
+            Object variableValue = variables.get(expression.getMacro());
+            if (variableValue == null) {
+                throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
+                                                              expression.getMacro()));
+            }
+            sb.append(variableValue);
+
+            return false;
+        }
+
+        @Override
+        public boolean visit(FunctionExpression expression) {
+            if (expression.getFunction() instanceof QueryStageFunctions.Cardinality) {
+                sb.append("count(distinct ");
+                expression.getArgs().get(0).accept(this);
+                sb.append(")");
+                return false;
+            }
+
+            return super.visit(expression);
         }
     }
 
