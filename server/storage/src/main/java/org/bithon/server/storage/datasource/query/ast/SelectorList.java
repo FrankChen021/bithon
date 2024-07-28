@@ -20,7 +20,6 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 
 /**
  * @author frank.chen021@outlook.com
@@ -100,12 +99,6 @@ public class SelectorList implements IASTNode {
             this.selectors.add(new Selector(column));
         }
         return this;
-    }
-
-    public <C> C getColumnNames(Collector<String, ?, C> collector) {
-        return selectors.stream()
-                        .map(Selector::getOutputName)
-                        .collect(collector);
     }
 
     @Override

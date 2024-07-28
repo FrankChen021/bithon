@@ -22,6 +22,8 @@ import jakarta.annotation.Nullable;
 
 
 public class TimestampSpec {
+    public static final String COLUMN_ALIAS = "_timestamp";
+
     public static final String DEFAULT_COLUMN = "timestamp";
     private final String timestampColumn;
 

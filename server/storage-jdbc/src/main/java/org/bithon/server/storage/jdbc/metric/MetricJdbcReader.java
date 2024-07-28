@@ -20,6 +20,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -49,8 +50,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IDataSourceReader {
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
-
-    private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
@@ -96,7 +95,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                  .filter(query.getFilter())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
-                                                                 .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
+                                                                 .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
                                                                  .sqlDialect(this.sqlDialect)
                                                                  .buildPipeline();
 /*
@@ -141,7 +140,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
-    private String getOrderBySQL(OrderBy orderBy, String timestampColumn) {
+    private String getOrderBySQL(OrderBy orderBy) {
         if (orderBy == null) {
             return "";
         }
@@ -175,7 +174,7 @@ public class MetricJdbcReader implements IDataSourceReader {
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             timestampCol,
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            getOrderBySQL(query.getOrderBy(), timestampCol),
+            getOrderBySQL(query.getOrderBy()),
             query.getLimit().getLimit(),
             query.getLimit().getOffset());
 

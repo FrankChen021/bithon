@@ -21,11 +21,11 @@ import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -56,8 +56,6 @@ import java.util.Set;
  * @date 2022/10/30 11:52
  */
 public class SelectExpressionBuilder {
-
-    public static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     private ISchema schema;
 
@@ -120,27 +118,6 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    static class Expression2SqlSerializer extends Expression2Sql {
-        protected final Map<String, Object> variables;
-
-        Expression2SqlSerializer(ISqlDialect sqlDialect, Map<String, Object> variables) {
-            super(null, sqlDialect);
-            this.variables = variables;
-        }
-
-        @Override
-        public boolean visit(MacroExpression expression) {
-            Object variableValue = variables.get(expression.getMacro());
-            if (variableValue == null) {
-                throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
-                                                              expression.getMacro()));
-            }
-            sb.append(variableValue);
-
-            return false;
-        }
-    }
-
     static class IdentifierExtractor extends FieldExpressionVisitorAdaptor2 {
         private final ISchema schema;
 
@@ -168,11 +145,11 @@ public class SelectExpressionBuilder {
         }
     }
 
-    static class Variable {
+    static class VariableName {
         private int index;
         private final String prefix;
 
-        Variable(String prefix) {
+        VariableName(String prefix) {
             this.prefix = prefix;
         }
 
@@ -349,7 +326,7 @@ public class SelectExpressionBuilder {
      * </pre>
      */
     public QueryExpression buildPipeline() {
-        Variable var = new Variable("a");
+        VariableName var = new VariableName("_var");
 
         Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
                                             "instanceCount", StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName")));
@@ -358,14 +335,31 @@ public class SelectExpressionBuilder {
 
         Aggregators aggregators = new Aggregators();
 
-        // Step 1
-        // Find and replace the aggregation expression
+        // Round 1, determine aggregation steps
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression) {
                 IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
-                // Replace all aggregator functions
+                if (parsedExpression instanceof FunctionExpression functionExpression) {
+                    if (!functionExpression.getFunction().isAggregator()) {
+                        pipeline.postAggregation = new QueryExpression();
+                        break;
+                    }
+                } else {
+                    pipeline.postAggregation = new QueryExpression();
+                    break;
+                }
+            }
+        }
+
+        // Round 2, Replace the aggregation expression
+        for (Selector selector : this.selectors) {
+            IASTNode selectExpression = selector.getSelectExpression();
+            if (selectExpression instanceof Expression) {
+                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+
+                // Replace all aggregator functions, examples:
                 // Case 1: sum(a) ===> a
                 // Case 2: round(sum(a)/sum(b), 2) ===> round(a/b, 2), sum(a), sum(b)
                 // Case 3: round(sum(a+b), 2) ===> round(a, 2), sum(a+b)
@@ -383,12 +377,17 @@ public class SelectExpressionBuilder {
                         }
 
                         String output;
-                        if (inputArg instanceof IdentifierExpression) {
-                            output = ((IdentifierExpression) inputArg).getIdentifier();
+                        if (pipeline.postAggregation == null) {
+                            // If there's no post-aggregation, the output should be the same as the input
+                            output = selector.getOutputName();
                         } else {
-                            // This might be the form: sum(a+b)
-                            // Is there such input: sum(round(a/b,2))
-                            output = var.next();
+                            if (inputArg instanceof IdentifierExpression) {
+                                output = ((IdentifierExpression) inputArg).getIdentifier();
+                            } else {
+                                // This might be the form: sum(a+b)
+                                // Is there such input: sum(round(a/b,2))
+                                output = var.next();
+                            }
                         }
                         aggregators.add(functionCallExpression, output);
 
@@ -402,13 +401,6 @@ public class SelectExpressionBuilder {
                 });
 
                 ((Expression) selectExpression).setParsedExpression(parsedExpression);
-
-                // After pushing down aggregation,
-                // if the expression still contains further calculation on the aggregation result,
-                // we need to add a step to take the calculation
-                if (!(parsedExpression instanceof IdentifierExpression)) {
-                    pipeline.postAggregation = new QueryExpression();
-                }
             }
         }
 
@@ -430,7 +422,8 @@ public class SelectExpressionBuilder {
                 pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), output);
                 pipeline.aggregation.getSelectorList().add(new Column(output));
             } else { // this aggregator function is NOT a window function
-                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(aggregator.aggregateFunction)), aggregator.output);
+                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(aggregator.aggregateFunction)),
+                                                           aggregator.output);
 
                 if (pipeline.windowAggregation != null) {
 
@@ -456,7 +449,8 @@ public class SelectExpressionBuilder {
                 if (selectExpression instanceof Expression) {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
-                    pipeline.postAggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(parsedExpression)), selector.getOutput());
+                    pipeline.postAggregation.getSelectorList()
+                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros).serialize(parsedExpression)), selector.getOutput());
                 }
             }
         }
@@ -521,18 +515,18 @@ public class SelectExpressionBuilder {
 
             // The timestamp calculation is pushed down to the window aggregation step if needed
             QueryExpression aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;
-            aggregationStep.getSelectorList().insert(expr, TIMESTAMP_ALIAS_NAME);
+            aggregationStep.getSelectorList().insert(expr, TimestampSpec.COLUMN_ALIAS);
 
             // Always add the timestamp to the group-by clause of the aggregation step
-            pipeline.aggregation.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
+            pipeline.aggregation.getGroupBy().addField(TimestampSpec.COLUMN_ALIAS);
             if (aggregationStep != pipeline.aggregation) {
                 // Add timestamp to the SELECT list of the aggregation step
-                pipeline.aggregation.getSelectorList().insert(TIMESTAMP_ALIAS_NAME);
+                pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
             }
 
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
-                pipeline.postAggregation.getSelectorList().insert(TIMESTAMP_ALIAS_NAME);
+                pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
             }
         }
 

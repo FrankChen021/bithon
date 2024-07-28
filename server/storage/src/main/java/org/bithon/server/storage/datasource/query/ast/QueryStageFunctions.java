@@ -54,7 +54,6 @@ public class QueryStageFunctions implements InitializingBean {
         }
     }
 
-
     public static class Rate extends AggregateFunction {
         public Rate() {
             super("rate");

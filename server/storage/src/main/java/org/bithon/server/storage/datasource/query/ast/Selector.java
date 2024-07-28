@@ -20,18 +20,16 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword
- * <p>
- *     e.g.
+ * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword.
+ * For example:
+ * <pre>
  * SELECT
- *     column1, ---------------> SelectColumn(column1)
- *     column2 AS alias2, -----> SelectColumn(column2, alias)
- *     sum(column3), ----------> SelectColumn(AggregateFunction_SUM(column3))
- *     avg(column4) AS alias4 -> SelectColumn(AggregateFunction_AVG(column4)), alias)
+ *     column1, ---------------> Selector(Column(column1))
+ *     column2 AS alias2, -----> Selector(Column(column2), alias)
+ *     sum(column3), ----------> Selector(Expression(AggregateFunction_SUM(column3)))
+ *     avg(column4) AS alias4 -> Selector(Expression(AggregateFunction_SUM(column3)), alias4)
  * FROM table
- *
- * MetricExpression ---> Query(object)
- *   queryField ---> SelectColumn
+ * </pre>
  *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 16:11

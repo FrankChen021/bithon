@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 @Conditional(WebServiceModuleEnabler.class)
 public class DataSourceService {
 
-    private static final String TIMESTAMP_COLUMN_NAME_IN_RESULT_SET = "_timestamp";
     private final IMetricStorage metricStorage;
 
     public DataSourceService(IMetricStorage metricStorage) {
@@ -81,7 +81,7 @@ public class DataSourceService {
                                                query.getInterval().getEndTime(),
                                                query.getInterval().getStep().getSeconds(),
                                                result,
-                                               TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
+                                               TimestampSpec.COLUMN_ALIAS,
                                                query.getGroupBy(),
                                                metrics);
         }
