@@ -89,15 +89,15 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        QueryExpression queryExpression = SelectExpressionBuilder.builder()
-                                                                 .dataSource(query.getSchema())
-                                                                 .fields(query.getSelectors())
-                                                                 .filter(query.getFilter())
-                                                                 .interval(query.getInterval())
-                                                                 .groupBys(query.getGroupBy())
-                                                                 .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
-                                                                 .sqlDialect(this.sqlDialect)
-                                                                 .buildPipeline();
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .dataSource(query.getSchema())
+                                                                .fields(query.getSelectors())
+                                                                .filter(query.getFilter())
+                                                                .interval(query.getInterval())
+                                                                .groupBy(query.getGroupBy())
+                                                                .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
+                                                                .sqlDialect(this.sqlDialect)
+                                                                .build();
 /*
         QueryExpression timestampFilterExpression = queryExpression;
         if (queryExpression.getFrom().getExpression() instanceof QueryExpression) {
@@ -124,16 +124,16 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<?> groupBy(Query query) {
-        QueryExpression queryExpression = SelectExpressionBuilder.builder()
-                                                                 .dataSource(query.getSchema())
-                                                                 .fields(query.getSelectors())
-                                                                 .filter(query.getFilter())
-                                                                 .interval(query.getInterval())
-                                                                 .groupBys(query.getGroupBy())
-                                                                 .orderBy(query.getOrderBy())
-                                                                 .limit(query.getLimit())
-                                                                 .sqlDialect(this.sqlDialect)
-                                                                 .buildPipeline();
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .dataSource(query.getSchema())
+                                                                .fields(query.getSelectors())
+                                                                .filter(query.getFilter())
+                                                                .interval(query.getInterval())
+                                                                .groupBy(query.getGroupBy())
+                                                                .orderBy(query.getOrderBy())
+                                                                .limit(query.getLimit())
+                                                                .sqlDialect(this.sqlDialect)
+                                                                .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         queryExpression.accept(sqlGenerator);

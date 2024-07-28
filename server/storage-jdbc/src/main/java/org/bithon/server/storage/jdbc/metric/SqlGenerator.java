@@ -121,11 +121,16 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(int index, int count, Selector selector) {
+        if (index == 0) {
+            indent += "       ";
+        }
         selector.accept(this);
         if (index < count - 1) {
             sql.append(',');
             sql.append('\n');
             sql.append(indent);
+        } else {
+            indent = indent.substring(0, indent.length() - 7);
         }
     }
 

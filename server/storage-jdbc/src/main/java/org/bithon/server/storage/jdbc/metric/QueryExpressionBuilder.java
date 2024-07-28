@@ -55,7 +55,7 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 11:52
  */
-public class SelectExpressionBuilder {
+public class QueryExpressionBuilder {
 
     private ISchema schema;
 
@@ -74,46 +74,46 @@ public class SelectExpressionBuilder {
 
     private ISqlDialect sqlDialect;
 
-    public static SelectExpressionBuilder builder() {
-        return new SelectExpressionBuilder();
+    public static QueryExpressionBuilder builder() {
+        return new QueryExpressionBuilder();
     }
 
-    public SelectExpressionBuilder dataSource(ISchema dataSource) {
+    public QueryExpressionBuilder dataSource(ISchema dataSource) {
         this.schema = dataSource;
         return this;
     }
 
-    public SelectExpressionBuilder fields(List<Selector> selectors) {
+    public QueryExpressionBuilder fields(List<Selector> selectors) {
         this.selectors = selectors;
         return this;
     }
 
-    public SelectExpressionBuilder filter(IExpression filter) {
+    public QueryExpressionBuilder filter(IExpression filter) {
         this.filter = filter;
         return this;
     }
 
-    public SelectExpressionBuilder interval(Interval interval) {
+    public QueryExpressionBuilder interval(Interval interval) {
         this.interval = interval;
         return this;
     }
 
-    public SelectExpressionBuilder groupBys(List<String> groupBy) {
+    public QueryExpressionBuilder groupBy(List<String> groupBy) {
         this.groupBy = groupBy;
         return this;
     }
 
-    public SelectExpressionBuilder orderBy(@Nullable org.bithon.server.storage.datasource.query.OrderBy orderBy) {
+    public QueryExpressionBuilder orderBy(@Nullable org.bithon.server.storage.datasource.query.OrderBy orderBy) {
         this.orderBy = orderBy;
         return this;
     }
 
-    public SelectExpressionBuilder limit(@Nullable org.bithon.server.storage.datasource.query.Limit limit) {
+    public QueryExpressionBuilder limit(@Nullable org.bithon.server.storage.datasource.query.Limit limit) {
         this.limit = limit;
         return this;
     }
 
-    public SelectExpressionBuilder sqlDialect(ISqlDialect sqlDialect) {
+    public QueryExpressionBuilder sqlDialect(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
         return this;
     }
@@ -325,7 +325,7 @@ public class SelectExpressionBuilder {
      *  last step: add filter to the first step of the pipeline(push down the pre filter)
      * </pre>
      */
-    public QueryExpression buildPipeline() {
+    public QueryExpression build() {
         VariableName var = new VariableName("_var");
 
         Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
@@ -427,7 +427,7 @@ public class SelectExpressionBuilder {
 
                 if (pipeline.windowAggregation != null) {
 
-                    // Push all fields referenced in the aggregator to the window aggregation step
+                    // Push all columns referenced in the aggregator to the window aggregation step
                     nonWindowAggregators.addAll(
                         IdentifierExtractor.extractIdentifiers(schema, aggregateFunction)
                     );
