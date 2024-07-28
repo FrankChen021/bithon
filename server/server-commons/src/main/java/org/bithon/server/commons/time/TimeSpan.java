@@ -97,6 +97,10 @@ public class TimeSpan {
         return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     }
 
+    public String toISO8601(TimeZone tz) {
+        return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", tz);
+    }
+
     public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
         SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
         df.setTimeZone(timeZone);

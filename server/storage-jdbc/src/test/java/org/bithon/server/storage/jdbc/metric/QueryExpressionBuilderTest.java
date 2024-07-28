@@ -46,6 +46,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author frank.chen021@outlook.com
@@ -90,6 +91,12 @@ public class QueryExpressionBuilderTest {
                                                      null);
 
     final ISqlDialect h2Dialect = new ISqlDialect() {
+
+        @Override
+        public String formatTimestamp(TimeSpan timeSpan) {
+            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
+        }
+
         @Override
         public boolean useWindowFunctionAsAggregator(String aggregator) {
             return "first".equals(aggregator) || "last".equals(aggregator);
@@ -149,6 +156,10 @@ public class QueryExpressionBuilderTest {
     };
 
     final ISqlDialect clickHouseDialect = new ISqlDialect() {
+        @Override
+        public String formatTimestamp(TimeSpan timeSpan) {
+            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
+        }
 
         @Override
         public String quoteIdentifier(String identifier) {
