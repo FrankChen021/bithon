@@ -19,6 +19,10 @@ package org.bithon.server.web.service.datasource.api.impl;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -67,8 +71,28 @@ public class QueryBuilder {
             }
 
             if (field.getAggregator() != null) {
-                FunctionExpression function = FunctionExpression.create(field.getAggregator(), field.getField() == null ? field.getName() : field.getField());
-                selectorList.add(new Selector(new Expression(function), field.getName()));
+                IFunction function = Functions.getInstance().getFunction(field.getAggregator());
+
+                if (function instanceof AggregateFunction.Count) {
+                    // Count aggregation has special input like count(), count(*), count(1),
+                    // we need to treat them differently
+                    if (StringUtils.isEmpty(field.getField())) {
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.create(1L))), field.getName()));
+                    } else if ("*".equals(field.getField())) {
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
+                    } else if (field.getField().matches("\\d+")) {
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.LongLiteral.of(field.getField()))), field.getName()));
+                    } else {
+                        // Treat the input as a column name
+                        Preconditions.checkNotNull(schema.getColumnByName(field.getField()), "Field [%s] does not exist in the schema.", field.getField());
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, new IdentifierExpression(field.getField()))), field.getName()));
+                    }
+                } else {
+                    String col = field.getField() == null ? field.getName() : field.getField();
+                    Preconditions.checkNotNull(schema.getColumnByName(col), "Field [%s] does not exist in the schema.", col);
+                    selectorList.add(new Selector(new Expression(new FunctionExpression(function, new IdentifierExpression(col))), field.getName()));
+                }
+
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());

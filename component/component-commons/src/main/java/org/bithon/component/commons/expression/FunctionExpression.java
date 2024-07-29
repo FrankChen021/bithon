@@ -89,13 +89,6 @@ public class FunctionExpression implements IExpression {
         IFunction function = Functions.getInstance().getFunction(functionName);
         Preconditions.checkNotNull(function, "Function [%s] not found.", functionName);
 
-        /*
-        Preconditions.checkIfTrue(function.getParameterDeclarations().size() == args.length,
-                                  "Function [%s] requires [%d] parameters, but [%s] given.",
-                                  functionName,
-                                  function.getParameterDeclarations().size(),
-                                  args.length);
-        */
         return new FunctionExpression(function,
                                       Arrays.stream(args)
                                             .map(IdentifierExpression::new)

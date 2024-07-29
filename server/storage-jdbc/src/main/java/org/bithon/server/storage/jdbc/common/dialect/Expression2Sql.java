@@ -65,6 +65,8 @@ public class Expression2Sql extends ExpressionSerializer {
             sb.append(expression.asBoolean() ? 1 : 0);
         } else if (expression instanceof LiteralExpression.TimestampLiteral) {
             sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
+        } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
+            sb.append('*');
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }

@@ -189,6 +189,10 @@ public abstract class LiteralExpression implements IExpression {
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
             }
         }
+
+        public static LiteralExpression of(String val) {
+            return new LongLiteral(Long.parseLong(val));
+        }
     }
 
     public static class DoubleLiteral extends LiteralExpression {
@@ -289,6 +293,30 @@ public abstract class LiteralExpression implements IExpression {
         @Override
         public String toString() {
             return "null";
+        }
+    }
+
+    public static class AsteriskLiteral extends LiteralExpression {
+        public static final AsteriskLiteral INSTANCE = new AsteriskLiteral();
+
+        public AsteriskLiteral() {
+            super("*");
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            return this;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            // May not be right
+            return IDataType.STRING;
+        }
+
+        @Override
+        public String toString() {
+            return "*";
         }
     }
 }

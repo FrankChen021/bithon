@@ -114,5 +114,11 @@ public abstract class AbstractFunction implements IFunction {
                                                        .map(Object::toString)
                                                        .collect(Collectors.joining(",")));
         }
+
+        public static void validateTrue(boolean expression, String messageFormat, Object... args) {
+            if (!expression) {
+                throw new InvalidExpressionException(messageFormat, args);
+            }
+        }
     }
 }

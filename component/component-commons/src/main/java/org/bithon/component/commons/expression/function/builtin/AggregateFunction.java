@@ -101,10 +101,12 @@ public abstract class AggregateFunction extends AbstractFunction {
             super(NAME);
         }
 
+        /**
+         * count() is not accepted
+         */
         @Override
         public void validateParameter(List<IExpression> parameters) {
             Validator.validateParameterSize(1, parameters.size());
-            Validator.validateType(parameters.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
