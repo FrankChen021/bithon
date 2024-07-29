@@ -84,5 +84,5 @@ public interface IColumn extends IIdentifier {
     IDataType getDataType();
 
     @JsonIgnore
-    Selector toSelectColumn();
+    Selector toSelector();
 }

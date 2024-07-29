@@ -41,7 +41,7 @@ public class ObjectColumn extends AbstractColumn {
         return IDataType.OBJECT;
     }
 
-    public Selector toSelectColumn() {
+    public Selector toSelector() {
         return new Selector(getName());
     }
 }

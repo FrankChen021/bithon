@@ -30,7 +30,9 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
 import org.bithon.server.storage.datasource.SchemaManager;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -148,10 +150,10 @@ public class DataSourceApi implements IDataSourceApi {
                            .selectors(request.getFields()
                                              .stream()
                                              .map((field) -> {
-                                                     IColumn spec = schema.getColumnByName(field.getField());
-                                                     Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
-                                                     return new Selector(spec.getName(), field.getName());
-                                                 }).collect(Collectors.toList()))
+                                                 IColumn spec = schema.getColumnByName(field.getField());
+                                                 Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
+                                                 return new Selector(spec.getName(), field.getName());
+                                             }).collect(Collectors.toList()))
                            .filter(QueryFilter.build(schema, request.getFilterExpression()))
                            .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
                            .orderBy(request.getOrderBy())
@@ -305,12 +307,14 @@ public class DataSourceApi implements IDataSourceApi {
 
         IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
+        Preconditions.checkIfTrue(!(column instanceof IAggregatableColumn), "Can't get values on type of aggregatable column [%s]", column.getName());
+        Preconditions.checkIfTrue(!(column instanceof ExpressionColumn), "Can't get values on type of expression column [%s]", column.getName());
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectors(Collections.singletonList(column.toSelectColumn()))
+                               .selectors(Collections.singletonList(new Selector(column.getName())))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 

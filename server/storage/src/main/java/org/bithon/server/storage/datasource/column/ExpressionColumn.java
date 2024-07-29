@@ -76,7 +76,7 @@ public class ExpressionColumn implements IColumn {
     }
 
     @Override
-    public Selector toSelectColumn() {
+    public Selector toSelector() {
         return new Selector(new Expression(this.expression), this.name);
     }
 

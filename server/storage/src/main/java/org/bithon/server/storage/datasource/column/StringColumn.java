@@ -42,7 +42,7 @@ public class StringColumn extends AbstractColumn {
     }
 
     @Override
-    public Selector toSelectColumn() {
+    public Selector toSelector() {
         return new Selector(getName());
     }
 }

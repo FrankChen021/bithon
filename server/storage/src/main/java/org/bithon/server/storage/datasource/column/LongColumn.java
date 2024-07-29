@@ -41,7 +41,7 @@ public class LongColumn extends AbstractColumn {
     }
 
     @Override
-    public Selector toSelectColumn() {
+    public Selector toSelector() {
         return new Selector(getName());
     }
 }

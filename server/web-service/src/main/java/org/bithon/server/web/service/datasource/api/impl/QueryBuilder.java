@@ -73,7 +73,7 @@ public class QueryBuilder {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
                 Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
 
-                Selector selector = columnSpec.toSelectColumn();
+                Selector selector = columnSpec.toSelector();
                 if (columnSpec.getAlias().equals(field.getName())) {
                     selector = selector.withOutput(field.getName());
                 }

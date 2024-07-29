@@ -52,11 +52,4 @@ public class GetDimensionRequest {
      */
     @NotNull
     private String name;
-
-    /**
-     * Indicate the type of {@link #name}
-     * name
-     * alias
-     */
-    private String type = "name";
 }

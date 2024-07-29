@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.query.ast.Selector;
  */
 public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
-    default Selector toSelectColumn() {
+    default Selector toSelector() {
         return new Selector(new Expression(getAggregateFunctionExpression()), getName());
     }
 
