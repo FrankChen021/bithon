@@ -24,7 +24,6 @@ import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.ObjectColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
@@ -141,7 +140,6 @@ public class TraceTableSchema implements ISchema {
                                                   new StringColumn("kind", "kind"),
                                                   new ObjectColumn("attributes", "tags"),
 
-                                                  AggregateCountColumn.INSTANCE,
                                                   // microsecond
                                                   new AggregateLongSumColumn("costTimeMs",
                                                                              "costTimeMs"))
@@ -160,7 +158,6 @@ public class TraceTableSchema implements ISchema {
             }
         }
 
-        dimensionSpecs.add(AggregateCountColumn.INSTANCE);
         return new TraceTableSchema("trace_span_tag_index",
                                     traceStorage,
                                     dimensionSpecs);

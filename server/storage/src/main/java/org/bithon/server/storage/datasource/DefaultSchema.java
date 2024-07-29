@@ -30,7 +30,6 @@ import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Collection;
@@ -94,7 +93,7 @@ public class DefaultSchema implements ISchema {
     private boolean enforceDuplicationCheck = false;
 
     /**
-     * A runtime property that holds the hash of the json formatted text of this object
+     * A runtime property that holds the hash of the JSON formatted text of this object
      */
     @Getter
     @Setter
@@ -170,7 +169,7 @@ public class DefaultSchema implements ISchema {
     public IColumn getColumnByName(String name) {
         IColumn column = columnMap.get(name);
         if (column == null) {
-            return "count".equals(name) ? AggregateCountColumn.INSTANCE : this.aliasColumns.get(name);
+            return this.aliasColumns.get(name);
         }
         return column;
     }

@@ -23,7 +23,6 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateDoubleLastColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateLongLastColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.max.AggregateLongMaxColumn;
@@ -48,8 +47,7 @@ import org.bithon.server.storage.datasource.query.ast.Selector;
     @JsonSubTypes.Type(name = IColumn.LONG_MAX, value = AggregateLongMaxColumn.class),
     @JsonSubTypes.Type(name = IColumn.DOUBLE_SUM, value = AggregateDoubleSumColumn.class),
     @JsonSubTypes.Type(name = IColumn.DOUBLE_LAST, value = AggregateDoubleLastColumn.class),
-    @JsonSubTypes.Type(name = IColumn.POST, value = ExpressionColumn.class),
-    @JsonSubTypes.Type(name = IColumn.COUNT, value = AggregateCountColumn.class),
+    @JsonSubTypes.Type(name = IColumn.POST, value = ExpressionColumn.class)
 })
 public interface IColumn extends IIdentifier {
     /**
@@ -64,7 +62,6 @@ public interface IColumn extends IIdentifier {
     String LONG_SUM = "longSum";
     String DOUBLE_SUM = "doubleSum";
     String POST = "post";
-    String COUNT = "count";
     String LONG_MIN = "longMin";
     String LONG_MAX = "longMax";
 
