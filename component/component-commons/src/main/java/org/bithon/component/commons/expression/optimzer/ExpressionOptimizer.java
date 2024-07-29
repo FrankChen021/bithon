@@ -170,6 +170,10 @@ public class ExpressionOptimizer {
          */
         @Override
         public IExpression visit(FunctionExpression expression) {
+            if (expression.getFunction().isAggregator()) {
+                return expression;
+            }
+
             int literalCount = 0;
             for (int i = 0; i < expression.getArgs().size(); i++) {
                 IExpression newParameter = expression.getArgs().get(i).accept(this);
