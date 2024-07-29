@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
@@ -44,8 +43,6 @@ public class SqlGenerator implements IASTNodeVisitor {
     private final ISqlDialect sqlDialect;
     private int nestedSelect = 0;
     private String indent = "";
-
-    private ExpressionSerializer expressionSerializer;
 
     public SqlGenerator(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
@@ -111,7 +108,7 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(Expression expression) {
-        sql.append(expressionSerializer.serialize(expression.getParsedExpression()));
+        throw new UnsupportedOperationException();
     }
 
     @Override
