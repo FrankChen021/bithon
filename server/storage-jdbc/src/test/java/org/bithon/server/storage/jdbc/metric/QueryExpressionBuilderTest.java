@@ -716,4 +716,30 @@ public class QueryExpressionBuilderTest {
                             """.trim(),
                             sqlGenerator.getSQL());
     }
+
+    @Test
+    public void testCountAggregation() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("count(1)"), new Alias("cnt"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .orderBy(OrderBy.builder().name("appName").order(Order.asc).build())
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   count(1) AS "cnt"
+                            FROM "bithon_jvm_metrics"
+                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                            GROUP BY "appName"
+                            ORDER BY "appName" asc
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
 }
