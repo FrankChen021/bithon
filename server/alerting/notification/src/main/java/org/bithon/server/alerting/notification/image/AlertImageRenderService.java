@@ -32,10 +32,10 @@ import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.springframework.beans.BeansException;
@@ -131,16 +131,16 @@ public class AlertImageRenderService implements ApplicationContextAware {
         ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
         IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
 
-        GeneralQueryRequest request = GeneralQueryRequest.builder()
-                                                         .interval(IntervalRequest.builder()
+        QueryRequest request = QueryRequest.builder()
+                                           .interval(IntervalRequest.builder()
                                                                                   .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .build())
-                                                         .dataSource(expression.getMetricExpression().getFrom())
-                                                         .filterExpression(expression.getMetricExpression().getWhereText())
-                                                         .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
-                                                         .build();
-        GeneralQueryResponse response = dataSourceApi.timeseriesV3(request);
+                                           .dataSource(expression.getMetricExpression().getFrom())
+                                           .filterExpression(expression.getMetricExpression().getWhereText())
+                                           .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
+                                           .build();
+        QueryResponse response = dataSourceApi.timeseriesV3(request);
 
         TimeSeriesQueryResult data = (TimeSeriesQueryResult) response.getData();
         Number threshold = metricSpec.getDataType().scaleTo((Number) ((AbstractAbsoluteThresholdPredicate) expression.getMetricEvaluator()).getExpected(), 2);

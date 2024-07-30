@@ -27,7 +27,7 @@ import org.junit.Test;
  * @author Frank Chen
  * @date 29/10/22 10:16 pm
  */
-public class GeneralQueryRequestTest {
+public class QueryRequestTest {
 
     @Test
     public void testJSON() throws JsonProcessingException {
@@ -43,8 +43,8 @@ public class GeneralQueryRequestTest {
                             + "  }"
                             + "}";
 
-        GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                                                        .readValue(json, GeneralQueryRequest.class);
+        QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                                 .readValue(json, QueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
         Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
@@ -65,8 +65,8 @@ public class GeneralQueryRequestTest {
                             + "  \"limit\": \"15\""
                             + "}";
 
-        GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                                                        .readValue(json, GeneralQueryRequest.class);
+        QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                                 .readValue(json, QueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
         Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
@@ -88,8 +88,8 @@ public class GeneralQueryRequestTest {
                             + "  \"limit\": 15"
                             + "}";
 
-        GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                                                        .readValue(json, GeneralQueryRequest.class);
+        QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                                 .readValue(json, QueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
         Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
@@ -111,8 +111,8 @@ public class GeneralQueryRequestTest {
                             + "  \"limit\": { \"limit\": 4, \"offset\": 6}"
                             + "}";
 
-        GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                                                        .readValue(json, GeneralQueryRequest.class);
+        QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                                 .readValue(json, QueryRequest.class);
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
         Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());

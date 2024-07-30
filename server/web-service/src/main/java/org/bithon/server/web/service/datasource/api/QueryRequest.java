@@ -16,41 +16,52 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.storage.datasource.query.Query;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/11/7 13:08
+ * @author Frank Chen
+ * @date 29/10/22 9:04 pm
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeneralQueryResponse {
+public class QueryRequest {
 
-    /**
-     * The number of total records that satisfies the request conditions.
-     * Only available when the request is performed on page 0
-     */
-    private Integer total;
+    @NotEmpty
+    private String dataSource;
 
-    /**
-     * The request limit parameter
-     */
+    @NotNull
+    @Valid
+    private IntervalRequest interval;
+
+    @Nullable
+    private String filterExpression;
+
+    @NotEmpty
+    private List<QueryField> fields;
+
+    @Nullable
+    private List<String> groupBy;
+
+    @Nullable
+    private OrderBy orderBy;
+
+    @Valid
+    @Nullable
     private Limit limit;
 
-    private long startTimestamp;
-    private long endTimestamp;
-
-    /**
-     * in milliseconds
-     */
-    private long interval;
-    private Collection<?> data;
+    private Query.ResultFormat resultFormat;
 }

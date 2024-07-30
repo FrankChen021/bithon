@@ -32,8 +32,8 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -91,9 +91,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionGreaterThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric);
@@ -114,9 +114,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionGreaterThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 5", metric);
@@ -137,9 +137,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionLessThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 6", metric);
@@ -160,9 +160,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionLessThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 5", metric);
@@ -184,9 +184,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionNull_OnEmptyMap() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.emptyList())
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.emptyList())
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
@@ -207,9 +207,9 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testConditionNull_OnNullReturn() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(null)
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(null)
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
@@ -230,14 +230,14 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testRelativeComparison_GTE() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
 
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 100%%[-1m]", metric);
@@ -258,14 +258,14 @@ public class AlertRuleEvaluatorTest {
     @Test
     public void testRelativeComparison_GT() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
 
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 99%%[-1m]", metric);
@@ -287,15 +287,15 @@ public class AlertRuleEvaluatorTest {
     public void testRelativeComparison_LT() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
 
         // Previous
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 50%%[-1m]", metric);
@@ -318,15 +318,15 @@ public class AlertRuleEvaluatorTest {
     public void testRelativeComparison_LTE() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
 
         // Previous
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 50%%[-1m]", metric);
@@ -349,15 +349,15 @@ public class AlertRuleEvaluatorTest {
     public void testLike() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
 
         // Previous
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s{type like 'a'})[1m] <= 50%%[-1m]", metric);
@@ -381,15 +381,15 @@ public class AlertRuleEvaluatorTest {
     public void testNotLike() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
+                                        .build());
 
         // Previous
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
-                .andReturn(GeneralQueryResponse.builder()
-                                               .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
-                                               .build());
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
+                                        .build());
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s{type not like 'a'})[1m] <= 50%%[-1m]", metric);

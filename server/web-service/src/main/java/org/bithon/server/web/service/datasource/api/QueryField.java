@@ -25,10 +25,10 @@ import java.util.Locale;
 
 /**
  * legacy: processCpuLoad
+ * {"name":"processCpuLoad","field":"processCpuLoad","aggregator":"last"}
+ * {"name":"processCpuLoad","field":"processCpuLoad","expression":"last(processCpuLoad)"}
+ * <p>
  * metricQL: last(processCpuLoad)
- * json: {"name":"processCpuLoad","field":"processCpuLoad","aggregator":"last"}
- * json: {"name":"processCpuLoad","field":"processCpuLoad","expression":"last(processCpuLoad)"}
- *
  *
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:40

@@ -27,11 +27,11 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.RelativeComparisonEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -78,15 +78,15 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                                       String filterExpression,
                                       List<String> groupBy, EvaluationContext context) throws IOException {
 
-        GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
-                                                                                 .dataSource(dataSource)
-                                                                                 .interval(IntervalRequest.builder()
+        QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
+                                                                   .dataSource(dataSource)
+                                                                   .interval(IntervalRequest.builder()
                                                                                                           .startISO8601(start.toISO8601())
                                                                                                           .endISO8601(end.toISO8601())
                                                                                                           .build())
-                                                                                 .filterExpression(filterExpression)
-                                                                                 .fields(Collections.singletonList(metric))
-                                                                                 .build());
+                                                                   .filterExpression(filterExpression)
+                                                                   .fields(Collections.singletonList(metric))
+                                                                   .build());
 
         //noinspection unchecked
         List<Map<String, Object>> currWindow = (List<Map<String, Object>>) response.getData();
@@ -99,16 +99,16 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         }
         BigDecimal currWindowValue = NumberUtils.scaleTo(currValue.doubleValue(), 2);
 
-        response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
-                                                            .dataSource(dataSource)
-                                                            .interval(IntervalRequest.builder()
+        response = dataSourceApi.groupBy(QueryRequest.builder()
+                                                     .dataSource(dataSource)
+                                                     .interval(IntervalRequest.builder()
                                                                                      .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                      .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                      .build())
-                                                            .filterExpression(filterExpression)
-                                                            .fields(Collections.singletonList(metric))
-                                                            .groupBy(groupBy)
-                                                            .build());
+                                                     .filterExpression(filterExpression)
+                                                     .fields(Collections.singletonList(metric))
+                                                     .groupBy(groupBy)
+                                                     .build());
 
         //noinspection unchecked
         List<Map<String, Object>> base = (List<Map<String, Object>>) response.getData();

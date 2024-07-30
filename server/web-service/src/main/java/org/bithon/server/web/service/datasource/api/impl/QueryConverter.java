@@ -29,13 +29,14 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -45,16 +46,18 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2024/2/1 20:35
  */
-public class QueryBuilder {
-    public static Query build(ISchema schema,
-                              GeneralQueryRequest query,
-                              boolean containsGroupBy,
-                              boolean bucketTimestamp) {
+public class QueryConverter {
+    public static Query toQuery(ISchema schema,
+                                QueryRequest query,
+                                boolean useInputGroupBy,
+                                boolean groupByTimestamp) {
+
+        validateQueryRequest(schema, query);
 
         Query.QueryBuilder builder = Query.builder();
 
         List<String> groupBy;
-        if (containsGroupBy) {
+        if (useInputGroupBy) {
             groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
         } else {
             groupBy = new ArrayList<>(4);
@@ -103,7 +106,7 @@ public class QueryBuilder {
                 }
                 selectorList.add(selector);
 
-                if (!containsGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
+                if (!useInputGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
                     groupBy.add(field.getName());
                 }
             }
@@ -113,7 +116,7 @@ public class QueryBuilder {
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
         Duration step = null;
-        if (bucketTimestamp) {
+        if (groupByTimestamp) {
             if (query.getInterval().getBucketCount() == null) {
                 step = Duration.ofSeconds(TimeBucket.calculate(start, end));
             } else {
@@ -146,5 +149,30 @@ public class QueryBuilder {
                                         ? Query.ResultFormat.Object
                                         : query.getResultFormat())
                       .build();
+    }
+
+    /**
+     * Validate the request to ensure the safety
+     */
+    private static void validateQueryRequest(ISchema schema, QueryRequest request) {
+        if (CollectionUtils.isNotEmpty(request.getGroupBy())) {
+            for (String field : request.getGroupBy()) {
+                Preconditions.checkNotNull(schema.getColumnByName(field),
+                                           "GroupBy field [%s] does not exist in the schema.",
+                                           field);
+            }
+        }
+
+        // If orderBy is given, make sure the order by fields are in the query fields
+        // We don't check if the query fields are defined in the schema here,
+        // they will be checked in other places
+        OrderBy orderBy = request.getOrderBy();
+        if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
+            boolean exists = request.getFields()
+                                    .stream()
+                                    .anyMatch((filter) -> filter.getName().equals(orderBy.getName()));
+
+            Preconditions.checkIfTrue(exists, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
+        }
     }
 }

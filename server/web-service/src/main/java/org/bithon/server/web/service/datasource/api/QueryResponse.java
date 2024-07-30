@@ -16,18 +16,41 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.query.Limit;
+
+import java.util.Collection;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/31 4:27 下午
+ * @date 2022/11/7 13:08
  */
 @Data
-public class GetMetricsBySqlRequest {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class QueryResponse {
 
-    private String dataSource;
+    /**
+     * The number of total records that satisfies the request conditions.
+     * Only available when the request is performed on page 0
+     */
+    private Integer total;
 
-    @NotEmpty
-    private String sql;
+    /**
+     * The request limit parameter
+     */
+    private Limit limit;
+
+    private long startTimestamp;
+    private long endTimestamp;
+
+    /**
+     * in milliseconds
+     */
+    private long interval;
+    private Collection<?> data;
 }
