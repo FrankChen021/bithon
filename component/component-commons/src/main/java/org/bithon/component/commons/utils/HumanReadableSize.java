@@ -17,18 +17,12 @@
 package org.bithon.component.commons.utils;
 
 public class HumanReadableSize extends Number {
-    public static final HumanReadableSize ZERO = new HumanReadableSize(0L);
     private final long value;
     private final String text;
 
     private HumanReadableSize(String value) {
         this.value = HumanReadableSize.parse(value);
         this.text = value.trim();
-    }
-
-    private HumanReadableSize(long value) {
-        this.value = value;
-        this.text = String.valueOf(value);
     }
 
     public static HumanReadableSize of(String value) {
@@ -268,7 +262,7 @@ public class HumanReadableSize extends Number {
              * [1MiB, 1GiB) = [2^20, 2^30),
              * [1GiB, 1PiB) = [2^30, 2^40),
              * ...
-             *
+             * <p>
              * So, expression (63 - Long.numberOfLeadingZeros(absValue))) helps us to get the right number of bits of the given input
              *
              * Internal implementation of Long.numberOfLeadingZeros uses bit operations to do calculation so the cost is very low
