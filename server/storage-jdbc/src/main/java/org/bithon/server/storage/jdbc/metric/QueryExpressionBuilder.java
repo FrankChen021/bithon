@@ -17,9 +17,9 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import jakarta.annotation.Nullable;
-import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -42,7 +42,6 @@ import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.datasource.query.ast.Where;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
@@ -121,30 +120,31 @@ public class QueryExpressionBuilder {
         return this;
     }
 
-    static class IdentifierExtractor extends FieldExpressionVisitorAdaptor2 {
-        private final ISchema schema;
+    static class IdentifierExtractor implements IExpressionVisitor {
 
-        @Getter
+        private final ISchema schema;
         private final Set<String> identifiers = new LinkedHashSet<>();
 
-        IdentifierExtractor(ISchema schema) {
+        private IdentifierExtractor(ISchema schema) {
             this.schema = schema;
         }
 
         @Override
-        public void visitField(IColumn columnSpec) {
+        public boolean visit(IdentifierExpression expression) {
+            String field = expression.getIdentifier();
+            IColumn columnSpec = schema.getColumnByName(field);
+            if (columnSpec == null) {
+                throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, schema.getName()));
+            }
             identifiers.add(columnSpec.getName());
-        }
 
-        @Override
-        protected ISchema getSchema() {
-            return schema;
+            return false;
         }
 
         public static Set<String> extractIdentifiers(ISchema schema, IExpression expression) {
             IdentifierExtractor extractor = new IdentifierExtractor(schema);
             expression.accept(extractor);
-            return extractor.getIdentifiers();
+            return extractor.identifiers;
         }
     }
 
