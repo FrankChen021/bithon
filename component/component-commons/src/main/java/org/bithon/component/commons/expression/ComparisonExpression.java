@@ -56,12 +56,16 @@ public abstract class ComparisonExpression extends ConditionalExpression {
                     throw new RuntimeException(StringUtils.format("Can't turn %s into type of Long", rv));
                 }
             }
+            if (rv instanceof Number) {
+                // rv might be other inherited numbers
+                return compare(((Number) lv).longValue(), ((Number) rv).longValue());
+            }
             throw new RuntimeException(StringUtils.format("Can't turn %s[%s] into type of number", rv, rv.getClass().getName()));
         }
 
         if (lv instanceof Double || lv instanceof Float) {
             if (rv instanceof Number) {
-                return compare((double) lv, ((Number) rv).doubleValue());
+                return compare(((Number) lv).doubleValue(), ((Number) rv).doubleValue());
             }
             if (rv instanceof String) {
                 try {
@@ -264,7 +268,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         protected boolean compare(double v1, double v2) {
-            return v1 == v2;
+            return Math.abs(v1 - v2) < 1e-9;
         }
 
         @Override
