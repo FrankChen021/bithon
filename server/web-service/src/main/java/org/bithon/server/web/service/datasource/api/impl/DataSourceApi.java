@@ -49,7 +49,6 @@ import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
@@ -356,23 +355,15 @@ public class DataSourceApi implements IDataSourceApi {
             }
         }
 
+        // If orderBy is given, make sure the order by fields are in the query fields
+        // We don't check if the query fields are defined in the schema here, they will be checked in other places
         OrderBy orderBy = request.getOrderBy();
         if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
-            IColumn column = schema.getColumnByName(orderBy.getName());
-            if (column == null) {
-                // ORDER BY field might be an aggregated field,
-                QueryField queryField = request.getFields()
-                                               .stream()
-                                               .filter((filter) -> filter.getName().equals(orderBy.getName()))
-                                               .findFirst()
-                                               .orElse(null);
+            boolean exists = request.getFields()
+                                    .stream()
+                                    .anyMatch((filter) -> filter.getName().equals(orderBy.getName()));
 
-                Preconditions.checkIfTrue(queryField != null
-                                          && schema.getColumnByName(queryField.getField()) != null,
-                                          "OrderBy field [%s] does not exist in the schema.",
-                                          orderBy.getName());
-
-            }
+            Preconditions.checkIfTrue(exists, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
         }
     }
 }
