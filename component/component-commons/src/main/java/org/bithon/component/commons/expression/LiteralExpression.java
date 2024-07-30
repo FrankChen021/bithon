@@ -17,6 +17,9 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.HumanReadableSize;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -38,7 +41,14 @@ public abstract class LiteralExpression implements IExpression {
             return new BooleanLiteral((boolean) value);
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
             return new DoubleLiteral((Number) value);
-        } else if (value instanceof Number) {
+        } else if (value instanceof HumanReadableDuration) {
+            return new DurationLiteral((HumanReadableDuration) value);
+        } else if (value instanceof HumanReadableSize) {
+            return new SizeLiteral((HumanReadableSize) value);
+        } else if (value instanceof HumanReadablePercentage) {
+            return new PercentageLiteral((HumanReadablePercentage) value);
+        }
+        else if (value instanceof Number) {
             // User defined Number, treat it as DOUBLE
             return new DoubleLiteral((Number) value);
         } else {
@@ -317,6 +327,67 @@ public abstract class LiteralExpression implements IExpression {
         @Override
         public String toString() {
             return "*";
+        }
+    }
+
+
+    public static class DurationLiteral extends LiteralExpression {
+        public DurationLiteral(HumanReadableDuration duration) {
+            super(duration);
+        }
+
+        public HumanReadableDuration getAs() {
+            return (HumanReadableDuration) value;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.LONG;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class SizeLiteral extends LiteralExpression {
+        public SizeLiteral(HumanReadableSize size) {
+            super(size);
+        }
+
+        public HumanReadableSize getAs() {
+            return (HumanReadableSize) value;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.LONG;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class PercentageLiteral extends LiteralExpression {
+        public PercentageLiteral(HumanReadablePercentage percentage) {
+            super(percentage);
+        }
+
+        public HumanReadablePercentage getAs() {
+            return (HumanReadablePercentage) value;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
+        }
+
+        @Override
+        public LiteralExpression castTo(IDataType targetType) {
+            throw new UnsupportedOperationException();
         }
     }
 }
