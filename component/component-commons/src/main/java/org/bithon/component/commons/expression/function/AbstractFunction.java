@@ -65,17 +65,17 @@ public abstract class AbstractFunction implements IFunction {
     }
 
     @Override
-    public void validateParameter(List<IExpression> parameters) {
-        if (getParameterDeclarations().size() != parameters.size()) {
-            throw new InvalidExpressionException("In expression [%s %s], function [%s] can only accept [%d] parameters, but got [%d]",
+    public void validateArgs(List<IExpression> args) {
+        if (getParameterDeclarations().size() != args.size()) {
+            throw new InvalidExpressionException("In expression [%s %s], function [%s] can only accept [%d] args, but got [%d]",
                                                  name,
-                                                 parameters.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
+                                                 args.stream().map(IExpression::serializeToText).collect(Collectors.joining(",")),
                                                  name,
                                                  this.parameters.size(),
-                                                 parameters.size());
+                                                 args.size());
         }
-        for (int i = 0; i < parameters.size(); i++) {
-            validateParameter(parameters.get(i), i);
+        for (int i = 0; i < args.size(); i++) {
+            validateParameter(args.get(i), i);
         }
     }
 

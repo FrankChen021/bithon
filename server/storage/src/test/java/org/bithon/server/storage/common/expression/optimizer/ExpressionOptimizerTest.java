@@ -57,7 +57,7 @@ public class ExpressionOptimizerTest {
                 }
 
                 @Override
-                public void validateParameter(List<IExpression> parameters) {
+                public void validateArgs(List<IExpression> args) {
                 }
 
                 @Override

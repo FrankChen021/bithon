@@ -49,6 +49,7 @@ import org.bithon.server.storage.datasource.ISchema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -386,13 +387,6 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitFunctionExpressionDecl(ExpressionParser.FunctionExpressionDeclContext ctx) {
-            List<ExpressionParser.ExpressionContext> parameters = ctx.expressionListDecl().expression();
-            List<IExpression> parameterExpressionList = new ArrayList<>(parameters.size());
-            for (ExpressionParser.ExpressionContext parameter : parameters) {
-                IExpression parameterExpression = parameter.accept(this);
-                parameterExpressionList.add(parameterExpression);
-            }
-
             IFunction function = null;
             String functionName = ctx.getChild(0).getText();
             if (this.functions != null) {
@@ -403,7 +397,13 @@ public class ExpressionASTBuilder {
                 }
             }
 
-            return new FunctionExpression(function, parameterExpressionList);
+            List<IExpression> argExpressionList = ctx.expressionListDecl()
+                                                     .expression()
+                                                     .stream()
+                                                     .map((exprCtx -> exprCtx.accept(this)))
+                                                     .collect(Collectors.toList());
+
+            return new FunctionExpression(function, argExpressionList);
         }
 
         @Override

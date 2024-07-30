@@ -31,7 +31,7 @@ public interface IFunction {
 
     List<Parameter> getParameterDeclarations();
 
-    void validateParameter(List<IExpression> parameters);
+    void validateArgs(List<IExpression> args);
 
     Object evaluate(List<Object> parameters);
 

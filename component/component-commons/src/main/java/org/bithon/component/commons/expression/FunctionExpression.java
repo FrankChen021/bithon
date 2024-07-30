@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.utils.Preconditions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,9 @@ import java.util.stream.Collectors;
 public class FunctionExpression implements IExpression {
     private final IFunction function;
 
+    /**
+     * Modifiable list
+     */
     private final List<IExpression> args;
 
     public FunctionExpression(IFunction function, List<IExpression> args) {
@@ -39,9 +43,8 @@ public class FunctionExpression implements IExpression {
     }
 
     public FunctionExpression(IFunction function, IExpression... args) {
-        this(function, Arrays.asList(args));
+        this(function, new ArrayList<>(Arrays.asList(args)));
     }
-
 
     public String getName() {
         return function.getName();

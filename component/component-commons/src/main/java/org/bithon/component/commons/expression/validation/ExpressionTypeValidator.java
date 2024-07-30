@@ -117,7 +117,7 @@ class ExpressionTypeValidator implements IExpressionVisitor {
 
     @Override
     public boolean visit(FunctionExpression expression) {
-        expression.getFunction().validateParameter(expression.getArgs());
+        expression.getFunction().validateArgs(expression.getArgs());
         return true;
     }
 }
