@@ -41,6 +41,9 @@ import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.commons.antlr4.TokenUtils;
@@ -354,16 +357,24 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
-            TerminalNode literalExpressionNode = ctx.getChild(TerminalNode.class, 0);
-            return switch (literalExpressionNode.getSymbol().getType()) {
+            TerminalNode literal = ctx.getChild(TerminalNode.class, 0);
+
+            return switch (literal.getSymbol().getType()) {
                 case ExpressionLexer.INTEGER_LITERAL ->
-                    LiteralExpression.create(Long.parseLong(literalExpressionNode.getText()));
+                    LiteralExpression.create(Long.parseLong(literal.getText()));
                 case ExpressionLexer.DECIMAL_LITERAL ->
-                    LiteralExpression.create(Double.parseDouble(literalExpressionNode.getText()));
+                    LiteralExpression.create(Double.parseDouble(literal.getText()));
                 case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.create(TokenUtils.getUnQuotedString(literalExpressionNode.getSymbol()));
+                    LiteralExpression.create(TokenUtils.getUnQuotedString(literal.getSymbol()));
                 case ExpressionLexer.BOOL_LITERAL ->
-                    LiteralExpression.create("true".equals(literalExpressionNode.getText().toLowerCase(Locale.ENGLISH)));
+                    LiteralExpression.create("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
+                case ExpressionLexer.SIZE_LITERAL ->
+                    LiteralExpression.create(HumanReadableSize.of(literal.getText()));
+                case ExpressionLexer.PERCENTAGE_LITERAL ->
+                    LiteralExpression.create(HumanReadablePercentage.parse(literal.getText()));
+                case ExpressionLexer.DURATION_LITERAL ->
+                    LiteralExpression.create(HumanReadableDuration.parse(literal.getText()));
+
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };
         }

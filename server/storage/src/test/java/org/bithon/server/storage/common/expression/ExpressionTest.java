@@ -223,7 +223,6 @@ public class ExpressionTest {
         Assert.assertFalse((boolean) expr.evaluate((name) -> "value of a"));
     }
 
-
     @Test
     public void test_CountAggregation() {
         IExpression expr = ExpressionASTBuilder.builder()
@@ -231,5 +230,52 @@ public class ExpressionTest {
                                                .build("count(1)");
 
         Assert.assertEquals("count(1)", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_DurationLiteral() {
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("a >= 5m");
+            Assert.assertEquals("a >= 5m", expr.serializeToText(null));
+            Assert.assertTrue((boolean) expr.evaluate((name) -> 301));
+            Assert.assertTrue((boolean) expr.evaluate((name) -> 300));
+            Assert.assertFalse((boolean) expr.evaluate((name) -> 299));
+        }
+
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("5h");
+            Assert.assertEquals("5h", expr.serializeToText(null));
+        }
+    }
+
+    @Test
+    public void test_PercentageLiteral() {
+        IExpression expr = ExpressionASTBuilder.builder().build("a >= 5%");
+        Assert.assertEquals("a >= 5%", expr.serializeToText(null));
+
+        Assert.assertTrue((boolean) expr.evaluate((name) -> 0.051f));
+        Assert.assertTrue((boolean) expr.evaluate((name) -> 0.05f));
+        Assert.assertFalse((boolean) expr.evaluate((name) -> 0.049));
+    }
+
+    @Test
+    public void test_SizeLiteral() {
+        IExpression expr = ExpressionASTBuilder.builder().build("a >= 5Ki");
+        Assert.assertEquals("a >= 5Ki", expr.serializeToText(null));
+        Assert.assertTrue((boolean) expr.evaluate((name) -> 5 * 1024 + 1));
+        Assert.assertTrue((boolean) expr.evaluate((name) -> 5 * 1024));
+        Assert.assertFalse((boolean) expr.evaluate((name) -> 5 * 1024 - 1));
+
+        Assert.assertEquals("a >= 5K", ExpressionASTBuilder.builder().build("a >= 5K").serializeToText(null));
+        Assert.assertEquals("a >= 5KiB", ExpressionASTBuilder.builder().build("a >= 5KiB").serializeToText(null));
+        Assert.assertEquals("a >= 5G", ExpressionASTBuilder.builder().build("a >= 5G").serializeToText(null));
+        Assert.assertEquals("a >= 5Gi", ExpressionASTBuilder.builder().build("a >= 5Gi").serializeToText(null));
+        Assert.assertEquals("a >= 5GiB", ExpressionASTBuilder.builder().build("a >= 5GiB").serializeToText(null));
+        Assert.assertEquals("a >= 5M", ExpressionASTBuilder.builder().build("a >= 5M").serializeToText(null));
+        Assert.assertEquals("a >= 5Mi", ExpressionASTBuilder.builder().build("a >= 5Mi").serializeToText(null));
+        Assert.assertEquals("a >= 5MiB", ExpressionASTBuilder.builder().build("a >= 5MiB").serializeToText(null));
+        Assert.assertEquals("a >= 5P", ExpressionASTBuilder.builder().build("a >= 5P").serializeToText(null));
+        Assert.assertEquals("a >= 5Pi", ExpressionASTBuilder.builder().build("a >= 5Pi").serializeToText(null));
+        Assert.assertEquals("a >= 5PiB", ExpressionASTBuilder.builder().build("a >= 5PiB").serializeToText(null));
     }
 }
