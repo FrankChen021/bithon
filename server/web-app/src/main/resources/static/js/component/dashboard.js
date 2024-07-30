@@ -18,7 +18,9 @@ class Dashboard {
         // Y Axis Formatter
         this._formatters = {};
         this._formatters['binary_byte'] = (v) => v.formatBinaryByte();
-        this._formatters['compact_number'] = (v) => v.formatCompactNumber();
+        this._formatters['compact_number'] = (v) => {
+            return v === undefined || v === null ? 'null' : v.formatCompactNumber();
+        };
         this._formatters['percentage'] = (v) => v === 'NaN' ? '0%' : v.formatWithNoTrailingZeros(2) + '%';
         this._formatters['nanosecond'] = (v) => nanoFormat(v, 2);
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);

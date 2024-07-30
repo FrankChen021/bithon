@@ -31,11 +31,11 @@ import lombok.Getter;
 @Data
 public class QueryExpression implements IASTNode {
     @Getter
-    private final SelectColumnList selectColumnList = new SelectColumnList();
+    private final SelectorList selectorList = new SelectorList();
 
     private final From from = new From();
     private Where where;
-    private GroupBy groupBy;
+    private GroupBy groupBy = new GroupBy();
     private OrderBy orderBy;
     private Limit limit;
 
@@ -43,7 +43,7 @@ public class QueryExpression implements IASTNode {
     public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
         {
-            selectColumnList.accept(visitor);
+            selectorList.accept(visitor);
             from.accept(visitor);
             if (where != null) {
                 where.accept(visitor);

@@ -20,58 +20,56 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword
- * <p>
- *     e.g.
+ * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword.
+ * For example:
+ * <pre>
  * SELECT
- *     column1, ---------------> SelectColumn(column1)
- *     column2 AS alias2, -----> SelectColumn(column2, alias)
- *     sum(column3), ----------> SelectColumn(AggregateFunction_SUM(column3))
- *     avg(column4) AS alias4 -> SelectColumn(AggregateFunction_AVG(column4)), alias)
+ *     column1, ---------------> Selector(Column(column1))
+ *     column2 AS alias2, -----> Selector(Column(column2), alias)
+ *     sum(column3), ----------> Selector(Expression(AggregateFunction_SUM(column3)))
+ *     avg(column4) AS alias4 -> Selector(Expression(AggregateFunction_SUM(column3)), alias4)
  * FROM table
- *
- * MetricExpression ---> Query(object)
- *   queryField ---> SelectColumn
+ * </pre>
  *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 16:11
  */
 @Getter
-public class SelectColumn implements IASTNode {
+public class Selector implements IASTNode {
     private final IASTNode selectExpression;
-    private final ColumnAlias alias;
+    private final Alias output;
 
-    public SelectColumn(String name) {
-        this(new Column(name), (ColumnAlias) null);
+    public Selector(String name) {
+        this(new Column(name), (Alias) null);
     }
 
-    public SelectColumn(String name, String alias) {
-        this(new Column(name), alias == null ? null : new ColumnAlias(alias));
+    public Selector(String name, String output) {
+        this(new Column(name), output == null ? null : new Alias(output));
     }
 
-    SelectColumn(IASTNode selectExpression) {
+    Selector(IASTNode selectExpression) {
         this(selectExpression, (String) null);
     }
 
-    public SelectColumn(IASTNode selectExpression, String alias) {
-        this(selectExpression, alias == null ? null : new ColumnAlias(alias));
+    public Selector(IASTNode selectExpression, String output) {
+        this(selectExpression, output == null ? null : new Alias(output));
     }
 
-    public SelectColumn(IASTNode selectExpression, ColumnAlias alias) {
+    public Selector(IASTNode selectExpression, Alias output) {
         this.selectExpression = selectExpression;
-        this.alias = alias;
+        this.output = output;
     }
 
-    public SelectColumn withAlias(String alias) {
-        if (this.alias != null && this.alias.getName().equals(alias)) {
+    public Selector withOutput(String alias) {
+        if (this.output != null && this.output.getName().equals(alias)) {
             return this;
         }
-        return new SelectColumn(this.selectExpression, alias);
+        return new Selector(this.selectExpression, alias);
     }
 
     public String getOutputName() {
-        if (alias != null) {
-            return alias.getName();
+        if (output != null) {
+            return output.getName();
         }
         if (selectExpression instanceof Column) {
             return ((Column) selectExpression).getName();
@@ -82,8 +80,8 @@ public class SelectColumn implements IASTNode {
     @Override
     public void accept(IASTNodeVisitor visitor) {
         selectExpression.accept(visitor);
-        if (alias != null) {
-            alias.accept(visitor);
+        if (output != null) {
+            output.accept(visitor);
         }
     }
 }

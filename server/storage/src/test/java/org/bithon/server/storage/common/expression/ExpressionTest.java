@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -220,5 +221,15 @@ public class ExpressionTest {
 
         Assert.assertTrue((boolean) expr.evaluate((name) -> null));
         Assert.assertFalse((boolean) expr.evaluate((name) -> "value of a"));
+    }
+
+
+    @Test
+    public void test_CountAggregation() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .functions(Functions.getInstance())
+                                               .build("count(1)");
+
+        Assert.assertEquals("count(1)", expr.serializeToText(null));
     }
 }

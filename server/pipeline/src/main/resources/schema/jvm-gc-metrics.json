@@ -46,7 +46,7 @@
     {
       "type": "post",
       "name": "avgGcTime",
-      "expression": "gcTime/gcCount",
+      "expression": "sum(gcTime)/sum(gcCount)",
       "displayText": "Avg GC Time",
       "unit": "millisecond",
       "valueType": "double"
@@ -56,6 +56,3 @@
     "type": "metric"
   }
 }
-
-
-

@@ -22,7 +22,7 @@ import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.Interval;
 
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.List;
 public class Query {
     private final ISchema schema;
 
-    private final List<SelectColumn> selectColumns;
+    private final List<Selector> selectors;
 
     private final IExpression filter;
     private final Interval interval;
@@ -60,7 +60,7 @@ public class Query {
     }
 
     public Query(ISchema schema,
-                 List<SelectColumn> selectColumns,
+                 List<Selector> selectors,
                  IExpression filter,
                  Interval interval,
                  @Nullable List<String> groupBy,
@@ -68,7 +68,7 @@ public class Query {
                  @Nullable Limit limit,
                  @Nullable ResultFormat resultFormat) {
         this.schema = schema;
-        this.selectColumns = selectColumns;
+        this.selectors = selectors;
         this.filter = filter;
         this.interval = interval;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
@@ -83,7 +83,7 @@ public class Query {
      */
     public Query with(IExpression filter) {
         return new Query(this.schema,
-                         this.selectColumns,
+                         this.selectors,
                          filter,
                          this.interval,
                          this.groupBy,

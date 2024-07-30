@@ -59,14 +59,14 @@
       "type": "post",
       "name": "consumedBytesRate",
       "displayText": "consumedBytesRate",
-      "expression": "round(consumedBytes * 1.0/{interval}, 2)",
+      "expression": "round(sum(consumedBytes) * 1.0/{interval}, 2)",
       "unit": ""
     },
     {
       "type": "post",
       "name": "consumedRecordsRate",
       "displayText": "consumedRecordsRate",
-      "expression": "round(consumedRecords * 1.0/{interval}, 2)",
+      "expression": "round(sum(consumedRecords) * 1.0/{interval}, 2)",
       "unit": ""
     }
   ],

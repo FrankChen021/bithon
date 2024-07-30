@@ -16,8 +16,11 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.utils.Preconditions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,24 +32,26 @@ import java.util.stream.Collectors;
 public class FunctionExpression implements IExpression {
     private final IFunction function;
 
-    private final List<IExpression> parameters;
+    /**
+     * Modifiable list
+     */
+    private final List<IExpression> args;
 
-    public FunctionExpression(IFunction function, List<IExpression> parameters) {
+    public FunctionExpression(IFunction function, List<IExpression> args) {
         this.function = function;
-        this.parameters = parameters;
+        this.args = args;
     }
 
-    public FunctionExpression(IFunction function, IExpression... parameters) {
-        this(function, Arrays.asList(parameters));
+    public FunctionExpression(IFunction function, IExpression... args) {
+        this(function, new ArrayList<>(Arrays.asList(args)));
     }
-
 
     public String getName() {
         return function.getName();
     }
 
-    public List<IExpression> getParameters() {
-        return parameters;
+    public List<IExpression> getArgs() {
+        return args;
     }
 
     public IFunction getFunction() {
@@ -65,14 +70,14 @@ public class FunctionExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        List<Object> arguments = this.parameters.stream().map((parameter) -> parameter.evaluate(context)).collect(Collectors.toList());
+        List<Object> arguments = this.args.stream().map((parameter) -> parameter.evaluate(context)).collect(Collectors.toList());
         return function.evaluate(arguments);
     }
 
     @Override
     public void accept(IExpressionVisitor visitor) {
         if (visitor.visit(this)) {
-            for (IExpression parameters : this.parameters) {
+            for (IExpression parameters : this.args) {
                 parameters.accept(visitor);
             }
         }
@@ -81,5 +86,15 @@ public class FunctionExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor2<T> visitor) {
         return visitor.visit(this);
+    }
+
+    public static FunctionExpression create(String functionName, String... args) {
+        IFunction function = Functions.getInstance().getFunction(functionName);
+        Preconditions.checkNotNull(function, "Function [%s] not found.", functionName);
+
+        return new FunctionExpression(function,
+                                      Arrays.stream(args)
+                                            .map(IdentifierExpression::new)
+                                            .collect(Collectors.toList()));
     }
 }

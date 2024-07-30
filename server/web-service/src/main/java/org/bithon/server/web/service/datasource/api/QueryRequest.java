@@ -38,7 +38,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeneralQueryRequest {
+public class QueryRequest {
 
     @NotEmpty
     private String dataSource;

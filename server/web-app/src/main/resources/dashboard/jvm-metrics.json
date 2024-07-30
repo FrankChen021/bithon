@@ -29,7 +29,7 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "processCpuLoad"
+          {"name": "processCpuLoad", "aggregator": "last"}
         ]
       }
     },
@@ -48,8 +48,8 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "activeThreads",
-          "totalThreads"
+          {"name": "activeThreads", "aggregator": "last"},
+          {"name": "totalThreads", "aggregator": "last"}
         ]
       }
     },
@@ -83,9 +83,9 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "heapUsed",
-          "heapMax",
-          "heapCommitted"
+          {"name": "heapUsed", "aggregator": "last"},
+          {"name": "heapMax", "aggregator": "last"},
+          {"name": "heapCommitted", "aggregator": "last"}
         ]
       }
     },
@@ -119,9 +119,9 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "nonHeapUsed",
-          "nonHeapMax",
-          "nonHeapCommitted"
+          {"name": "nonHeapUsed","aggregator": "last"},
+          {"name": "nonHeapMax","aggregator": "last"},
+          {"name": "nonHeapCommitted","aggregator": "last"}
         ]
       }
     },
@@ -155,9 +155,9 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "metaspaceUsed",
-          "metaspaceMax",
-          "metaspaceCommitted"
+          {"name": "metaspaceUsed", "aggregator": "last"},
+          {"name": "metaspaceMax","aggregator": "last"},
+          {"name": "metaspaceCommitted","aggregator": "last"}
         ]
       }
     },
@@ -186,8 +186,8 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          "directUsed",
-          "directMax"
+          {"name": "directUsed","aggregator": "last"},
+          {"name": "directMax","aggregator": "last"}
         ]
       }
     },
@@ -213,9 +213,11 @@
         "type": "timeseries",
         "dataSource": "jvm-gc-metrics",
         "fields": [
-          "gcName",
           "gcCount",
           "avgGcTime"
+        ],
+        "groupBy": [
+          "gcName"
         ],
         "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses', 'ZGC Minor Cycles', 'ZGC Minor Pauses')"
       }
@@ -242,9 +244,8 @@
         "type": "timeseries",
         "dataSource": "jvm-gc-metrics",
         "fields": [
-          "gcName",
-          "gcCount",
-          "avgGcTime"
+          {"name": "gcCount", "aggregator": "sum"},
+          {"name": "avgGcTime", "expression": "sum(gcTime)/sum(gcCount)"}
         ],
         "groupBy": [
           "gcName"

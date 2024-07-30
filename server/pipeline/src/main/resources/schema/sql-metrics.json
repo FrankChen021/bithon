@@ -73,7 +73,7 @@
     {
       "type": "post",
       "name": "tps",
-      "expression": "round(callCount * 1.0/{interval}, 2)",
+      "expression": "round(sum(callCount)* 1.0/{interval}, 2)",
       "displayText": "TPS",
       "unit": "",
       "valueType": "double"
@@ -81,7 +81,7 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "round(responseTime * 1.0 /callCount, 2)",
+      "expression": "round(sum(responseTime) * 1.0 /sum(callCount), 2)",
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"

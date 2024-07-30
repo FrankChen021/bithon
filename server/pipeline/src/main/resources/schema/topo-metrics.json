@@ -62,7 +62,7 @@
       "type": "post",
       "name": "avgResponseTime",
       "displayText": "Avg Response Time",
-      "expression": "responseTime/callCount",
+      "expression": "sum(responseTime)/sum(callCount)",
       "unit": "nanosecond"
     }
   ]

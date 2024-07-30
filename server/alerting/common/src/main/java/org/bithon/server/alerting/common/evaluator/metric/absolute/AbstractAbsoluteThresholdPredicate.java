@@ -28,11 +28,11 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -93,16 +93,16 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                       String filterExpression,
                                       List<String> groupBy,
                                       EvaluationContext context) throws IOException {
-        GeneralQueryResponse response = dataSourceApi.groupBy(GeneralQueryRequest.builder()
-                                                                                 .dataSource(dataSource)
-                                                                                 .interval(IntervalRequest.builder()
+        QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
+                                                                   .dataSource(dataSource)
+                                                                   .interval(IntervalRequest.builder()
                                                                                                           .startISO8601(start.toISO8601())
                                                                                                           .endISO8601(end.toISO8601())
                                                                                                           .build())
-                                                                                 .filterExpression(filterExpression)
-                                                                                 .fields(Collections.singletonList(metric))
-                                                                                 .groupBy(groupBy)
-                                                                                 .build());
+                                                                   .filterExpression(filterExpression)
+                                                                   .fields(Collections.singletonList(metric))
+                                                                   .groupBy(groupBy)
+                                                                   .build());
         //noinspection unchecked
         List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
         if (CollectionUtils.isEmpty(now)) {

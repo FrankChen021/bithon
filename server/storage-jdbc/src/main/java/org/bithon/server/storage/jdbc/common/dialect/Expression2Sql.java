@@ -43,7 +43,7 @@ public class Expression2Sql extends ExpressionSerializer {
         return new Expression2Sql(qualifier, sqlDialect).serialize(transformed);
     }
 
-    private final ISqlDialect sqlDialect;
+    protected final ISqlDialect sqlDialect;
 
     public Expression2Sql(String qualifier, ISqlDialect sqlDialect) {
         super(qualifier, sqlDialect::quoteIdentifier);
@@ -65,6 +65,8 @@ public class Expression2Sql extends ExpressionSerializer {
             sb.append(expression.asBoolean() ? 1 : 0);
         } else if (expression instanceof LiteralExpression.TimestampLiteral) {
             sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
+        } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
+            sb.append('*');
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }

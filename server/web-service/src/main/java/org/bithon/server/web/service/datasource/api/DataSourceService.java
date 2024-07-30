@@ -16,14 +16,14 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Function;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 @Conditional(WebServiceModuleEnabler.class)
 public class DataSourceService {
 
-    private static final String TIMESTAMP_COLUMN_NAME_IN_RESULT_SET = "_timestamp";
     private final IMetricStorage metricStorage;
 
     public DataSourceService(IMetricStorage metricStorage) {
@@ -56,7 +55,7 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) throws IOException {
         // Remove any dimensions
-        List<String> metrics = query.getSelectColumns()
+        List<String> metrics = query.getSelectors()
                                     .stream()
                                     .filter((selectColumn) -> {
                                         if (selectColumn.getSelectExpression() instanceof Expression) {
@@ -65,16 +64,10 @@ public class DataSourceService {
                                             return true;
                                         }
 
-                                        String fieldName;
-                                        if (selectColumn.getSelectExpression() instanceof Function) {
-                                            fieldName = ((Function) selectColumn.getSelectExpression()).getField();
-                                        } else {
-                                            fieldName = selectColumn.getOutputName();
-                                        }
-                                        IColumn column = query.getSchema().getColumnByName(fieldName);
+                                        IColumn column = query.getSchema().getColumnByName(selectColumn.getOutputName());
                                         return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
                                     })
-                                    .map((SelectColumn::getOutputName))
+                                    .map((Selector::getOutputName))
                                     .collect(Collectors.toList());
 
         try (IDataSourceReader reader = query.getSchema()
@@ -86,9 +79,9 @@ public class DataSourceService {
             // Convert to the result format and fills in missed data points
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                query.getInterval().getEndTime(),
-                                               query.getInterval().getStep(),
+                                               query.getInterval().getStep().getSeconds(),
                                                result,
-                                               TIMESTAMP_COLUMN_NAME_IN_RESULT_SET,
+                                               TimestampSpec.COLUMN_ALIAS,
                                                query.getGroupBy(),
                                                metrics);
         }

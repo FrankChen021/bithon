@@ -74,17 +74,17 @@ public class TopoApi {
 
         Query calleeQuery = Query.builder()
                                  .schema(topoSchema)
-                                 .selectColumns(Stream.of("dstEndpoint",
-                                                          "dstEndpointType",
-                                                          "callCount",
-                                                          "avgResponseTime",
-                                                          "maxResponseTime",
-                                                          "minResponseTime")
-                                                      .map((column) -> {
+                                 .selectors(Stream.of("dstEndpoint",
+                                                      "dstEndpointType",
+                                                      "callCount",
+                                                      "avgResponseTime",
+                                                      "maxResponseTime",
+                                                      "minResponseTime")
+                                                  .map((column) -> {
                                                           IColumn spec = topoSchema.getColumnByName(column);
-                                                          return spec.toSelectColumn();
+                                                          return spec.toSelector();
                                                       })
-                                                      .collect(Collectors.toList()))
+                                                  .collect(Collectors.toList()))
                                  .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
                                                                                                LiteralExpression.create(request.getApplication())),
                                                                    new ComparisonExpression.EQ(new IdentifierExpression("srcEndpointType"),
@@ -126,17 +126,17 @@ public class TopoApi {
 
             Query callerQuery = Query.builder()
                                      .schema(topoSchema)
-                                     .selectColumns(Stream.of("srcEndpoint",
-                                                              "srcEndpointType",
-                                                              "callCount",
-                                                              "avgResponseTime",
-                                                              "maxResponseTime",
-                                                              "minResponseTime")
-                                                          .map((column) -> {
+                                     .selectors(Stream.of("srcEndpoint",
+                                                          "srcEndpointType",
+                                                          "callCount",
+                                                          "avgResponseTime",
+                                                          "maxResponseTime",
+                                                          "minResponseTime")
+                                                      .map((column) -> {
                                                               IColumn spec = topoSchema.getColumnByName(column);
-                                                              return spec.toSelectColumn();
+                                                              return spec.toSelector();
                                                           })
-                                                          .collect(Collectors.toList()))
+                                                      .collect(Collectors.toList()))
                                      .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),
                                                                                                    LiteralExpression.create(request.getApplication())),
                                                                        new ComparisonExpression.EQ(new IdentifierExpression("dstEndpointType"),

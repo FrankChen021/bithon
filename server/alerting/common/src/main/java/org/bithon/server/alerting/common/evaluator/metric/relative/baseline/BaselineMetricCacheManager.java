@@ -22,11 +22,11 @@ import org.bithon.server.alerting.common.algorithm.ISmoothAlgorithm;
 import org.bithon.server.alerting.common.algorithm.SmoothAlgorithm;
 import org.bithon.server.alerting.common.algorithm.SmoothAlgorithmFactory;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 
@@ -41,11 +41,11 @@ import java.util.List;
  */
 public class BaselineMetricCacheManager {
 
-    private final LoadingCache<GeneralQueryRequest, List<Number>> baselineCache;
+    private final LoadingCache<QueryRequest, List<Number>> baselineCache;
 
     public BaselineMetricCacheManager(IDataSourceApi dataSourceApi) {
         this.baselineCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofDays(1)).build(key -> {
-            GeneralQueryResponse response = dataSourceApi.timeseriesV3(key);
+            QueryResponse response = dataSourceApi.timeseriesV3(key);
 
             TimeSeriesQueryResult baseline = (TimeSeriesQueryResult) response.getData();
 
@@ -71,16 +71,16 @@ public class BaselineMetricCacheManager {
                                                String dataSource,
                                                String filterExpression,
                                                QueryField field) {
-        GeneralQueryRequest request = GeneralQueryRequest.builder()
-                                                         .dataSource(dataSource)
-                                                         .interval(IntervalRequest.builder()
+        QueryRequest request = QueryRequest.builder()
+                                           .dataSource(dataSource)
+                                           .interval(IntervalRequest.builder()
                                                                                   .startISO8601(start.toISO8601())
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .minBucketLength(stepSeconds)
                                                                                   .build())
-                                                         .filterExpression(filterExpression)
-                                                         .fields(Collections.singletonList(field))
-                                                         .build();
+                                           .filterExpression(filterExpression)
+                                           .fields(Collections.singletonList(field))
+                                           .build();
         return this.baselineCache.get(request);
     }
 }

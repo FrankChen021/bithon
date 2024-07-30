@@ -46,6 +46,9 @@ public class TimeSpan {
         return new TimeSpan(System.currentTimeMillis());
     }
 
+    /**
+     * @param time e.g. 2020-08-24T14:55:46.000+08:00
+     */
     public static TimeSpan fromISO8601(String time) {
         return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
     }
@@ -92,6 +95,10 @@ public class TimeSpan {
 
     public String toISO8601() {
         return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    }
+
+    public String toISO8601(TimeZone tz) {
+        return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", tz);
     }
 
     public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {

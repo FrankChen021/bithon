@@ -59,7 +59,7 @@ public class TimeSeriesQueryResult {
 
     public static TimeSeriesQueryResult build(TimeSpan start,
                                               TimeSpan end,
-                                              int intervalSecond,
+                                              long intervalSecond,
                                               List<Map<String, Object>> dataPoints,
                                               String tsColumn,
                                               List<String> groups,
@@ -74,7 +74,7 @@ public class TimeSeriesQueryResult {
 
         long startSecond = start.toSeconds() / intervalSecond * intervalSecond;
         long endSecond = end.toSeconds() / intervalSecond * intervalSecond;
-        int bucketCount = (int) (endSecond - startSecond) / intervalSecond + (isEndInclusive ? 1 : 0);
+        int bucketCount = (int) ((endSecond - startSecond) / intervalSecond + (isEndInclusive ? 1 : 0));
 
         // Use LinkedHashMap to retain the order of input metric list
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
@@ -89,7 +89,7 @@ public class TimeSeriesQueryResult {
         } else {
             for (Map<String, Object> point : dataPoints) {
                 long timestamp = ((Number) point.get(tsColumn)).longValue();
-                int bucketIndex = (int) (timestamp - startSecond) / intervalSecond;
+                int bucketIndex = (int) ((timestamp - startSecond) / intervalSecond);
 
                 for (String metric : metrics) {
                     // this code is not so efficient

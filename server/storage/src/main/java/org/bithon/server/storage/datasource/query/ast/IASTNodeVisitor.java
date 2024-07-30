@@ -38,17 +38,13 @@ public interface IASTNodeVisitor {
 
     void visit(From from);
 
-    void before(Function function);
+    void visit(TextNode textNode);
 
-    void after(Function function);
-
-    void visit(StringNode stringNode);
-
-    void visit(int index, int count, SelectColumn selectColumn);
+    void visit(int index, int count, Selector selector);
 
     void visit(Column column);
 
-    void visit(ColumnAlias alias);
+    void visit(Alias alias);
 
     void visit(Limit limit);
 

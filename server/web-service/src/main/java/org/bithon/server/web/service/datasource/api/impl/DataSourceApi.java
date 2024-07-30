@@ -22,7 +22,6 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
@@ -30,11 +29,12 @@ import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaException;
 import org.bithon.server.storage.datasource.SchemaManager;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.SelectColumn;
+import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -43,11 +43,10 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
-import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
-import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
@@ -105,58 +104,41 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
+    public QueryResponse timeseriesV3(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        validateQueryRequest(schema, request);
-
-        Query query = QueryBuilder.build(schema, request, false, true);
+        Query query = QueryConverter.toQuery(schema, request, false, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
-        return GeneralQueryResponse.builder()
-                                   .data(result.getMetrics())
-                                   .startTimestamp(result.getStartTimestamp())
-                                   .endTimestamp(result.getEndTimestamp())
-                                   .interval(result.getInterval())
-                                   .build();
+        return QueryResponse.builder()
+                            .data(result.getMetrics())
+                            .startTimestamp(result.getStartTimestamp())
+                            .endTimestamp(result.getEndTimestamp())
+                            .interval(result.getInterval())
+                            .build();
     }
 
     @Override
-    public GeneralQueryResponse timeseriesV4(@Validated @RequestBody GeneralQueryRequest request) throws IOException {
+    public QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        validateQueryRequest(schema, request);
-
-        Query query = QueryBuilder.build(schema, request, true, true);
+        Query query = QueryConverter.toQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
-        return GeneralQueryResponse.builder()
-                                   .data(result.getMetrics())
-                                   .startTimestamp(result.getStartTimestamp())
-                                   .endTimestamp(result.getEndTimestamp())
-                                   .interval(result.getInterval())
-                                   .build();
+        return QueryResponse.builder()
+                            .data(result.getMetrics())
+                            .startTimestamp(result.getStartTimestamp())
+                            .endTimestamp(result.getEndTimestamp())
+                            .interval(result.getInterval())
+                            .build();
     }
 
     @Override
-    public GeneralQueryResponse list(GeneralQueryRequest request) throws IOException {
-        Preconditions.checkNotNull(request.getLimit(), "limit parameter should not be NULL");
+    public QueryResponse list(QueryRequest request) throws IOException {
+        Preconditions.checkNotNull(request.getLimit(), "'limit' should not be NULL.");
+        Preconditions.checkIfTrue(CollectionUtils.isEmpty(request.getGroupBy()), "'groupBy' MUST be empty for list query.");
 
         ISchema schema = schemaManager.getSchema(request.getDataSource());
-        validateQueryRequest(schema, request);
 
-        Query query = Query.builder()
-                           .schema(schema)
-                           .selectColumns(request.getFields()
-                                                 .stream()
-                                                 .map((field) -> {
-                                                     IColumn spec = schema.getColumnByName(field.getField());
-                                                     Preconditions.checkNotNull(spec, "Field [%s] does not exist in the schema.", field.getField());
-                                                     return new SelectColumn(spec.getName(), field.getName());
-                                                 }).collect(Collectors.toList()))
-                           .filter(QueryFilter.build(schema, request.getFilterExpression()))
-                           .interval(Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601()))
-                           .orderBy(request.getOrderBy())
-                           .limit(request.getLimit())
-                           .build();
+        Query query = QueryConverter.toQuery(schema, request, false, false);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
 
@@ -175,13 +157,13 @@ public class DataSourceApi implements IDataSourceApi {
             }, asyncExecutor);
 
             try {
-                return GeneralQueryResponse.builder()
-                                           .total(total.get())
-                                           .limit(query.getLimit())
-                                           .data(list.get())
-                                           .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                           .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                           .build();
+                return QueryResponse.builder()
+                                    .total(total.get())
+                                    .limit(query.getLimit())
+                                    .data(list.get())
+                                    .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                    .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                    .build();
             } catch (ExecutionException e) {
                 throw new HttpMappableException(e.getCause(),
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -193,33 +175,30 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public GeneralQueryResponse groupBy(GeneralQueryRequest request) throws IOException {
+    public QueryResponse groupBy(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        validateQueryRequest(schema, request);
-
-        Query query = QueryBuilder.build(schema, request, false, false);
+        Query query = QueryConverter.toQuery(schema, request, false, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return GeneralQueryResponse.builder()
-                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                       .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                       .data(reader.groupBy(query))
-                                       .build();
+            return QueryResponse.builder()
+                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                .data(reader.groupBy(query))
+                                .build();
         }
     }
 
     @Override
-    public GeneralQueryResponse groupByV3(GeneralQueryRequest request) throws IOException {
+    public QueryResponse groupByV3(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
-        validateQueryRequest(schema, request);
 
-        Query query = QueryBuilder.build(schema, request, true, false);
+        Query query = QueryConverter.toQuery(schema, request, true, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return GeneralQueryResponse.builder()
-                                       .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                       .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                       .data(reader.groupBy(query))
-                                       .build();
+            return QueryResponse.builder()
+                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                .data(reader.groupBy(query))
+                                .build();
         }
     }
 
@@ -305,12 +284,14 @@ public class DataSourceApi implements IDataSourceApi {
 
         IColumn column = schema.getColumnByName(request.getName());
         Preconditions.checkNotNull(column, "Field [%s] does not exist in the schema.", request.getName());
+        Preconditions.checkIfTrue(!(column instanceof IAggregatableColumn), "Can't get values on type of aggregatable column [%s]", column.getName());
+        Preconditions.checkIfTrue(!(column instanceof ExpressionColumn), "Can't get values on type of expression column [%s]", column.getName());
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectColumns(Collections.singletonList(column.toSelectColumn()))
+                               .selectors(Collections.singletonList(new Selector(column.getName())))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 
@@ -338,37 +319,5 @@ public class DataSourceApi implements IDataSourceApi {
     @Override
     public void saveMetricBaseline(SaveMetricBaselineRequest request) {
         this.dataSourceService.addToBaseline(request.getDate(), request.getKeepDays());
-    }
-
-    /**
-     * Validate the request to ensure the safety
-     */
-    private void validateQueryRequest(ISchema schema, GeneralQueryRequest request) {
-        if (CollectionUtils.isNotEmpty(request.getGroupBy())) {
-            for (String field : request.getGroupBy()) {
-                Preconditions.checkNotNull(schema.getColumnByName(field),
-                                           "GroupBy field [%s] does not exist in the schema.",
-                                           field);
-            }
-        }
-
-        OrderBy orderBy = request.getOrderBy();
-        if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
-            IColumn column = schema.getColumnByName(orderBy.getName());
-            if (column == null) {
-                // ORDER BY field might be an aggregated field,
-                QueryField queryField = request.getFields()
-                                               .stream()
-                                               .filter((filter) -> filter.getName().equals(orderBy.getName()))
-                                               .findFirst()
-                                               .orElse(null);
-
-                Preconditions.checkIfTrue(queryField != null
-                                          && schema.getColumnByName(queryField.getField()) != null,
-                                          "OrderBy field [%s] does not exist in the schema.",
-                                          orderBy.getName());
-
-            }
-        }
     }
 }

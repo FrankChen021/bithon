@@ -14,20 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.datasource.api;
+package org.bithon.server.storage.datasource.query.ast;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
+import lombok.Getter;
 
 /**
+ *
+ * An expression that uses string to hold raw string
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/1/31 4:27 下午
+ * @date 2022/9/4 16:49
  */
-@Data
-public class GetMetricsBySqlRequest {
+public class TextNode implements IASTNode {
+    @Getter
+    private final String str;
 
-    private String dataSource;
+    public TextNode(String str) {
+        this.str = str;
+    }
 
-    @NotEmpty
-    private String sql;
+    @Override
+    public void accept(IASTNodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

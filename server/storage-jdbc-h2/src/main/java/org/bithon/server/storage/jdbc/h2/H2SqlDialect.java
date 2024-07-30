@@ -46,8 +46,8 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String timeFloorExpression(IExpression timestampExpression, long interval) {
-        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), interval, interval);
+    public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+        return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), intervalSeconds, intervalSeconds);
     }
 
     @Override
@@ -66,12 +66,11 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String firstAggregator(String field, String name, long window) {
+    public String firstAggregator(String field, long window) {
         return StringUtils.format(
-            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
+            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\")",
             field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window),
-            name);
+            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
     }
 
     @Override
@@ -121,37 +120,37 @@ public class H2SqlDialect implements ISqlDialect {
             public IExpression visit(FunctionExpression expression) {
                 if ("startsWith".equals(expression.getName())) {
                     // H2 does not provide startsWith function, turns it into LIKE expression as: LIKE 'prefix%'
-                    IExpression patternExpression = expression.getParameters().get(1);
+                    IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
                         patternExpression = LiteralExpression.create(((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.create("%")));
                     }
-                    return new ConditionalExpression.Like(expression.getParameters().get(0),
+                    return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
                 } else if ("endsWith".equals(expression.getName())) {
                     // H2 does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
-                    IExpression patternExpression = expression.getParameters().get(1);
+                    IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
                         patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue());
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.create("%"), patternExpression));
                     }
-                    return new ConditionalExpression.Like(expression.getParameters().get(0),
+                    return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
 
                 } else if ("hasToken".equals(expression.getName())) {
                     // H2 does not provide hasToken function, turns it into LIKE expression as: LIKE '%prefix'
-                    IExpression patternExpression = expression.getParameters().get(1);
+                    IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
                         patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.create("%"), patternExpression));
                     }
-                    return new ConditionalExpression.Like(expression.getParameters().get(0),
+                    return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
                 }
 

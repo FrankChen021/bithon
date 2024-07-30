@@ -19,9 +19,9 @@ package org.bithon.server.storage.datasource.column.aggregatable.min;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.ast.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,7 +35,7 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-    protected final Function aggregateExpression;
+    protected final FunctionExpression aggregateFunctionExpression;
 
     @JsonCreator
     public AggregateMinColumn(String name,
@@ -45,13 +45,13 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
-        this.aggregateExpression = Function.create(AggregateFunction.Min.NAME, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Min.NAME, name);
     }
 
     @JsonIgnore
     @Override
-    public Function getAggregateExpression() {
-        return aggregateExpression;
+    public FunctionExpression getAggregateFunctionExpression() {
+        return aggregateFunctionExpression;
     }
 
     @Override

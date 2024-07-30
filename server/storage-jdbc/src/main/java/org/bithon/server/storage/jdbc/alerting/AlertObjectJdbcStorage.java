@@ -347,7 +347,14 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                          .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> {
                              AlertStateObject obj = new AlertStateObject();
                              obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
-                             obj.setLastAlertAt(record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT));
+
+                             Object timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
+                             // It's strange that the returned object is typeof Timestamp under H2
+                             if (timestamp instanceof Timestamp) {
+                                 obj.setLastAlertAt(((Timestamp) timestamp).toLocalDateTime());
+                             } else {
+                                 obj.setLastAlertAt((LocalDateTime) timestamp);
+                             }
                              obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
                              return obj;
                          });

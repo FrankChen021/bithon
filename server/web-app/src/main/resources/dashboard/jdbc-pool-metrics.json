@@ -32,11 +32,11 @@
         "type": "timeseries",
         "dataSource": "jdbc-pool-metrics",
         "fields": [
-          "activeCount",
-          "poolingCount",
-          "createCount",
-          "destroyCount",
-          "waitThreadCount"
+          {"name": "activeCount","aggregator": "last"},
+          {"name": "poolingCount","aggregator": "sum"},
+          {"name": "createCount","aggregator": "sum"},
+          {"name": "destroyCount","aggregator": "sum"},
+          {"name": "waitThreadCount","aggregator": "last"}
         ]
       }
     },

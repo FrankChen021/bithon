@@ -32,7 +32,7 @@ import java.util.Collection;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeneralQueryResponse {
+public class QueryResponse {
 
     /**
      * The number of total records that satisfies the request conditions.

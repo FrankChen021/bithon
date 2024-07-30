@@ -16,14 +16,24 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
+import lombok.Getter;
+
 /**
  * @author Frank Chen
  * @date 4/11/22 9:03 pm
  */
-public class Column extends Name {
+public class Column implements IASTNode {
+
+    @Getter
+    private final String name;
 
     public Column(String name) {
-        super(name);
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     @Override

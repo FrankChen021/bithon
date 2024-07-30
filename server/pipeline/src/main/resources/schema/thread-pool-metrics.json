@@ -139,7 +139,7 @@
     {
       "type": "post",
       "name": "avgDuration",
-      "expression": "round(duration * 1.0 /totalTaskCount,2)",
+      "expression": "round(sum(duration) * 1.0 / sum(totalTaskCount),2)",
       "displayText": "Avg duration",
       "unit": "microsecond",
       "valueType": "double"

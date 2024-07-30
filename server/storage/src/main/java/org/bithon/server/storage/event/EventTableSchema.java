@@ -24,7 +24,6 @@ import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.count.AggregateCountColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
@@ -47,8 +46,7 @@ public class EventTableSchema implements ISchema {
                                                   new StringColumn("appName", "appName"),
                                                   new StringColumn("instanceName", "instanceName"),
                                                   new StringColumn("type", "type"),
-                                                  new StringColumn("arguments", "arguments"),
-                                                  AggregateCountColumn.INSTANCE));
+                                                  new StringColumn("arguments", "arguments")));
     }
 
     private final String name;
