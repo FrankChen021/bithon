@@ -758,7 +758,7 @@ public class QueryExpressionBuilderTest {
                                                                 .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
                                                                                                   new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableDurationLiteral(HumanReadableDuration.parse("1h"))),
                                                                                                   new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadablePercentageLiteral(HumanReadablePercentage.parse("50%")))
-                                                                        ))
+                                                                ))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder().name("appName").order(Order.asc).build())
                                                                 .dataSource(schema)
@@ -774,6 +774,71 @@ public class QueryExpressionBuilderTest {
                             WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND ("bithon_jvm_metrics"."totalCount" > 1048576 AND "bithon_jvm_metrics"."totalCount" < 3600 AND "bithon_jvm_metrics"."totalCount" < 0.5)
                             GROUP BY "appName"
                             ORDER BY "appName" asc
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    /**
+     * The filter is based on an expression
+     */
+    @Test
+    public void testPostFilter_UseExpressionVariable() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("avg"), new LiteralExpression.DoubleLiteral(0.2)))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   "_var0" / "totalCount" AS "avg"
+                            FROM
+                            (
+                              SELECT "appName",
+                                     "instanceName",
+                                     sum("responseTime" * 2) AS "_var0",
+                                     sum("totalCount") AS "totalCount"
+                              FROM "bithon_jvm_metrics"
+                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                              GROUP BY "appName", "instanceName"
+                            ) AS "tbl1"
+                            WHERE "avg" > 0.2
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    /**
+     * The filter is based on an expression
+     */
+    @Test
+    public void testPostFilter_UseAggregationFilter() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("cnt"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("cnt"), new LiteralExpression.LongLiteral(1000)))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   sum("totalCount") AS "cnt"
+                            FROM "bithon_jvm_metrics"
+                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                            GROUP BY "appName", "instanceName"
+                            HAVING "cnt" > 1000
                             """.trim(),
                             sqlGenerator.getSQL());
     }
