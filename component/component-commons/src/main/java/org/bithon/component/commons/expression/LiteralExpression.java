@@ -47,8 +47,7 @@ public abstract class LiteralExpression implements IExpression {
             return new ReadableNumberLiteral((HumanReadableNumber) value);
         } else if (value instanceof HumanReadablePercentage) {
             return new ReadablePercentageLiteral((HumanReadablePercentage) value);
-        }
-        else if (value instanceof Number) {
+        } else if (value instanceof Number) {
             // User defined Number, treat it as DOUBLE
             return new DoubleLiteral((Number) value);
         } else {
@@ -142,6 +141,7 @@ public abstract class LiteralExpression implements IExpression {
 
                     case BOOLEAN:
                         return new LiteralExpression.BooleanLiteral("true".equalsIgnoreCase(value.toString()));
+
                     case STRING:
                         return this;
 
@@ -329,7 +329,6 @@ public abstract class LiteralExpression implements IExpression {
             return "*";
         }
     }
-
 
     public static class ReadableDurationLiteral extends LiteralExpression {
         public ReadableDurationLiteral(HumanReadableDuration duration) {
