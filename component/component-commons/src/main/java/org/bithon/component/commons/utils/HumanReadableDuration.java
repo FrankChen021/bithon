@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 2024/2/11 11:38
  */
-public class HumanReadableDuration {
+public class HumanReadableDuration extends Number {
     public static final HumanReadableDuration DURATION_1_MINUTE = HumanReadableDuration.of(1, TimeUnit.MINUTES);
     public static final HumanReadableDuration DURATION_3_MINUTE = HumanReadableDuration.of(3, TimeUnit.MINUTES);
 
@@ -132,5 +132,25 @@ public class HumanReadableDuration {
         return new HumanReadableDuration(durationText,
                                          Duration.ofSeconds(timeUnit.toSeconds(val)),
                                          timeUnit);
+    }
+
+    @Override
+    public int intValue() {
+        return (int) duration.getSeconds();
+    }
+
+    @Override
+    public long longValue() {
+        return duration.getSeconds();
+    }
+
+    @Override
+    public float floatValue() {
+        return duration.getSeconds();
+    }
+
+    @Override
+    public double doubleValue() {
+        return duration.getSeconds();
     }
 }

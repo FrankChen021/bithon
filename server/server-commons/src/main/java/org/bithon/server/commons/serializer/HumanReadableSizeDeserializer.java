@@ -19,7 +19,7 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.bithon.component.commons.utils.HumanReadableSize;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 
 import java.io.IOException;
 
@@ -27,14 +27,14 @@ import java.io.IOException;
  * @author frank.chen021@outlook.com
  * @date 2024/3/3 20:12
  */
-public class HumanReadableSizeDeserializer extends JsonDeserializer<HumanReadableSize> {
+public class HumanReadableSizeDeserializer extends JsonDeserializer<HumanReadableNumber> {
     @Override
-    public HumanReadableSize deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        return HumanReadableSize.of(p.getValueAsString());
+    public HumanReadableNumber deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+        return HumanReadableNumber.of(p.getValueAsString());
     }
 
     @Override
     public Class<?> handledType() {
-        return HumanReadableSize.class;
+        return HumanReadableNumber.class;
     }
 }

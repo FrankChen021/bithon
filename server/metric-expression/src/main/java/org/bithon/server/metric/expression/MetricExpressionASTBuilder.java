@@ -30,8 +30,8 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.commons.antlr4.TokenUtils;
@@ -325,7 +325,7 @@ public class MetricExpressionASTBuilder {
                     LiteralExpression.create(TokenUtils.getUnQuotedString(symbol));
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
                 case MetricExpressionParser.SIZE_LITERAL ->
-                    LiteralExpression.create(HumanReadableSize.of(symbol.getText()));
+                    LiteralExpression.create(HumanReadableNumber.of(symbol.getText()));
                 default -> throw new RuntimeException("Unsupported terminal type");
             };
         }

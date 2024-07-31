@@ -54,7 +54,7 @@ public class AlertExpressionSerializerTest {
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
-            .serializers(new AlertExpressionSerializer())
+            .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
             .indentOutput(true)
             .build();
 
