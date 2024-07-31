@@ -42,8 +42,8 @@ import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.commons.antlr4.TokenUtils;
@@ -368,11 +368,11 @@ public class ExpressionASTBuilder {
                     LiteralExpression.create(TokenUtils.getUnQuotedString(literal.getSymbol()));
                 case ExpressionLexer.BOOL_LITERAL ->
                     LiteralExpression.create("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
-                case ExpressionLexer.SIZE_LITERAL ->
-                    LiteralExpression.create(HumanReadableSize.of(literal.getText()));
-                case ExpressionLexer.PERCENTAGE_LITERAL ->
+                case ExpressionLexer.READABLE_SIZE_LITERAL ->
+                    LiteralExpression.create(HumanReadableNumber.of(literal.getText()));
+                case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
                     LiteralExpression.create(HumanReadablePercentage.parse(literal.getText()));
-                case ExpressionLexer.DURATION_LITERAL ->
+                case ExpressionLexer.READABLE_DURATION_LITERAL ->
                     LiteralExpression.create(HumanReadableDuration.parse(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");

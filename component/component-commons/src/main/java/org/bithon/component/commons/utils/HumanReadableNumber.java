@@ -16,17 +16,17 @@
 
 package org.bithon.component.commons.utils;
 
-public class HumanReadableSize extends Number {
+public class HumanReadableNumber extends Number {
     private final long value;
     private final String text;
 
-    private HumanReadableSize(String value) {
-        this.value = HumanReadableSize.parse(value);
+    private HumanReadableNumber(String value) {
+        this.value = HumanReadableNumber.parse(value);
         this.text = value.trim();
     }
 
-    public static HumanReadableSize of(String value) {
-        return new HumanReadableSize(value);
+    public static HumanReadableNumber of(String value) {
+        return new HumanReadableNumber(value);
     }
 
     /**
@@ -171,8 +171,8 @@ public class HumanReadableSize extends Number {
         if (thatObj == null) {
             return false;
         }
-        if (thatObj instanceof HumanReadableSize) {
-            return value == ((HumanReadableSize) thatObj).value;
+        if (thatObj instanceof HumanReadableNumber) {
+            return value == ((HumanReadableNumber) thatObj).value;
         } else {
             if (thatObj instanceof Number) {
                 return ((Number) thatObj).longValue() == value;

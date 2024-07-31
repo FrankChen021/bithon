@@ -213,7 +213,7 @@ Apache License version 2.0
 ================================
 
   This product contains schema definition related code adapted from Apache Druid
-    * component/component-commons/src/main/java/org/bithon/component/commons/utils/HumanReadableBytes.java
+    * component/component-commons/src/main/java/org/bithon/component/commons/utils/HumanReadableNumber.java
     * server/server-commons/src/main/java/org/bithon/server/commons/time/DateTimes.java
     * hooks/pre-push.sh
     * setup-hooks.sh

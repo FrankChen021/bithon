@@ -19,7 +19,7 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.bithon.component.commons.utils.HumanReadableSize;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 
 import java.io.IOException;
 
@@ -27,16 +27,16 @@ import java.io.IOException;
  * @author frank.chen021@outlook.com
  * @date 2024/3/3 20:12
  */
-public class HumanReadableSizeSerializer extends JsonSerializer<HumanReadableSize> {
+public class HumanReadableSizeSerializer extends JsonSerializer<HumanReadableNumber> {
     @Override
-    public void serialize(HumanReadableSize value,
+    public void serialize(HumanReadableNumber value,
                           JsonGenerator gen,
                           SerializerProvider serializers) throws IOException {
         gen.writeString(value.toString());
     }
 
     @Override
-    public Class<HumanReadableSize> handledType() {
-        return HumanReadableSize.class;
+    public Class<HumanReadableNumber> handledType() {
+        return HumanReadableNumber.class;
     }
 }

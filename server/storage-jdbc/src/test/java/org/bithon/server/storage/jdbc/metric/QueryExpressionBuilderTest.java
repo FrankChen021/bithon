@@ -22,8 +22,8 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.component.commons.utils.HumanReadableSize;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DefaultSchema;
@@ -755,9 +755,9 @@ public class QueryExpressionBuilderTest {
                                                                 .fields(Collections.singletonList(new Selector(new Expression("count(1)"), new Alias("cnt"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.SizeLiteral(HumanReadableSize.of("1MiB"))),
-                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.DurationLiteral(HumanReadableDuration.parse("1h"))),
-                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.PercentageLiteral(HumanReadablePercentage.parse("50%")))
+                                                                .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
+                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableDurationLiteral(HumanReadableDuration.parse("1h"))),
+                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadablePercentageLiteral(HumanReadablePercentage.parse("50%")))
                                                                         ))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder().name("appName").order(Order.asc).build())

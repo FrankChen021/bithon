@@ -39,7 +39,7 @@ expressionListDecl
   ;
 
 literalExpressionDecl
-  : (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL | DURATION_LITERAL | SIZE_LITERAL | PERCENTAGE_LITERAL)
+  : (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL | READABLE_DURATION_LITERAL | READABLE_SIZE_LITERAL | READABLE_PERCENTAGE_LITERAL)
   ;
 
 identifierExpressionDecl
@@ -66,9 +66,9 @@ INTEGER_LITERAL: '-'?[0-9]+;
 DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
 STRING_LITERAL: SQUOTA_STRING;
 BOOL_LITERAL: TRUE | FALSE;
-DURATION_LITERAL: INTEGER_LITERAL [smhd];
-SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
-PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
+READABLE_DURATION_LITERAL: INTEGER_LITERAL [smhd];
+READABLE_SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
+READABLE_PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
 
 fragment SQUOTA_STRING
   : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';

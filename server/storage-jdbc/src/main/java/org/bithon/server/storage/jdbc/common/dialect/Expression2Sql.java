@@ -67,12 +67,12 @@ public class Expression2Sql extends ExpressionSerializer {
             sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
         } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
             sb.append('*');
-        } else if (expression instanceof LiteralExpression.DurationLiteral) {
-            sb.append(((LiteralExpression.DurationLiteral) expression).getAs().getDuration().getSeconds());
-        } else if (expression instanceof LiteralExpression.SizeLiteral) {
-            sb.append(((LiteralExpression.SizeLiteral) expression).getAs().longValue());
-        } else if (expression instanceof LiteralExpression.PercentageLiteral) {
-            sb.append(((LiteralExpression.PercentageLiteral) expression).getAs().getFraction());
+        } else if (expression instanceof LiteralExpression.ReadableDurationLiteral) {
+            sb.append(((LiteralExpression.ReadableDurationLiteral) expression).getAs().getDuration().getSeconds());
+        } else if (expression instanceof LiteralExpression.ReadableNumberLiteral) {
+            sb.append(((LiteralExpression.ReadableNumberLiteral) expression).getAs().longValue());
+        } else if (expression instanceof LiteralExpression.ReadablePercentageLiteral) {
+            sb.append(((LiteralExpression.ReadablePercentageLiteral) expression).getAs().getFraction());
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }

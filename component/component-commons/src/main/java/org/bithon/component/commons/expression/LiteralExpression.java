@@ -18,8 +18,8 @@ package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.component.commons.utils.HumanReadableSize;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -42,11 +42,11 @@ public abstract class LiteralExpression implements IExpression {
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
             return new DoubleLiteral((Number) value);
         } else if (value instanceof HumanReadableDuration) {
-            return new DurationLiteral((HumanReadableDuration) value);
-        } else if (value instanceof HumanReadableSize) {
-            return new SizeLiteral((HumanReadableSize) value);
+            return new ReadableDurationLiteral((HumanReadableDuration) value);
+        } else if (value instanceof HumanReadableNumber) {
+            return new ReadableNumberLiteral((HumanReadableNumber) value);
         } else if (value instanceof HumanReadablePercentage) {
-            return new PercentageLiteral((HumanReadablePercentage) value);
+            return new ReadablePercentageLiteral((HumanReadablePercentage) value);
         }
         else if (value instanceof Number) {
             // User defined Number, treat it as DOUBLE
@@ -331,8 +331,8 @@ public abstract class LiteralExpression implements IExpression {
     }
 
 
-    public static class DurationLiteral extends LiteralExpression {
-        public DurationLiteral(HumanReadableDuration duration) {
+    public static class ReadableDurationLiteral extends LiteralExpression {
+        public ReadableDurationLiteral(HumanReadableDuration duration) {
             super(duration);
         }
 
@@ -351,13 +351,13 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class SizeLiteral extends LiteralExpression {
-        public SizeLiteral(HumanReadableSize size) {
+    public static class ReadableNumberLiteral extends LiteralExpression {
+        public ReadableNumberLiteral(HumanReadableNumber size) {
             super(size);
         }
 
-        public HumanReadableSize getAs() {
-            return (HumanReadableSize) value;
+        public HumanReadableNumber getAs() {
+            return (HumanReadableNumber) value;
         }
 
         @Override
@@ -371,8 +371,8 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class PercentageLiteral extends LiteralExpression {
-        public PercentageLiteral(HumanReadablePercentage percentage) {
+    public static class ReadablePercentageLiteral extends LiteralExpression {
+        public ReadablePercentageLiteral(HumanReadablePercentage percentage) {
             super(percentage);
         }
 
