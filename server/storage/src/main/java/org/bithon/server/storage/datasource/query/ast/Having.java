@@ -16,39 +16,27 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:05
+ * @date 2024/8/1 21:40
  */
-public interface IASTNodeVisitor {
+public class Having implements IASTNode {
 
-    void before(QueryExpression queryExpression);
+    @Getter
+    private final List<String> expressions = new ArrayList<>();
 
-    void visit(QueryExpression queryExpression);
+    public Having addExpression(String expression) {
+        expressions.add(expression);
+        return this;
+    }
 
-    void after(QueryExpression queryExpression);
-
-    void visit(OrderBy orderBy);
-
-    void visit(Table table);
-
-    void visit(Where where);
-
-    void visit(GroupBy groupBy);
-
-    void visit(Having having);
-
-    void visit(From from);
-
-    void visit(TextNode textNode);
-
-    void visit(int index, int count, Selector selector);
-
-    void visit(Column column);
-
-    void visit(Alias alias);
-
-    void visit(Limit limit);
-
-    void visit(Expression expression);
+    @Override
+    public void accept(IASTNodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

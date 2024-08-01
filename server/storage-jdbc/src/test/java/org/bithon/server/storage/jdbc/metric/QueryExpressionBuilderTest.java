@@ -463,6 +463,7 @@ public class QueryExpressionBuilderTest {
                                                                 .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("a"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
+                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("a"), new LiteralExpression.LongLiteral(5)))
                                                                 .dataSource(schema)
                                                                 .build();
 
@@ -482,6 +483,7 @@ public class QueryExpressionBuilderTest {
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                             ) AS "tbl1"
                             GROUP BY "appName", "instanceName", "a"
+                            HAVING "a" > 5
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -787,7 +789,12 @@ public class QueryExpressionBuilderTest {
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression("sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("avg"), new LiteralExpression.DoubleLiteral(0.2)))
+                                                                .filter(
+                                                                    new LogicalExpression.AND(
+                                                                        new ComparisonExpression.EQ(new IdentifierExpression("appName"), new LiteralExpression.StringLiteral("bithon")),
+                                                                        new ComparisonExpression.GT(new IdentifierExpression("avg"), new LiteralExpression.DoubleLiteral(0.2))
+                                                                    )
+                                                                )
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
                                                                 .build();
@@ -806,7 +813,7 @@ public class QueryExpressionBuilderTest {
                                      sum("responseTime" * 2) AS "_var0",
                                      sum("totalCount") AS "totalCount"
                               FROM "bithon_jvm_metrics"
-                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
                               GROUP BY "appName", "instanceName"
                             ) AS "tbl1"
                             WHERE "avg" > 0.2

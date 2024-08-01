@@ -16,11 +16,13 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
+import org.bithon.server.storage.datasource.query.ast.Having;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
@@ -186,6 +188,25 @@ public class SqlGenerator implements IASTNodeVisitor {
                 sql.append(", ");
             }
             sql.append(sqlDialect.quoteIdentifier(fields.get(i)));
+        }
+    }
+
+    @Override
+    public void visit(Having having) {
+        if (CollectionUtils.isEmpty(having.getExpressions())) {
+            return;
+        }
+
+        sql.append('\n');
+        sql.append(indent);
+        sql.append("HAVING ");
+
+        List<String> expressions = having.getExpressions();
+        for (int i = 0, expressionsSize = expressions.size(); i < expressionsSize; i++) {
+            if (i != 0) {
+                sql.append(" AND ");
+            }
+            sql.append(expressions.get(i));
         }
     }
 }
