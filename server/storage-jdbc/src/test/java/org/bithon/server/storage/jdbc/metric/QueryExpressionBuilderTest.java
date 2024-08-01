@@ -818,7 +818,7 @@ public class QueryExpressionBuilderTest {
      * The filter is based on an expression
      */
     @Test
-    public void testPostFilter_UseAggregationFilter() {
+    public void testPostFilter_UseAggregationAliasInFilter() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("cnt"))))
@@ -839,6 +839,35 @@ public class QueryExpressionBuilderTest {
                             WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                             GROUP BY "appName", "instanceName"
                             HAVING "cnt" > 1000
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    /**
+     * The filter is based on an expression
+     */
+    @Test
+    public void testPostFilter_UseAggregationFilter() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.LongLiteral(1000)))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   sum("totalCount") AS "totalCount"
+                            FROM "bithon_jvm_metrics"
+                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                            GROUP BY "appName", "instanceName"
+                            HAVING "totalCount" > 1000
                             """.trim(),
                             sqlGenerator.getSQL());
     }
