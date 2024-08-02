@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.IFunction;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,7 +34,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 class ExpressionTypeValidator implements IExpressionVisitor {
 
     /**
-     * If the type of identifier does not defined,
+     * If the type of identifier is not defined,
      * it's not able to validate the types for identifiers and related expressions
      */
     private final boolean validateIdentifier;
@@ -58,9 +59,9 @@ class ExpressionTypeValidator implements IExpressionVisitor {
 
     @Override
     public boolean visit(ConditionalExpression expression) {
-        if (!this.validateIdentifier &&
-            (expression.getLeft() instanceof IdentifierExpression
-                || expression.getRight() instanceof IdentifierExpression)) {
+        if (!this.validateIdentifier
+            || !(expression.getLeft() instanceof IdentifierExpression)
+            || !(expression.getRight() instanceof IdentifierExpression)) {
             return true;
         }
 
@@ -117,7 +118,10 @@ class ExpressionTypeValidator implements IExpressionVisitor {
 
     @Override
     public boolean visit(FunctionExpression expression) {
-        expression.getFunction().validateArgs(expression.getArgs());
+        IFunction function = expression.getFunction();
+        if (function != null) {
+            function.validateArgs(expression.getArgs());
+        }
         return true;
     }
 }
