@@ -21,14 +21,17 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.last.AggregateLongLastColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
@@ -68,7 +71,8 @@ public class QueryExpressionBuilderTest {
                                                                    new AggregateLongSumColumn("count4xx", "count4xx"),
                                                                    new AggregateLongSumColumn("count5xx", "count5xx"),
                                                                    new AggregateLongLastColumn("activeThreads", "activeThreads"),
-                                                                   new AggregateLongLastColumn("totalThreads", "totalThreads")
+                                                                   new AggregateLongLastColumn("totalThreads", "totalThreads"),
+                                                                   new ExpressionColumn("avgResponseTime", null, "sum(responseTime) / sum(totalCount)", "double")
                                                      ),
                                                      null,
                                                      new IDataStoreSpec() {
@@ -875,6 +879,79 @@ public class QueryExpressionBuilderTest {
                             WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                             GROUP BY "appName", "instanceName"
                             HAVING "totalCount" > 1000
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostFilter_FilterNotInTheSelectList() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(ExpressionASTBuilder.builder()
+                                                                                            .schema(schema)
+                                                                                            .functions(Functions.getInstance())
+                                                                                            .build("avgResponseTime > 5"))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   "responseTime" / "totalCount" AS "avgResponseTime"
+                            FROM
+                            (
+                                SELECT "appName",
+                                       "instanceName",
+                                       sum("totalCount") AS "totalCount",
+                                       sum("responseTime") AS "responseTime"
+                                FROM "bithon_jvm_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                GROUP BY "appName", "instanceName"
+                            )
+                            WHERE "avgResponseTime" > 5
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostFilter_AggregationInFilter() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(ExpressionASTBuilder.builder()
+                                                                                            .schema(schema)
+                                                                                            .functions(Functions.getInstance())
+                                                                                            .build("sum(responseTime) / sum(totalCount) > 5"))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   "totalCount" AS "totalCount",
+                                   "responseTime" / "totalCount" AS "_var0"
+                            FROM
+                            (
+                                SELECT "appName",
+                                       "instanceName",
+                                       sum("totalCount") AS "totalCount",
+                                       sum("responseTime") AS "responseTime"
+                                FROM "bithon_jvm_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                GROUP BY "appName", "instanceName"
+                            )
+                            WHERE "_var0" > 5
                             """.trim(),
                             sqlGenerator.getSQL());
     }
