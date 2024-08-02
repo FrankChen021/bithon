@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
@@ -38,6 +39,9 @@ import org.bithon.component.commons.utils.StringUtils;
 public class Selector implements IASTNode {
     private final IASTNode selectExpression;
     private final Alias output;
+
+    @Setter
+    private Object tag;
 
     public Selector(String name) {
         this(new Column(name), (Alias) null);

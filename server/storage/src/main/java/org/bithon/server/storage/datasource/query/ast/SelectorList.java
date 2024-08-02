@@ -56,42 +56,30 @@ public class SelectorList implements IASTNode {
         return insert(columnExpression, null);
     }
 
-    public SelectorList insert(IASTNode columnExpression, String alias) {
+    public SelectorList insert(IASTNode columnExpression, String output) {
         if (columnExpression instanceof Selector) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        selectors.add(0, new Selector(columnExpression, alias));
+        selectors.add(0, new Selector(columnExpression, output));
         return this;
     }
 
-    public SelectorList add(String columnName) {
-        this.selectors.add(new Selector(columnName));
-        return this;
+    public Selector add(IASTNode columnExpression) {
+        return add(columnExpression, (Alias) null);
     }
 
-    public SelectorList add(IASTNode columnExpression) {
+    public Selector add(IASTNode columnExpression, String output) {
+        return add(columnExpression, new Alias(output));
+    }
+
+    public Selector add(IASTNode columnExpression, Alias output) {
         if (columnExpression instanceof Selector) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
 
-        selectors.add(new Selector(columnExpression));
-        return this;
-    }
-
-    public SelectorList add(IASTNode columnExpression, String columnAlias) {
-        if (columnExpression instanceof Selector) {
-            throw new RuntimeException("Can't add typeof ResultColumn");
-        }
-        selectors.add(new Selector(columnExpression, columnAlias));
-        return this;
-    }
-
-    public SelectorList add(IASTNode columnExpression, Alias alias) {
-        if (columnExpression instanceof Selector) {
-            throw new RuntimeException("Can't add typeof ResultColumn");
-        }
-        selectors.add(new Selector(columnExpression, alias));
-        return this;
+        Selector selector = new Selector(columnExpression, output);
+        selectors.add(selector);
+        return selector;
     }
 
     public SelectorList addAll(List<String> columns) {

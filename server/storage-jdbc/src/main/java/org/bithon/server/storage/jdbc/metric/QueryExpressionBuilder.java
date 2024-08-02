@@ -345,7 +345,8 @@ public class QueryExpressionBuilder {
             String identifier = ((IdentifierExpression) left).getIdentifier();
 
             for (Selector selector : queryExpression.getSelectorList().getSelectors()) {
-                if (selector.getSelectExpression() instanceof TextNode) {
+                // If the tag is marked as true, it means this column is the output of an aggregator
+                if (selector.getTag() instanceof Boolean && ((boolean) selector.getTag())) {
                     // The TextNode is from Expression, only these filters need to be extracted
                     if (identifier.equals(selector.getOutputName())) {
                         postFilters.add(expression);
@@ -439,6 +440,8 @@ public class QueryExpressionBuilder {
      * </pre>
      */
     public QueryExpression build() {
+        // TODO: check if filter contains aggregations which are not in the selector
+
         VariableName var = new VariableName("_var");
 
         Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
@@ -532,10 +535,13 @@ public class QueryExpressionBuilder {
                 String col = identifierExpression.getIdentifier();
                 String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
                 pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output);
-                pipeline.aggregation.getSelectorList().add(new Column(aggregator.output));
+                pipeline.aggregation.getSelectorList()
+                                    .add(new Column(aggregator.output))
+                                    .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
-                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)),
-                                                           aggregator.output);
+                pipeline.aggregation.getSelectorList()
+                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)), aggregator.output)
+                                    .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
 
@@ -562,7 +568,8 @@ public class QueryExpressionBuilder {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
                     pipeline.postAggregation.getSelectorList()
-                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput());
+                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput())
+                                            .setTag(true);
                 }
             }
         }
