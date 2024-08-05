@@ -24,6 +24,10 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 public class InvalidExpressionException extends RuntimeException {
 
+    public InvalidExpressionException(String message) {
+        super(message);
+    }
+
     public InvalidExpressionException(String format, Object... args) {
         super(StringUtils.format(format, args));
     }
