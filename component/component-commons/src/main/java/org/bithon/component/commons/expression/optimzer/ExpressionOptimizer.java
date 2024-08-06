@@ -199,7 +199,7 @@ public class ExpressionOptimizer {
         public IExpression visit(ArrayAccessExpression expression) {
             IExpression arrayExpression = expression.getArray().accept(this);
             if (arrayExpression instanceof LiteralExpression) {
-                Object[] array = ((LiteralExpression) arrayExpression).asArray();
+                Object[] array = ((LiteralExpression<?>) arrayExpression).asArray();
                 if (array.length > expression.getIndex()) {
                     return LiteralExpression.create(array[expression.getIndex()]);
                 } else {

@@ -394,7 +394,7 @@ public class ExpressionOptimizerTest {
                                                    .build("now() - 5s");
             Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
 
-            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getLiteralValue()) - prev);
 
             // To avoid flaky, we think that 3 seconds are enough for evaluation above code
             Assert.assertTrue(diff < 3);
@@ -407,7 +407,7 @@ public class ExpressionOptimizerTest {
                                                    .build("now() - 5d");
             Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
 
-            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getLiteralValue()) - prev);
 
             // To avoid flaky, we think that 3 seconds are enough for evaluation above code
             Assert.assertTrue(diff < 3);

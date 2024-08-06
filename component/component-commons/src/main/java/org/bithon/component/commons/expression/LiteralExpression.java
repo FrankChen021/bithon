@@ -30,40 +30,42 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
  */
-public abstract class LiteralExpression implements IExpression {
+public abstract class LiteralExpression<T> implements IExpression {
 
-    public static LiteralExpression create(Object value) {
+    public static LiteralExpression<?> create(Object value) {
         if (value instanceof String) {
             return new StringLiteral((String) value);
         } else if (value instanceof Long || value instanceof Integer) {
             return new LongLiteral(((Number) value).longValue());
         } else if (value instanceof Boolean) {
             return BooleanLiteral.of((boolean) value);
-        } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
-            return new DoubleLiteral((Number) value);
+        } else if (value instanceof Double || value instanceof Float) {
+            return new DoubleLiteral(((Number) value).doubleValue());
         } else if (value instanceof HumanReadableDuration) {
             return new ReadableDurationLiteral((HumanReadableDuration) value);
         } else if (value instanceof HumanReadableNumber) {
             return new ReadableNumberLiteral((HumanReadableNumber) value);
         } else if (value instanceof HumanReadablePercentage) {
             return new ReadablePercentageLiteral((HumanReadablePercentage) value);
+        } else if (value instanceof BigDecimal) {
+            return new BigDecimalLiteral((BigDecimal) value);
         } else if (value instanceof Number) {
             // User defined Number, treat it as DOUBLE
-            return new DoubleLiteral((Number) value);
+            return new DoubleLiteral(((Number) value).doubleValue());
         } else {
             throw new UnsupportedOperationException("Not support literal type: " + value.getClass().getName());
         }
     }
 
-    protected final Object value;
+    protected final T value;
 
-    public abstract LiteralExpression castTo(IDataType targetType);
+    public abstract LiteralExpression<?> castTo(IDataType targetType);
 
-    protected LiteralExpression(Object value) {
+    protected LiteralExpression(T value) {
         this.value = value;
     }
 
-    public Object getValue() {
+    public T getLiteralValue() {
         return value;
     }
 
@@ -73,26 +75,14 @@ public abstract class LiteralExpression implements IExpression {
     }
 
     public String asString() {
-        return (String) value;
+        return value.toString();
     }
 
     public Object[] asArray() {
         return (Object[]) value;
     }
 
-    public boolean asBoolean() {
-        IDataType dataType = getDataType();
-        if (dataType.equals(IDataType.BOOLEAN)) {
-            return (boolean) value;
-        }
-        if (dataType.equals(IDataType.LONG)) {
-            return ((long) value) != 0;
-        }
-        if (dataType.equals(IDataType.DOUBLE)) {
-            return ((double) value) != 0;
-        }
-        throw new RuntimeException("Unable to convert to boolean for expression: " + this.serializeToText());
-    }
+    public abstract boolean asBoolean();
 
     @Override
     public String getType() {
@@ -105,7 +95,7 @@ public abstract class LiteralExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <TT> TT accept(IExpressionVisitor2<TT> visitor) {
         return visitor.visit(this);
     }
 
@@ -119,9 +109,14 @@ public abstract class LiteralExpression implements IExpression {
         return value.toString();
     }
 
-    public static class StringLiteral extends LiteralExpression {
+    public static class StringLiteral extends LiteralExpression<String> {
         public StringLiteral(String value) {
             super(value);
+        }
+
+        @Override
+        public boolean asBoolean() {
+            return "true".equals(value);
         }
 
         @Override
@@ -130,26 +125,24 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             try {
                 switch (targetType) {
                     case LONG:
-                        return new LiteralExpression.LongLiteral(Long.parseLong(value.toString()));
+                        return new LiteralExpression.LongLiteral(Long.parseLong(value));
 
                     case DOUBLE:
-                        return new LiteralExpression.DoubleLiteral(Double.parseDouble(value.toString()));
+                        return new LiteralExpression.DoubleLiteral(Double.parseDouble(value));
 
                     case BOOLEAN:
-                        return new LiteralExpression.BooleanLiteral("true".equalsIgnoreCase(value.toString()));
+                        return new LiteralExpression.BooleanLiteral("true".equalsIgnoreCase(value));
 
                     case STRING:
                         return this;
 
                     case DATETIME_3: {
                         try {
-                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-                                                                  Locale.ENGLISH).parse(value.toString())
-                                                                                 .getTime();
+                            long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(value).getTime();
 
                             return new TimestampLiteral(timestamp);
                         } catch (ParseException e) {
@@ -166,7 +159,7 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class LongLiteral extends LiteralExpression {
+    public static class LongLiteral extends LiteralExpression<Long> {
 
         public LongLiteral(long value) {
             super(value);
@@ -178,7 +171,7 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             switch (targetType) {
                 case STRING:
                     return new LiteralExpression.StringLiteral(value.toString());
@@ -187,31 +180,36 @@ public abstract class LiteralExpression implements IExpression {
                     return this;
 
                 case DOUBLE:
-                    return new LiteralExpression.DoubleLiteral((Number) value);
+                    return new LiteralExpression.DoubleLiteral(((Number) value).doubleValue());
 
                 case BOOLEAN:
-                    return new LiteralExpression.BooleanLiteral(((long) value) != 0);
+                    return new LiteralExpression.BooleanLiteral(value != 0);
 
                 case DATETIME_3:
-                    return new TimestampLiteral((long) value);
+                    return new TimestampLiteral(value);
 
                 default:
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
             }
         }
 
-        public static LiteralExpression of(String val) {
+        @Override
+        public boolean asBoolean() {
+            return value != 0;
+        }
+
+        public static LongLiteral of(String val) {
             return new LongLiteral(Long.parseLong(val));
         }
 
-        public static LiteralExpression of(long val) {
+        public static LongLiteral of(long val) {
             return new LongLiteral(val);
         }
     }
 
-    public static class DoubleLiteral extends LiteralExpression {
+    public static class DoubleLiteral extends LiteralExpression<Double> {
 
-        public DoubleLiteral(Number value) {
+        public DoubleLiteral(double value) {
             super(value);
         }
 
@@ -221,7 +219,7 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             switch (targetType) {
                 case STRING:
                     return new LiteralExpression.StringLiteral(value.toString());
@@ -239,9 +237,54 @@ public abstract class LiteralExpression implements IExpression {
                     throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
             }
         }
+
+        @Override
+        public boolean asBoolean() {
+            return value != 0;
+        }
     }
 
-    public static class BooleanLiteral extends LiteralExpression {
+    /**
+     * BigDecimal is used to represent the number in fixed point
+     */
+    public static class BigDecimalLiteral extends LiteralExpression<BigDecimal> {
+
+        protected BigDecimalLiteral(BigDecimal value) {
+            super(value);
+        }
+
+        @Override
+        public LiteralExpression<?> castTo(IDataType targetType) {
+            switch (targetType) {
+                case STRING:
+                    return new LiteralExpression.StringLiteral(value.toString());
+
+                case LONG:
+                    return new LiteralExpression.LongLiteral(((Number) value).longValue());
+
+                case DOUBLE:
+                    return new LiteralExpression.DoubleLiteral(value.doubleValue());
+
+                case BOOLEAN:
+                    return new LiteralExpression.BooleanLiteral(((Number) value).doubleValue() != 0);
+
+                default:
+                    throw new UnsupportedOperationException("Can't cast a boolean value into type of " + targetType);
+            }
+        }
+
+        @Override
+        public boolean asBoolean() {
+            return this.value.compareTo(BigDecimal.ZERO) != 0;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
+        }
+    }
+
+    public static class BooleanLiteral extends LiteralExpression<Boolean> {
         public static final BooleanLiteral TRUE = new BooleanLiteral(true);
         public static final BooleanLiteral FALSE = new BooleanLiteral(false);
 
@@ -249,7 +292,7 @@ public abstract class LiteralExpression implements IExpression {
             super(value);
         }
 
-        public static LiteralExpression of(boolean val) {
+        public static BooleanLiteral of(boolean val) {
             return val ? TRUE : FALSE;
         }
 
@@ -260,21 +303,21 @@ public abstract class LiteralExpression implements IExpression {
 
         @Override
         public boolean asBoolean() {
-            return (boolean) value;
+            return value;
         }
 
         public BooleanLiteral negate() {
-            return ((boolean) value) ? FALSE : TRUE;
+            return value ? FALSE : TRUE;
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             switch (targetType) {
                 case STRING:
-                    return new LiteralExpression.StringLiteral((boolean) value ? "true" : "false");
+                    return new LiteralExpression.StringLiteral(value ? "true" : "false");
 
                 case LONG:
-                    return new LiteralExpression.LongLiteral((boolean) value ? 1 : 0);
+                    return new LiteralExpression.LongLiteral(value ? 1 : 0);
 
                 case BOOLEAN:
                     return this;
@@ -285,7 +328,7 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class TimestampLiteral extends LiteralExpression {
+    public static class TimestampLiteral extends LiteralExpression<Long> {
 
         public TimestampLiteral(long milliseconds) {
             super(milliseconds);
@@ -297,21 +340,31 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
-        }
-    }
-
-    public static class NullLiteral extends LiteralExpression {
-        public static final NullLiteral INSTANCE = new NullLiteral();
-
-        public NullLiteral() {
-            super("null");
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public boolean asBoolean() {
+            return value != 0;
+        }
+    }
+
+    public static class NullLiteral extends LiteralExpression<Void> {
+        public static final NullLiteral INSTANCE = new NullLiteral();
+
+        public NullLiteral() {
+            super(null);
+        }
+
+        @Override
+        public LiteralExpression<?> castTo(IDataType targetType) {
             return this;
+        }
+
+        @Override
+        public boolean asBoolean() {
+            return false;
         }
 
         @Override
@@ -326,7 +379,7 @@ public abstract class LiteralExpression implements IExpression {
         }
     }
 
-    public static class AsteriskLiteral extends LiteralExpression {
+    public static class AsteriskLiteral extends LiteralExpression<String> {
         public static final AsteriskLiteral INSTANCE = new AsteriskLiteral();
 
         public AsteriskLiteral() {
@@ -334,8 +387,13 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             return this;
+        }
+
+        @Override
+        public boolean asBoolean() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -346,17 +404,18 @@ public abstract class LiteralExpression implements IExpression {
 
         @Override
         public String toString() {
-            return "*";
+            return "AsteriskLiteral(*)";
         }
     }
 
-    public static class ReadableDurationLiteral extends LiteralExpression {
+    public static class ReadableDurationLiteral extends LiteralExpression<HumanReadableDuration> {
         public ReadableDurationLiteral(HumanReadableDuration duration) {
             super(duration);
         }
 
-        public HumanReadableDuration getAs() {
-            return (HumanReadableDuration) value;
+        @Override
+        public boolean asBoolean() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -365,18 +424,19 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
         }
     }
 
-    public static class ReadableNumberLiteral extends LiteralExpression {
+    public static class ReadableNumberLiteral extends LiteralExpression<HumanReadableNumber> {
         public ReadableNumberLiteral(HumanReadableNumber size) {
             super(size);
         }
 
-        public HumanReadableNumber getAs() {
-            return (HumanReadableNumber) value;
+        @Override
+        public boolean asBoolean() {
+            return value.getValue() != 0;
         }
 
         @Override
@@ -385,18 +445,19 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
         }
     }
 
-    public static class ReadablePercentageLiteral extends LiteralExpression {
+    public static class ReadablePercentageLiteral extends LiteralExpression<HumanReadablePercentage> {
         public ReadablePercentageLiteral(HumanReadablePercentage percentage) {
             super(percentage);
         }
 
-        public HumanReadablePercentage getAs() {
-            return (HumanReadablePercentage) value;
+        @Override
+        public boolean asBoolean() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -405,7 +466,7 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
-        public LiteralExpression castTo(IDataType targetType) {
+        public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
         }
     }

@@ -82,7 +82,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
 
         @Override
         public boolean visit(LiteralExpression expression) {
-            value = expression.getValue();
+            value = expression.getLiteralValue();
             return false;
         }
 

@@ -127,58 +127,58 @@ public class AlertExpressionASTParser {
         switch (metricExpression.getPredicate()) {
             case LT:
                 if (expectedWindow == null) {
-                    metricEvaluator = new LessThanPredicate(expected.getValue());
+                    metricEvaluator = new LessThanPredicate(expected.getLiteralValue());
                 } else {
-                    if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                    if (expected.getLiteralValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeLTPredicate((Number) expected.getLiteralValue(), expectedWindow);
                     } else {
-                        metricEvaluator = new LessThanPredicate(expected.getValue());
+                        metricEvaluator = new LessThanPredicate(expected.getLiteralValue());
                     }
                 }
                 break;
 
             case LTE:
                 if (expectedWindow == null) {
-                    metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                    metricEvaluator = new LessThanOrEqualPredicate(expected.getLiteralValue());
                 } else {
-                    if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                    if (expected.getLiteralValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getLiteralValue(), expectedWindow);
                     } else {
-                        metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
+                        metricEvaluator = new LessThanOrEqualPredicate(expected.getLiteralValue());
                     }
                 }
                 break;
 
             case GT:
                 if (expectedWindow == null) {
-                    metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                    metricEvaluator = new GreaterThanPredicate(expected.getLiteralValue());
                 } else {
-                    if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                    if (expected.getLiteralValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeGTPredicate((Number) expected.getLiteralValue(), expectedWindow);
                     } else {
-                        metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        metricEvaluator = new GreaterThanPredicate(expected.getLiteralValue());
                     }
                 }
                 break;
 
             case GTE:
                 if (expectedWindow == null) {
-                    metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
+                    metricEvaluator = new GreaterOrEqualPredicate(expected.getLiteralValue());
                 } else {
-                    if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                    if (expected.getLiteralValue() instanceof HumanReadablePercentage) {
+                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getLiteralValue(), expectedWindow);
                     } else {
-                        metricEvaluator = new GreaterThanPredicate(expected.getValue());
+                        metricEvaluator = new GreaterThanPredicate(expected.getLiteralValue());
                     }
                 }
                 break;
 
             case NE:
-                metricEvaluator = new NotEqualPredicate(expected.getValue());
+                metricEvaluator = new NotEqualPredicate(expected.getLiteralValue());
                 break;
 
             case EQ:
-                metricEvaluator = new EqualPredicate(expected.getValue());
+                metricEvaluator = new EqualPredicate(expected.getLiteralValue());
                 break;
 
             case IS_NULL:

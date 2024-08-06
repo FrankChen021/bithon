@@ -111,21 +111,21 @@ public class MetricExpressionASTBuilderTest {
         Assert.assertTrue(expression instanceof MetricExpression);
         Assert.assertEquals(5, ((MetricExpression) expression).getWindow().getDuration().toMinutes());
         Assert.assertEquals(TimeUnit.MINUTES, ((MetricExpression) expression).getWindow().getUnit());
-        Assert.assertEquals(HumanReadableNumber.of("1MiB"), ((MetricExpression) expression).getExpected().getValue());
+        Assert.assertEquals(HumanReadableNumber.of("1MiB"), ((MetricExpression) expression).getExpected().getLiteralValue());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5m] > 1MiB", expression.serializeToText());
 
         // decimal format
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 7K");
         Assert.assertTrue(expression instanceof MetricExpression);
         Assert.assertEquals(5, ((MetricExpression) expression).getWindow().getDuration().toHours());
-        Assert.assertEquals(HumanReadableNumber.of("7K"), ((MetricExpression) expression).getExpected().getValue());
+        Assert.assertEquals(HumanReadableNumber.of("7K"), ((MetricExpression) expression).getExpected().getLiteralValue());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 7K", expression.serializeToText());
 
         // simplified binary format
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 100Gi");
         Assert.assertTrue(expression instanceof MetricExpression);
         Assert.assertEquals(5, ((MetricExpression) expression).getWindow().getDuration().toHours());
-        Assert.assertEquals(HumanReadableNumber.of("100Gi"), ((MetricExpression) expression).getExpected().getValue());
+        Assert.assertEquals(HumanReadableNumber.of("100Gi"), ((MetricExpression) expression).getExpected().getLiteralValue());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName <= \"a\"})[5h] > 100Gi", expression.serializeToText());
 
         // Invalid human readable size

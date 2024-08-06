@@ -246,17 +246,17 @@ public class ExpressionASTBuilderTest {
         {
             IExpression expr = ExpressionASTBuilder.builder().build("1h");
             Assert.assertEquals("1h", expr.serializeToText(null));
-            Assert.assertEquals(1, ((LiteralExpression.ReadableDurationLiteral) expr).getAs().getDuration().toHours());
+            Assert.assertEquals(1, ((LiteralExpression.ReadableDurationLiteral) expr).getLiteralValue().getDuration().toHours());
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("7d");
             Assert.assertEquals("7d", expr.serializeToText(null));
-            Assert.assertEquals(7, ((LiteralExpression.ReadableDurationLiteral) expr).getAs().getDuration().toDays());
+            Assert.assertEquals(7, ((LiteralExpression.ReadableDurationLiteral) expr).getLiteralValue().getDuration().toDays());
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("69s");
             Assert.assertEquals("69s", expr.serializeToText(null));
-            Assert.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getAs().getDuration().toSeconds());
+            Assert.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getLiteralValue().getDuration().toSeconds());
         }
     }
 

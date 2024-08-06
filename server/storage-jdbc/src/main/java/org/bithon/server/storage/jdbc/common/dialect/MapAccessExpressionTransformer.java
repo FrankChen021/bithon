@@ -42,7 +42,7 @@ public class MapAccessExpressionTransformer {
 
         String mapName = ((IdentifierExpression) mapAccessExpression.getMap()).getIdentifier();
         String key = mapAccessExpression.getKey();
-        String value = ((LiteralExpression) expression.getRight()).getValue().toString();
+        String value = ((LiteralExpression) expression.getRight()).getLiteralValue().toString();
 
         if (!(expression instanceof ComparisonExpression.EQ)) {
             // Since we store JSON formatted string in H2, it's hard to implement other operators except EQ
