@@ -296,4 +296,13 @@ public class ExpressionTest {
         // %l if it's not properly treated will be considered as format string which is invalid
         Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("tags['exceptionCode'] = '60' AND and tags['statement'] like '%live%'"));
     }
+
+    @Test
+    public void test_NowExpression() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .functions(Functions.getInstance())
+                                               .optimizationEnabled(false)
+                                               .build("now() - 5s");
+        Assert.assertEquals("now() - 5s", expr.serializeToText());
+    }
 }

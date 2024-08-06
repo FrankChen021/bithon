@@ -43,4 +43,6 @@ public interface IFunction {
     default boolean isAggregator() {
         return false;
     }
+
+    boolean isDeterministic();
 }

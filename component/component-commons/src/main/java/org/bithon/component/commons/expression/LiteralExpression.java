@@ -203,6 +203,10 @@ public abstract class LiteralExpression implements IExpression {
         public static LiteralExpression of(String val) {
             return new LongLiteral(Long.parseLong(val));
         }
+
+        public static LiteralExpression of(long val) {
+            return new LongLiteral(val);
+        }
     }
 
     public static class DoubleLiteral extends LiteralExpression {
