@@ -109,7 +109,10 @@ public abstract class LiteralExpression<T> implements IExpression {
         this.value = value;
     }
 
-    public T getLiteralValue() {
+    /**
+     * NOTE: do not change the method name since it's used in the ExpressionDeserializer}
+     */
+    public T getValue() {
         return value;
     }
 

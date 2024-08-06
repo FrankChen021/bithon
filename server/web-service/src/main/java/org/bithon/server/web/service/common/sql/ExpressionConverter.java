@@ -88,10 +88,10 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
             IExpression left = binaryExpression.getLeft();
             IExpression right = binaryExpression.getRight();
             if (left instanceof LiteralExpression && right instanceof LiteralExpression) {
-                return ((LiteralExpression) left).getLiteralValue().equals(((LiteralExpression) right).getLiteralValue());
+                return ((LiteralExpression) left).getValue().equals(((LiteralExpression) right).getValue());
             }
         } else if (expression instanceof LiteralExpression) {
-            return ((LiteralExpression) expression).getLiteralValue().equals(true);
+            return ((LiteralExpression) expression).getValue().equals(true);
         }
         return false;
     }

@@ -52,7 +52,7 @@ public class Expression2Sql extends ExpressionSerializer {
 
     @Override
     public boolean visit(LiteralExpression expression) {
-        Object value = expression.getLiteralValue();
+        Object value = expression.getValue();
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
@@ -68,11 +68,11 @@ public class Expression2Sql extends ExpressionSerializer {
         } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
             sb.append('*');
         } else if (expression instanceof LiteralExpression.ReadableDurationLiteral) {
-            sb.append(((LiteralExpression.ReadableDurationLiteral) expression).getLiteralValue().getDuration().getSeconds());
+            sb.append(((LiteralExpression.ReadableDurationLiteral) expression).getValue().getDuration().getSeconds());
         } else if (expression instanceof LiteralExpression.ReadableNumberLiteral) {
-            sb.append(((LiteralExpression.ReadableNumberLiteral) expression).getLiteralValue().longValue());
+            sb.append(((LiteralExpression.ReadableNumberLiteral) expression).getValue().longValue());
         } else if (expression instanceof LiteralExpression.ReadablePercentageLiteral) {
-            sb.append(((LiteralExpression.ReadablePercentageLiteral) expression).getLiteralValue().getFraction());
+            sb.append(((LiteralExpression.ReadablePercentageLiteral) expression).getValue().getFraction());
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }

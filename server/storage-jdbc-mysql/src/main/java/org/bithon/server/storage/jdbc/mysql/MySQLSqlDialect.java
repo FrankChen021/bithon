@@ -123,7 +123,7 @@ public class MySQLSqlDialect implements ISqlDialect {
                     // MySQL does not provide startsWith function, turns it into LIKE expression as: LIKE 'prefix%'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.ofString(((LiteralExpression) patternExpression).getLiteralValue() + "%");
+                        patternExpression = LiteralExpression.ofString(((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.ofString("%")));
@@ -134,7 +134,7 @@ public class MySQLSqlDialect implements ISqlDialect {
                     // MySQL does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getLiteralValue());
+                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getValue());
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
@@ -150,7 +150,7 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
-        return "'" + DateTime.toISO8601((long) expression.getLiteralValue()) + "'";
+        return "'" + DateTime.toISO8601((long) expression.getValue()) + "'";
     }
 
     @Override
