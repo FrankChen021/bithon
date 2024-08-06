@@ -21,10 +21,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.AbstractFunction;
-import org.bithon.component.commons.expression.function.Parameter;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,13 +33,15 @@ import java.util.Locale;
 public class StringFunction {
     public static class Concat extends AbstractFunction {
         public Concat() {
-            super("concat", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("concat",
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
+                  IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String v1 = parameters.get(0).toString();
-            String v2 = parameters.get(0).toString();
+        public Object evaluate(List<Object> args) {
+            String v1 = args.get(0).toString();
+            String v2 = args.get(0).toString();
             return v1 + v2;
         }
 
@@ -54,7 +54,9 @@ public class StringFunction {
     public static class HasToken extends AbstractFunction {
 
         public HasToken() {
-            super("hasToken", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.BOOLEAN);
+            super("hasToken",
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
+                  IDataType.BOOLEAN);
         }
 
         @Override
@@ -68,9 +70,9 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String haystack = (String) parameters.get(0);
-            String needle = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String haystack = (String) args.get(0);
+            String needle = (String) args.get(1);
             return haystack != null && needle != null && haystack.contains(needle);
         }
 
@@ -82,12 +84,12 @@ public class StringFunction {
 
     public static class Length extends AbstractFunction {
         public Length() {
-            super("length", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.LONG);
+            super("length", IDataType.STRING, IDataType.LONG);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str == null ? 0 : str.length();
         }
 
@@ -99,12 +101,12 @@ public class StringFunction {
 
     public static class Lower extends AbstractFunction {
         public Lower() {
-            super("lower", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("lower", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str != null ? str.toLowerCase(Locale.ENGLISH) : null;
         }
 
@@ -116,12 +118,12 @@ public class StringFunction {
 
     public static class Upper extends AbstractFunction {
         public Upper() {
-            super("upper", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("upper", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str != null ? str.toUpperCase(Locale.ENGLISH) : null;
         }
 
@@ -134,13 +136,13 @@ public class StringFunction {
 
     public static class StartsWith extends AbstractFunction {
         public StartsWith() {
-            super("startsWith", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.BOOLEAN);
+            super("startsWith", Arrays.asList(IDataType.STRING, IDataType.STRING), IDataType.BOOLEAN);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            String prefix = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            String prefix = (String) args.get(1);
             return str != null && prefix != null && str.startsWith(prefix);
         }
 
@@ -153,14 +155,14 @@ public class StringFunction {
     public static class EndsWith extends AbstractFunction {
         public EndsWith() {
             super("endsWith",
-                  Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
                   IDataType.BOOLEAN);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            String suffix = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            String suffix = (String) args.get(1);
             return str != null && suffix != null && str.endsWith(suffix);
         }
 
@@ -173,16 +175,16 @@ public class StringFunction {
     public static class Substring extends AbstractFunction {
 
         public Substring() {
-            super("substring", Arrays.asList(new Parameter(IDataType.STRING),
-                                             new Parameter(IDataType.LONG),
-                                             new Parameter(IDataType.LONG)), IDataType.STRING);
+            super("substring",
+                  Arrays.asList(IDataType.STRING, IDataType.LONG, IDataType.LONG),
+                  IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            Number offset = (Number) parameters.get(1);
-            Number length = (Number) parameters.get(2);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            Number offset = (Number) args.get(1);
+            Number length = (Number) args.get(2);
             return str == null ? null : str.substring(offset.intValue(), offset.intValue() + length.intValue());
         }
 
@@ -194,12 +196,12 @@ public class StringFunction {
 
     public static class Trim extends AbstractFunction {
         public Trim() {
-            super("trim", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trim", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str == null ? null : str.trim();
         }
 
@@ -211,12 +213,12 @@ public class StringFunction {
 
     public static class TrimLeft extends AbstractFunction {
         public TrimLeft() {
-            super("trimLeft", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trimLeft", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             if (str == null) {
                 return null;
             }
@@ -238,12 +240,12 @@ public class StringFunction {
 
     public static class TrimRight extends AbstractFunction {
         public TrimRight() {
-            super("trimRight", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trimRight", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             if (str == null) {
                 return null;
             }

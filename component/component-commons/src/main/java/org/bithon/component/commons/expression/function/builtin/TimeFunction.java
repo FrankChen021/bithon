@@ -18,7 +18,6 @@ package org.bithon.component.commons.expression.function.builtin;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.AbstractFunction;
-import org.bithon.component.commons.expression.function.Parameter;
 
 import java.util.List;
 
@@ -29,12 +28,12 @@ import java.util.List;
 public class TimeFunction {
     public static class ToStartOfMinute extends AbstractFunction {
         public ToStartOfMinute() {
-            super("toStartOfMinute", new Parameter(IDataType.LONG), IDataType.LONG);
+            super("toStartOfMinute", IDataType.LONG, IDataType.LONG);
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            Object o = parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            Object o = args.get(0);
             return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
         }
 
@@ -53,7 +52,7 @@ public class TimeFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             return System.currentTimeMillis() / 1000;
         }
 
