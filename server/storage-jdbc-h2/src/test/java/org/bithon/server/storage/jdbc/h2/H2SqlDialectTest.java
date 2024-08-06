@@ -34,7 +34,7 @@ public class H2SqlDialectTest {
     public void testTransformStartsWith() {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("startsWith"),
                                                                                new IdentifierExpression("a"),
-                                                                               LiteralExpression.create("1231")));
+                                                                               LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '1231%'", expr.serializeToText(null));
     }
 
@@ -42,7 +42,7 @@ public class H2SqlDialectTest {
     public void testTransformEndsWith() {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("endsWith"),
                                                                                new IdentifierExpression("a"),
-                                                                               LiteralExpression.create("1231")));
+                                                                               LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '%1231'", expr.serializeToText(null));
     }
 
@@ -50,7 +50,7 @@ public class H2SqlDialectTest {
     public void testHasToken() {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("hasToken"),
                                                                                new IdentifierExpression("a"),
-                                                                               LiteralExpression.create("1231")));
+                                                                               LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '%1231%'", expr.serializeToText(null));
     }
 }

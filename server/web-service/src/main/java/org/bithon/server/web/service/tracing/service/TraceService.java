@@ -330,7 +330,7 @@ public class TraceService {
                 }
                 if (nonTagsFilters.isEmpty()) {
                     // Add a placeholder expression so simple further processing
-                    nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1)));
+                    nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.ofLong(1), LiteralExpression.ofLong(1)));
                 }
                 expression.setOperands(nonTagsFilters);
 

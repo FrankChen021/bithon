@@ -51,6 +51,6 @@ public class MapAccessExpressionTransformer {
         }
 
         return new ConditionalExpression.Like(new IdentifierExpression(mapName),
-                                              LiteralExpression.create("%\"" + key + "\":\"" + value + "\"%"));
+                                              LiteralExpression.ofString("%\"" + key + "\":\"" + value + "\"%"));
     }
 }

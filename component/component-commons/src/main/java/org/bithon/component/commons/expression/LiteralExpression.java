@@ -32,13 +32,57 @@ import java.util.Locale;
  */
 public abstract class LiteralExpression<T> implements IExpression {
 
-    public static LiteralExpression<?> create(Object value) {
+    public static StringLiteral ofString(String value) {
+        return new StringLiteral(value);
+    }
+
+    public static LongLiteral ofLong(int value) {
+        return new LongLiteral(value);
+    }
+
+    public static LongLiteral ofLong(long value) {
+        return new LongLiteral(value);
+    }
+
+    public static LongLiteral ofLong(String val) {
+        return new LongLiteral(Long.parseLong(val));
+    }
+
+    public static BooleanLiteral ofBoolean(boolean value) {
+        return value ? BooleanLiteral.TRUE : BooleanLiteral.FALSE;
+    }
+
+    public static DoubleLiteral ofDouble(double value) {
+        return new DoubleLiteral(value);
+    }
+
+    public static DoubleLiteral ofDouble(float value) {
+        return new DoubleLiteral(value);
+    }
+
+    public static BigDecimalLiteral ofDecimal(BigDecimal value) {
+        return new BigDecimalLiteral(value);
+    }
+
+    public static ReadableDurationLiteral of(HumanReadableDuration value) {
+        return new ReadableDurationLiteral(value);
+    }
+
+    public static ReadableNumberLiteral of(HumanReadableNumber value) {
+        return new ReadableNumberLiteral(value);
+    }
+
+    public static ReadablePercentageLiteral of(HumanReadablePercentage value) {
+        return new ReadablePercentageLiteral(value);
+    }
+
+    public static LiteralExpression<?> of(Object value) {
         if (value instanceof String) {
             return new StringLiteral((String) value);
         } else if (value instanceof Long || value instanceof Integer) {
             return new LongLiteral(((Number) value).longValue());
         } else if (value instanceof Boolean) {
-            return BooleanLiteral.of((boolean) value);
+            return BooleanLiteral.ofBoolean((boolean) value);
         } else if (value instanceof Double || value instanceof Float) {
             return new DoubleLiteral(((Number) value).doubleValue());
         } else if (value instanceof HumanReadableDuration) {
@@ -197,14 +241,6 @@ public abstract class LiteralExpression<T> implements IExpression {
         public boolean asBoolean() {
             return value != 0;
         }
-
-        public static LongLiteral of(String val) {
-            return new LongLiteral(Long.parseLong(val));
-        }
-
-        public static LongLiteral of(long val) {
-            return new LongLiteral(val);
-        }
     }
 
     public static class DoubleLiteral extends LiteralExpression<Double> {
@@ -288,12 +324,8 @@ public abstract class LiteralExpression<T> implements IExpression {
         public static final BooleanLiteral TRUE = new BooleanLiteral(true);
         public static final BooleanLiteral FALSE = new BooleanLiteral(false);
 
-        public BooleanLiteral(boolean value) {
+        private BooleanLiteral(boolean value) {
             super(value);
-        }
-
-        public static BooleanLiteral of(boolean val) {
-            return val ? TRUE : FALSE;
         }
 
         @Override

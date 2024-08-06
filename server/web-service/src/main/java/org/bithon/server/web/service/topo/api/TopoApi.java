@@ -86,9 +86,9 @@ public class TopoApi {
                                                       })
                                                   .collect(Collectors.toList()))
                                  .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
-                                                                                               LiteralExpression.create(request.getApplication())),
+                                                                                               LiteralExpression.ofString(request.getApplication())),
                                                                    new ComparisonExpression.EQ(new IdentifierExpression("srcEndpointType"),
-                                                                                               LiteralExpression.create(EndPointType.APPLICATION.name()))))
+                                                                                               LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                  .interval(Interval.of(start, end))
                                  .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                  .build();
@@ -138,9 +138,9 @@ public class TopoApi {
                                                           })
                                                       .collect(Collectors.toList()))
                                      .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),
-                                                                                                   LiteralExpression.create(request.getApplication())),
+                                                                                                   LiteralExpression.ofString(request.getApplication())),
                                                                        new ComparisonExpression.EQ(new IdentifierExpression("dstEndpointType"),
-                                                                                                   LiteralExpression.create(EndPointType.APPLICATION.name()))))
+                                                                                                   LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                      .interval(Interval.of(start, end))
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
             List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery);

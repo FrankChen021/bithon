@@ -147,19 +147,19 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
 
             JsonNode valueNode = jsonNode.get("value");
             if (valueNode.isTextual()) {
-                return LiteralExpression.create(valueNode.asText());
+                return LiteralExpression.ofString(valueNode.asText());
             }
 
             if (valueNode.isLong()) {
-                return LiteralExpression.create(valueNode.asLong());
+                return LiteralExpression.ofLong(valueNode.asLong());
             }
 
             if (valueNode.isInt()) {
-                return LiteralExpression.create(valueNode.asInt());
+                return LiteralExpression.ofLong(valueNode.asInt());
             }
 
             if (valueNode.isBoolean()) {
-                return LiteralExpression.create(valueNode.asBoolean());
+                return LiteralExpression.ofBoolean(valueNode.asBoolean());
             }
             throw new UnsupportedOperationException("value is not type of any [String/Long/Int/Boolean]");
         }
