@@ -44,10 +44,9 @@ public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
         return expression.accept(new ConstantFunctionOptimizer())
-                         .accept(new ConstantFoldingOptimizer())
-                         .accept(new LogicalExpressionOptimizer());
-
-
+                         .accept(new FlattenLogicalExpressionOptimizer())
+                         .accept(new LogicalExpressionOptimizer())
+                         .accept(new ConstantFoldingOptimizer());
     }
 
     public static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
@@ -56,34 +55,12 @@ public class ExpressionOptimizer {
             return expression;
         }
 
+        /**
+         * Flatten Logical Expression
+         */
         @Override
         public IExpression visit(LogicalExpression expression) {
-            List<IExpression> operands = expression.getOperands();
-
-            for (int i = 0; i < operands.size(); i++) {
-                // Apply optimization on the operand
-                IExpression expr = operands.get(i).accept(this);
-
-                if (expression instanceof LogicalExpression.AND && expr instanceof LogicalExpression.AND
-                    || (expression instanceof LogicalExpression.OR && expr instanceof LogicalExpression.OR)
-                    || (expression instanceof LogicalExpression.NOT && expr instanceof LogicalExpression.AND)
-                ) {
-                    operands.remove(i);
-
-                    // Flatten nested AND/OR expression
-                    List<IExpression> nestedExpressions = ((LogicalExpression) expr).getOperands();
-                    for (IExpression nest : nestedExpressions) {
-                        operands.add(i++, nest);
-                    }
-
-                    // The nested has N elements, since we remove one element first,
-                    // the number total added elements is N - 1
-                    i--;
-                } else {
-                    operands.set(i, expr);
-                }
-            }
-
+            expression.getOperands().replaceAll((expr) -> expr.accept(this));
             return expression;
         }
 
@@ -145,6 +122,37 @@ public class ExpressionOptimizer {
                     return expression.getFalseExpression();
                 }
             }
+            return expression;
+        }
+    }
+
+    static class FlattenLogicalExpressionOptimizer extends AbstractOptimizer {
+        @Override
+        public IExpression visit(LogicalExpression expression) {
+            List<IExpression> operands = expression.getOperands();
+
+            for (int i = 0; i < operands.size(); i++) {
+                // Apply optimization on the operand
+                IExpression subExpression = operands.get(i).accept(this);
+
+                if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
+                    || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)) {
+                    operands.remove(i);
+
+                    // Flatten nested AND/OR expression
+                    List<IExpression> nestedExpressions = ((LogicalExpression) subExpression).getOperands();
+                    for (IExpression nest : nestedExpressions) {
+                        operands.add(i++, nest);
+                    }
+
+                    // The nested has N elements, since we remove one element first,
+                    // the number total added elements is N - 1
+                    i--;
+                } else {
+                    operands.set(i, subExpression);
+                }
+            }
+
             return expression;
         }
     }
@@ -358,7 +366,7 @@ public class ExpressionOptimizer {
 
             int subExprSize = expression.getOperands().size();
             if (subExprSize == 0) {
-                return LiteralExpression.create(true);
+                return LiteralExpression.BooleanLiteral.of(false);
             }
             if (subExprSize == 1) {
                 return expression.getOperands().get(0);
