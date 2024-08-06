@@ -22,7 +22,6 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.IFunctionProvider;
-import org.bithon.component.commons.expression.function.Parameter;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -58,8 +57,8 @@ public class ExpressionOptimizerTest {
                 }
 
                 @Override
-                public List<Parameter> getParameterDeclarations() {
-                    return Arrays.asList(new Parameter(IDataType.LONG), new Parameter(IDataType.LONG));
+                public List<IDataType> getParameterTypeList() {
+                    return Arrays.asList(IDataType.LONG, IDataType.LONG);
                 }
 
                 @Override

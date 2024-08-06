@@ -29,7 +29,7 @@ public interface IFunction {
 
     String getName();
 
-    List<Parameter> getParameterDeclarations();
+    List<IDataType> getParameterTypeList();
 
     void validateArgs(List<IExpression> args);
 

@@ -18,7 +18,6 @@ package org.bithon.component.commons.expression.function.builtin;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.AbstractFunction;
-import org.bithon.component.commons.expression.function.Parameter;
 
 import java.util.List;
 
@@ -29,7 +28,7 @@ import java.util.List;
 public class TimeFunction {
     public static class ToStartOfMinute extends AbstractFunction {
         public ToStartOfMinute() {
-            super("toStartOfMinute", new Parameter(IDataType.LONG), IDataType.LONG);
+            super("toStartOfMinute", IDataType.LONG, IDataType.LONG);
         }
 
         @Override

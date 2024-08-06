@@ -18,7 +18,6 @@ package org.bithon.component.commons.expression.function.builtin;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.function.AbstractFunction;
-import org.bithon.component.commons.expression.function.Parameter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,7 +31,9 @@ import java.util.List;
 public class NumberFunction {
     public static class Round extends AbstractFunction {
         public Round() {
-            super("round", Arrays.asList(new Parameter(IDataType.DOUBLE), new Parameter(IDataType.LONG)), IDataType.DOUBLE);
+            super("round",
+                  Arrays.asList(IDataType.DOUBLE, IDataType.LONG),
+                  IDataType.DOUBLE);
         }
 
         @Override

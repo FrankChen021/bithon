@@ -21,10 +21,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.AbstractFunction;
-import org.bithon.component.commons.expression.function.Parameter;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,7 +33,9 @@ import java.util.Locale;
 public class StringFunction {
     public static class Concat extends AbstractFunction {
         public Concat() {
-            super("concat", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("concat",
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
+                  IDataType.STRING);
         }
 
         @Override
@@ -54,7 +54,9 @@ public class StringFunction {
     public static class HasToken extends AbstractFunction {
 
         public HasToken() {
-            super("hasToken", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.BOOLEAN);
+            super("hasToken",
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
+                  IDataType.BOOLEAN);
         }
 
         @Override
@@ -82,7 +84,7 @@ public class StringFunction {
 
     public static class Length extends AbstractFunction {
         public Length() {
-            super("length", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.LONG);
+            super("length", IDataType.STRING, IDataType.LONG);
         }
 
         @Override
@@ -99,7 +101,7 @@ public class StringFunction {
 
     public static class Lower extends AbstractFunction {
         public Lower() {
-            super("lower", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("lower", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
@@ -116,7 +118,7 @@ public class StringFunction {
 
     public static class Upper extends AbstractFunction {
         public Upper() {
-            super("upper", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("upper", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
@@ -134,7 +136,7 @@ public class StringFunction {
 
     public static class StartsWith extends AbstractFunction {
         public StartsWith() {
-            super("startsWith", Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)), IDataType.BOOLEAN);
+            super("startsWith", Arrays.asList(IDataType.STRING, IDataType.STRING), IDataType.BOOLEAN);
         }
 
         @Override
@@ -153,7 +155,7 @@ public class StringFunction {
     public static class EndsWith extends AbstractFunction {
         public EndsWith() {
             super("endsWith",
-                  Arrays.asList(new Parameter(IDataType.STRING), new Parameter(IDataType.STRING)),
+                  Arrays.asList(IDataType.STRING, IDataType.STRING),
                   IDataType.BOOLEAN);
         }
 
@@ -173,9 +175,9 @@ public class StringFunction {
     public static class Substring extends AbstractFunction {
 
         public Substring() {
-            super("substring", Arrays.asList(new Parameter(IDataType.STRING),
-                                             new Parameter(IDataType.LONG),
-                                             new Parameter(IDataType.LONG)), IDataType.STRING);
+            super("substring",
+                  Arrays.asList(IDataType.STRING, IDataType.LONG, IDataType.LONG),
+                  IDataType.STRING);
         }
 
         @Override
@@ -194,7 +196,7 @@ public class StringFunction {
 
     public static class Trim extends AbstractFunction {
         public Trim() {
-            super("trim", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trim", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
@@ -211,7 +213,7 @@ public class StringFunction {
 
     public static class TrimLeft extends AbstractFunction {
         public TrimLeft() {
-            super("trimLeft", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trimLeft", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
@@ -238,7 +240,7 @@ public class StringFunction {
 
     public static class TrimRight extends AbstractFunction {
         public TrimRight() {
-            super("trimRight", Collections.singletonList(new Parameter(IDataType.STRING)), IDataType.STRING);
+            super("trimRight", IDataType.STRING, IDataType.STRING);
         }
 
         @Override
