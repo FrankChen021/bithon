@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +29,7 @@ import org.junit.Test;
  * @author frank.chen021@outlook.com
  * @date 2023/8/19 17:23
  */
-public class ExpressionTest {
+public class ExpressionASTBuilderTest {
 
     @Test
     public void testIn() {
@@ -288,5 +289,20 @@ public class ExpressionTest {
         Assert.assertEquals("a >= 5P", ExpressionASTBuilder.builder().build("a >= 5P").serializeToText(null));
         Assert.assertEquals("a >= 5Pi", ExpressionASTBuilder.builder().build("a >= 5Pi").serializeToText(null));
         Assert.assertEquals("a >= 5PiB", ExpressionASTBuilder.builder().build("a >= 5PiB").serializeToText(null));
+    }
+
+    @Test
+    public void test_LikeExpressionSyntaxError() {
+        // %l if it's not properly treated will be considered as format string which is invalid
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("tags['exceptionCode'] = '60' AND and tags['statement'] like '%live%'"));
+    }
+
+    @Test
+    public void test_NowExpression() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .functions(Functions.getInstance())
+                                               .optimizationEnabled(false)
+                                               .build("now() - 5s");
+        Assert.assertEquals("now() - 5s", expr.serializeToText());
     }
 }

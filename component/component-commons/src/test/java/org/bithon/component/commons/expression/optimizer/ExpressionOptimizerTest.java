@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression.optimizer;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -115,7 +116,7 @@ public class ExpressionOptimizerTest {
 
     @Test
     public void testLogicalExpression_FlattenNOT() {
-        LogicalExpression expr = new LogicalExpression.NOT(
+        IExpression expr = new LogicalExpression.NOT(
             new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
 
             new LogicalExpression.AND(
@@ -131,9 +132,17 @@ public class ExpressionOptimizerTest {
             )
         );
 
-        expr.accept(new ExpressionOptimizer.AbstractOptimizer());
-
-        Assert.assertEquals(4, expr.getOperands().size());
+        expr = ExpressionOptimizer.optimize(expr);
         Assert.assertEquals("NOT (a = 1 AND b = 2 AND c = 3 AND d = 4)", expr.serializeToText(null));
+    }
+
+    @Test
+    public void testLogicalExpression_FlattenNOT_To_One() {
+        IExpression expr = new LogicalExpression.NOT(
+            new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1))
+        );
+
+        expr = ExpressionOptimizer.optimize(expr);
+        Assert.assertEquals("false", expr.serializeToText(null));
     }
 }

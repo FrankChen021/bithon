@@ -63,6 +63,7 @@ public class Functions implements IFunctionProvider {
         register(new StringFunction.Concat());
 
         register(new TimeFunction.ToStartOfMinute());
+        register(new TimeFunction.Now());
 
         register(new AggregateFunction.Min());
         register(new AggregateFunction.Max());
