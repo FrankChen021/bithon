@@ -39,9 +39,9 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String v1 = parameters.get(0).toString();
-            String v2 = parameters.get(0).toString();
+        public Object evaluate(List<Object> args) {
+            String v1 = args.get(0).toString();
+            String v2 = args.get(0).toString();
             return v1 + v2;
         }
 
@@ -70,9 +70,9 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String haystack = (String) parameters.get(0);
-            String needle = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String haystack = (String) args.get(0);
+            String needle = (String) args.get(1);
             return haystack != null && needle != null && haystack.contains(needle);
         }
 
@@ -88,8 +88,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str == null ? 0 : str.length();
         }
 
@@ -105,8 +105,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str != null ? str.toLowerCase(Locale.ENGLISH) : null;
         }
 
@@ -122,8 +122,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str != null ? str.toUpperCase(Locale.ENGLISH) : null;
         }
 
@@ -140,9 +140,9 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            String prefix = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            String prefix = (String) args.get(1);
             return str != null && prefix != null && str.startsWith(prefix);
         }
 
@@ -160,9 +160,9 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            String suffix = (String) parameters.get(1);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            String suffix = (String) args.get(1);
             return str != null && suffix != null && str.endsWith(suffix);
         }
 
@@ -181,10 +181,10 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
-            Number offset = (Number) parameters.get(1);
-            Number length = (Number) parameters.get(2);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
+            Number offset = (Number) args.get(1);
+            Number length = (Number) args.get(2);
             return str == null ? null : str.substring(offset.intValue(), offset.intValue() + length.intValue());
         }
 
@@ -200,8 +200,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             return str == null ? null : str.trim();
         }
 
@@ -217,8 +217,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             if (str == null) {
                 return null;
             }
@@ -244,8 +244,8 @@ public class StringFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            String str = (String) parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            String str = (String) args.get(0);
             if (str == null) {
                 return null;
             }

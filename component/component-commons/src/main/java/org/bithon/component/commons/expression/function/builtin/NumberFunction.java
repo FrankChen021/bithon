@@ -37,9 +37,9 @@ public class NumberFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            double i0 = ((Number) parameters.get(0)).doubleValue();
-            int scale = ((Number) parameters.get(1)).intValue();
+        public Object evaluate(List<Object> args) {
+            double i0 = ((Number) args.get(0)).doubleValue();
+            int scale = ((Number) args.get(1)).intValue();
             return BigDecimal.valueOf(i0).setScale(scale, RoundingMode.HALF_UP);
         }
 

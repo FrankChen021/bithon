@@ -66,9 +66,9 @@ public class ExpressionOptimizerTest {
                 }
 
                 @Override
-                public Object evaluate(List<Object> parameters) {
-                    return ((Number) parameters.get(0)).longValue() +
-                           ((Number) parameters.get(1)).longValue();
+                public Object evaluate(List<Object> args) {
+                    return ((Number) args.get(0)).longValue() +
+                           ((Number) args.get(1)).longValue();
                 }
             };
         }

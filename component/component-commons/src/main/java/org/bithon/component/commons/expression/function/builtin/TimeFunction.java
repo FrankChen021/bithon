@@ -32,8 +32,8 @@ public class TimeFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
-            Object o = parameters.get(0);
+        public Object evaluate(List<Object> args) {
+            Object o = args.get(0);
             return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
         }
 
@@ -52,7 +52,7 @@ public class TimeFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             return System.currentTimeMillis() / 1000;
         }
 

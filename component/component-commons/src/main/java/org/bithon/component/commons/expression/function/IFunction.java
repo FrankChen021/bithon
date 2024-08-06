@@ -33,7 +33,7 @@ public interface IFunction {
 
     void validateArgs(List<IExpression> args);
 
-    Object evaluate(List<Object> parameters);
+    Object evaluate(List<Object> args);
 
     IDataType getReturnType();
 
