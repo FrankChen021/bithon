@@ -259,6 +259,15 @@ public abstract class LiteralExpression implements IExpression {
         }
 
         @Override
+        public boolean asBoolean() {
+            return (boolean) value;
+        }
+
+        public BooleanLiteral negate() {
+            return ((boolean) value) ? FALSE : TRUE;
+        }
+
+        @Override
         public LiteralExpression castTo(IDataType targetType) {
             switch (targetType) {
                 case STRING:

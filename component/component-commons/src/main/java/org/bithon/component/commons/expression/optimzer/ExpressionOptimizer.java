@@ -44,7 +44,6 @@ public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
         return expression.accept(new ConstantFunctionOptimizer())
-                         .accept(new FlattenLogicalExpressionOptimizer())
                          .accept(new LogicalExpressionOptimizer())
                          .accept(new ConstantFoldingOptimizer());
     }
@@ -60,7 +59,32 @@ public class ExpressionOptimizer {
          */
         @Override
         public IExpression visit(LogicalExpression expression) {
-            expression.getOperands().replaceAll((expr) -> expr.accept(this));
+            List<IExpression> operands = expression.getOperands();
+
+            for (int i = 0; i < operands.size(); i++) {
+                // Apply optimization on the operand
+                IExpression subExpression = operands.get(i).accept(this);
+
+                if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
+                    || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)
+                    || (expression instanceof LogicalExpression.NOT && subExpression instanceof LogicalExpression.AND)
+                ) {
+                    operands.remove(i);
+
+                    // Flatten nested AND/OR expression
+                    List<IExpression> nestedExpressions = ((LogicalExpression) subExpression).getOperands();
+                    for (IExpression nest : nestedExpressions) {
+                        operands.add(i++, nest);
+                    }
+
+                    // The nested has N elements, since we remove one element first,
+                    // the number total added elements is N - 1
+                    i--;
+                } else {
+                    operands.set(i, subExpression);
+                }
+            }
+
             return expression;
         }
 
@@ -122,37 +146,6 @@ public class ExpressionOptimizer {
                     return expression.getFalseExpression();
                 }
             }
-            return expression;
-        }
-    }
-
-    static class FlattenLogicalExpressionOptimizer extends AbstractOptimizer {
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            List<IExpression> operands = expression.getOperands();
-
-            for (int i = 0; i < operands.size(); i++) {
-                // Apply optimization on the operand
-                IExpression subExpression = operands.get(i).accept(this);
-
-                if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
-                    || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)) {
-                    operands.remove(i);
-
-                    // Flatten nested AND/OR expression
-                    List<IExpression> nestedExpressions = ((LogicalExpression) subExpression).getOperands();
-                    for (IExpression nest : nestedExpressions) {
-                        operands.add(i++, nest);
-                    }
-
-                    // The nested has N elements, since we remove one element first,
-                    // the number total added elements is N - 1
-                    i--;
-                } else {
-                    operands.set(i, subExpression);
-                }
-            }
-
             return expression;
         }
     }
@@ -254,7 +247,7 @@ public class ExpressionOptimizer {
             // or simplify the expression if it has only one operand
             // or reverse the logical condition
             if (expression instanceof LogicalExpression.AND) {
-                return simplifyAndExpression((LogicalExpression.AND) expression);
+                return simplifyAndExpression(expression);
             }
             if (expression instanceof LogicalExpression.OR) {
                 return simplifyOrExpression((LogicalExpression.OR) expression);
@@ -268,7 +261,12 @@ public class ExpressionOptimizer {
         private IExpression handleNotExpression(LogicalExpression expression) {
             // When the sub expression is optimized into one expression,
             // we can only apply the optimization to it again for simplicity.
-            if (expression.getOperands().size() != 1) {
+            if (expression.getOperands().size() > 1) {
+                IExpression simplified = simplifyAndExpression(expression);
+                if (simplified instanceof LiteralExpression.BooleanLiteral) {
+                    return ((LiteralExpression.BooleanLiteral) simplified).negate();
+                }
+
                 return expression;
             }
 
@@ -374,8 +372,8 @@ public class ExpressionOptimizer {
             return expression;
         }
 
-        private IExpression simplifyAndExpression(LogicalExpression.AND andExpression) {
-            Iterator<IExpression> subExpressionIterator = andExpression.getOperands().iterator();
+        private IExpression simplifyAndExpression(LogicalExpression logicalExpression) {
+            Iterator<IExpression> subExpressionIterator = logicalExpression.getOperands().iterator();
 
             while (subExpressionIterator.hasNext()) {
                 IExpression subExpression = subExpressionIterator.next();
@@ -390,7 +388,7 @@ public class ExpressionOptimizer {
                         subExpressionIterator.remove();
                     } else {
                         // The sub expression is false, the whole expression is FALSE
-                        return LiteralExpression.create(false);
+                        return LiteralExpression.BooleanLiteral.of(false);
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
@@ -398,19 +396,20 @@ public class ExpressionOptimizer {
                         subExpressionIterator.remove();
                     } else {
                         // The sub expression is false, the whole expression is FALSE
-                        return subExpression;
+                        return LiteralExpression.BooleanLiteral.of(false);
                     }
                 }
             }
 
-            int subExprSize = andExpression.getOperands().size();
+            int subExprSize = logicalExpression.getOperands().size();
             if (subExprSize == 0) {
-                return LiteralExpression.create(true);
+                return LiteralExpression.BooleanLiteral.of(true);
             }
             if (subExprSize == 1) {
-                return andExpression.getOperands().get(0);
+                return logicalExpression.getOperands().get(0);
             }
-            return andExpression;
+
+            return logicalExpression;
         }
     }
 

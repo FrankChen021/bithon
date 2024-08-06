@@ -141,6 +141,13 @@ public class ExpressionOptimizerTest {
     }
 
     @Test
+    public void testConstantFolding_ANDExpression_Bool_Bool_3() {
+        IExpression expr = expressionBuilder.build("false AND false");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("false", expr.serializeToText());
+    }
+
+    @Test
     public void testConstantFolding_ORExpression() {
         IExpression expr = expressionBuilder.build("1 OR 0");
         Assert.assertTrue(expr instanceof LiteralExpression);
