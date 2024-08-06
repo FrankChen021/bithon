@@ -29,7 +29,7 @@ import org.junit.Test;
  * @author frank.chen021@outlook.com
  * @date 2023/8/19 17:23
  */
-public class ExpressionTest {
+public class ExpressionASTBuilderTest {
 
     @Test
     public void testIn() {
