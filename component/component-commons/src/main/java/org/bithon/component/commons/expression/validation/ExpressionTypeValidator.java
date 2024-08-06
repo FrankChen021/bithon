@@ -80,7 +80,7 @@ class ExpressionTypeValidator implements IExpressionVisitor {
             }
 
             // Only do cast if the left is not literal
-            LiteralExpression right = (LiteralExpression) expression.getRight();
+            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRight();
             try {
                 expression.setRight(right.castTo(leftType));
             } catch (ExpressionValidationException e) {

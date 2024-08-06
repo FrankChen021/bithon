@@ -80,11 +80,11 @@ public class QueryConverter {
                     // Count aggregation has special input like count(), count(*), count(1),
                     // we need to treat them differently
                     if (StringUtils.isEmpty(field.getField())) {
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.create(1L))), field.getName()));
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.ofLong(1L))), field.getName()));
                     } else if ("*".equals(field.getField())) {
                         selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
                     } else if (field.getField().matches("\\d+")) {
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.LongLiteral.of(field.getField()))), field.getName()));
+                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.ofLong(field.getField()))), field.getName()));
                     } else {
                         // Treat the input as a column name
                         Preconditions.checkNotNull(schema.getColumnByName(field.getField()), "Field [%s] does not exist in the schema.", field.getField());

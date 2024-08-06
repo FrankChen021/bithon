@@ -31,7 +31,7 @@ public class UUIDv7GeneratorTest {
             UUID uuid = v7.generate();
             String compact = uuid.toCompactFormat();
             String full = uuid.toUUIDFormat();
-System.out.println(compact);
+
             Assert.assertEquals(32, compact.length());
             Assert.assertEquals(36, full.length());
             Assert.assertEquals(compact, full.replace("-", ""));

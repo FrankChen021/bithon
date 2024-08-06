@@ -316,16 +316,16 @@ public class MetricExpressionASTBuilder {
         public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
             Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
             return switch (symbol.getType()) {
-                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.create(parseDecimal(symbol.getText()));
+                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
                 case MetricExpressionParser.INTEGER_LITERAL ->
-                    LiteralExpression.create(Integer.parseInt(symbol.getText()));
+                    LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
                 case MetricExpressionParser.PERCENTAGE_LITERAL ->
-                    LiteralExpression.create(new HumanReadablePercentage(symbol.getText()));
+                    LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
                 case MetricExpressionParser.STRING_LITERAL ->
-                    LiteralExpression.create(TokenUtils.getUnQuotedString(symbol));
+                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(symbol));
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
                 case MetricExpressionParser.SIZE_LITERAL ->
-                    LiteralExpression.create(HumanReadableNumber.of(symbol.getText()));
+                    LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));
                 default -> throw new RuntimeException("Unsupported terminal type");
             };
         }

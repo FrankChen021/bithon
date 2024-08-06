@@ -56,7 +56,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -75,7 +75,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -94,7 +94,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -115,7 +115,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -132,7 +132,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -151,7 +151,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -170,7 +170,7 @@ public abstract class AggregateFunction extends AbstractFunction {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }

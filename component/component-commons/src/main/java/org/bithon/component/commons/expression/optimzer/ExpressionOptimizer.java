@@ -184,7 +184,7 @@ public class ExpressionOptimizer {
 
             if (literalCount == expression.getOperands().size()) {
                 // All operands are literal, do constant folding
-                return LiteralExpression.create(expression.evaluate(null));
+                return LiteralExpression.of(expression.evaluate(null));
             } else {
                 return expression;
             }
@@ -210,7 +210,7 @@ public class ExpressionOptimizer {
                 literalCount += newParameter instanceof LiteralExpression ? 1 : 0;
             }
             if (literalCount == expression.getArgs().size()) {
-                return LiteralExpression.create(expression.evaluate(null));
+                return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
         }
@@ -219,9 +219,9 @@ public class ExpressionOptimizer {
         public IExpression visit(ArrayAccessExpression expression) {
             IExpression arrayExpression = expression.getArray().accept(this);
             if (arrayExpression instanceof LiteralExpression) {
-                Object[] array = ((LiteralExpression) arrayExpression).asArray();
+                Object[] array = ((LiteralExpression<?>) arrayExpression).asArray();
                 if (array.length > expression.getIndex()) {
-                    return LiteralExpression.create(array[expression.getIndex()]);
+                    return LiteralExpression.of(array[expression.getIndex()]);
                 } else {
                     throw new RuntimeException("Out of index");
                 }
@@ -235,7 +235,7 @@ public class ExpressionOptimizer {
             super.visit(expression);
 
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
-                return LiteralExpression.create(expression.evaluate(null));
+                return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
         }
@@ -245,7 +245,7 @@ public class ExpressionOptimizer {
             expression.setLeft(expression.getLeft().accept(this));
             expression.setRight(expression.getRight().accept(this));
             if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
-                return LiteralExpression.create(expression.evaluate(null));
+                return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
         }
@@ -295,16 +295,16 @@ public class ExpressionOptimizer {
                 if (((LiteralExpression) subExpression).isNumber()) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
-                        return LiteralExpression.create(false);
+                        return LiteralExpression.ofBoolean(false);
                     } else {
-                        return LiteralExpression.create(true);
+                        return LiteralExpression.ofBoolean(true);
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
-                        return LiteralExpression.create(false);
+                        return LiteralExpression.ofBoolean(false);
                     } else {
-                        return LiteralExpression.create(true);
+                        return LiteralExpression.ofBoolean(true);
                     }
                 }
             } else if (subExpression instanceof ConditionalExpression.NotIn) {
@@ -365,7 +365,7 @@ public class ExpressionOptimizer {
                 if (((LiteralExpression) subExpression).isNumber()) {
                     if (((LiteralExpression) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
-                        return LiteralExpression.create(true);
+                        return LiteralExpression.ofBoolean(true);
                     } else {
                         // The sub expression is false, it should be removed from the expression list
                         subExpressionIterator.remove();
@@ -384,7 +384,7 @@ public class ExpressionOptimizer {
 
             int subExprSize = expression.getOperands().size();
             if (subExprSize == 0) {
-                return LiteralExpression.BooleanLiteral.of(false);
+                return LiteralExpression.ofBoolean(false);
             }
             if (subExprSize == 1) {
                 return expression.getOperands().get(0);
@@ -402,28 +402,28 @@ public class ExpressionOptimizer {
                     continue;
                 }
 
-                if (((LiteralExpression) subExpression).isNumber()) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                if (((LiteralExpression<?>) subExpression).isNumber()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // true, remove this always true expression
                         subExpressionIterator.remove();
                     } else {
                         // The sub expression is false, the whole expression is FALSE
-                        return LiteralExpression.BooleanLiteral.of(false);
+                        return LiteralExpression.ofBoolean(false);
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // sub expression is true, remove it from the AND expression
                         subExpressionIterator.remove();
                     } else {
                         // The sub expression is false, the whole expression is FALSE
-                        return LiteralExpression.BooleanLiteral.of(false);
+                        return LiteralExpression.ofBoolean(false);
                     }
                 }
             }
 
             int subExprSize = logicalExpression.getOperands().size();
             if (subExprSize == 0) {
-                return LiteralExpression.BooleanLiteral.of(true);
+                return LiteralExpression.ofBoolean(true);
             }
             if (subExprSize == 1) {
                 return logicalExpression.getOperands().get(0);
@@ -435,13 +435,13 @@ public class ExpressionOptimizer {
 
     static class ConstantFunctionOptimizer extends AbstractOptimizer {
         // Make sure all now() function in the expression return the same value
-        private LiteralExpression now;
+        private LiteralExpression.LongLiteral now;
 
         @Override
         public IExpression visit(FunctionExpression expression) {
             if (expression.getFunction() instanceof TimeFunction.Now) {
                 if (now == null) {
-                    now = LiteralExpression.LongLiteral.of((long) expression.getFunction().evaluate(null));
+                    now = LiteralExpression.ofLong((long) expression.getFunction().evaluate(null));
                 }
                 return now;
             }

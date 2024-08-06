@@ -42,14 +42,14 @@ public class ExpressionDeserializerTest {
         m.addDeserializer(IExpression.class, new ExpressionDeserializer());
         om.registerModule(m);
 
-        IExpression expression = new LogicalExpression.AND(new ComparisonExpression.GT(LiteralExpression.create(1),
-                                                                                       LiteralExpression.create(2)),
-                                                           LiteralExpression.create(true),
+        IExpression expression = new LogicalExpression.AND(new ComparisonExpression.GT(LiteralExpression.ofLong(1),
+                                                                                       LiteralExpression.ofLong(2)),
+                                                           LiteralExpression.ofBoolean(true),
                                                            new IdentifierExpression("a"),
                                                            new ConditionalExpression.In(new IdentifierExpression("a"),
-                                                                                        new ExpressionList(LiteralExpression.create(1),
-                                                                                                           LiteralExpression.create(2))),
-                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.create("c"))
+                                                                                        new ExpressionList(LiteralExpression.ofLong(1),
+                                                                                                           LiteralExpression.ofLong(2))),
+                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.ofString("c"))
         );
 
         String jsonText = om.writeValueAsString(expression);

@@ -49,7 +49,7 @@ public class QueryStageFunctions implements InitializingBean {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -65,7 +65,7 @@ public class QueryStageFunctions implements InitializingBean {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
@@ -81,7 +81,7 @@ public class QueryStageFunctions implements InitializingBean {
         }
 
         @Override
-        public Object evaluate(List<Object> parameters) {
+        public Object evaluate(List<Object> args) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
