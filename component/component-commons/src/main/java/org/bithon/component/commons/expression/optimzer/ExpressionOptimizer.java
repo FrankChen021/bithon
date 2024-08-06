@@ -31,6 +31,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.TernaryExpression;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
 import java.util.Iterator;
 import java.util.List;
@@ -42,8 +43,11 @@ import java.util.List;
 public class ExpressionOptimizer {
 
     public static IExpression optimize(IExpression expression) {
-        return expression.accept(new ConstantFoldingOptimizer())
+        return expression.accept(new ConstantFunctionOptimizer())
+                         .accept(new ConstantFoldingOptimizer())
                          .accept(new LogicalExpressionOptimizer());
+
+
     }
 
     public static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
@@ -171,6 +175,9 @@ public class ExpressionOptimizer {
         @Override
         public IExpression visit(FunctionExpression expression) {
             if (expression.getFunction().isAggregator()) {
+                return expression;
+            }
+            if (!expression.getFunction().isDeterministic()) {
                 return expression;
             }
 
@@ -396,6 +403,22 @@ public class ExpressionOptimizer {
                 return andExpression.getOperands().get(0);
             }
             return andExpression;
+        }
+    }
+
+    static class ConstantFunctionOptimizer extends AbstractOptimizer {
+        // Make sure all now() function in the expression return the same value
+        private LiteralExpression now;
+
+        @Override
+        public IExpression visit(FunctionExpression expression) {
+            if (expression.getFunction() instanceof TimeFunction.Now) {
+                if (now == null) {
+                    now = LiteralExpression.LongLiteral.of((long) expression.getFunction().evaluate(null));
+                }
+                return now;
+            }
+            return super.visit(expression);
         }
     }
 }
