@@ -44,6 +44,11 @@ public class StringFunction {
             String v2 = parameters.get(0).toString();
             return v1 + v2;
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class HasToken extends AbstractFunction {
@@ -68,6 +73,11 @@ public class StringFunction {
             String needle = (String) parameters.get(1);
             return haystack != null && needle != null && haystack.contains(needle);
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class Length extends AbstractFunction {
@@ -79,6 +89,11 @@ public class StringFunction {
         public Object evaluate(List<Object> parameters) {
             String str = (String) parameters.get(0);
             return str == null ? 0 : str.length();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
         }
     }
 
@@ -92,6 +107,11 @@ public class StringFunction {
             String str = (String) parameters.get(0);
             return str != null ? str.toLowerCase(Locale.ENGLISH) : null;
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class Upper extends AbstractFunction {
@@ -103,6 +123,11 @@ public class StringFunction {
         public Object evaluate(List<Object> parameters) {
             String str = (String) parameters.get(0);
             return str != null ? str.toUpperCase(Locale.ENGLISH) : null;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
         }
     }
 
@@ -118,6 +143,11 @@ public class StringFunction {
             String prefix = (String) parameters.get(1);
             return str != null && prefix != null && str.startsWith(prefix);
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class EndsWith extends AbstractFunction {
@@ -132,6 +162,11 @@ public class StringFunction {
             String str = (String) parameters.get(0);
             String suffix = (String) parameters.get(1);
             return str != null && suffix != null && str.endsWith(suffix);
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
         }
     }
 
@@ -150,6 +185,11 @@ public class StringFunction {
             Number length = (Number) parameters.get(2);
             return str == null ? null : str.substring(offset.intValue(), offset.intValue() + length.intValue());
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class Trim extends AbstractFunction {
@@ -161,6 +201,11 @@ public class StringFunction {
         public Object evaluate(List<Object> parameters) {
             String str = (String) parameters.get(0);
             return str == null ? null : str.trim();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
         }
     }
 
@@ -184,6 +229,11 @@ public class StringFunction {
 
             return index == 0 ? str : str.substring(index);
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     public static class TrimRight extends AbstractFunction {
@@ -206,7 +256,10 @@ public class StringFunction {
 
             return index < 0 ? "" : str.substring(0, index + 1);
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
-
-
 }

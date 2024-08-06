@@ -37,6 +37,29 @@ public class TimeFunction {
             Object o = parameters.get(0);
             return (o instanceof Number) ? ((Number) o).longValue() / 1000 / 60 : 0;
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
+    /**
+     * returns the current seconds since unix epoch
+     */
+    public static class Now extends AbstractFunction {
+        public Now() {
+            super("now", IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> parameters) {
+            return System.currentTimeMillis() / 1000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return false;
+        }
+    }
 }

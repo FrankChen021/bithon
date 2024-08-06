@@ -27,6 +27,7 @@ import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +45,11 @@ public class ExpressionOptimizerTest {
                 @Override
                 public IDataType getReturnType() {
                     return IDataType.LONG;
+                }
+
+                @Override
+                public boolean isDeterministic() {
+                    return true;
                 }
 
                 @Override
@@ -130,6 +136,13 @@ public class ExpressionOptimizerTest {
     @Test
     public void testConstantFolding_ANDExpression_Bool_Bool_2() {
         IExpression expr = expressionBuilder.build("true AND false");
+        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertEquals("false", expr.serializeToText());
+    }
+
+    @Test
+    public void testConstantFolding_ANDExpression_Bool_Bool_3() {
+        IExpression expr = expressionBuilder.build("false AND false");
         Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertEquals("false", expr.serializeToText());
     }
@@ -370,5 +383,34 @@ public class ExpressionOptimizerTest {
     public void test_Not_LTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a <= b");
         Assert.assertEquals("a > b", expr.serializeToText(null));
+    }
+
+    @Test
+    public void test_Optimize_Now_Function() {
+        {
+            long prev = System.currentTimeMillis() / 1000 - 5;
+            IExpression expr = ExpressionASTBuilder.builder()
+                                                   .functions(Functions.getInstance())
+                                                   .build("now() - 5s");
+            Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
+
+            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+
+            // To avoid flaky, we think that 3 seconds are enough for evaluation above code
+            Assert.assertTrue(diff < 3);
+        }
+
+        {
+            long prev = System.currentTimeMillis() / 1000 - Duration.ofDays(5).getSeconds();
+            IExpression expr = ExpressionASTBuilder.builder()
+                                                   .functions(Functions.getInstance())
+                                                   .build("now() - 5d");
+            Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
+
+            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+
+            // To avoid flaky, we think that 3 seconds are enough for evaluation above code
+            Assert.assertTrue(diff < 3);
+        }
     }
 }

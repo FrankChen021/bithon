@@ -29,7 +29,7 @@ import org.junit.Test;
  * @author frank.chen021@outlook.com
  * @date 2023/8/19 17:23
  */
-public class ExpressionTest {
+public class ExpressionASTBuilderTest {
 
     @Test
     public void testIn() {
@@ -295,5 +295,14 @@ public class ExpressionTest {
     public void test_LikeExpressionSyntaxError() {
         // %l if it's not properly treated will be considered as format string which is invalid
         Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("tags['exceptionCode'] = '60' AND and tags['statement'] like '%live%'"));
+    }
+
+    @Test
+    public void test_NowExpression() {
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .functions(Functions.getInstance())
+                                               .optimizationEnabled(false)
+                                               .build("now() - 5s");
+        Assert.assertEquals("now() - 5s", expr.serializeToText());
     }
 }

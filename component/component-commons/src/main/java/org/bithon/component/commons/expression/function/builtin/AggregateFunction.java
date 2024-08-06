@@ -37,6 +37,11 @@ public abstract class AggregateFunction extends AbstractFunction {
         return true;
     }
 
+    @Override
+    public boolean isDeterministic() {
+        return false;
+    }
+
     public static class Min extends AggregateFunction {
         public static final String NAME = "min";
 

@@ -38,7 +38,7 @@ public abstract class LiteralExpression implements IExpression {
         } else if (value instanceof Long || value instanceof Integer) {
             return new LongLiteral(((Number) value).longValue());
         } else if (value instanceof Boolean) {
-            return new BooleanLiteral((boolean) value);
+            return BooleanLiteral.of((boolean) value);
         } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
             return new DoubleLiteral((Number) value);
         } else if (value instanceof HumanReadableDuration) {
@@ -203,6 +203,10 @@ public abstract class LiteralExpression implements IExpression {
         public static LiteralExpression of(String val) {
             return new LongLiteral(Long.parseLong(val));
         }
+
+        public static LiteralExpression of(long val) {
+            return new LongLiteral(val);
+        }
     }
 
     public static class DoubleLiteral extends LiteralExpression {
@@ -238,13 +242,29 @@ public abstract class LiteralExpression implements IExpression {
     }
 
     public static class BooleanLiteral extends LiteralExpression {
+        public static final BooleanLiteral TRUE = new BooleanLiteral(true);
+        public static final BooleanLiteral FALSE = new BooleanLiteral(false);
+
         public BooleanLiteral(boolean value) {
             super(value);
+        }
+
+        public static LiteralExpression of(boolean val) {
+            return val ? TRUE : FALSE;
         }
 
         @Override
         public IDataType getDataType() {
             return IDataType.BOOLEAN;
+        }
+
+        @Override
+        public boolean asBoolean() {
+            return (boolean) value;
+        }
+
+        public BooleanLiteral negate() {
+            return ((boolean) value) ? FALSE : TRUE;
         }
 
         @Override

@@ -41,5 +41,10 @@ public class NumberFunction {
             int scale = ((Number) parameters.get(1)).intValue();
             return BigDecimal.valueOf(i0).setScale(scale, RoundingMode.HALF_UP);
         }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 }
