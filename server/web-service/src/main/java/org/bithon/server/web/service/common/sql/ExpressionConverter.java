@@ -70,7 +70,7 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
         }
         if (newOperands.isEmpty()) {
             // Turn this LogicalExpression into a constant TRUE expression
-            return LiteralExpression.create(true);
+            return LiteralExpression.ofBoolean(true);
         }
         if (newOperands.size() < logicalExpression.getOperands().size()) {
             if (newOperands.size() == 1) {
@@ -145,17 +145,17 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
             case VARCHAR:
                 NlsString nlsString = (NlsString) literal.getValue();
                 String stringValue = nlsString.getValue();
-                return LiteralExpression.create(stringValue);
+                return LiteralExpression.ofString(stringValue);
             case INTEGER:
             case BIGINT:
             case FLOAT:
             case DOUBLE:
             case DECIMAL:
                 Number numericValue = (Number) literal.getValue();
-                return LiteralExpression.create(numericValue);
+                return LiteralExpression.of(numericValue);
             case BOOLEAN:
                 Boolean booleanValue = (Boolean) literal.getValue();
-                return LiteralExpression.create(booleanValue);
+                return LiteralExpression.of(booleanValue);
             default:
                 throw new IllegalArgumentException("Unsupported literal type: " + typeName + ", literal: " + literal.toValue());
         }

@@ -37,7 +37,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
     public IExpression visit(ConditionalExpression expression) {
         if (expression instanceof ConditionalExpression.Contains) {
             return new ConditionalExpression.Like(expression.getLeft(),
-                                                  LiteralExpression.create("%" + ((LiteralExpression) expression.getRight()).asString() + "%"));
+                                                  LiteralExpression.ofString("%" + ((LiteralExpression) expression.getRight()).asString() + "%"));
         }
 
         if (expression instanceof ConditionalExpression.StartsWith) {
@@ -87,7 +87,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 // This is the case that the needle is surrounded by token separators,
                 // CK can use index for such LIKE expression.
                 return new ConditionalExpression.Like(haystack,
-                                                      LiteralExpression.create("%" + needle + "%"));
+                                                      LiteralExpression.ofString("%" + needle + "%"));
             }
 
             // Otherwise, we try to extract tokens from the needle to turn this function as
@@ -98,7 +98,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 char chr = needle.charAt(i);
                 if (isTokenSeparator(chr)) {
                     if (i > tokenStart) {
-                        IExpression literal = LiteralExpression.create(needle.substring(tokenStart, i));
+                        IExpression literal = LiteralExpression.ofString(needle.substring(tokenStart, i));
                         subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
                     }
 
@@ -108,7 +108,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 }
             }
             if (tokenStart > 0 && tokenStart < needleLength) {
-                IExpression literal = LiteralExpression.create(needle.substring(tokenStart));
+                IExpression literal = LiteralExpression.ofString(needle.substring(tokenStart));
                 subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
             }
             if (subExpressions.isEmpty()) {
@@ -117,7 +117,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
             }
 
             subExpressions.add(new ConditionalExpression.Like(haystack,
-                                                              LiteralExpression.create("%" + needle + "%")));
+                                                              LiteralExpression.ofString("%" + needle + "%")));
 
             return new LogicalExpression.AND(subExpressions);
         }

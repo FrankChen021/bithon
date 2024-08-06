@@ -37,16 +37,16 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_FlattenAND() {
         LogicalExpression expr = new LogicalExpression.AND(
-            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
+            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.ofLong(1)),
 
             new LogicalExpression.AND(
-                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
-                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3))
+                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.ofLong(2)),
+                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.ofLong(3))
             ),
 
             new LogicalExpression.AND(
-                new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.create(4)),
-                new ComparisonExpression.EQ(new IdentifierExpression("e"), LiteralExpression.create(5))
+                new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.ofLong(4)),
+                new ComparisonExpression.EQ(new IdentifierExpression("e"), LiteralExpression.ofLong(5))
             )
         );
 
@@ -59,11 +59,11 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_FlattenOR() {
         LogicalExpression expr = new LogicalExpression.OR(
-            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
+            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.ofLong(1)),
 
             new LogicalExpression.OR(
-                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
-                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3))
+                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.ofLong(2)),
+                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.ofLong(3))
             )
         );
 
@@ -76,11 +76,11 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_NoFlatten() {
         LogicalExpression expr = new LogicalExpression.AND(
-            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
+            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.ofLong(1)),
 
             new LogicalExpression.OR(
-                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
-                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3))
+                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.ofLong(2)),
+                new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.ofLong(3))
             )
         );
 
@@ -93,16 +93,16 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_FlattenRecursively() {
         LogicalExpression expr = new LogicalExpression.AND(
-            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
+            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.ofLong(1)),
 
             new LogicalExpression.AND(
-                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
+                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.ofLong(2)),
 
                 new LogicalExpression.AND(
-                    new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3)),
+                    new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.ofLong(3)),
 
                     new LogicalExpression.AND(
-                        new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.create(4))
+                        new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.ofLong(4))
                         )
                 )
             )
@@ -117,16 +117,16 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_FlattenNOT() {
         IExpression expr = new LogicalExpression.NOT(
-            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.create(1)),
+            new ComparisonExpression.EQ(new IdentifierExpression("a"), LiteralExpression.ofLong(1)),
 
             new LogicalExpression.AND(
-                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.create(2)),
+                new ComparisonExpression.EQ(new IdentifierExpression("b"), LiteralExpression.ofLong(2)),
 
                 new LogicalExpression.AND(
-                    new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.create(3)),
+                    new ComparisonExpression.EQ(new IdentifierExpression("c"), LiteralExpression.ofLong(3)),
 
                     new LogicalExpression.AND(
-                        new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.create(4))
+                        new ComparisonExpression.EQ(new IdentifierExpression("d"), LiteralExpression.ofLong(4))
                     )
                 )
             )
@@ -139,7 +139,7 @@ public class ExpressionOptimizerTest {
     @Test
     public void testLogicalExpression_FlattenNOT_To_One() {
         IExpression expr = new LogicalExpression.NOT(
-            new ComparisonExpression.EQ(LiteralExpression.create(1), LiteralExpression.create(1))
+            new ComparisonExpression.EQ(LiteralExpression.ofLong(1), LiteralExpression.ofLong(1))
         );
 
         expr = ExpressionOptimizer.optimize(expr);

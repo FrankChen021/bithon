@@ -59,7 +59,7 @@ public class QueryFilter {
                                                          expression.serializeToText());
                 case LONG, DOUBLE ->
                     // Turn into: functionExpression <> 0
-                    new ComparisonExpression.NE(expression, LiteralExpression.create(0));
+                    new ComparisonExpression.NE(expression, LiteralExpression.ofLong(0));
                 case BOOLEAN -> expression;
                 default ->
                     throw new InvalidExpressionException("Function expression [%s] returns type of %s, is not a valid filter. Consider to add comparators to your expression.",

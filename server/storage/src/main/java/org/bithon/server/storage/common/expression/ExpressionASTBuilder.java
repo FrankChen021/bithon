@@ -256,7 +256,7 @@ public class ExpressionASTBuilder {
                 if (comparisonExpression.getLeft() instanceof LiteralExpression) {
                     if (comparisonExpression.getRight() instanceof LiteralExpression) {
                         // Constant folding
-                        return LiteralExpression.create(comparisonExpression.evaluate(null));
+                        return LiteralExpression.of(comparisonExpression.evaluate(null));
                     }
                     return comparisonExpression.flip();
                 }
@@ -313,7 +313,7 @@ public class ExpressionASTBuilder {
             if (comparisonExpression.getLeft() instanceof LiteralExpression) {
                 if (comparisonExpression.getRight() instanceof LiteralExpression) {
                     // Constant folding
-                    return LiteralExpression.create(comparisonExpression.evaluate(null));
+                    return LiteralExpression.of(comparisonExpression.evaluate(null));
                 }
                 return comparisonExpression.flip();
             }
@@ -361,19 +361,19 @@ public class ExpressionASTBuilder {
 
             return switch (literal.getSymbol().getType()) {
                 case ExpressionLexer.INTEGER_LITERAL ->
-                    LiteralExpression.create(Long.parseLong(literal.getText()));
+                    LiteralExpression.ofLong(Long.parseLong(literal.getText()));
                 case ExpressionLexer.DECIMAL_LITERAL ->
-                    LiteralExpression.create(Double.parseDouble(literal.getText()));
+                    LiteralExpression.ofDouble(Double.parseDouble(literal.getText()));
                 case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.create(TokenUtils.getUnQuotedString(literal.getSymbol()));
+                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(literal.getSymbol()));
                 case ExpressionLexer.BOOL_LITERAL ->
-                    LiteralExpression.create("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
+                    LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
                 case ExpressionLexer.READABLE_SIZE_LITERAL ->
-                    LiteralExpression.create(HumanReadableNumber.of(literal.getText()));
+                    LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
                 case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
-                    LiteralExpression.create(HumanReadablePercentage.parse(literal.getText()));
+                    LiteralExpression.of(HumanReadablePercentage.parse(literal.getText()));
                 case ExpressionLexer.READABLE_DURATION_LITERAL ->
-                    LiteralExpression.create(HumanReadableDuration.parse(literal.getText()));
+                    LiteralExpression.of(HumanReadableDuration.parse(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };

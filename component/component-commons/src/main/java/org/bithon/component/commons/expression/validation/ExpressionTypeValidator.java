@@ -33,7 +33,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 class ExpressionTypeValidator implements IExpressionVisitor {
 
     /**
-     * If the type of identifier does not defined,
+     * If the type of identifier is not defined,
      * it's not able to validate the types for identifiers and related expressions
      */
     private final boolean validateIdentifier;
@@ -79,7 +79,7 @@ class ExpressionTypeValidator implements IExpressionVisitor {
             }
 
             // Only do cast if the left is not literal
-            LiteralExpression right = (LiteralExpression) expression.getRight();
+            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRight();
             try {
                 expression.setRight(right.castTo(leftType));
             } catch (ExpressionValidationException e) {

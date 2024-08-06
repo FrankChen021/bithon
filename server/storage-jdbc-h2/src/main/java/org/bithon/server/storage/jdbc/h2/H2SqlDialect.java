@@ -103,15 +103,15 @@ public class H2SqlDialect implements ISqlDialect {
 
                 if (expression instanceof ConditionalExpression.Contains) {
                     return new ConditionalExpression.Like(expression.getLeft(),
-                                                          LiteralExpression.create("%" + ((LiteralExpression) expression.getRight()).asString() + "%"));
+                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRight()).asString() + "%"));
                 }
                 if (expression instanceof ConditionalExpression.StartsWith) {
                     return new ConditionalExpression.Like(expression.getLeft(),
-                                                          LiteralExpression.create(((LiteralExpression) expression.getRight()).asString() + "%"));
+                                                          LiteralExpression.ofString(((LiteralExpression<?>) expression.getRight()).asString() + "%"));
                 }
                 if (expression instanceof ConditionalExpression.EndsWith) {
                     return new ConditionalExpression.Like(expression.getLeft(),
-                                                          LiteralExpression.create("%" + ((LiteralExpression) expression.getRight()).asString()));
+                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRight()).asString()));
                 }
                 return super.visit(expression);
             }
@@ -122,10 +122,10 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide startsWith function, turns it into LIKE expression as: LIKE 'prefix%'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.create(((LiteralExpression) patternExpression).getValue() + "%");
+                        patternExpression = LiteralExpression.ofString(((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
-                                                                   Arrays.asList(patternExpression, LiteralExpression.create("%")));
+                                                                   Arrays.asList(patternExpression, LiteralExpression.ofString("%")));
                     }
                     return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
@@ -133,10 +133,10 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue());
+                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getValue());
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
-                                                                   Arrays.asList(LiteralExpression.create("%"), patternExpression));
+                                                                   Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
                     }
                     return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
@@ -145,10 +145,10 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide hasToken function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.create("%" + ((LiteralExpression) patternExpression).getValue() + "%");
+                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
-                                                                   Arrays.asList(LiteralExpression.create("%"), patternExpression));
+                                                                   Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
                     }
                     return new ConditionalExpression.Like(expression.getArgs().get(0),
                                                           patternExpression);
