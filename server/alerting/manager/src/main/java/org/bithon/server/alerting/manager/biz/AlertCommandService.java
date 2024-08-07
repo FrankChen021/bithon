@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
+import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
@@ -70,7 +70,7 @@ public class AlertCommandService {
         this.notificationChannelStorage = notificationChannelStorage;
     }
 
-    static class AlertExpressionSerializer extends ExpressionSerializer implements IAlertExpressionVisitor {
+    static class AlertExpressionSerializer extends ExpressionSerializer implements IAlertInDepthExpressionVisitor {
         public AlertExpressionSerializer() {
             super(null);
         }

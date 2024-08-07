@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.metric;
 import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -120,7 +120,7 @@ public class QueryExpressionBuilder {
         return this;
     }
 
-    static class IdentifierExtractor implements IExpressionVisitor {
+    static class IdentifierExtractor implements IExpressionInDepthVisitor {
 
         private final ISchema schema;
         private final Set<String> identifiers = new LinkedHashSet<>();

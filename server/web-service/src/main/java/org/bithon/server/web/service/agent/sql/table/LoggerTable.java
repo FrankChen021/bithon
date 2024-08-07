@@ -21,7 +21,7 @@ import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggerConfiguration;
@@ -76,7 +76,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
         public String effectiveLevel;
     }
 
-    static class OneFilter implements IExpressionVisitor {
+    static class OneFilter implements IExpressionInDepthVisitor {
         private String name;
         private Object value;
 

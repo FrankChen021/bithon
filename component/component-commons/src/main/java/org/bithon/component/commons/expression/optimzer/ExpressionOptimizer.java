@@ -24,7 +24,7 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -48,9 +48,9 @@ public class ExpressionOptimizer {
                          .accept(new ConstantFoldingOptimizer());
     }
 
-    public static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
+    public static class AbstractOptimizer implements IExpressionVisitor<IExpression> {
         @Override
-        public IExpression visit(LiteralExpression expression) {
+        public IExpression visit(LiteralExpression<?> expression) {
             return expression;
         }
 
@@ -140,7 +140,7 @@ public class ExpressionOptimizer {
             expression.setTrueExpression(expression.getTrueExpression().accept(this));
             expression.setFalseExpression(expression.getFalseExpression().accept(this));
             if (expression.getConditionExpression() instanceof LiteralExpression) {
-                if (((LiteralExpression) (expression.getConditionExpression())).asBoolean()) {
+                if (((LiteralExpression<?>) (expression.getConditionExpression())).asBoolean()) {
                     return expression.getTrueExpression();
                 } else {
                     return expression.getFalseExpression();
@@ -272,15 +272,15 @@ public class ExpressionOptimizer {
 
             IExpression subExpression = expression.getOperands().get(0);
             if ((subExpression instanceof LiteralExpression)) {
-                if (((LiteralExpression) subExpression).isNumber()) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                if (((LiteralExpression<?>) subExpression).isNumber()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
                         return LiteralExpression.ofBoolean(false);
                     } else {
                         return LiteralExpression.ofBoolean(true);
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
                         return LiteralExpression.ofBoolean(false);
                     } else {
@@ -342,8 +342,8 @@ public class ExpressionOptimizer {
                     continue;
                 }
 
-                if (((LiteralExpression) subExpression).isNumber()) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                if (((LiteralExpression<?>) subExpression).isNumber()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
                         return LiteralExpression.ofBoolean(true);
                     } else {
@@ -352,7 +352,7 @@ public class ExpressionOptimizer {
 
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
                         return subExpression;
                     } else {

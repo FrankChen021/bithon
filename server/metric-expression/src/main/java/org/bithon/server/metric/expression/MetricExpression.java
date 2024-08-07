@@ -20,8 +20,8 @@ import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -186,12 +186,12 @@ public class MetricExpression implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         throw new UnsupportedOperationException();
     }
 
@@ -223,7 +223,7 @@ public class MetricExpression implements IExpression {
         }
 
         if (this.getLabelSelectorExpression() != null) {
-            this.getLabelSelectorExpression().accept(new IExpressionVisitor() {
+            this.getLabelSelectorExpression().accept(new IExpressionInDepthVisitor() {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
                     IColumn dimSpec = schema.getColumnByName(expression.getIdentifier());

@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -377,7 +377,7 @@ public class TraceJdbcReader implements ITraceReader {
         return getDataSourceReader().distinct(query);
     }
 
-    static class SpanKindIsRootDetector implements IExpressionVisitor {
+    static class SpanKindIsRootDetector implements IExpressionInDepthVisitor {
         private boolean isTrue = false;
 
         private final String kindFieldName;

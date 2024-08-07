@@ -79,7 +79,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
             left.accept(visitor);
             right.accept(visitor);
@@ -87,7 +87,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
     }
 
     @Override
-    public final <T> T accept(IExpressionVisitor2<T> visitor) {
+    public final <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 

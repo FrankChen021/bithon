@@ -25,7 +25,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
+import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
@@ -126,7 +126,7 @@ public class AlertQueryApi {
             Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
             List<AlertExpression> alertExpressions = new ArrayList<>();
-            alertExpression.accept((IAlertExpressionVisitor) expression -> {
+            alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
                 expression.getMetricExpression().validate(schemas);
                 alertExpressions.add(expression);
             });

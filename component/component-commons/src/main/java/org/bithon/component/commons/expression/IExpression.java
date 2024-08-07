@@ -32,9 +32,9 @@ public interface IExpression {
 
     Object evaluate(IEvaluationContext context);
 
-    void accept(IExpressionVisitor visitor);
+    void accept(IExpressionInDepthVisitor visitor);
 
-    <T> T accept(IExpressionVisitor2<T> visitor);
+    <T> T accept(IExpressionVisitor<T> visitor);
 
     default String serializeToText() {
         return serializeToText((s) -> "\"" + s + "\"");

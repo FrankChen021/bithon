@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -117,7 +117,7 @@ public class AlertRule {
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
 
-        this.evaluationExpression.accept((IAlertExpressionVisitor) expression -> {
+        this.evaluationExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
             // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
         });
@@ -143,12 +143,12 @@ public class AlertRule {
         private String applicationName = "";
 
         public String extract(IExpression astExpression) {
-            astExpression.accept(((IAlertExpressionVisitor) expression -> {
+            astExpression.accept(((IAlertInDepthExpressionVisitor) expression -> {
                 IExpression whereExpression = expression.getMetricExpression().getLabelSelectorExpression();
                 if (whereExpression == null) {
                     return;
                 }
-                whereExpression.accept(new IExpressionVisitor() {
+                whereExpression.accept(new IExpressionInDepthVisitor() {
                     @Override
                     public boolean visit(ConditionalExpression expression) {
                         if (expression instanceof ComparisonExpression.EQ

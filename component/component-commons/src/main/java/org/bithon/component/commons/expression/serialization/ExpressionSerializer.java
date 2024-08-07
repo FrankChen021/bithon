@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -39,7 +39,7 @@ import java.util.function.Function;
  * @author frank.chen021@outlook.com
  * @date 2023/8/18 21:08
  */
-public class ExpressionSerializer implements IExpressionVisitor {
+public class ExpressionSerializer implements IExpressionInDepthVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
     protected final Function<String, String> quoteIdentifier;

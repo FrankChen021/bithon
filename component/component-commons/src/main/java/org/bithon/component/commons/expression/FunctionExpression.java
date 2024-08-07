@@ -75,7 +75,7 @@ public class FunctionExpression implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
             for (IExpression parameters : this.args) {
                 parameters.accept(visitor);
@@ -84,7 +84,7 @@ public class FunctionExpression implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 

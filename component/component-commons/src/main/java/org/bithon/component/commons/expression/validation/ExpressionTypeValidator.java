@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -30,7 +30,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
  * @author frank.chen021@outlook.com
  * @date 2024/1/20 14:08
  */
-class ExpressionTypeValidator implements IExpressionVisitor {
+class ExpressionTypeValidator implements IExpressionInDepthVisitor {
 
     /**
      * If the type of identifier is not defined,

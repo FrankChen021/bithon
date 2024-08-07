@@ -16,12 +16,12 @@
 
 package org.bithon.server.alerting.common.model;
 
-import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/1/9 09:24
+ * @date 2024/1/8 23:07
  */
-public interface IAlertExpressionVisitor2<T> extends IExpressionVisitor2<T> {
-    T visit(AlertExpression expression);
+public interface IAlertInDepthExpressionVisitor extends IExpressionInDepthVisitor {
+    void visit(AlertExpression expression);
 }
