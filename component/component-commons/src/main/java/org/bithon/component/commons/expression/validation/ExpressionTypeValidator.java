@@ -37,10 +37,10 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
      * If the type of identifier is not defined,
      * it's not able to validate the types for identifiers and related expressions
      */
-    private final boolean validateIdentifier;
+    private final boolean identifierHasTypeInfo;
 
-    ExpressionTypeValidator(boolean validateIdentifier) {
-        this.validateIdentifier = validateIdentifier;
+    ExpressionTypeValidator(boolean identifierHasTypeInfo) {
+        this.identifierHasTypeInfo = identifierHasTypeInfo;
     }
 
     @Override
@@ -59,16 +59,19 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
 
     @Override
     public boolean visit(ConditionalExpression expression) {
-        if (!this.validateIdentifier
-            || !(expression.getLhs() instanceof IdentifierExpression)
-            || !(expression.getRhs() instanceof IdentifierExpression)) {
+        if (!this.identifierHasTypeInfo
+            && (expression.getLhs() instanceof IdentifierExpression
+                || expression.getRhs() instanceof IdentifierExpression)) {
+            // When the identifier does not have type info,
+            // and either one of the operands of conditional expression is identifier,
+            // we skip the validation and cast the type
             return true;
         }
 
-        IDataType leftType = expression.getLhs().getDataType();
-        IDataType rightType = expression.getRhs().getDataType();
+        IDataType lhsType = expression.getLhs().getDataType();
+        IDataType rhsType = expression.getRhs().getDataType();
 
-        if (leftType.equals(rightType)) {
+        if (lhsType.equals(rhsType)) {
             return true;
         }
 
@@ -80,23 +83,23 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
             }
 
             // Only do cast if the left is not literal
-            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRhs();
+            LiteralExpression<?> rhs = (LiteralExpression<?>) expression.getRhs();
             try {
-                expression.setRhs(right.castTo(leftType));
+                expression.setRhs(rhs.castTo(lhsType));
             } catch (ExpressionValidationException e) {
                 throw new ExpressionValidationException("Can't convert [%s] into type of [%s] in the expression: %s",
-                                                        right.serializeToText(null),
-                                                        leftType,
+                                                        rhs.serializeToText(null),
+                                                        lhsType,
                                                         expression.serializeToText(null));
             }
             return true;
         }
 
-        if (!leftType.canCastFrom(rightType)) {
+        if (!lhsType.canCastFrom(rhsType)) {
             throw new ExpressionValidationException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
                                                     expression.serializeToText(null),
-                                                    leftType.name(),
-                                                    rightType == null ? "null" : rightType.name());
+                                                    lhsType.name(),
+                                                    rhsType == null ? "null" : rhsType.name());
         }
 
         return true;

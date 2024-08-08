@@ -338,11 +338,11 @@ public class QueryExpressionBuilder {
 
         @Override
         public IExpression visit(ConditionalExpression expression) {
-            IExpression left = expression.getLeft();
-            if (!(left instanceof IdentifierExpression)) {
+            IExpression lhs = expression.getLhs();
+            if (!(lhs instanceof IdentifierExpression)) {
                 return null;
             }
-            String identifier = ((IdentifierExpression) left).getIdentifier();
+            String identifier = ((IdentifierExpression) lhs).getIdentifier();
 
             for (Selector selector : queryExpression.getSelectorList().getSelectors()) {
                 // If the tag is marked as true, it means this column is the output of an aggregator
