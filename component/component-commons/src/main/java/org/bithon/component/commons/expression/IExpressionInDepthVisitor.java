@@ -17,6 +17,11 @@
 package org.bithon.component.commons.expression;
 
 /**
+ *
+ * ALL methods in this interface MUST return the type of boolean
+ * to indicate whether we need to visit the children of the current expression object.
+ * 'false' means to skip the visit.
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/8/19 20:24
  */
