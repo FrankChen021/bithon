@@ -28,9 +28,9 @@ import java.util.List;
  * @author Frank Chen
  * @date 19/4/23 10:31 pm
  */
-public class BatchMessageQueue implements IMessageQueue {
+public class BatchMessageQueue implements IThreadSafeQueue {
 
-    private final IMessageQueue delegate;
+    private final IThreadSafeQueue delegate;
 
     private final int batchSize;
     private List<Object> fetched;
@@ -39,7 +39,7 @@ public class BatchMessageQueue implements IMessageQueue {
         return batchSize;
     }
 
-    public BatchMessageQueue(IMessageQueue delegate, int batchSize) {
+    public BatchMessageQueue(IThreadSafeQueue delegate, int batchSize) {
         this.delegate = delegate;
         this.batchSize = batchSize;
     }

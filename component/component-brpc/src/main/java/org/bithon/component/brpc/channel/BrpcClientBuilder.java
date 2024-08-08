@@ -28,29 +28,32 @@ import java.util.Map;
  * @date 2022/12/10 14:10
  */
 public class BrpcClientBuilder {
-    private IEndPointProvider server;
-    private int workerThreads = 1;
+    boolean keepAlive = true;
+    int lowMaterMark = 0;
+    int highMaterMark = 0;
+    int ioThreads = 1;
 
-    private int maxRetry = 30;
-    private Duration retryInterval = Duration.ofMillis(100);
+    int maxRetry = 30;
+    Duration retryBackoff = Duration.ofMillis(100);
 
-    private String appName = "brpc-client";
+    String appName = "brpc-client";
 
-    private Map<String, String> headers;
+    IEndPointProvider server;
+    Map<String, String> headers;
 
     /**
      * The name that is used to set to threads of this client.
      * Although the default name is the same as {@link #appName} above,
-     * it differs from it because one application might have more than 1 brpc clients to serve different needs,
+     * it differs from it because one application might have more than one brpc client to serve different needs,
      * to mark the difference of these clients, this client id helps.
      */
-    private String clientId = "brpc-client";
+    String clientId = "brpc-client";
 
     /**
-     * The default value is 200, which is originally used in previous versions.
+     * The default value is 200ms, which is originally used in previous versions.
      * We keep it as compatibility.
      */
-    private int connectionTimeout = 200;
+    Duration connectionTimeout = Duration.ofMillis(200);
 
     public static BrpcClientBuilder builder() {
         return new BrpcClientBuilder();
@@ -66,8 +69,8 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder workerThreads(int nWorkerThreads) {
-        this.workerThreads = nWorkerThreads;
+    public BrpcClientBuilder ioThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
         return this;
     }
 
@@ -76,8 +79,8 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder retryInterval(Duration retryInterval) {
-        this.retryInterval = retryInterval;
+    public BrpcClientBuilder retryBackOff(Duration retryBackOff) {
+        this.retryBackoff = retryBackOff;
         return this;
     }
 
@@ -99,26 +102,26 @@ public class BrpcClientBuilder {
         return this;
     }
 
-    public BrpcClientBuilder connectionTimeout(int connectionTimeout) {
+    public BrpcClientBuilder connectionTimeout(Duration connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
         return this;
     }
 
+    public BrpcClientBuilder keepAlive(boolean keepAlive) {
+        return this;
+    }
+
+    public BrpcClientBuilder lowMaterMark(int low) {
+        this.lowMaterMark = low;
+        return this;
+    }
+
+    public BrpcClientBuilder highMaterMark(int high) {
+        this.highMaterMark = high;
+        return this;
+    }
+
     public BrpcClient build() {
-        BrpcClient brpcClient = new BrpcClient(server,
-                                               workerThreads,
-                                               maxRetry,
-                                               retryInterval,
-                                               appName,
-                                               clientId,
-                                               Duration.ofMillis(connectionTimeout));
-        if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                String k = entry.getKey();
-                String v = entry.getValue();
-                brpcClient.setHeader(k, v);
-            }
-        }
-        return brpcClient;
+        return new BrpcClient(this);
     }
 }

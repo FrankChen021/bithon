@@ -23,7 +23,7 @@ import org.bithon.agent.observability.dispatcher.channel.IMessageChannelFactory;
 import org.bithon.agent.observability.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.observability.dispatcher.task.BlockingQueue;
 import org.bithon.agent.observability.dispatcher.task.DispatchTask;
-import org.bithon.agent.observability.dispatcher.task.IMessageQueue;
+import org.bithon.agent.observability.dispatcher.task.IThreadSafeQueue;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -112,7 +112,7 @@ public class Dispatcher {
                                 messageChannel::sendMessage);
     }
 
-    private IMessageQueue createQueue(DispatcherConfig config) {
+    private IThreadSafeQueue createQueue(DispatcherConfig config) {
         return new BlockingQueue(config.getQueueSize());
     }
 
