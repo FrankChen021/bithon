@@ -32,12 +32,12 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     @Override
     public IDataType getDataType() {
-        IDataType leftType = lhs.getDataType();
-        IDataType rightType = rhs.getDataType();
-        if (leftType.equals(IDataType.STRING)) {
+        IDataType lhsType = lhs.getDataType();
+        IDataType rhsType = rhs.getDataType();
+        if (lhsType.equals(IDataType.STRING)) {
             return IDataType.STRING;
         }
-        if (leftType.equals(IDataType.DOUBLE) || rightType.equals(IDataType.DOUBLE)) {
+        if (lhsType.equals(IDataType.DOUBLE) || rhsType.equals(IDataType.DOUBLE)) {
             return IDataType.DOUBLE;
         }
         return IDataType.LONG;
@@ -45,23 +45,23 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object r1 = lhs.evaluate(context);
-        Object r2 = rhs.evaluate(context);
+        Object lhsValue = lhs.evaluate(context);
+        Object rhsValue = rhs.evaluate(context);
 
-        if (r1 instanceof Number) {
-            Number rValue = asNumber(r2);
-            if (r1 instanceof Double || r2 instanceof Double) {
-                return evaluate(((Number) r1).doubleValue(), rValue.doubleValue());
+        if (lhsValue instanceof Number) {
+            Number rValue = asNumber(rhsValue);
+            if (lhsValue instanceof Double || rhsValue instanceof Double) {
+                return evaluate(((Number) lhsValue).doubleValue(), rValue.doubleValue());
             }
-            return evaluate(((Number) r1).longValue(), rValue.longValue());
+            return evaluate(((Number) lhsValue).longValue(), rValue.longValue());
         }
-        if (r1 instanceof String) {
-            return r1 + rhs.evaluate(context).toString();
+        if (lhsValue instanceof String) {
+            return lhsValue + rhs.evaluate(context).toString();
         }
 
         throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
-                                                                   r1.getClass().getSimpleName(),
-                                                                   r2.getClass().getSimpleName()));
+                                                                   lhsValue.getClass().getSimpleName(),
+                                                                   rhsValue.getClass().getSimpleName()));
     }
 
     @Override
@@ -92,8 +92,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     protected abstract long evaluate(long v1, long v2);
 
     public static class ADD extends ArithmeticExpression {
-        public ADD(IExpression left, IExpression right) {
-            super("+", left, right);
+        public ADD(IExpression lhs, IExpression rhs) {
+            super("+", lhs, rhs);
         }
 
         @Override
@@ -108,8 +108,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     }
 
     public static class SUB extends ArithmeticExpression {
-        public SUB(IExpression left, IExpression right) {
-            super("-", left, right);
+        public SUB(IExpression lhs, IExpression rhs) {
+            super("-", lhs, rhs);
         }
 
         @Override
@@ -124,8 +124,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     }
 
     public static class MUL extends ArithmeticExpression {
-        public MUL(IExpression left, IExpression right) {
-            super("*", left, right);
+        public MUL(IExpression lhs, IExpression rhs) {
+            super("*", lhs, rhs);
         }
 
         @Override
@@ -140,8 +140,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     }
 
     public static class DIV extends ArithmeticExpression {
-        public DIV(IExpression left, IExpression right) {
-            super("/", left, right);
+        public DIV(IExpression lhs, IExpression rhs) {
+            super("/", lhs, rhs);
         }
 
         @Override
