@@ -245,16 +245,16 @@ public class ExpressionASTBuilder {
             public IExpression visitNotPredicate(ExpressionParser.NotPredicateContext ctx) {
                 IExpression expr = ctx.extraPredicate().accept(this);
                 if (expr instanceof ConditionalExpression.Like) {
-                    return new ConditionalExpression.NotLike(((ConditionalExpression.Like) expr).getLeft(),
-                                                             ((ConditionalExpression.Like) expr).getRight());
+                    return new ConditionalExpression.NotLike(((ConditionalExpression.Like) expr).getLhs(),
+                                                             ((ConditionalExpression.Like) expr).getRhs());
                 }
                 return new LogicalExpression.NOT(expr);
             }
 
             // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
             private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
-                if (comparisonExpression.getLeft() instanceof LiteralExpression) {
-                    if (comparisonExpression.getRight() instanceof LiteralExpression) {
+                if (comparisonExpression.getLhs() instanceof LiteralExpression) {
+                    if (comparisonExpression.getRhs() instanceof LiteralExpression) {
                         // Constant folding
                         return LiteralExpression.of(comparisonExpression.evaluate(null));
                     }
@@ -310,8 +310,8 @@ public class ExpressionASTBuilder {
 
         // Flip the operands in the comparison expression for simpler optimization/analysis in later steps
         private IExpression flipComparisonExpression(ComparisonExpression comparisonExpression) {
-            if (comparisonExpression.getLeft() instanceof LiteralExpression) {
-                if (comparisonExpression.getRight() instanceof LiteralExpression) {
+            if (comparisonExpression.getLhs() instanceof LiteralExpression) {
+                if (comparisonExpression.getRhs() instanceof LiteralExpression) {
                     // Constant folding
                     return LiteralExpression.of(comparisonExpression.evaluate(null));
                 }

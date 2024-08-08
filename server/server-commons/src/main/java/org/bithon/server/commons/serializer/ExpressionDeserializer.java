@@ -61,33 +61,23 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
         static IExpression deserialize(JsonNode jsonNode) throws IOException {
             JsonNode typeNode = jsonNode.get("type");
             String type = typeNode.asText();
-            switch (type) {
-                case "=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.EQ::new);
-                case ">":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GT::new);
-                case ">=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GTE::new);
-                case "<":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LT::new);
-                case "<=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LTE::new);
-                case "<>":
-                case "!=":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
-                case "in":
-                    return new ConditionalExpression.In(Expression.deserialize(jsonNode.get("left")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("right")));
-                case "like":
-                    return BinaryExpressionDeserializer.deserialize(type, jsonNode, ConditionalExpression.Like::new);
-                case "literal":
-                    return LiteralExpressionDeserializer.deserialize(jsonNode);
-                case "logical":
-                    return LogicalExpressionDeserializer.deserialize(jsonNode);
-                case "identifier":
-                    return IdentifierExpressionDeserializer.deserialize(jsonNode);
-                default:
-                    throw new RuntimeException("Unknown type " + type);
-            }
+            return switch (type) {
+                case "=" -> BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.EQ::new);
+                case ">" -> BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GT::new);
+                case ">=" -> BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.GTE::new);
+                case "<" -> BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LT::new);
+                case "<=" -> BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.LTE::new);
+                case "<>", "!=" ->
+                    BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
+                case "in" ->
+                    new ConditionalExpression.In(Expression.deserialize(jsonNode.get("lhs")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("rhs")));
+                case "like" ->
+                    BinaryExpressionDeserializer.deserialize(type, jsonNode, ConditionalExpression.Like::new);
+                case "literal" -> LiteralExpressionDeserializer.deserialize(jsonNode);
+                case "logical" -> LogicalExpressionDeserializer.deserialize(jsonNode);
+                case "identifier" -> IdentifierExpressionDeserializer.deserialize(jsonNode);
+                default -> throw new RuntimeException("Unknown type " + type);
+            };
         }
     }
 
@@ -98,12 +88,12 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
         static IExpression deserialize(String operator,
                                        JsonNode jsonNode,
                                        BiFunction<IExpression, IExpression, IExpression> expressionCreator) throws IOException {
-            JsonNode left = Preconditions.checkNotNull(jsonNode.get("left"),
-                                                       "Missing 'left' property when deserializing operator [%s]",
+            JsonNode left = Preconditions.checkNotNull(jsonNode.get("lhs"),
+                                                       "Missing 'lhs' property when deserializing operator [%s]",
                                                        operator);
 
-            JsonNode right = Preconditions.checkNotNull(jsonNode.get("right"),
-                                                        "Missing 'right' property when deserializing operator [%s]",
+            JsonNode right = Preconditions.checkNotNull(jsonNode.get("rhs"),
+                                                        "Missing 'rhs' property when deserializing operator [%s]",
                                                         operator);
 
             return expressionCreator.apply(Expression.deserialize(left),

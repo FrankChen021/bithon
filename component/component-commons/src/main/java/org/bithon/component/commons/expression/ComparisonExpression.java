@@ -30,8 +30,8 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object lv = left.evaluate(context);
-        Object rv = right.evaluate(context);
+        Object lv = lhs.evaluate(context);
+        Object rv = rhs.evaluate(context);
         if (lv == null) {
             return compareLNull(rv);
         } else if (rv == null) {
@@ -75,19 +75,19 @@ public abstract class ComparisonExpression extends ConditionalExpression {
                 }
             }
         }
-        throw new RuntimeException(StringUtils.format("Can't compare [%s] with [%s]", left, right));
+        throw new RuntimeException(StringUtils.format("Can't compare [%s] with [%s]", lhs, rhs));
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
-            left.accept(visitor);
-            right.accept(visitor);
+            lhs.accept(visitor);
+            rhs.accept(visitor);
         }
     }
 
     @Override
-    public final <T> T accept(IExpressionVisitor2<T> visitor) {
+    public final <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 
@@ -134,7 +134,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.GT(right, left);
+            return new ComparisonExpression.GT(rhs, lhs);
         }
     }
 
@@ -161,7 +161,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.GTE(right, left);
+            return new ComparisonExpression.GTE(rhs, lhs);
         }
     }
 
@@ -188,7 +188,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.LT(right, left);
+            return new ComparisonExpression.LT(rhs, lhs);
         }
     }
 
@@ -215,7 +215,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.LTE(right, left);
+            return new ComparisonExpression.LTE(rhs, lhs);
         }
     }
 
@@ -242,7 +242,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.NE(right, left);
+            return new ComparisonExpression.NE(rhs, lhs);
         }
 
         @Override
@@ -278,7 +278,7 @@ public abstract class ComparisonExpression extends ConditionalExpression {
 
         @Override
         public ComparisonExpression flip() {
-            return new ComparisonExpression.EQ(right, left);
+            return new ComparisonExpression.EQ(rhs, lhs);
         }
 
         @Override

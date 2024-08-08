@@ -21,7 +21,7 @@ import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.logging.LoggerConfiguration;
@@ -76,7 +76,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
         public String effectiveLevel;
     }
 
-    static class OneFilter implements IExpressionVisitor {
+    static class OneFilter implements IExpressionInDepthVisitor {
         private String name;
         private Object value;
 
@@ -107,8 +107,8 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
         Preconditions.checkIfTrue("=".equals(binaryExpression.getType()), "Logger table does not support operator '%s', only '=' is supported", binaryExpression.getType());
 
         OneFilter nameFilter = new OneFilter();
-        binaryExpression.getLeft().accept(nameFilter);
-        binaryExpression.getRight().accept(nameFilter);
+        binaryExpression.getLhs().accept(nameFilter);
+        binaryExpression.getRhs().accept(nameFilter);
         Preconditions.checkNotNull(nameFilter.name, "WHERE clause must contains a filter");
         Preconditions.checkIfTrue("name".equals(nameFilter.name), "WHERE clause must only contain a filter that works on 'name' field");
         Preconditions.checkIfTrue(nameFilter.value instanceof String, "Filter on 'name' field must compare to type of STRING");

@@ -38,15 +38,15 @@ public abstract class ConditionalExpression extends BinaryExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
-            this.left.accept(visitor);
-            this.right.accept(visitor);
+            this.lhs.accept(visitor);
+            this.rhs.accept(visitor);
         }
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 
@@ -63,12 +63,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
         @SuppressWarnings("unchecked")
         @Override
         public Object evaluate(IEvaluationContext context) {
-            Object l = left.evaluate(context);
+            Object l = lhs.evaluate(context);
             if (l == null) {
                 return false;
             }
 
-            Set<Object> sets = (Set<Object>) right.evaluate(context);
+            Set<Object> sets = (Set<Object>) rhs.evaluate(context);
             Object o = sets.iterator().next();
             if (o instanceof String) {
                 return sets.contains(l.toString());
@@ -116,12 +116,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            String input = (String) left.evaluate(context);
+            String input = (String) lhs.evaluate(context);
             if (input == null) {
                 return false;
             }
 
-            String pattern = (String) right.evaluate(context);
+            String pattern = (String) rhs.evaluate(context);
 
             if (pattern.contains("%")) {
                 // Replace % with .* to convert SQL LIKE pattern to a regex pattern
@@ -167,12 +167,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            String input = (String) left.evaluate(context);
+            String input = (String) lhs.evaluate(context);
             if (input == null) {
                 return false;
             }
 
-            String pattern = (String) right.evaluate(context);
+            String pattern = (String) rhs.evaluate(context);
             return input.contains(pattern);
         }
     }
@@ -184,12 +184,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            String input = (String) left.evaluate(context);
+            String input = (String) lhs.evaluate(context);
             if (input == null) {
                 return false;
             }
 
-            String pattern = (String) right.evaluate(context);
+            String pattern = (String) rhs.evaluate(context);
             return input.startsWith(pattern);
         }
     }
@@ -201,12 +201,12 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            String input = (String) left.evaluate(context);
+            String input = (String) lhs.evaluate(context);
             if (input == null) {
                 return false;
             }
 
-            String pattern = (String) right.evaluate(context);
+            String pattern = (String) rhs.evaluate(context);
             return input.endsWith(pattern);
         }
     }
@@ -219,7 +219,7 @@ public abstract class ConditionalExpression extends BinaryExpression {
 
         @Override
         public Object evaluate(IEvaluationContext context) {
-            return left.evaluate(context) == null;
+            return lhs.evaluate(context) == null;
         }
     }
 }

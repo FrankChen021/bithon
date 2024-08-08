@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -377,7 +377,7 @@ public class TraceJdbcReader implements ITraceReader {
         return getDataSourceReader().distinct(query);
     }
 
-    static class SpanKindIsRootDetector implements IExpressionVisitor {
+    static class SpanKindIsRootDetector implements IExpressionInDepthVisitor {
         private boolean isTrue = false;
 
         private final String kindFieldName;
@@ -388,7 +388,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         @Override
         public boolean visit(ConditionalExpression expression) {
-            if (!(expression.getLeft() instanceof IdentifierExpression)) {
+            if (!(expression.getLhs() instanceof IdentifierExpression)) {
                 // Only support the IdentifierExpression in the left for simplicity.
                 // Do not throw exception here 'cause the AST might contain some other internal optimization rule
                 // such as 1 = 1 for simple processing
@@ -396,8 +396,8 @@ public class TraceJdbcReader implements ITraceReader {
             }
 
             if (expression instanceof ComparisonExpression.EQ) {
-                IExpression left = expression.getLeft();
-                IExpression right = expression.getRight();
+                IExpression left = expression.getLhs();
+                IExpression right = expression.getRhs();
 
                 if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
                     if (right instanceof LiteralExpression) {
@@ -409,8 +409,8 @@ public class TraceJdbcReader implements ITraceReader {
             }
 
             if (expression instanceof ConditionalExpression.In) {
-                IExpression left = expression.getLeft();
-                IExpression right = expression.getRight();
+                IExpression left = expression.getLhs();
+                IExpression right = expression.getRhs();
 
                 if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
                     isTrue = ((ExpressionList) right).getExpressions()

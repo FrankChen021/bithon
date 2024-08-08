@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -30,7 +30,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
  * @author frank.chen021@outlook.com
  * @date 2024/1/20 14:08
  */
-class ExpressionTypeValidator implements IExpressionVisitor {
+class ExpressionTypeValidator implements IExpressionInDepthVisitor {
 
     /**
      * If the type of identifier is not defined,
@@ -59,29 +59,29 @@ class ExpressionTypeValidator implements IExpressionVisitor {
     @Override
     public boolean visit(ConditionalExpression expression) {
         if (!this.validateIdentifier &&
-            (expression.getLeft() instanceof IdentifierExpression
-                || expression.getRight() instanceof IdentifierExpression)) {
+            (expression.getLhs() instanceof IdentifierExpression
+                || expression.getRhs() instanceof IdentifierExpression)) {
             return true;
         }
 
-        IDataType leftType = expression.getLeft().getDataType();
-        IDataType rightType = expression.getRight().getDataType();
+        IDataType leftType = expression.getLhs().getDataType();
+        IDataType rightType = expression.getRhs().getDataType();
 
         if (leftType.equals(rightType)) {
             return true;
         }
 
         // Type cast
-        if (expression.getRight() instanceof LiteralExpression) {
-            if (expression.getLeft() instanceof LiteralExpression) {
+        if (expression.getRhs() instanceof LiteralExpression) {
+            if (expression.getLhs() instanceof LiteralExpression) {
                 // Continue
                 return true;
             }
 
             // Only do cast if the left is not literal
-            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRight();
+            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRhs();
             try {
-                expression.setRight(right.castTo(leftType));
+                expression.setRhs(right.castTo(leftType));
             } catch (ExpressionValidationException e) {
                 throw new ExpressionValidationException("Can't convert [%s] into type of [%s] in the expression: %s",
                                                         right.serializeToText(null),

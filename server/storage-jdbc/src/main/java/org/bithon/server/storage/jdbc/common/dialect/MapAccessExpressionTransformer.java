@@ -35,14 +35,14 @@ public class MapAccessExpressionTransformer {
      * It's used by H2, MySQL dialects
      */
     public static IExpression transform(ConditionalExpression expression) {
-        MapAccessExpression mapAccessExpression = (MapAccessExpression) expression.getLeft();
+        MapAccessExpression mapAccessExpression = (MapAccessExpression) expression.getLhs();
         if (!(mapAccessExpression.getMap() instanceof IdentifierExpression)) {
             throw new UnsupportedOperationException(StringUtils.format("Map access expression [%s] only allows on identifier", mapAccessExpression.serializeToText()));
         }
 
         String mapName = ((IdentifierExpression) mapAccessExpression.getMap()).getIdentifier();
         String key = mapAccessExpression.getKey();
-        String value = ((LiteralExpression) expression.getRight()).getValue().toString();
+        String value = ((LiteralExpression) expression.getRhs()).getValue().toString();
 
         if (!(expression instanceof ComparisonExpression.EQ)) {
             // Since we store JSON formatted string in H2, it's hard to implement other operators except EQ

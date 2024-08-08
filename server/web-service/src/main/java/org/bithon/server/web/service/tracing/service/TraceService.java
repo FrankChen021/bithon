@@ -24,7 +24,7 @@ import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -243,7 +243,7 @@ public class TraceService {
          * f1 = 'GET'
          * </code></pre>
          */
-        private static class SplitterImpl implements IExpressionVisitor2<Boolean> {
+        private static class SplitterImpl implements IExpressionVisitor<Boolean> {
 
             private final ISchema indexTableSchema;
             private final ISchema summaryTableSchema;
@@ -283,7 +283,7 @@ public class TraceService {
 
             @Override
             public Boolean visit(ConditionalExpression expression) {
-                IExpression left = expression.getLeft();
+                IExpression left = expression.getLhs();
                 if (!(left instanceof MapAccessExpression)) {
                     return false;
                 }
@@ -307,7 +307,7 @@ public class TraceService {
                 if (indexColumn != null) {
                     // Replace the map access expression in the left to identifier expression
                     // which refers to the indexed column
-                    expression.setLeft(new IdentifierExpression(indexColumn.getName()));
+                    expression.setLhs(new IdentifierExpression(indexColumn.getName()));
                     return true;
                 }
 

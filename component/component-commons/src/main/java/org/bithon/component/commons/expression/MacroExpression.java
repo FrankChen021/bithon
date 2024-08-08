@@ -34,7 +34,7 @@ public class MacroExpression implements IExpression {
 
     @Override
     public IDataType getDataType() {
-        return null;
+        return dataType;
     }
 
     public void setDataType(IDataType dataType) {
@@ -52,12 +52,12 @@ public class MacroExpression implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

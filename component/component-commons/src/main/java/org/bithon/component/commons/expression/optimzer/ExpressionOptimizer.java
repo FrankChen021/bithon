@@ -24,7 +24,7 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
+import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -48,9 +48,9 @@ public class ExpressionOptimizer {
                          .accept(new ConstantFoldingOptimizer());
     }
 
-    public static class AbstractOptimizer implements IExpressionVisitor2<IExpression> {
+    public static class AbstractOptimizer implements IExpressionVisitor<IExpression> {
         @Override
-        public IExpression visit(LiteralExpression expression) {
+        public IExpression visit(LiteralExpression<?> expression) {
             return expression;
         }
 
@@ -117,15 +117,15 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ArithmeticExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
+            expression.setLhs(expression.getLhs().accept(this));
+            expression.setRhs(expression.getRhs().accept(this));
             return expression;
         }
 
         @Override
         public IExpression visit(ConditionalExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
+            expression.setLhs(expression.getLhs().accept(this));
+            expression.setRhs(expression.getRhs().accept(this));
             return expression;
         }
 
@@ -140,7 +140,7 @@ public class ExpressionOptimizer {
             expression.setTrueExpression(expression.getTrueExpression().accept(this));
             expression.setFalseExpression(expression.getFalseExpression().accept(this));
             if (expression.getConditionExpression() instanceof LiteralExpression) {
-                if (((LiteralExpression) (expression.getConditionExpression())).asBoolean()) {
+                if (((LiteralExpression<?>) (expression.getConditionExpression())).asBoolean()) {
                     return expression.getTrueExpression();
                 } else {
                     return expression.getFalseExpression();
@@ -214,7 +214,7 @@ public class ExpressionOptimizer {
         public IExpression visit(ArithmeticExpression expression) {
             super.visit(expression);
 
-            if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
+            if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
                 return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
@@ -222,9 +222,9 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ConditionalExpression expression) {
-            expression.setLeft(expression.getLeft().accept(this));
-            expression.setRight(expression.getRight().accept(this));
-            if (expression.getLeft() instanceof LiteralExpression && expression.getRight() instanceof LiteralExpression) {
+            expression.setLhs(expression.getLhs().accept(this));
+            expression.setRhs(expression.getRhs().accept(this));
+            if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
                 return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
@@ -272,15 +272,15 @@ public class ExpressionOptimizer {
 
             IExpression subExpression = expression.getOperands().get(0);
             if ((subExpression instanceof LiteralExpression)) {
-                if (((LiteralExpression) subExpression).isNumber()) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                if (((LiteralExpression<?>) subExpression).isNumber()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
                         return LiteralExpression.ofBoolean(false);
                     } else {
                         return LiteralExpression.ofBoolean(true);
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is false
                         return LiteralExpression.ofBoolean(false);
                     } else {
@@ -289,44 +289,44 @@ public class ExpressionOptimizer {
                 }
             } else if (subExpression instanceof ConditionalExpression.NotIn) {
                 // Turn the expression: 'NOT var not in ('xxx')' into 'var in (xxx)'
-                return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLeft(),
-                                                    (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRight());
+                return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLhs(),
+                                                    (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRhs());
             } else if (subExpression instanceof ConditionalExpression.NotLike) {
                 // Turn the expression: 'NOT var not like 'xxx'' into 'var like (xxx)'
-                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLeft(),
-                                                      ((ConditionalExpression.NotLike) subExpression).getRight());
+                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLhs(),
+                                                      ((ConditionalExpression.NotLike) subExpression).getRhs());
             } else if (subExpression instanceof ConditionalExpression.In) {
                 // Turn into In into NotIn
-                return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLeft(),
-                                                       (ExpressionList) ((ConditionalExpression.In) subExpression).getRight());
+                return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLhs(),
+                                                       (ExpressionList) ((ConditionalExpression.In) subExpression).getRhs());
             } else if (subExpression instanceof ConditionalExpression.Like) {
                 // Turn into Like into NotLike
-                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLeft(),
-                                                         ((ConditionalExpression.Like) subExpression).getRight());
+                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLhs(),
+                                                         ((ConditionalExpression.Like) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.EQ) {
                 // Turn '=' into '<>'
-                return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLeft(),
-                                                   ((ComparisonExpression.EQ) subExpression).getRight());
+                return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLhs(),
+                                                   ((ComparisonExpression.EQ) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.NE) {
                 // Turn '<>' into '='
-                return new ComparisonExpression.EQ(((ComparisonExpression.NE) subExpression).getLeft(),
-                                                   ((ComparisonExpression.NE) subExpression).getRight());
+                return new ComparisonExpression.EQ(((ComparisonExpression.NE) subExpression).getLhs(),
+                                                   ((ComparisonExpression.NE) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.LT) {
                 // Turn '<' into '>='
-                return new ComparisonExpression.GTE(((ComparisonExpression.LT) subExpression).getLeft(),
-                                                    ((ComparisonExpression.LT) subExpression).getRight());
+                return new ComparisonExpression.GTE(((ComparisonExpression.LT) subExpression).getLhs(),
+                                                    ((ComparisonExpression.LT) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.GT) {
                 // Turn '>' into '<='
-                return new ComparisonExpression.LTE(((ComparisonExpression.GT) subExpression).getLeft(),
-                                                    ((ComparisonExpression.GT) subExpression).getRight());
+                return new ComparisonExpression.LTE(((ComparisonExpression.GT) subExpression).getLhs(),
+                                                    ((ComparisonExpression.GT) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.LTE) {
                 // Turn '<= into '>'
-                return new ComparisonExpression.GT(((ComparisonExpression.LTE) subExpression).getLeft(),
-                                                   ((ComparisonExpression.LTE) subExpression).getRight());
+                return new ComparisonExpression.GT(((ComparisonExpression.LTE) subExpression).getLhs(),
+                                                   ((ComparisonExpression.LTE) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.GTE) {
                 // Turn '>= into '<'
-                return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLeft(),
-                                                   ((ComparisonExpression.GTE) subExpression).getRight());
+                return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLhs(),
+                                                   ((ComparisonExpression.GTE) subExpression).getRhs());
             }
 
             return expression;
@@ -342,8 +342,8 @@ public class ExpressionOptimizer {
                     continue;
                 }
 
-                if (((LiteralExpression) subExpression).isNumber()) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                if (((LiteralExpression<?>) subExpression).isNumber()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
                         return LiteralExpression.ofBoolean(true);
                     } else {
@@ -352,7 +352,7 @@ public class ExpressionOptimizer {
 
                     }
                 } else if (IDataType.BOOLEAN.equals(subExpression.getDataType())) {
-                    if (((LiteralExpression) subExpression).asBoolean()) {
+                    if (((LiteralExpression<?>) subExpression).asBoolean()) {
                         // the sub expression is true, the whole expression is true
                         return subExpression;
                     } else {

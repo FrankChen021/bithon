@@ -20,8 +20,8 @@ import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IExpressionVisitor2;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.metric.expression.MetricExpression;
 
@@ -72,16 +72,16 @@ public class AlertExpression implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
-        if (visitor instanceof IAlertExpressionVisitor) {
-            ((IAlertExpressionVisitor) visitor).visit(this);
+    public void accept(IExpressionInDepthVisitor visitor) {
+        if (visitor instanceof IAlertInDepthExpressionVisitor) {
+            ((IAlertInDepthExpressionVisitor) visitor).visit(this);
         }
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
-        if (visitor instanceof IAlertExpressionVisitor2<T>) {
-            return ((IAlertExpressionVisitor2<T>) visitor).visit(this);
+    public <T> T accept(IExpressionVisitor<T> visitor) {
+        if (visitor instanceof IAlertExpressionVisitor<T>) {
+            return ((IAlertExpressionVisitor<T>) visitor).visit(this);
         } else {
             return null;
         }
