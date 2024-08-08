@@ -152,10 +152,10 @@ public class AlertRule {
                     @Override
                     public boolean visit(ConditionalExpression expression) {
                         if (expression instanceof ComparisonExpression.EQ
-                            && (expression.getLeft() instanceof IdentifierExpression)
-                            && expression.getRight() instanceof LiteralExpression
-                            && ((IdentifierExpression) expression.getLeft()).getIdentifier().equals("appName")) {
-                            applicationName = ((LiteralExpression) expression.getRight()).asString();
+                            && (expression.getLhs() instanceof IdentifierExpression)
+                            && expression.getRhs() instanceof LiteralExpression
+                            && ((IdentifierExpression) expression.getLhs()).getIdentifier().equals("appName")) {
+                            applicationName = ((LiteralExpression) expression.getRhs()).asString();
                             return false;
                         }
                         return true;

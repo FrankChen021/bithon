@@ -26,29 +26,29 @@ public abstract class BinaryExpression implements IExpression {
      * Don't change these property names because they're used in manual deserializer
      */
     protected final String type;
-    protected IExpression left;
-    protected IExpression right;
+    protected IExpression lhs;
+    protected IExpression rhs;
 
-    protected BinaryExpression(String type, IExpression left, IExpression right) {
+    protected BinaryExpression(String type, IExpression lhs, IExpression rhs) {
         this.type = type;
-        this.left = left;
-        this.right = right;
+        this.lhs = lhs;
+        this.rhs = rhs;
     }
 
-    public IExpression getLeft() {
-        return left;
+    public IExpression getLhs() {
+        return lhs;
     }
 
-    public IExpression getRight() {
-        return right;
+    public IExpression getRhs() {
+        return rhs;
     }
 
-    public void setLeft(IExpression left) {
-        this.left = left;
+    public void setLhs(IExpression lhs) {
+        this.lhs = lhs;
     }
 
-    public void setRight(IExpression right) {
-        this.right = right;
+    public void setRhs(IExpression rhs) {
+        this.rhs = rhs;
     }
 
     @Override

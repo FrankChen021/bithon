@@ -204,7 +204,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
     }
 
     private boolean visitBinary(BinaryExpression expression) {
-        IExpression left = expression.getLeft();
+        IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {
             sb.append('(');
         }
@@ -216,7 +216,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         sb.append(expression.getType());
         sb.append(' ');
 
-        IExpression right = expression.getRight();
+        IExpression right = expression.getRhs();
         if (right instanceof BinaryExpression) {
             sb.append('(');
         }

@@ -26,14 +26,14 @@ import java.sql.Timestamp;
  */
 public abstract class ArithmeticExpression extends BinaryExpression {
 
-    protected ArithmeticExpression(String operator, IExpression left, IExpression right) {
-        super(operator, left, right);
+    protected ArithmeticExpression(String operator, IExpression lhs, IExpression rhs) {
+        super(operator, lhs, rhs);
     }
 
     @Override
     public IDataType getDataType() {
-        IDataType leftType = left.getDataType();
-        IDataType rightType = right.getDataType();
+        IDataType leftType = lhs.getDataType();
+        IDataType rightType = rhs.getDataType();
         if (leftType.equals(IDataType.STRING)) {
             return IDataType.STRING;
         }
@@ -45,8 +45,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        Object r1 = left.evaluate(context);
-        Object r2 = right.evaluate(context);
+        Object r1 = lhs.evaluate(context);
+        Object r2 = rhs.evaluate(context);
 
         if (r1 instanceof Number) {
             Number rValue = asNumber(r2);
@@ -56,7 +56,7 @@ public abstract class ArithmeticExpression extends BinaryExpression {
             return evaluate(((Number) r1).longValue(), rValue.longValue());
         }
         if (r1 instanceof String) {
-            return r1 + right.evaluate(context).toString();
+            return r1 + rhs.evaluate(context).toString();
         }
 
         throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
@@ -67,8 +67,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     @Override
     public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
-            left.accept(visitor);
-            right.accept(visitor);
+            lhs.accept(visitor);
+            rhs.accept(visitor);
         }
     }
 

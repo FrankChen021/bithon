@@ -62,10 +62,10 @@ public class ExpressionSerializerTest {
         Assert.assertTrue(expr instanceof LogicalExpression.AND);
         IExpression right = ((LogicalExpression.AND) expr).getOperands().get(1);
         Assert.assertTrue(right instanceof ComparisonExpression.EQ);
-        Assert.assertTrue(((ComparisonExpression.EQ) right).getLeft() instanceof MapAccessExpression);
+        Assert.assertTrue(((ComparisonExpression.EQ) right).getLhs() instanceof MapAccessExpression);
 
         expr = ExpressionASTBuilder.builder().build("5 * colors['today']");
         Assert.assertTrue(expr instanceof ArithmeticExpression);
-        Assert.assertTrue(((ArithmeticExpression) expr).getRight() instanceof MapAccessExpression);
+        Assert.assertTrue(((ArithmeticExpression) expr).getRhs() instanceof MapAccessExpression);
     }
 }

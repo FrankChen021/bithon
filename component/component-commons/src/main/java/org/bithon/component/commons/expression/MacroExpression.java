@@ -34,7 +34,7 @@ public class MacroExpression implements IExpression {
 
     @Override
     public IDataType getDataType() {
-        return null;
+        return dataType;
     }
 
     public void setDataType(IDataType dataType) {

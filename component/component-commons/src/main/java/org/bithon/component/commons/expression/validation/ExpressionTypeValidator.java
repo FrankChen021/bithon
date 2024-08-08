@@ -59,29 +59,29 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
     @Override
     public boolean visit(ConditionalExpression expression) {
         if (!this.validateIdentifier &&
-            (expression.getLeft() instanceof IdentifierExpression
-                || expression.getRight() instanceof IdentifierExpression)) {
+            (expression.getLhs() instanceof IdentifierExpression
+                || expression.getRhs() instanceof IdentifierExpression)) {
             return true;
         }
 
-        IDataType leftType = expression.getLeft().getDataType();
-        IDataType rightType = expression.getRight().getDataType();
+        IDataType leftType = expression.getLhs().getDataType();
+        IDataType rightType = expression.getRhs().getDataType();
 
         if (leftType.equals(rightType)) {
             return true;
         }
 
         // Type cast
-        if (expression.getRight() instanceof LiteralExpression) {
-            if (expression.getLeft() instanceof LiteralExpression) {
+        if (expression.getRhs() instanceof LiteralExpression) {
+            if (expression.getLhs() instanceof LiteralExpression) {
                 // Continue
                 return true;
             }
 
             // Only do cast if the left is not literal
-            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRight();
+            LiteralExpression<?> right = (LiteralExpression<?>) expression.getRhs();
             try {
-                expression.setRight(right.castTo(leftType));
+                expression.setRhs(right.castTo(leftType));
             } catch (ExpressionValidationException e) {
                 throw new ExpressionValidationException("Can't convert [%s] into type of [%s] in the expression: %s",
                                                         right.serializeToText(null),

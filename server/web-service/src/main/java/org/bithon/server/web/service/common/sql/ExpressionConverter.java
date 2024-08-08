@@ -85,8 +85,8 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
     private static boolean isAlwaysTrue(IExpression expression) {
         if (expression instanceof BinaryExpression) {
             BinaryExpression binaryExpression = (BinaryExpression) expression;
-            IExpression left = binaryExpression.getLeft();
-            IExpression right = binaryExpression.getRight();
+            IExpression left = binaryExpression.getLhs();
+            IExpression right = binaryExpression.getRhs();
             if (left instanceof LiteralExpression && right instanceof LiteralExpression) {
                 return ((LiteralExpression) left).getValue().equals(((LiteralExpression) right).getValue());
             }
