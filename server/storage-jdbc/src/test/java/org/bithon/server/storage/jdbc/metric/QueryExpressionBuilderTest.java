@@ -903,17 +903,18 @@ public class QueryExpressionBuilderTest {
         Assert.assertEquals("""
                             SELECT "appName",
                                    "instanceName",
+                                   "totalCount" AS "totalCount",
                                    "responseTime" / "totalCount" AS "avgResponseTime"
                             FROM
                             (
-                                SELECT "appName",
-                                       "instanceName",
-                                       sum("totalCount") AS "totalCount",
-                                       sum("responseTime") AS "responseTime"
-                                FROM "bithon_jvm_metrics"
-                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                                GROUP BY "appName", "instanceName"
-                            )
+                              SELECT "appName",
+                                     "instanceName",
+                                     sum("totalCount") AS "totalCount",
+                                     sum("responseTime") AS "responseTime"
+                              FROM "bithon_jvm_metrics"
+                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                              GROUP BY "appName", "instanceName"
+                            ) AS "tbl1"
                             WHERE "avgResponseTime" > 5
                             """.trim(),
                             sqlGenerator.getSQL());

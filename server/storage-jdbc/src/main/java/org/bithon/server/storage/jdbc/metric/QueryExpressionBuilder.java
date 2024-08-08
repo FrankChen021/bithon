@@ -31,6 +31,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -90,7 +91,7 @@ public class QueryExpressionBuilder {
     }
 
     public QueryExpressionBuilder fields(List<Selector> selectors) {
-        this.selectors = selectors;
+        this.selectors = new ArrayList<>(selectors);
         return this;
     }
 
@@ -440,8 +441,6 @@ public class QueryExpressionBuilder {
      * </pre>
      */
     public QueryExpression build() {
-        // TODO: check if filter contains aggregations which are not in the selector
-
         VariableName var = new VariableName("_var");
 
         Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
@@ -450,6 +449,21 @@ public class QueryExpressionBuilder {
         Pipeline pipeline = new Pipeline();
 
         Aggregators aggregators = new Aggregators();
+
+        // TODO:This might not be the correct place, may need to extract to caller
+        if (this.filter != null) {
+            this.filter.accept(new IExpressionVisitor() {
+                @Override
+                public boolean visit(IdentifierExpression expression) {
+                    IColumn column = schema.getColumnByName(expression.getIdentifier());
+                    if (column instanceof ExpressionColumn) {
+                        // TODO: check if the selector exists in the selector list
+                        selectors.add(column.toSelector());
+                    }
+                    return false;
+                }
+            });
+        }
 
         // Round 1, determine aggregation steps
         for (Selector selector : this.selectors) {
