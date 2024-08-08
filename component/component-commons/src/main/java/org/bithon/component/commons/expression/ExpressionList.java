@@ -60,7 +60,7 @@ public class ExpressionList implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
             for (IExpression subExpression : expressions) {
                 subExpression.accept(visitor);
@@ -69,7 +69,7 @@ public class ExpressionList implements IExpression {
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

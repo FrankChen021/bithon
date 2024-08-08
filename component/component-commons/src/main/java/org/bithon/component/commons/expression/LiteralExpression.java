@@ -137,12 +137,12 @@ public abstract class LiteralExpression<T> implements IExpression {
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public <TT> TT accept(IExpressionVisitor2<TT> visitor) {
+    public <TT> TT accept(IExpressionVisitor<TT> visitor) {
         return visitor.visit(this);
     }
 

@@ -20,8 +20,8 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/1/8 23:07
+ * @date 2024/1/9 09:24
  */
-public interface IAlertExpressionVisitor extends IExpressionVisitor {
-    void visit(AlertExpression expression);
+public interface IAlertExpressionVisitor<T> extends IExpressionVisitor<T> {
+    T visit(AlertExpression expression);
 }

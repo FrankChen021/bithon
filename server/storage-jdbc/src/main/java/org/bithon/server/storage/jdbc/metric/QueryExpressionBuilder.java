@@ -20,7 +20,7 @@ import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
@@ -124,7 +124,7 @@ public class QueryExpressionBuilder {
         return this;
     }
 
-    static class IdentifierExtractor implements IExpressionVisitor {
+    static class IdentifierExtractor implements IExpressionInDepthVisitor {
 
         private final ISchema schema;
         private final Set<String> identifiers = new LinkedHashSet<>();

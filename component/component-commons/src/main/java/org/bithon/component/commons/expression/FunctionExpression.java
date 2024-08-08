@@ -70,21 +70,23 @@ public class FunctionExpression implements IExpression {
 
     @Override
     public Object evaluate(IEvaluationContext context) {
-        List<Object> arguments = this.args.stream().map((parameter) -> parameter.evaluate(context)).collect(Collectors.toList());
-        return function.evaluate(arguments);
+        List<Object> argValues = this.args.stream()
+                                          .map((arg) -> arg.evaluate(context))
+                                          .collect(Collectors.toList());
+        return function.evaluate(argValues);
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IExpressionInDepthVisitor visitor) {
         if (visitor.visit(this)) {
-            for (IExpression parameters : this.args) {
-                parameters.accept(visitor);
+            for (IExpression arg : this.args) {
+                arg.accept(visitor);
             }
         }
     }
 
     @Override
-    public <T> T accept(IExpressionVisitor2<T> visitor) {
+    public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
     }
 

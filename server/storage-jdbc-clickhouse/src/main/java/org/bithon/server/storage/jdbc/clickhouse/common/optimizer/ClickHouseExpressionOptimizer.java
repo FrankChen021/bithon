@@ -36,23 +36,23 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
     @Override
     public IExpression visit(ConditionalExpression expression) {
         if (expression instanceof ConditionalExpression.Contains) {
-            return new ConditionalExpression.Like(expression.getLeft(),
-                                                  LiteralExpression.ofString("%" + ((LiteralExpression) expression.getRight()).asString() + "%"));
+            return new ConditionalExpression.Like(expression.getLhs(),
+                                                  LiteralExpression.ofString("%" + ((LiteralExpression) expression.getRhs()).asString() + "%"));
         }
 
         if (expression instanceof ConditionalExpression.StartsWith) {
             return new FunctionExpression(
                 Functions.getInstance().getFunction("startsWith"),
-                expression.getLeft(),
-                expression.getRight()
+                expression.getLhs(),
+                expression.getRhs()
             );
         }
 
         if (expression instanceof ConditionalExpression.EndsWith) {
             return new FunctionExpression(
                 Functions.getInstance().getFunction("endsWith"),
-                expression.getLeft(),
-                expression.getRight()
+                expression.getLhs(),
+                expression.getRhs()
             );
         }
 
