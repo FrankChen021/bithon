@@ -27,6 +27,10 @@ public class From implements IASTNode {
     private IASTNode expression;
     private Alias alias;
 
+    public void setAlias(String alias) {
+        this.alias = new Alias(alias);
+    }
+
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);

@@ -33,7 +33,6 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
@@ -297,8 +296,9 @@ public class QueryExpressionBuilder {
 
         private QueryExpression outermost;
         private QueryExpression innermost;
+        private int nestIndex = 0;
 
-        public void chain() {
+        public void chain(ISqlDialect sqlDialect) {
             List<QueryExpression> pipelines = new ArrayList<>();
             if (windowAggregation != null) {
                 pipelines.add(windowAggregation);
@@ -314,8 +314,9 @@ public class QueryExpressionBuilder {
                 From from = pipelines.get(i).getFrom();
                 from.setExpression(pipelines.get(i - 1));
 
-                // For MySQL, the sub-query must have an alias
-                from.setAlias(new Alias("tbl" + i));
+                if (sqlDialect.needTableAlias()) {
+                    from.setAlias("tbl" + nestIndex++);
+                }
             }
 
             this.outermost = pipelines.get(pipelines.size() - 1);
@@ -612,7 +613,7 @@ public class QueryExpressionBuilder {
         //
         // Chain the pipelines together
         //
-        pipeline.chain();
+        pipeline.chain(this.sqlDialect);
         pipeline.innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
 
         // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
@@ -674,6 +675,11 @@ public class QueryExpressionBuilder {
                         QueryExpression query = new QueryExpression();
                         query.getSelectorList().add(new TextNode("*"));
                         query.getFrom().setExpression(pipeline.outermost);
+
+                        if (sqlDialect.needTableAlias()) {
+                            query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
+                        }
+
                         pipeline.outermost = query;
                     }
 

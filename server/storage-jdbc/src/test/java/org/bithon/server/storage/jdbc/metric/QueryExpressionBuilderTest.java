@@ -127,6 +127,76 @@ public class QueryExpressionBuilderTest {
         }
 
         @Override
+        public boolean needTableAlias() {
+            return false;
+        }
+
+        @Override
+        public String stringAggregator(String field) {
+            return "";
+        }
+
+        @Override
+        public String firstAggregator(String field, long window) {
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\")",
+                field,
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+        }
+
+        @Override
+        public String lastAggregator(String field, long window) {
+            // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
+                field,
+                this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+        }
+
+        @Override
+        public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
+            return "";
+        }
+
+        @Override
+        public char getEscapeCharacter4SingleQuote() {
+            return 0;
+        }
+    };
+
+    final ISqlDialect mysql = new ISqlDialect() {
+
+        @Override
+        public String formatTimestamp(TimeSpan timeSpan) {
+            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
+        }
+
+        @Override
+        public boolean useWindowFunctionAsAggregator(String aggregator) {
+            return "first".equals(aggregator) || "last".equals(aggregator);
+        }
+
+        @Override
+        public String quoteIdentifier(String identifier) {
+            return "\"" + identifier + "\"";
+        }
+
+        @Override
+        public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
+            return StringUtils.format("UNIX_TIMESTAMP(%s)/ %d * %d", timestampExpression.serializeToText(), intervalSeconds, intervalSeconds);
+        }
+
+        @Override
+        public boolean isAliasAllowedInWhereClause() {
+            return false;
+        }
+
+        @Override
+        public boolean needTableAlias() {
+            return true;
+        }
+
+        @Override
         public String stringAggregator(String field) {
             return "";
         }
@@ -178,6 +248,11 @@ public class QueryExpressionBuilderTest {
         @Override
         public boolean isAliasAllowedInWhereClause() {
             return true;
+        }
+
+        @Override
+        public boolean needTableAlias() {
+            return false;
         }
 
         @Override
@@ -311,7 +386,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -342,7 +417,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -378,7 +453,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName", "_timestamp"
-                            ) AS "tbl1"
+                            )
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -411,7 +486,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -445,7 +520,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             """.trim(),
                             sqlGenerator.getSQL());
     }
@@ -475,7 +550,7 @@ public class QueryExpressionBuilderTest {
                                      FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "a"
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                            ) AS "tbl1"
+                            )
                             GROUP BY "appName", "instanceName", "a"
                             HAVING "a" > 5
                             """.trim(),
@@ -535,7 +610,7 @@ public class QueryExpressionBuilderTest {
                                      FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads"
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                            ) AS "tbl1"
+                            )
                             GROUP BY "appName", "instanceName", "activeThreads", "_timestamp"
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -573,9 +648,9 @@ public class QueryExpressionBuilderTest {
                                        "totalThreads"
                                 FROM "bithon_jvm_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                              ) AS "tbl1"
+                              )
                               GROUP BY "appName", "instanceName", "activeThreads"
-                            ) AS "tbl2"
+                            )
                             ORDER BY "timestamp" asc
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -608,7 +683,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             ORDER BY "timestamp" asc
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -647,9 +722,50 @@ public class QueryExpressionBuilderTest {
                                        "totalThreads"
                                 FROM "bithon_jvm_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
-                              ) AS "tbl1"
+                              )
                               GROUP BY "appName", "instanceName", "activeThreads"
-                            ) AS "tbl2"
+                            )
+                            ORDER BY "timestamp" asc
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testWindowFunctionAfterAggregator_MySQL() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(mysql)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .orderBy(OrderBy.builder().name("timestamp").order(Order.asc).build())
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(mysql);
+        queryExpression.accept(sqlGenerator);
+
+        Assert.assertEquals("""
+                            SELECT "appName",
+                                   "instanceName",
+                                   "totalThreads" - "activeThreads" AS "daemon"
+                            FROM
+                            (
+                              SELECT "appName",
+                                     "instanceName",
+                                     sum("totalThreads") AS "totalThreads",
+                                     "activeThreads"
+                              FROM
+                              (
+                                SELECT "appName",
+                                       "instanceName",
+                                       FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
+                                       "totalThreads"
+                                FROM "bithon_jvm_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                              ) AS "tbl0"
+                              GROUP BY "appName", "instanceName", "activeThreads"
+                            ) AS "tbl1"
                             ORDER BY "timestamp" asc
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -686,7 +802,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName", "_timestamp"
-                            ) AS "tbl1"
+                            )
                             ORDER BY "appName" asc
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -812,7 +928,7 @@ public class QueryExpressionBuilderTest {
                                 FROM "bithon_jvm_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
                                 GROUP BY "appName", "instanceName"
-                              ) AS "tbl1"
+                              )
                             )
                             WHERE "avg" > 0.2
                             """.trim(),
@@ -914,7 +1030,7 @@ public class QueryExpressionBuilderTest {
                                 FROM "bithon_jvm_metrics"
                                 WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                                 GROUP BY "appName", "instanceName"
-                              ) AS "tbl1"
+                              )
                             )
                             WHERE "avgResponseTime" > 5.0
                             """.trim(),
@@ -955,7 +1071,7 @@ public class QueryExpressionBuilderTest {
                               FROM "bithon_jvm_metrics"
                               WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
                               GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                            )
                             WHERE "avgResponseTime" > 5.0
                             """.trim(),
                             sqlGenerator.getSQL());

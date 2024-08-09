@@ -40,6 +40,11 @@ public interface ISqlDialect {
 
     boolean isAliasAllowedInWhereClause();
 
+    /**
+     * Some DBMSs, like MySQL, require table alias if there are nested queries
+     */
+    boolean needTableAlias();
+
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
     }

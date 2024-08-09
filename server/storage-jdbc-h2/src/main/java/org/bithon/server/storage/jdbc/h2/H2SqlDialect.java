@@ -56,6 +56,11 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
+    public boolean needTableAlias() {
+        return false;
+    }
+
+    @Override
     public String stringAggregator(String field) {
         return StringUtils.format("group_concat(\"%s\")", field);
     }

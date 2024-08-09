@@ -56,6 +56,11 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
+    public boolean needTableAlias() {
+        return true;
+    }
+
+    @Override
     public String stringAggregator(String field) {
         return StringUtils.format("group_concat(`%s`)", field);
     }

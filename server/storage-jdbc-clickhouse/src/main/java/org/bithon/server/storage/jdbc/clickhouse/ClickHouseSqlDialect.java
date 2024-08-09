@@ -73,6 +73,11 @@ public class ClickHouseSqlDialect implements ISqlDialect {
         return false;
     }
 
+    @Override
+    public boolean needTableAlias() {
+        return false;
+    }
+
     /**
      * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
      */
