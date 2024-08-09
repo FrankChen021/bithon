@@ -38,6 +38,7 @@ public class QueryExpression implements IASTNode {
     private GroupBy groupBy = new GroupBy();
     private OrderBy orderBy;
     private Limit limit;
+    private Having having;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
@@ -50,6 +51,9 @@ public class QueryExpression implements IASTNode {
             }
             if (groupBy != null) {
                 groupBy.accept(visitor);
+            }
+            if (having != null) {
+                having.accept(visitor);
             }
             if (orderBy != null) {
                 orderBy.accept(visitor);

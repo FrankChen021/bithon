@@ -36,6 +36,8 @@ public interface IASTNodeVisitor {
 
     void visit(GroupBy groupBy);
 
+    void visit(Having having);
+
     void visit(From from);
 
     void visit(TextNode textNode);

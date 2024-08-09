@@ -35,6 +35,7 @@ import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Frank Chen
@@ -65,7 +66,10 @@ public class ExpressionOptimizer {
                 // Apply optimization on the operand
                 IExpression subExpression = operands.get(i).accept(this);
 
-                if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
+                if (subExpression == null) {
+                    operands.remove(i);
+                    i--;
+                } else if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
                     || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)
                     || (expression instanceof LogicalExpression.NOT && subExpression instanceof LogicalExpression.AND)
                 ) {
@@ -85,6 +89,10 @@ public class ExpressionOptimizer {
                 }
             }
 
+            if (!(expression instanceof LogicalExpression.NOT) && operands.size() == 1) {
+                return expression.getOperands().get(0);
+            }
+
             return expression;
         }
 
@@ -95,13 +103,13 @@ public class ExpressionOptimizer {
 
         @Override
         public IExpression visit(ExpressionList expression) {
-            expression.getExpressions().replaceAll(iExpression -> iExpression.accept(this));
+            optimizeExpressionList(expression.getExpressions());
             return expression;
         }
 
         @Override
         public IExpression visit(FunctionExpression expression) {
-            expression.getArgs().replaceAll(iExpression -> iExpression.accept(this));
+            optimizeExpressionList(expression.getArgs());
             return expression;
         }
 
@@ -147,6 +155,18 @@ public class ExpressionOptimizer {
                 }
             }
             return expression;
+        }
+
+        private void optimizeExpressionList(List<IExpression> expressions) {
+            final ListIterator<IExpression> iterator = expressions.listIterator();
+            while (iterator.hasNext()) {
+                IExpression optimized = iterator.next().accept(this);
+                if (optimized == null) {
+                    iterator.remove();
+                } else {
+                    iterator.set(optimized);
+                }
+            }
         }
     }
 

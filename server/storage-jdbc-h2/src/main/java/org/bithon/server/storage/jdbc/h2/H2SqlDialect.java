@@ -51,13 +51,13 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public boolean groupByUseRawExpression() {
-        return true;
+    public boolean isAliasAllowedInWhereClause() {
+        return false;
     }
 
     @Override
-    public boolean allowSameAggregatorExpression() {
-        return true;
+    public boolean needTableAlias() {
+        return false;
     }
 
     @Override

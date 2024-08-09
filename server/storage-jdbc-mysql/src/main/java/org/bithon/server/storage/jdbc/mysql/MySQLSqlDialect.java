@@ -51,12 +51,12 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public boolean groupByUseRawExpression() {
-        return true;
+    public boolean isAliasAllowedInWhereClause() {
+        return false;
     }
 
     @Override
-    public boolean allowSameAggregatorExpression() {
+    public boolean needTableAlias() {
         return true;
     }
 

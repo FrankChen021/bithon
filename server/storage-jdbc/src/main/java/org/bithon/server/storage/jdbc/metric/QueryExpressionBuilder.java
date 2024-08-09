@@ -17,22 +17,26 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import jakarta.annotation.Nullable;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
+import org.bithon.server.storage.datasource.query.ast.Having;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
@@ -86,7 +90,7 @@ public class QueryExpressionBuilder {
     }
 
     public QueryExpressionBuilder fields(List<Selector> selectors) {
-        this.selectors = selectors;
+        this.selectors = new ArrayList<>(selectors);
         return this;
     }
 
@@ -292,8 +296,9 @@ public class QueryExpressionBuilder {
 
         private QueryExpression outermost;
         private QueryExpression innermost;
+        private int nestIndex = 0;
 
-        public void chain() {
+        public void chain(ISqlDialect sqlDialect) {
             List<QueryExpression> pipelines = new ArrayList<>();
             if (windowAggregation != null) {
                 pipelines.add(windowAggregation);
@@ -309,12 +314,50 @@ public class QueryExpressionBuilder {
                 From from = pipelines.get(i).getFrom();
                 from.setExpression(pipelines.get(i - 1));
 
-                // For MySQL, the sub-query must have an alias
-                from.setAlias(new Alias("tbl" + i));
+                if (sqlDialect.needTableAlias()) {
+                    from.setAlias("tbl" + nestIndex++);
+                }
             }
 
             this.outermost = pipelines.get(pipelines.size() - 1);
             this.innermost = pipelines.get(0);
+        }
+    }
+
+    /**
+     * (avgResponse = 5 OR maxResponse = 10) AND s = 's'
+     * avgResponse = 5 OR maxResponse = 10
+     * avgResponse = 5
+     */
+    static class FilterSplitter extends ExpressionOptimizer.AbstractOptimizer {
+        private final QueryExpression queryExpression;
+        private final List<IExpression> postFilters;
+
+        public FilterSplitter(QueryExpression queryExpression) {
+            this.queryExpression = queryExpression;
+            this.postFilters = new ArrayList<>();
+        }
+
+        @Override
+        public IExpression visit(ConditionalExpression expression) {
+            IExpression lhs = expression.getLhs();
+            if (!(lhs instanceof IdentifierExpression)) {
+                return null;
+            }
+            String identifier = ((IdentifierExpression) lhs).getIdentifier();
+
+            for (Selector selector : queryExpression.getSelectorList().getSelectors()) {
+                // If the tag is marked as true, it means this column is the output of an aggregator
+                if (selector.getTag() instanceof Boolean && ((boolean) selector.getTag())) {
+                    // The TextNode is from Expression, only these filters need to be extracted
+                    if (identifier.equals(selector.getOutputName())) {
+                        postFilters.add(expression);
+                        return null;
+                    }
+                }
+            }
+
+            return expression;
         }
     }
 
@@ -408,6 +451,34 @@ public class QueryExpressionBuilder {
 
         Aggregators aggregators = new Aggregators();
 
+        if (this.filter != null) {
+            this.filter.accept(new IExpressionInDepthVisitor() {
+                @Override
+                public boolean visit(IdentifierExpression expression) {
+                    IColumn column = schema.getColumnByName(expression.getIdentifier());
+                    if (!(column instanceof ExpressionColumn expressionColumn)) {
+                        return false;
+                    }
+
+                    // Check the existence of the column in the selector list
+                    boolean exists = false;
+                    for (Selector selector : selectors) {
+                        if (selector.getSelectExpression() instanceof Expression selectExpression) {
+                            if (expressionColumn.getExpression().equals(selectExpression.getExpression())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!exists) {
+                        selectors.add(column.toSelector());
+                    }
+                    return false;
+                }
+            });
+        }
+
         // Round 1, determine aggregation steps
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
@@ -492,10 +563,13 @@ public class QueryExpressionBuilder {
                 String col = identifierExpression.getIdentifier();
                 String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
                 pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output);
-                pipeline.aggregation.getSelectorList().add(new Column(aggregator.output));
+                pipeline.aggregation.getSelectorList()
+                                    .add(new Column(aggregator.output))
+                                    .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
-                pipeline.aggregation.getSelectorList().add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)),
-                                                           aggregator.output);
+                pipeline.aggregation.getSelectorList()
+                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)), aggregator.output)
+                                    .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
 
@@ -521,8 +595,17 @@ public class QueryExpressionBuilder {
                 if (selectExpression instanceof Expression) {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
-                    pipeline.postAggregation.getSelectorList()
-                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput());
+                    if (parsedExpression instanceof IdentifierExpression identifierExpression) {
+                        // Try to eliminate Alias expression
+                        String identifier = identifierExpression.getIdentifier();
+                        pipeline.postAggregation.getSelectorList()
+                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput())
+                                                .setTag(true);
+                    } else {
+                        pipeline.postAggregation.getSelectorList()
+                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput())
+                                                .setTag(true);
+                    }
                 }
             }
         }
@@ -530,59 +613,118 @@ public class QueryExpressionBuilder {
         //
         // Chain the pipelines together
         //
-        pipeline.chain();
-        QueryExpression outermost = pipeline.outermost;
-        QueryExpression innermost = pipeline.innermost;
-        innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+        pipeline.chain(this.sqlDialect);
+        pipeline.innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
 
-        //
-        // Set Where expression to the innermost
-        //
-        IExpression timestampExpression = this.interval.getTimestampColumn();
-        Where where = new Where();
-        where.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
-        where.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
-        if (filter != null) {
-            where.addExpression(Expression2Sql.from(schema, sqlDialect, filter));
+        // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
+        buildGroupBy(pipeline);
+        buildWhere(pipeline);
+        buildOrderBy(pipeline);
+        buildLimit(pipeline);
+
+        // returns the outermost pipeline
+        return pipeline.outermost;
+    }
+
+    private void buildLimit(Pipeline pipeline) {
+        if (limit == null) {
+            return;
         }
-        innermost.setWhere(where);
+        Preconditions.checkNotNull(this.orderBy, "Limit must be used with order by clause");
 
-        //
-        // Set GroupBy expression to the aggregation
-        //
-        {
-            pipeline.aggregation.getGroupBy().addFields(groupBy);
+        pipeline.outermost.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+    }
 
-            // All window aggregation output must appear in the group-by clause
-            if (pipeline.windowAggregation != null) {
-                for (Selector column : pipeline.windowAggregation.getSelectorList().getSelectors()) {
-                    if (!(column.getSelectExpression() instanceof Column)) {
-                        pipeline.aggregation.getGroupBy().addField(column.getOutputName());
-                    }
-                }
+    private void buildOrderBy(Pipeline pipeline) {
+        if (orderBy == null) {
+            return;
+        }
+
+        pipeline.outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+    }
+
+    private void buildWhere(Pipeline pipeline) {
+        IExpression timestampExpression = this.interval.getTimestampColumn();
+        Where preFilter = new Where();
+        preFilter.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
+        preFilter.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
+
+        if (filter != null) {
+
+            // Separate the filter to pre-filter and post-filter
+            FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
+            filter = filter.accept(splitter);
+
+            if (filter != null) {
+                preFilter.addExpression(Expression2Sql.from(((Table) pipeline.innermost.getFrom().getExpression()).getName(),
+                                                            sqlDialect,
+                                                            filter));
             }
 
-            // All input group-by fields must appear in the select list of all steps
-            // Since we always insert the column to the first place of the select list,
-            // we iterate the list in reversed order
-            for (int i = this.groupBy.size() - 1; i >= 0; i--) {
-                String groupBy = this.groupBy.get(i);
+            if (!splitter.postFilters.isEmpty()) {
+                IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
 
-                if (pipeline.windowAggregation != null) {
-                    pipeline.windowAggregation.getSelectorList().insert(new Column(groupBy));
+                if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
+                    pipeline.outermost.setHaving(new Having());
+                    pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
+                } else {
+
+                    if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
+                        // some DBMS does not allow alias to be referenced in the WHERE clause,
+                        // in such a case, a 'SELECT *' is added to the outermost query
+                        QueryExpression query = new QueryExpression();
+                        query.getSelectorList().add(new TextNode("*"));
+                        query.getFrom().setExpression(pipeline.outermost);
+
+                        if (sqlDialect.needTableAlias()) {
+                            query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
+                        }
+
+                        pipeline.outermost = query;
+                    }
+
+                    pipeline.outermost.setWhere(new Where());
+                    pipeline.outermost.getWhere().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
                 }
+            }
+        }
 
-                pipeline.aggregation.getSelectorList().insert(new Column(groupBy));
+        pipeline.innermost.setWhere(preFilter);
+    }
 
-                if (pipeline.postAggregation != null) {
-                    pipeline.postAggregation.getSelectorList().insert(new Column(groupBy));
+    private void buildGroupBy(Pipeline pipeline) {
+        pipeline.aggregation.getGroupBy().addFields(groupBy);
+
+        // All window aggregation output must appear in the group-by clause
+        if (pipeline.windowAggregation != null) {
+            for (Selector column : pipeline.windowAggregation.getSelectorList().getSelectors()) {
+                if (!(column.getSelectExpression() instanceof Column)) {
+                    pipeline.aggregation.getGroupBy().addField(column.getOutputName());
                 }
+            }
+        }
+
+        // All input group-by fields must appear in the select list of all steps
+        // Since we always insert the column to the first place of the select list,
+        // we iterate the list in reversed order
+        for (int i = this.groupBy.size() - 1; i >= 0; i--) {
+            String groupBy = this.groupBy.get(i);
+
+            if (pipeline.windowAggregation != null) {
+                pipeline.windowAggregation.getSelectorList().insert(new Column(groupBy));
+            }
+
+            pipeline.aggregation.getSelectorList().insert(new Column(groupBy));
+
+            if (pipeline.postAggregation != null) {
+                pipeline.postAggregation.getSelectorList().insert(new Column(groupBy));
             }
         }
 
         // We need to group the values in a time bucket
         // See the test: testWindowFunction_TimeSeries to know more
         if (this.interval.getStep() != null) {
+            IExpression timestampExpression = this.interval.getTimestampColumn();
             TextNode expr = new TextNode(this.sqlDialect.timeFloorExpression(timestampExpression, this.interval.getStep().getSeconds()));
 
             // The timestamp calculation is pushed down to the window aggregation step if needed
@@ -601,18 +743,5 @@ public class QueryExpressionBuilder {
                 pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
             }
         }
-
-        //
-        // Set OrderBy/Limit expression to the outermost
-        //
-        if (orderBy != null) {
-            outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
-        }
-        if (limit != null) {
-            outermost.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
-        }
-
-        // returns the outermost pipeline
-        return pipeline.outermost;
     }
 }

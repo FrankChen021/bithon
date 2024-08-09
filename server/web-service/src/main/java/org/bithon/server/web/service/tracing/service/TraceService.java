@@ -284,11 +284,10 @@ public class TraceService {
             @Override
             public Boolean visit(ConditionalExpression expression) {
                 IExpression left = expression.getLhs();
-                if (!(left instanceof MapAccessExpression)) {
+                if (!(left instanceof MapAccessExpression mapAccessExpression)) {
                     return false;
                 }
 
-                MapAccessExpression mapAccessExpression = (MapAccessExpression) left;
                 IExpression mapContainerExpression = ((MapAccessExpression) left).getMap();
                 if (!(mapContainerExpression instanceof IdentifierExpression)) {
                     throw new UnsupportedOperationException("Only identifier is supported as map container");

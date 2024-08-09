@@ -69,12 +69,12 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public boolean groupByUseRawExpression() {
+    public boolean isAliasAllowedInWhereClause() {
         return false;
     }
 
     @Override
-    public boolean allowSameAggregatorExpression() {
+    public boolean needTableAlias() {
         return false;
     }
 

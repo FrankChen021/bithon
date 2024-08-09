@@ -38,53 +38,12 @@ public interface ISqlDialect {
      */
     String timeFloorExpression(IExpression timestampExpression, long intervalSeconds);
 
-    /**
-     * Some DBMS requires the group-by expression to be the same as the expression in field list
-     * even if field is a complex expression.
-     * <p>
-     * For example, the following group-by expression can't be the alias of the expression in field list.
-     * In this case, this function should return 'true'
-     * <p>
-     * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
-     *        sum("requestBytes")/10 "requestByteRate",
-     *        sum("responseBytes")/10 "responseByteRate",
-     *        sum("requestBytes") AS "requestBytes",sum("responseBytes") AS "responseBytes"
-     * FROM "bithon_redis_metrics" OUTER
-     * WHERE "appName"='bithon-server-dev'
-     *   AND "timestamp" >= '2021-10-28T16:26:42+08:00' AND "timestamp" <= '2021-10-28T16:31:42+08:00'
-     * GROUP BY UNIX_TIMESTAMP("timestamp")/ 10 * 10
-     * </p>
-     */
-    boolean groupByUseRawExpression();
+    boolean isAliasAllowedInWhereClause();
 
     /**
-     * Different DBMSs have different requirements on the aggregators
-     * <p>
-     * Take the following SQL as an example,
-     * <p>
-     * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
-     *        sum("requestBytes")/10 "requestByteRate",
-     *        sum("requestBytes") AS "requestBytes"
-     * FROM "bithon_redis_metrics" OUTER
-     * WHERE "appName"='bithon-server-dev'
-     *   AND "timestamp" >= '2021-10-28T16:26:42+08:00' AND "timestamp" <= '2021-10-28T16:31:42+08:00'
-     * GROUP BY UNIX_TIMESTAMP("timestamp")/ 10 * 10
-     * </p>
-     *
-     * We can see that expression sum("requestBytes") appears on the SQL twice.
-     * <p>
-     * Some DBMS allow it, but some DO NOT.
-     * So, for those DBMs that DO NOT support the same aggregator expression, we need to rewrite the SQL as
-     *
-     * <p>
-     * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
-     *        sum("requestBytes") AS "requestBytes",
-     *        requestBytes/10 "requestByteRate",
-     * ...
-     * </p>
-     *
+     * Some DBMSs, like MySQL, require table alias if there are nested queries
      */
-    boolean allowSameAggregatorExpression();
+    boolean needTableAlias();
 
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
