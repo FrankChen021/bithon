@@ -60,13 +60,13 @@ public class StringFunction {
         }
 
         @Override
-        protected void validateParameter(IExpression parameter, int index) {
+        protected void validateArgs(IExpression arg, int index) {
             if (index == 1) {
-                if (!(parameter instanceof LiteralExpression)) {
+                if (!(arg instanceof LiteralExpression)) {
                     throw new InvalidExpressionException("The 2nd parameter of hasToken must be a constant");
                 }
             }
-            super.validateParameter(parameter, index);
+            super.validateArgs(arg, index);
         }
 
         @Override
