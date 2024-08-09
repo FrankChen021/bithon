@@ -70,7 +70,6 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
 
         IDataType lhsType = expression.getLhs().getDataType();
         IDataType rhsType = expression.getRhs().getDataType();
-
         if (lhsType.equals(rhsType)) {
             return true;
         }
@@ -78,7 +77,7 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
         // Type cast
         if (expression.getRhs() instanceof LiteralExpression) {
             if (expression.getLhs() instanceof LiteralExpression) {
-                // Continue
+                // This is the case that both lhs and rhs are literals
                 return true;
             }
 

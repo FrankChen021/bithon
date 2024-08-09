@@ -450,14 +450,27 @@ public class QueryExpressionBuilder {
 
         Aggregators aggregators = new Aggregators();
 
-        // TODO:This might not be the correct place, may need to extract to caller
         if (this.filter != null) {
-            this.filter.accept(new IExpressionVisitor() {
+            this.filter.accept(new IExpressionInDepthVisitor() {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
                     IColumn column = schema.getColumnByName(expression.getIdentifier());
-                    if (column instanceof ExpressionColumn) {
-                        // TODO: check if the selector exists in the selector list
+                    if (!(column instanceof ExpressionColumn expressionColumn)) {
+                        return false;
+                    }
+
+                    // Check the existence of the column in the selector list
+                    boolean exists = false;
+                    for (Selector selector : selectors) {
+                        if (selector.getSelectExpression() instanceof Expression selectExpression) {
+                            if (expressionColumn.getExpression().equals(selectExpression.getExpression())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!exists) {
                         selectors.add(column.toSelector());
                     }
                     return false;
