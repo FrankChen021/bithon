@@ -133,12 +133,9 @@ fragment W : [wW];
 fragment X : [xX];
 fragment Y : [yY];
 fragment Z : [zZ];
-fragment LETTER
-    : [a-zA-Z]
-    ;
+fragment LETTER: [a-zA-Z];
 fragment DIGIT : '0'..'9';
-fragment SQUOTA_STRING
-  : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
+fragment SQUOTA_STRING: '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
 
 IDENTIFIER
  : LETTER (LETTER | DIGIT | '_')*
