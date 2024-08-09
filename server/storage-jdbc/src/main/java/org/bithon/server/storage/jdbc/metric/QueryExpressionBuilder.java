@@ -594,9 +594,17 @@ public class QueryExpressionBuilder {
                 if (selectExpression instanceof Expression) {
                     IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
 
-                    pipeline.postAggregation.getSelectorList()
-                                            .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput())
-                                            .setTag(true);
+                    if (parsedExpression instanceof IdentifierExpression identifierExpression) {
+                        // Try to eliminate Alias expression
+                        String identifier = identifierExpression.getIdentifier();
+                        pipeline.postAggregation.getSelectorList()
+                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput())
+                                                .setTag(true);
+                    } else {
+                        pipeline.postAggregation.getSelectorList()
+                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput())
+                                                .setTag(true);
+                    }
                 }
             }
         }

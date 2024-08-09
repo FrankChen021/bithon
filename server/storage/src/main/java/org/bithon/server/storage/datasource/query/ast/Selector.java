@@ -38,7 +38,9 @@ import org.bithon.component.commons.utils.StringUtils;
 @Getter
 public class Selector implements IASTNode {
     private final IASTNode selectExpression;
-    private final Alias output;
+
+    @Setter
+    private Alias output;
 
     @Setter
     private Object tag;
@@ -49,10 +51,6 @@ public class Selector implements IASTNode {
 
     public Selector(String name, String output) {
         this(new Column(name), output == null ? null : new Alias(output));
-    }
-
-    Selector(IASTNode selectExpression) {
-        this(selectExpression, (String) null);
     }
 
     public Selector(IASTNode selectExpression, String output) {

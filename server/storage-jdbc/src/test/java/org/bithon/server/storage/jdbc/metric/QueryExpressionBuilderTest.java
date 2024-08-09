@@ -906,7 +906,7 @@ public class QueryExpressionBuilderTest {
         Assert.assertEquals("""
                             SELECT "appName",
                                    "instanceName",
-                                   "totalCount" AS "totalCount",
+                                   "totalCount",
                                    "responseTime" / "totalCount" AS "avgResponseTime"
                             FROM
                             (
