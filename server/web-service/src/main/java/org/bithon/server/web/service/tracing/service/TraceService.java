@@ -306,7 +306,7 @@ public class TraceService {
                 if (indexColumn != null) {
                     // Replace the map access expression in the left to identifier expression
                     // which refers to the indexed column
-                    expression.setLeft(new IdentifierExpression(indexColumn.getName()));
+                    expression.setLhs(new IdentifierExpression(indexColumn.getName()));
                     return true;
                 }
 
