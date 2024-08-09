@@ -69,12 +69,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public boolean groupByUseRawExpression() {
-        return false;
-    }
-
-    @Override
-    public boolean allowSameAggregatorExpression() {
+    public boolean isAliasAllowedInWhereClause() {
         return false;
     }
 

@@ -122,12 +122,7 @@ public class QueryExpressionBuilderTest {
         }
 
         @Override
-        public boolean groupByUseRawExpression() {
-            return false;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
+        public boolean isAliasAllowedInWhereClause() {
             return false;
         }
 
@@ -181,13 +176,8 @@ public class QueryExpressionBuilderTest {
         }
 
         @Override
-        public boolean groupByUseRawExpression() {
-            return false;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
-            return false;
+        public boolean isAliasAllowedInWhereClause() {
+            return true;
         }
 
         @Override
@@ -807,19 +797,23 @@ public class QueryExpressionBuilderTest {
         queryExpression.accept(sqlGenerator);
 
         Assert.assertEquals("""
-                            SELECT "appName",
-                                   "instanceName",
-                                   "_var0" / "totalCount" AS "avg"
+                            SELECT *
                             FROM
                             (
                               SELECT "appName",
                                      "instanceName",
-                                     sum("responseTime" * 2) AS "_var0",
-                                     sum("totalCount") AS "totalCount"
-                              FROM "bithon_jvm_metrics"
-                              WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
-                              GROUP BY "appName", "instanceName"
-                            ) AS "tbl1"
+                                     "_var0" / "totalCount" AS "avg"
+                              FROM
+                              (
+                                SELECT "appName",
+                                       "instanceName",
+                                       sum("responseTime" * 2) AS "_var0",
+                                       sum("totalCount") AS "totalCount"
+                                FROM "bithon_jvm_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
+                                GROUP BY "appName", "instanceName"
+                              ) AS "tbl1"
+                            )
                             WHERE "avg" > 0.2
                             """.trim(),
                             sqlGenerator.getSQL());
@@ -884,7 +878,7 @@ public class QueryExpressionBuilderTest {
     }
 
     @Test
-    public void testPostFilter_FilterNotInTheSelectList() {
+    public void testPostFilter_FilterNotInTheSelectList_H2() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
@@ -898,6 +892,50 @@ public class QueryExpressionBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        queryExpression.accept(sqlGenerator);
+
+        // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
+        // This is because the avgResponse is defined as DOUBLE,
+        // and there's a type conversion in 'ExpressionTypeValidator'
+        Assert.assertEquals("""
+                            SELECT *
+                            FROM
+                            (
+                              SELECT "appName",
+                                     "instanceName",
+                                     "totalCount",
+                                     "responseTime" / "totalCount" AS "avgResponseTime"
+                              FROM
+                              (
+                                SELECT "appName",
+                                       "instanceName",
+                                       sum("totalCount") AS "totalCount",
+                                       sum("responseTime") AS "responseTime"
+                                FROM "bithon_jvm_metrics"
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                GROUP BY "appName", "instanceName"
+                              ) AS "tbl1"
+                            )
+                            WHERE "avgResponseTime" > 5.0
+                            """.trim(),
+                            sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostFilter_FilterNotInTheSelectList_CK() {
+        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(ExpressionASTBuilder.builder()
+                                                                                            .schema(schema)
+                                                                                            .functions(Functions.getInstance())
+                                                                                            .build("avgResponseTime > 5"))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .dataSource(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
         queryExpression.accept(sqlGenerator);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5

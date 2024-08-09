@@ -617,7 +617,7 @@ public class QueryExpressionBuilder {
 
         // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
         buildGroupBy(pipeline);
-        buildFilter(pipeline);
+        buildWhere(pipeline);
         buildOrderBy(pipeline);
         buildLimit(pipeline);
 
@@ -642,14 +642,15 @@ public class QueryExpressionBuilder {
         pipeline.outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
     }
 
-    private void buildFilter(Pipeline pipeline) {
+    private void buildWhere(Pipeline pipeline) {
         IExpression timestampExpression = this.interval.getTimestampColumn();
         Where preFilter = new Where();
         preFilter.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
         preFilter.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
-        if (filter != null) {
-            // Separate the filter to pre-filter and post-filter
 
+        if (filter != null) {
+
+            // Separate the filter to pre-filter and post-filter
             FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
             filter = filter.accept(splitter);
 
@@ -666,11 +667,22 @@ public class QueryExpressionBuilder {
                     pipeline.outermost.setHaving(new Having());
                     pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
                 } else {
+
+                    if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
+                        // some DBMS does not allow alias to be referenced in the WHERE clause,
+                        // in such a case, a 'SELECT *' is added to the outermost query
+                        QueryExpression query = new QueryExpression();
+                        query.getSelectorList().add(new TextNode("*"));
+                        query.getFrom().setExpression(pipeline.outermost);
+                        pipeline.outermost = query;
+                    }
+
                     pipeline.outermost.setWhere(new Where());
                     pipeline.outermost.getWhere().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
                 }
             }
         }
+
         pipeline.innermost.setWhere(preFilter);
     }
 
