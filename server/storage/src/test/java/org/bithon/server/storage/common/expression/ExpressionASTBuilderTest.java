@@ -301,31 +301,11 @@ public class ExpressionASTBuilderTest {
 
     @Test
     public void test_UnderscoreInteger() {
-        {
-            IExpression expr = ExpressionASTBuilder.builder().build("1");
-
-            Assert.assertEquals("1", expr.serializeToText());
-        }
-        {
-            IExpression expr = ExpressionASTBuilder.builder().build("12");
-
-            Assert.assertEquals("12", expr.serializeToText());
-        }
-        {
-            IExpression expr = ExpressionASTBuilder.builder().build("123");
-
-            Assert.assertEquals("123", expr.serializeToText());
-        }
-        {
-            IExpression expr = ExpressionASTBuilder.builder().build("1_2");
-
-            Assert.assertEquals("12", expr.serializeToText());
-        }
-        {
-            IExpression expr = ExpressionASTBuilder.builder().build("1__2");
-
-            Assert.assertEquals("12", expr.serializeToText());
-        }
+        Assert.assertEquals("1", ExpressionASTBuilder.builder().build("1").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("12").serializeToText());
+        Assert.assertEquals("123", ExpressionASTBuilder.builder().build("123").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("1_2").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("1__2").serializeToText());
 
         Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1__"));
         Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1_"));
