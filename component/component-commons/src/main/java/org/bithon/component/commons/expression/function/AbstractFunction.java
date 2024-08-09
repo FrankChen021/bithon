@@ -75,14 +75,14 @@ public abstract class AbstractFunction implements IFunction {
                                                  args.size());
         }
         for (int i = 0; i < args.size(); i++) {
-            validateParameter(args.get(i), i);
+            validateArgs(args.get(i), i);
         }
     }
 
-    protected void validateParameter(IExpression parameter, int index) {
-        if (parameter instanceof LiteralExpression) {
+    protected void validateArgs(IExpression arg, int index) {
+        if (arg instanceof LiteralExpression) {
             IDataType declaredType = this.getParameterTypeList().get(index);
-            IDataType inputType = parameter.getDataType();
+            IDataType inputType = arg.getDataType();
             if (!declaredType.canCastFrom(inputType)) {
                 throw new InvalidExpressionException("The parameter at index %d of function [%s] must be type of %s",
                                                      index,

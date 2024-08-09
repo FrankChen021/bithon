@@ -62,16 +62,15 @@ notPredicate
   : NOT extraPredicate
   ;
 
-INTEGER_LITERAL: '-'?[0-9]+;
-DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
+// The underscore in number can't be the first and last character
+INTEGER_LITERAL: '-'? DIGIT ((DIGIT | '_')* DIGIT)?;
+DECIMAL_LITERAL: '-'? DIGIT ((DIGIT | '_')* DIGIT)? '.' (DIGIT | DIGIT (DIGIT | '_')* DIGIT)?;
+
 STRING_LITERAL: SQUOTA_STRING;
 BOOL_LITERAL: TRUE | FALSE;
 READABLE_DURATION_LITERAL: INTEGER_LITERAL [smhd];
 READABLE_SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
 READABLE_PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
-
-fragment SQUOTA_STRING
-  : '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
 
 LEFT_PARENTHESIS: '(';
 RIGHT_PARENTHESIS: ')';
@@ -134,6 +133,13 @@ fragment W : [wW];
 fragment X : [xX];
 fragment Y : [yY];
 fragment Z : [zZ];
+fragment LETTER: [a-zA-Z];
+fragment DIGIT : '0'..'9';
+fragment SQUOTA_STRING: '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
 
-IDENTIFIER : [a-zA-Z_][a-zA-Z_0-9]*;
+IDENTIFIER
+ : LETTER (LETTER | DIGIT | '_')*
+ | '_' LETTER (LETTER | DIGIT | '_')*
+ ;
+
 WS: [ \n\t\r]+ -> skip;

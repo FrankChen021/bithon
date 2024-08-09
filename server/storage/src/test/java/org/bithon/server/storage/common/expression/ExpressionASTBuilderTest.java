@@ -200,8 +200,7 @@ public class ExpressionASTBuilderTest {
 
     @Test
     public void test_TernaryExpression() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .build("a > b ? 1 : 2");
+        IExpression expr = ExpressionASTBuilder.builder().build("a > b ? 1 : 2");
 
         Assert.assertEquals("a > b ? 1 : 2", expr.serializeToText(null));
         long v = (long) expr.evaluate(name -> {
@@ -215,8 +214,7 @@ public class ExpressionASTBuilderTest {
 
     @Test
     public void test_Is_Null_Expression() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .build("a is null");
+        IExpression expr = ExpressionASTBuilder.builder().build("a is null");
 
         Assert.assertEquals("a IS null", expr.serializeToText(null));
 
@@ -226,9 +224,7 @@ public class ExpressionASTBuilderTest {
 
     @Test
     public void test_CountAggregation() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .functions(Functions.getInstance())
-                                               .build("count(1)");
+        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("count(1)");
 
         Assert.assertEquals("count(1)", expr.serializeToText(null));
     }
@@ -299,10 +295,43 @@ public class ExpressionASTBuilderTest {
 
     @Test
     public void test_NowExpression() {
-        IExpression expr = ExpressionASTBuilder.builder()
-                                               .functions(Functions.getInstance())
-                                               .optimizationEnabled(false)
-                                               .build("now() - 5s");
+        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).optimizationEnabled(false).build("now() - 5s");
         Assert.assertEquals("now() - 5s", expr.serializeToText());
+    }
+
+    @Test
+    public void test_UnderscoreInteger() {
+        Assert.assertEquals("1", ExpressionASTBuilder.builder().build("1").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("12").serializeToText());
+        Assert.assertEquals("123", ExpressionASTBuilder.builder().build("123").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("1_2").serializeToText());
+        Assert.assertEquals("12", ExpressionASTBuilder.builder().build("1__2").serializeToText());
+
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1__"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1_"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("_1"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("__1"));
+    }
+
+    @Test
+    public void test_UnderscoreDecimal() {
+        Assert.assertEquals("1.0", ExpressionASTBuilder.builder().build("1.").serializeToText());
+        Assert.assertEquals("12.0", ExpressionASTBuilder.builder().build("12.").serializeToText());
+        Assert.assertEquals("123.0", ExpressionASTBuilder.builder().build("123.").serializeToText());
+        Assert.assertEquals("123.0", ExpressionASTBuilder.builder().build("12_3.").serializeToText());
+        Assert.assertEquals("123.0", ExpressionASTBuilder.builder().build("1_2_3.").serializeToText());
+
+        Assert.assertEquals("11.1", ExpressionASTBuilder.builder().build("1_1.1").serializeToText());
+        Assert.assertEquals("11.12", ExpressionASTBuilder.builder().build("1_1.12").serializeToText());
+        Assert.assertEquals("11.123", ExpressionASTBuilder.builder().build("1_1.123").serializeToText());
+
+        Assert.assertEquals("11.123", ExpressionASTBuilder.builder().build("1_1.1_23").serializeToText());
+        Assert.assertEquals("11.123", ExpressionASTBuilder.builder().build("1_1.1_2_3").serializeToText());
+
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("__1."));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("_1."));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1_."));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("11._"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("11.2_"));
     }
 }

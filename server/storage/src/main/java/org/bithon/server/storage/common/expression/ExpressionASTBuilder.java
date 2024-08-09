@@ -361,9 +361,9 @@ public class ExpressionASTBuilder {
 
             return switch (literal.getSymbol().getType()) {
                 case ExpressionLexer.INTEGER_LITERAL ->
-                    LiteralExpression.ofLong(Long.parseLong(literal.getText()));
+                    LiteralExpression.ofLong(Long.parseLong(literal.getText().replace("_", "")));
                 case ExpressionLexer.DECIMAL_LITERAL ->
-                    LiteralExpression.ofDouble(Double.parseDouble(literal.getText()));
+                    LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
                 case ExpressionLexer.STRING_LITERAL ->
                     LiteralExpression.ofString(TokenUtils.getUnQuotedString(literal.getSymbol()));
                 case ExpressionLexer.BOOL_LITERAL ->

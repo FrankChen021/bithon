@@ -37,6 +37,10 @@ public class SyntaxErrorListener extends BaseErrorListener {
         this.expression = expression;
     }
 
+    /**
+     * For such an expression input: 12_
+     * It triggers the token recognition error, and the offending symbol is NULL.
+     */
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer,
                             Object offendingSymbol,
@@ -47,8 +51,8 @@ public class SyntaxErrorListener extends BaseErrorListener {
 
         Token token = (Token) offendingSymbol;
         throw InvalidExpressionException.format(expression,
-                                                token.getStartIndex(),
-                                                token.getStopIndex(),
+                                                token == null ? null : token.getStartIndex(),
+                                                token == null ? null : token.getStopIndex(),
                                                 line,
                                                 charPositionInLine,
                                                 msg);
