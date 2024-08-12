@@ -23,7 +23,6 @@ import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.Preconditions;
@@ -35,7 +34,6 @@ import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * @author frankchen
@@ -49,16 +47,6 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
     private final InvocationManager invocationManager;
 
     /**
-     * Instantiate an instance which calls the service in the netty's IO threads
-     */
-    ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
-                                 InvocationManager invocationManager) {
-        this(serviceRegistry,
-             Runnable::run,
-             invocationManager);
-    }
-
-    /**
      * Instantiate an instance which calls the service in specified executor.
      */
     public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
@@ -66,7 +54,7 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                                         InvocationManager invocationManager) {
         this.serviceRegistry = Preconditions.checkArgumentNotNull("serviceRegistry", serviceRegistry);
         this.invocationManager = Preconditions.checkArgumentNotNull("invocationManager", invocationManager);
-        this.executor = executor == null ? Executors.newCachedThreadPool(NamedThreadFactory.of("brpc-executor")) : executor;
+        this.executor = executor == null ? Runnable::run : executor;
     }
 
     @Override

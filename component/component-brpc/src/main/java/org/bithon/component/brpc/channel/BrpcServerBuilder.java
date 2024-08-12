@@ -29,7 +29,7 @@ public class BrpcServerBuilder {
     int ioThreads = Runtime.getRuntime().availableProcessors();
     int lowMaterMark = 0;
     int highMaterMark = 0;
-    Executor executor;
+    Executor executor = null;
 
     public static BrpcServerBuilder builder() {
         return new BrpcServerBuilder();
@@ -40,8 +40,8 @@ public class BrpcServerBuilder {
         return this;
     }
 
-    public BrpcServerBuilder networkIOThreads(int networkIOThreads) {
-        this.ioThreads = networkIOThreads;
+    public BrpcServerBuilder ioThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
         return this;
     }
 

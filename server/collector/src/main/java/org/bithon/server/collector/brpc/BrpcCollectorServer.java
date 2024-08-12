@@ -20,10 +20,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.channel.BrpcServerBuilder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,14 +48,21 @@ public class BrpcCollectorServer {
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    public synchronized ServiceGroup addService(String name, Object implementation, int port) {
+    public synchronized ServiceGroup addService(String group, Object implementation, int port) {
         ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());
-        serviceGroup.getServices().put(name, implementation);
+        serviceGroup.getServices().put(group, implementation);
 
         if (serviceGroup.brpcServer == null) {
             // Create a server with the first service name as the server id
             serviceGroup.brpcServer = BrpcServerBuilder.builder()
-                                                       .serverId(name)
+                                                       .serverId(group)
+                                                       .executor(new ThreadPoolExecutor(1,
+                                                                                        Runtime.getRuntime().availableProcessors(),
+                                                                                        3,
+                                                                                        TimeUnit.MINUTES,
+                                                                                        new LinkedBlockingQueue<>(1024),
+                                                                                        NamedThreadFactory.of("brpc-executor-" + group),
+                                                                                        new ThreadPoolExecutor.CallerRunsPolicy()))
                                                        .build();
             serviceGroup.start(port);
             log.info("Started Brpc services [{}] at port {}",
