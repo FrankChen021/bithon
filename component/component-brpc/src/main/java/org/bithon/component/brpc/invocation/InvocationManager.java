@@ -165,7 +165,9 @@ public class InvocationManager {
                 throw inflightRequest.exception;
             }
 
-            if (inflightRequest.returnObject != null) {
+            if (inflightRequest.responseAt > 0) {
+                // Response has been collected, then return the object.
+                // NOTE: The return object might be NULL
                 return inflightRequest.returnObject;
             }
 
@@ -224,7 +226,6 @@ public class InvocationManager {
 
         synchronized (inflightRequest) {
             inflightRequest.exception = e;
-            inflightRequest.responseAt = System.currentTimeMillis();
             inflightRequest.notify();
         }
     }
