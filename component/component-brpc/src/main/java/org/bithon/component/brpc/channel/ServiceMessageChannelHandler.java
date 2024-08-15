@@ -68,7 +68,9 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                     LOG.debug("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
                 }
 
-                executor.execute(new ServiceInvocationRunnable(serviceRegistry, ctx.channel(), (ServiceRequestMessageIn) msg));
+                ServiceInvocationRunnable.execute(serviceRegistry,
+                                                  ctx.channel(), (ServiceRequestMessageIn) msg,
+                                                  this.executor);
                 break;
 
             case ServiceMessageType.SERVER_RESPONSE:

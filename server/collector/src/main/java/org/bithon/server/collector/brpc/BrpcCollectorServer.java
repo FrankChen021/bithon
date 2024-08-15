@@ -20,10 +20,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.channel.BrpcServerBuilder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -52,7 +56,6 @@ public class BrpcCollectorServer {
             // Create a server with the first service name as the server id
             serviceGroup.brpcServer = BrpcServerBuilder.builder()
                                                        .serverId(group)
-                                                       /*
                                                        .executor(new ThreadPoolExecutor(1,
                                                                                         Runtime.getRuntime().availableProcessors(),
                                                                                         3,
@@ -60,8 +63,6 @@ public class BrpcCollectorServer {
                                                                                         new LinkedBlockingQueue<>(1024),
                                                                                         NamedThreadFactory.of("brpc-executor-" + group),
                                                                                         new ThreadPoolExecutor.CallerRunsPolicy()))
-                                                        */
-                                                       .executor(Runnable::run)
                                                        .build();
             serviceGroup.start(port);
             log.info("Started Brpc services [{}] at port {}",
