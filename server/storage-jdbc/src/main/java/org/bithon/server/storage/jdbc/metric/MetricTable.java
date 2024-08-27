@@ -100,7 +100,8 @@ public class MetricTable extends TableImpl {
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2)
                                                .nullable(false)
-                                               .defaultValue(BigDecimal.valueOf(0)));
+                                               .defaultValue(BigDecimal.valueOf(0)),
+                                    comment);
         } else if (dataType.equals(IDataType.LONG)) {
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L), comment);
         } else if (dataType.equals(IDataType.STRING)) {
