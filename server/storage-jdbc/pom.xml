@@ -91,17 +91,6 @@
               <includes>.*</includes><!-- table white-list, regex -->
               <dateAsTimestamp>false</dateAsTimestamp>
               <outputSchemaToDefault>true</outputSchemaToDefault>
-              <forcedTypes>
-                <forcedType>
-                  <!--tinyint is mapped into java Boolean(org.jooq.impl.SQLDataType)-->
-                  <name>BOOLEAN</name>
-                  <includeTypes>tinyint</includeTypes>
-                </forcedType>
-<!--                <forcedType>-->
-<!--                  <name>OTHER</name>-->
-<!--                  <includeExpression>bithon_trace_span.*.attributes</includeExpression>-->
-<!--                </forcedType>-->
-              </forcedTypes>
               <!-- <unsignedTypes>false</unsignedTypes> -->
             </database>
             <generate>

@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Evaluation logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLogRecord> {
 
     private static final long serialVersionUID = 1L;

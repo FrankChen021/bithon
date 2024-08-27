@@ -16,7 +16,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * This table keeps the date when the metrics will be kept for ever
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetricsBaselineRecord extends TableRecordImpl<BithonMetricsBaselineRecord> implements Record3<String, Integer, LocalDateTime> {
 
     private static final long serialVersionUID = 1L;

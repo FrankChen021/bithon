@@ -104,7 +104,7 @@ public class TableCreator {
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldDeclarationExpression(table),
+                                                           getFieldDeclarationExpression(table, true),
                                                            getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
@@ -208,7 +208,7 @@ public class TableCreator {
                                          config.getDatabase(),
                                          table.getName(),
                                          config.getOnClusterExpression()));
-            sb.append(getFieldDeclarationExpression(table));
+            sb.append(getFieldDeclarationExpression(table, false));
 
             final StringBuilder shardingKey = new StringBuilder();
             if (this.replacingMergeTreeVersion != null) {
@@ -246,7 +246,7 @@ public class TableCreator {
         }
     }
 
-    private String getFieldDeclarationExpression(Table<?> table) {
+    private String getFieldDeclarationExpression(Table<?> table, boolean allowCodec) {
 
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> field : table.fields()) {
@@ -263,7 +263,7 @@ public class TableCreator {
                 }
             }
 
-            sb.append(StringUtils.format("`%s` %s ", field.getName(), typeName));
+            sb.append(StringUtils.format("`%s` %s", field.getName(), typeName));
 
             Field<?> defaultValue = dataType.defaultValue();
             if (defaultValue != null) {
@@ -271,7 +271,11 @@ public class TableCreator {
                 if (defaultValueText.toUpperCase(Locale.ENGLISH).startsWith("CURRENT_TIMESTAMP")) {
                     defaultValueText = "now()";
                 }
-                sb.append(StringUtils.format("DEFAULT %s", defaultValueText));
+                sb.append(StringUtils.format(" DEFAULT %s", defaultValueText));
+            }
+
+            if (allowCodec && "Metric".equals(field.getComment())) {
+                sb.append(" CODEC(T64, ZSTD)");
             }
 
             sb.append(",\n");
