@@ -46,17 +46,12 @@ public class MetricTable extends TableImpl {
     @Getter
     private final List<Field> metrics = new ArrayList<>();
     private final List<Index> indexes;
-    private final Field<Timestamp> timestampField;
-
-    public Field<Timestamp> getTimestampField() {
-        return timestampField;
-    }
 
     public MetricTable(ISchema dataSource, boolean useAllDimensionsAsIndex) {
         super(DSL.name(dataSource.getDataStoreSpec().getStore()));
 
         //noinspection unchecked
-        timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
+        Field<Timestamp> timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
 
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
@@ -66,7 +61,10 @@ public class MetricTable extends TableImpl {
             // For some DBMS, like MySQL, there's length limitation on the fields which are also used as index
             boolean isIndexField = useAllDimensionsAsIndex || dimension.getName().equals("appName") || dimension.getName().equals("instanceName");
 
-            Field dimensionField = createField(dimension.getName(), dimension.getDataType(), isIndexField ? 128 : 1024);
+            Field dimensionField = createField(dimension.getName(),
+                                               dimension.getDataType(),
+                                               isIndexField ? 128 : 1024,
+                                               "Dimension");
             dimensions.add(dimensionField);
 
             if (isIndexField) {
@@ -78,7 +76,10 @@ public class MetricTable extends TableImpl {
             if (metric instanceof ExpressionColumn) {
                 continue;
             }
-            metrics.add(createField(metric.getName(), metric.getDataType(), 8192));
+            metrics.add(createField(metric.getName(),
+                                    metric.getDataType(),
+                                    0,
+                                    "Metric"));
         }
 
         Index index = Internal.createIndex(DSL.name("idx_" + this.getName() + "_dimensions"),
@@ -94,21 +95,22 @@ public class MetricTable extends TableImpl {
     }
 
     @SuppressWarnings("unchecked")
-    private Field createField(String name, IDataType dataType, int length) {
+    private Field createField(String name, IDataType dataType, int length, String comment) {
         if (dataType.equals(IDataType.DOUBLE)) {
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2)
                                                .nullable(false)
                                                .defaultValue(BigDecimal.valueOf(0)));
         } else if (dataType.equals(IDataType.LONG)) {
-            return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
+            return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L), comment);
         } else if (dataType.equals(IDataType.STRING)) {
             // Note that the length defined here will be used in the MetricJdbcWriter to limit the size of input.
             // This only works on the H2/MySQL database.
             return this.createField(DSL.name(name),
                                     SQLDataType.VARCHAR.length(length)
                                                        .nullable(false)
-                                                       .defaultValue(""));
+                                                       .defaultValue(""),
+                                    comment);
         } else {
             throw new RuntimeException("unknown type:" + dataType);
         }
