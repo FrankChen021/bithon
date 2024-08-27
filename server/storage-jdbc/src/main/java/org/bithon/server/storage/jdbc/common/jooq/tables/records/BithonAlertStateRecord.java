@@ -16,7 +16,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record5<String, Integer, LocalDateTime, String, LocalDateTime> {
 
     private static final long serialVersionUID = 1L;

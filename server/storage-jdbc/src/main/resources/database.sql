@@ -58,7 +58,7 @@ CREATE TABLE `bithon_meta_schema`
 DROP TABLE IF EXISTS `bithon_agent_setting`;
 CREATE TABLE `bithon_agent_setting`
 (
-    `timestamp`   TIMESTAMP    NOT NULL COMMENT 'Created Timestamp',
+    `timestamp`   TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
     `appName`     varchar(128) NOT NULL COMMENT '',
     `environment` varchar(128) NOT NULL COMMENT '',
     `settingName` varchar(64)  NOT NULL COMMENT '',
@@ -72,7 +72,7 @@ CREATE TABLE `bithon_agent_setting`
 DROP TABLE IF EXISTS `bithon_trace_span`;
 CREATE TABLE `bithon_trace_span`
 (
-    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
     `appName`      VARCHAR(64)             NOT NULL COMMENT '',
     `instanceName` VARCHAR(64)             NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
@@ -101,7 +101,7 @@ CREATE TABLE `bithon_trace_span`
 DROP TABLE IF EXISTS `bithon_trace_span_summary`;
 CREATE TABLE `bithon_trace_span_summary`
 (
-    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
     `appName`       VARCHAR(64)            NOT NULL COMMENT '',
     `instanceName`  VARCHAR(64)            NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
@@ -129,7 +129,7 @@ CREATE TABLE `bithon_trace_span_summary`
 DROP TABLE IF EXISTS `bithon_trace_span_tag_index`;
 CREATE TABLE `bithon_trace_span_tag_index`
 (
-    `timestamp`      TIMESTAMP   NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`      TIMESTAMP(3)   NOT NULL COMMENT 'Milli Seconds',
     `f1`             VARCHAR(64) DEFAULT '' COMMENT 'tag value1',
     `f2`             VARCHAR(64) DEFAULT '' COMMENT 'tag value2',
     `f3`             VARCHAR(64) DEFAULT '' COMMENT 'tag value3',
@@ -154,7 +154,7 @@ CREATE TABLE `bithon_trace_span_tag_index`
 DROP TABLE IF EXISTS `bithon_trace_mapping`;
 CREATE TABLE `bithon_trace_mapping`
 (
-    `timestamp`     TIMESTAMP             NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)             NOT NULL COMMENT 'Milli Seconds',
     `user_tx_id`    VARCHAR(64)           NOT NULL COMMENT 'user side transaction id',
     `trace_id`      VARCHAR(64)           NOT NULL COMMENT 'trace id in bithon',
     KEY `idx_trace_mapping_user_tx_id` (`user_tx_id`)
