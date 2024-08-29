@@ -37,6 +37,12 @@ public class W3CTraceContextInjector implements ITraceContextInjector {
                        W3CTraceContextHeader.TRACE_HEADER_PARENT,
                        formatTraceParent(context.traceMode(), context.traceId(), context.currentSpan().spanId()));
 
+            if (!context.attributes().isEmpty()) {
+                setter.put(request,
+                           W3CTraceContextHeader.TRACE_HEADER_STATE,
+                           context.attributes().toString());
+            }
+
             setter.put(request,
                        ITracePropagator.TRACE_HEADER_SRC_APPLICATION,
                        Tracer.get().appName());

@@ -20,6 +20,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
+import org.bithon.agent.observability.tracing.id.impl.SpanIdGenerator;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 
 /**
@@ -67,6 +68,7 @@ public class B3Extractor implements ITraceContextExtractor {
         return TraceContextFactory.newContext(SamplingMode.FULL,
                                               b3TraceId,
                                               parentSpanId,
-                                              spanId);
+                                              spanId,
+                                              new SpanIdGenerator());
     }
 }

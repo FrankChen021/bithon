@@ -36,7 +36,10 @@ public class DefaultPropagator implements ITracePropagator {
     private final ITraceContextExtractor extractor;
 
     public DefaultPropagator(ISampler sampler) {
-        extractor = new ChainedTraceContextExtractor(sampler, new W3CTraceContextExtractor(), new B3Extractor(), new PinpointExtractor());
+        extractor = new ChainedTraceContextExtractor(sampler,
+                                                     new W3CTraceContextExtractor(),
+                                                     new B3Extractor(),
+                                                     new PinpointExtractor());
     }
 
     @Override

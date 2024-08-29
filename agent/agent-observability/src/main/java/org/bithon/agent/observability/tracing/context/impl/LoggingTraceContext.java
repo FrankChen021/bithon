@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextAttributes;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
@@ -35,8 +36,6 @@ import org.bithon.component.commons.time.Clock;
  */
 public class LoggingTraceContext implements ITraceContext {
 
-    //private final static ITraceReporter noopTraceReporter = spans -> {
-    //};
     private final Clock clock = new Clock();
 
     private final ISpanIdGenerator spanIdGenerator;
