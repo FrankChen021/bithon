@@ -19,6 +19,8 @@ package org.bithon.component.commons.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.List;
+
 /**
  * @author Frank Chen
  * @date 31/1/24 10:09 am
@@ -69,5 +71,98 @@ public class StringUtilsTest {
         Assert.assertEquals("b\\'", StringUtils.escapeSingleQuoteIfNecessary("b\\'", '\\'));
         Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("\\''", '\\'));
         Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuoteIfNecessary("a\\\\\\\\'", '\\'));
+    }
+
+    @Test
+    public void testIsHexString_ValidHex() {
+        Assert.assertTrue(StringUtils.isHexString("1a2b3c4d5e6f"));
+        Assert.assertTrue(StringUtils.isHexString("ABCDEF"));
+        Assert.assertTrue(StringUtils.isHexString("1234567890abcdef"));
+    }
+
+    @Test
+    public void testIsHexString_InvalidHex() {
+        Assert.assertFalse(StringUtils.isHexString("1g2h3i4j5k6l"));
+        Assert.assertFalse(StringUtils.isHexString("XYZ"));
+        Assert.assertFalse(StringUtils.isHexString("12345G7890"));
+    }
+
+    @Test
+    public void testIsHexString_EmptyString() {
+        Assert.assertTrue(StringUtils.isHexString(""));
+    }
+
+    @Test
+    public void testIsHexString_NullString() {
+        Assert.assertFalse(StringUtils.isHexString(null));
+    }
+
+    @Test
+    public void testIsHexString_SpecialCharacters() {
+        Assert.assertFalse(StringUtils.isHexString("!@#$%^&*()"));
+        Assert.assertFalse(StringUtils.isHexString("1234-5678"));
+    }
+
+    @Test
+    public void testSplit_NormalCase() {
+        String input = "a,b,c";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"a", "b", "c"}, result.toArray());
+    }
+
+    @Test
+    public void testSplit_NoSeparator() {
+        String input = "abc";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"abc"}, result.toArray());
+    }
+
+    @Test
+    public void testSplit_SeparatorAtBeginning() {
+        String input = ",a,b,c";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"", "a", "b", "c"}, result.toArray());
+    }
+
+    @Test
+    public void testSplit_SeparatorAtEnd() {
+        String input = "a,b,c,";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"a", "b", "c"}, result.toArray());
+    }
+
+    @Test
+    public void testSplit_MultipleConsecutiveSeparators() {
+        String input = "a,,b,c";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"a", "", "b", "c"}, result.toArray());
+    }
+
+    @Test
+    public void testSplit_Trimmed() {
+        String input = "a, , b , c ";
+        String separator = ",";
+        List<String> result = StringUtils.split(input, separator);
+        Assert.assertArrayEquals(new String[]{"a", "", "b", "c"}, result.toArray());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSplit_NullInput() {
+        StringUtils.split(null, ",");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSplit_EmptySeparator() {
+        StringUtils.split("a,b,c", "");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSplit_NullSeparator() {
+        StringUtils.split("a,b,c", null);
     }
 }

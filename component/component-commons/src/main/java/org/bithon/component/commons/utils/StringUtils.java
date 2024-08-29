@@ -22,7 +22,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -288,5 +290,71 @@ public class StringUtils {
                 // Not found '=', tokenEnd is -1,
             }
         } while (tokenEnd != -1);
+    }
+
+    public static boolean isHexString(String text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if ((c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Split the input string by the separator and returns a list of separated trimmed strings.
+     * NOTE: Empty string at the end of the list is not included in the result list
+     */
+    public static List<String> split(String str, String separator) {
+        if (str == null || separator == null || separator.isEmpty()) {
+            throw new IllegalArgumentException("Input string and separator must not be null or empty");
+        }
+
+        List<String> parts = new ArrayList<>();
+        int start = 0;
+        int separatorIndex;
+        int separatorLength = separator.length();
+        while ((separatorIndex = str.indexOf(separator, start)) != -1) {
+            parts.add(getTrimedSubstring(str, start, separatorIndex));
+
+            start = separatorIndex + separatorLength;
+        }
+
+        // if start == 0, the substring method returns itself
+        if (start == 0) {
+            parts.add(str);
+        } else {
+            String last = getTrimedSubstring(str, start, str.length());
+            if (!last.isEmpty()) { // Skip the last empty string
+                parts.add(last);
+            }
+        }
+
+        return parts;
+    }
+
+    private static String getTrimedSubstring(String str, int start, int end) {
+        // Trim the leading whitespaces
+        while(start < end) {
+            if (!Character.isWhitespace(str.charAt(start))) {
+                break;
+            }
+            ++start;
+        }
+
+        // Trim the trailing whitespaces
+        int e = end - 1;
+        while(e >= start) {
+            if (!Character.isWhitespace(str.charAt(e))) {
+                break;
+            }
+            --e;
+        }
+
+        return str.substring(start, e + 1);
     }
 }
