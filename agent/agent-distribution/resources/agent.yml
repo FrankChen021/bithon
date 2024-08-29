@@ -42,7 +42,7 @@ dispatchers:
 
 tracing:
   headers:
-    request: ["User-Agent", "Content-Length"]
+    request: ["User-Agent", "Content-Length", "tracestate"]
     response: ["Content-Length", "X-ClickHouse-Exception-Code", "X-ClickHouse-Summary", "X-ClickHouse-Query-Id", "X-ClickHouse-Server-Display-Name"]
   samplingConfigs:
     default:
