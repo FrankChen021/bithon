@@ -82,7 +82,7 @@ public class TestConfigurationManager {
 
     @Test
     public void test_DynamicConfiguration() throws IOException {
-        ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+        ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
         manager.addPropertySource(PropertySource.from(PropertySourceType.INTERNAL,
                                                       "1",
                                                       "test.a=1\n" +
@@ -128,7 +128,7 @@ public class TestConfigurationManager {
 
     @Test
     public void test_ConfigurationFromFile() {
-        ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+        ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
         TestProp config = manager.getConfig(TestProp.class);
         Assert.assertEquals("from default file", config.getProp());
     }
@@ -144,7 +144,7 @@ public class TestConfigurationManager {
                                                        // Set the external configuration through property
                                                        "-Dbithon.configuration.location=" + externalConfigLocation));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
             Assert.assertEquals("from external file", config.getProp());
@@ -166,7 +166,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.configuration.location=" + externalConfigLocation
                              ));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
             Assert.assertEquals("from_command_line", config.getProp());
@@ -195,7 +195,7 @@ public class TestConfigurationManager {
                              .thenReturn(ImmutableMap.of("bithon_t", "t1",
                                                          "bithon_test_prop", "from_env"));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
             Assert.assertEquals("from_env", config.getProp());
@@ -243,7 +243,7 @@ public class TestConfigurationManager {
                                                          //Overwrite the prop2
                                                          "bithon_test_prop2", "from_env"));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TwoProps config = manager.getConfig("test", TwoProps.class);
             Assert.assertEquals("from_command_line", config.getProp1());
@@ -310,7 +310,7 @@ public class TestConfigurationManager {
 
     @Test
     public void test_ApplyChanges() throws IOException {
-        ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+        ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
         ApplyChangeTestConfig bean = manager.getConfig("test", ApplyChangeTestConfig.class, true);
         Assert.assertEquals("from default file", bean.getProp());
@@ -388,7 +388,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.test.percentage=8%"
                              ));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             Assert.assertEquals("8%", manager.getConfig("test.percentage", String.class, true));
             Assert.assertEquals("8%", manager.getConfig("test.percentage", HumanReadablePercentage.class).toString());
@@ -411,7 +411,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.test.p[3]=10%"
                              ));
 
-            ConfigurationManager manager = ConfigurationManager.create(defaultConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             Assert.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
             Assert.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.parse("8%"),
@@ -429,7 +429,7 @@ public class TestConfigurationManager {
     public void test_BindToArray_ReplaceDefault() {
         // If the property is not given, the default value is the one in the external configuration file
         {
-            ConfigurationManager manager = ConfigurationManager.create(externalConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(externalConfigLocation);
             StringListConfig config = manager.getConfig(StringListConfig.class);
             Assert.assertEquals(Collections.singletonList("from file a"), config);
         }
@@ -443,7 +443,7 @@ public class TestConfigurationManager {
                                                        "-Dbithon.test.arrayList[1]=2"
                              ));
 
-            ConfigurationManager manager = ConfigurationManager.create(externalConfigLocation);
+            ConfigurationManager manager = ConfigurationManager.createForTesting(externalConfigLocation);
             StringListConfig config = manager.getConfig(StringListConfig.class);
             Assert.assertEquals(Arrays.asList("1", "2"), config);
         }

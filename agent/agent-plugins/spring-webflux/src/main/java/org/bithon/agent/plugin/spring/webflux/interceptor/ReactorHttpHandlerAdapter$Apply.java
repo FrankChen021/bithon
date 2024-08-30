@@ -105,7 +105,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                     traceContext.currentSpan()
                                 .component(Components.HTTP_SERVER)
                                 .tag(Tags.Http.SERVER, "webflux")
-                                .tag(Tags.Net.PEER_ADDR, request.remoteAddress())
+                                .tag(Tags.Net.PEER, request.remoteAddress())
                                 .tag(Tags.Http.URL, request.uri())
                                 .tag(Tags.Http.METHOD, request.method().name())
                                 .tag(Tags.Http.VERSION, request.version().text())

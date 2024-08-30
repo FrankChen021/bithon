@@ -41,8 +41,8 @@ public class PinpointExtractor implements ITraceContextExtractor {
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
-        String pinpointTraceId = getter.get(request, TRACE_ID);
-        if (StringUtils.isEmpty(pinpointTraceId)) {
+        String traceId = getter.get(request, TRACE_ID);
+        if (StringUtils.isEmpty(traceId)) {
             return null;
         }
 
@@ -57,8 +57,9 @@ public class PinpointExtractor implements ITraceContextExtractor {
         }
 
         return TraceContextFactory.newContext(SamplingMode.FULL,
-                                              pinpointTraceId,
+                                              traceId,
                                               parentSpanId,
-                                              spanId);
+                                              spanId,
+                                              Tracer.get().spanIdGenerator());
     }
 }
