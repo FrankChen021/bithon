@@ -22,7 +22,6 @@ import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.impl.TracingContext;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.SpanIdGenerator;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
@@ -34,7 +33,7 @@ import org.bithon.component.commons.utils.StringUtils;
 public class TraceContextFactory {
 
     public static ITraceContext newContext(SamplingMode samplingMode) {
-        return newContext(samplingMode, Tracer.get().traceIdGenerator().newId(), null, new SpanIdGenerator(0, 0));
+        return newContext(samplingMode, Tracer.get().traceIdGenerator().newId(), null, Tracer.get().spanIdGenerator());
     }
 
     public static ITraceContext newContext(SamplingMode samplingMode,
