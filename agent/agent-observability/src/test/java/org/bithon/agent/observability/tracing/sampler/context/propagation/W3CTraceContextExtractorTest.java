@@ -86,8 +86,8 @@ public class W3CTraceContextExtractorTest {
         Assert.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
         Assert.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assert.assertEquals(TraceMode.TRACING, context.traceMode());
-        Assert.assertEquals("v1", context.attributes().get("key1"));
-        Assert.assertEquals("v2", context.attributes().get("key2"));
+        Assert.assertEquals("v1", context.traceState().get("key1"));
+        Assert.assertEquals("v2", context.traceState().get("key2"));
     }
 
     @Test

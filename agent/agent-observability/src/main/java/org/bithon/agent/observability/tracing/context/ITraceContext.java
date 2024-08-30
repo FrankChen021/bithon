@@ -27,10 +27,10 @@ import org.bithon.component.commons.time.Clock;
  */
 public interface ITraceContext {
 
-    default ITraceContext attribute(TraceContextAttributes attributes) {
+    default ITraceContext traceState(TraceState attributes) {
         return this;
     }
-    default TraceContextAttributes attributes() {
+    default TraceState traceState() {
         return null;
     }
 

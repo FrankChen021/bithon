@@ -21,9 +21,9 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextAttributes;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceState;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
@@ -49,7 +49,7 @@ public class TracingContext implements ITraceContext {
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
-    private TraceContextAttributes attributes;
+    private TraceState attributes;
 
     private boolean finished = false;
 
@@ -60,13 +60,13 @@ public class TracingContext implements ITraceContext {
     }
 
     @Override
-    public ITraceContext attribute(TraceContextAttributes attributes) {
+    public ITraceContext traceState(TraceState attributes) {
         this.attributes = attributes;
         return this;
     }
 
     @Override
-    public TraceContextAttributes attributes() {
+    public TraceState traceState() {
         return attributes;
     }
 

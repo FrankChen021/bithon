@@ -18,8 +18,8 @@ package org.bithon.agent.observability.tracing.context.propagation.w3c;
 
 import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.TraceContextAttributes;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceState;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
@@ -76,13 +76,13 @@ public class W3CTraceContextExtractor implements ITraceContextExtractor {
         }
 
         String traceState = getter.get(request, W3CTraceContextHeader.TRACE_HEADER_STATE);
-        TraceContextAttributes attributes = TraceContextAttributes.deserialize(traceState);
+        TraceState attributes = TraceState.deserialize(traceState);
 
         return TraceContextFactory.newContext(getSamplingMode(traceFlags),
                                               traceId,
                                               parentSpanId,
                                               Tracer.get().spanIdGenerator())
-                                  .attribute(attributes)
+                                  .traceState(attributes)
                                   .currentSpan()
                                   .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
                                   .context();

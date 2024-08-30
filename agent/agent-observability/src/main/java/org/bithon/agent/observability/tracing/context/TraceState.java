@@ -23,57 +23,60 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * Customized tracing information passed between services.
+ * It maps to the W3C tracestate header.
+ *
  * @author frank.chen021@outlook.com
  * @date 2024/8/28 22:46
  */
-public class TraceContextAttributes {
-    private static final TraceContextAttributes EMPTY = new TraceContextAttributes("", Collections.emptyMap());
+public class TraceState {
+    private static final TraceState EMPTY = new TraceState("", Collections.emptyMap());
 
-    private String attributes;
-    private final Map<String, String> map;
+    private String stateText;
+    private final Map<String, String> kv;
 
-    public static TraceContextAttributes deserialize(String attributeText) {
-        if (StringUtils.isEmpty(attributeText)) {
+    public static TraceState deserialize(String stateText) {
+        if (StringUtils.isEmpty(stateText)) {
             return EMPTY;
         } else {
-            return new TraceContextAttributes(attributeText,
-                                              StringUtils.extractKeyValueParis(attributeText,
-                                                                               ",",
-                                                                               "=",
-                                                                               new LinkedHashMap<>()));
+            return new TraceState(stateText,
+                                  StringUtils.extractKeyValueParis(stateText,
+                                                                   ",",
+                                                                   "=",
+                                                                   new LinkedHashMap<>()));
         }
     }
 
-    private TraceContextAttributes(String attributeText, Map<String, String> map) {
-        this.attributes = attributeText;
-        this.map = map;
+    private TraceState(String stateText, Map<String, String> kv) {
+        this.stateText = stateText;
+        this.kv = kv;
     }
 
     public boolean isEmpty() {
-        return map.isEmpty();
+        return kv.isEmpty();
     }
 
     public String get(String key) {
-        return map.get(key);
+        return kv.get(key);
     }
 
     public void set(String key, String val) {
         if (val == null) {
-            map.remove(key);
+            kv.remove(key);
         } else {
-            map.put(key, val);
+            kv.put(key, val);
         }
-        this.attributes = serialize();
+        this.stateText = serialize();
     }
 
     @Override
     public String toString() {
-        return attributes;
+        return stateText;
     }
 
     private String serialize() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : kv.entrySet()) {
             if (sb.length() > 0) {
                 sb.append(",");
             }
@@ -83,7 +86,7 @@ public class TraceContextAttributes {
     }
 
     public int getInt(String key, int defaultValue) {
-        String val = this.map.get(key);
+        String val = this.kv.get(key);
         if (val == null) {
             return defaultValue;
         }
