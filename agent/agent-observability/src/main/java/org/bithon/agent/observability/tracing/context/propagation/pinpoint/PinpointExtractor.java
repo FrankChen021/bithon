@@ -21,9 +21,6 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
-import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.DefaultSpanIdGenerator;
-import org.bithon.agent.observability.tracing.id.impl.SpanIdGenerator;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.utils.StringUtils;
 

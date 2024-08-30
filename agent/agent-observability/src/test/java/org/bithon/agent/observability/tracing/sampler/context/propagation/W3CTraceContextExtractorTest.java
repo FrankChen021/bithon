@@ -53,6 +53,7 @@ public class W3CTraceContextExtractorTest {
 
     private static MockedStatic<Helper> configurationMock;
     private static MockedStatic<Tracer> mockTracer;
+
     @BeforeClass
     public static void setUp() {
         // mock to create ConfigurationManager
@@ -77,7 +78,7 @@ public class W3CTraceContextExtractorTest {
         W3CTraceContextExtractor extractor = new W3CTraceContextExtractor();
         Map<String, String> headers = ImmutableMap.of(
             W3CTraceContextHeader.TRACE_HEADER_PARENT, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
-            W3CTraceContextHeader.TRACE_HEADER_STATE, "state"
+            W3CTraceContextHeader.TRACE_HEADER_STATE, "key1=v1, key2=v2"
         );
 
         ITraceContext context = extractor.extract(headers, new TestPropagationGetter());
@@ -85,6 +86,8 @@ public class W3CTraceContextExtractorTest {
         Assert.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
         Assert.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assert.assertEquals(TraceMode.TRACING, context.traceMode());
+        Assert.assertEquals("v1", context.attributes().get("key1"));
+        Assert.assertEquals("v2", context.attributes().get("key2"));
     }
 
     @Test

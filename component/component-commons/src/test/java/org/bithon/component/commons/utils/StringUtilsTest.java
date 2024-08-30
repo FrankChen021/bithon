@@ -19,7 +19,10 @@ package org.bithon.component.commons.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -164,5 +167,82 @@ public class StringUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testSplit_NullSeparator() {
         StringUtils.split("a,b,c", null);
+    }
+
+    @Test
+    public void testExtractKeyValueParis_NormalCase() {
+        String input = "key1=value1&key2=value2&";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "value1");
+        expected.put("key2", "value2");
+        Assert.assertEquals(expected, result);
+    }
+
+
+    @Test
+    public void testExtractKeyValueParis_NormalCase_2() {
+        String input = "key1=value1; key2=value2; ";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "; ", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "value1");
+        expected.put("key2", "value2");
+        Assert.assertEquals(expected, result);
+    }
+
+    @Test
+    public void testExtractKeyValueParis_EmptyInput() {
+        String input = "";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Assert.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testExtractKeyValueParis_NullInput() {
+        Map<String, String> result = StringUtils.extractKeyValueParis(null, "&", "=", new LinkedHashMap<>());
+        Assert.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testExtractKeyValueParis_MissingKeyOrValue() {
+        String input = "key1=&=value2&key3=value3";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "");
+        expected.put("", "value2");
+        expected.put("key3", "value3");
+        Assert.assertEquals(expected, result);
+    }
+
+    @Test
+    public void testExtractKeyValueParis_SpecialCharacters() {
+        String input = "key1=val!@#ue1&key2=val$%^ue2";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "val!@#ue1");
+        expected.put("key2", "val$%^ue2");
+        Assert.assertEquals(expected, result);
+    }
+
+    @Test
+    public void testExtractKeyValueParis_TrimKeyAndValue() {
+        String input = "key1 = value1 & key2 = value2";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "value1");
+        expected.put("key2", "value2");
+        Assert.assertEquals(expected, result);
+    }
+
+    @Test
+    public void testExtractKeyValueParis_EmptyPair() {
+        String input = "&&&key1=value1&&&key2==value2&&";
+        Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
+        Map<String, String> expected = new HashMap<>();
+        expected.put("key1", "value1");
+
+        // Whether value has leading '=' depends on how we decide such behaviour
+        expected.put("key2", "=value2");
+        Assert.assertEquals(expected, result);
     }
 }

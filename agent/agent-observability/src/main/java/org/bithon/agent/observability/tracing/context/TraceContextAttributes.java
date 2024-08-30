@@ -36,12 +36,11 @@ public class TraceContextAttributes {
         if (StringUtils.isEmpty(attributeText)) {
             return EMPTY;
         } else {
-            Map map = new LinkedHashMap<>();
-            StringUtils.extractKeyValueParis(attributeText,
-                                             ",",
-                                             "=",
-                                             map::put);
-            return new TraceContextAttributes(attributeText, map);
+            return new TraceContextAttributes(attributeText,
+                                              StringUtils.extractKeyValueParis(attributeText,
+                                                                               ",",
+                                                                               "=",
+                                                                               new LinkedHashMap<>()));
         }
     }
 

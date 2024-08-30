@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -191,7 +192,7 @@ public class StringUtils {
     public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
         int i = input.indexOf('\'');
         if (i < 0) {
-            // If no single quote found, no escape is needed
+            // If no single quote found, no escape is necessary
             return input;
         }
 
@@ -231,6 +232,14 @@ public class StringUtils {
         return escaped.toString();
     }
 
+    public static Map<String, String> extractKeyValueParis(String kvPairs,
+                                                           String pairSeparator,
+                                                           String kvSeparator,
+                                                           Map<String, String> map) {
+        extractKeyValueParis(kvPairs, 0, pairSeparator, kvSeparator, map::put);
+        return map;
+    }
+
     public static void extractKeyValueParis(String kvPairs,
                                             String pairSeparator,
                                             String kvSeparator,
@@ -249,13 +258,13 @@ public class StringUtils {
      * (c,d)
      *
      * @param kvPairs       the input string
-     * @param startingFrom  the position of the kvPairs to extract from
+     * @param start         the position of the kvPairs to extract from
      * @param pairSeparator the separator of k-v pair
      * @param kvSeparator   the separator of key and value
      * @param kvConsumer    the callback processing for an extracted key-value pair
      */
     public static void extractKeyValueParis(String kvPairs,
-                                            int startingFrom,
+                                            int start,
                                             String pairSeparator,
                                             String kvSeparator,
                                             BiConsumer<String, String> kvConsumer) {
@@ -263,33 +272,37 @@ public class StringUtils {
             return;
         }
 
-        int tokenStart = startingFrom;
-        int tokenEnd;
+        boolean running = true;
+        int kvStart = start;
         do {
-            tokenEnd = kvPairs.indexOf(kvSeparator, tokenStart);
-            if (tokenEnd > tokenStart) {
-                // Find the parameter name
-                String name = kvPairs.substring(tokenStart, tokenEnd);
+            int kvEnd = kvPairs.indexOf(pairSeparator, kvStart);
+            if (kvEnd == -1) {
+                kvEnd = kvPairs.length();
+                running = false;
+            }
 
-                // +1 to skip the kvSeparator
-                tokenStart = tokenEnd + 1;
+            if (kvEnd - kvStart > 1) {
 
-                // Find the parameter value
-                tokenEnd = kvPairs.indexOf(pairSeparator, tokenStart);
-                if (tokenEnd == -1) { // If there's no '&' found, the whole is the value
-                    kvConsumer.accept(name, kvPairs.substring(tokenStart));
-                } else { // If there's a pair separator found, get the substring as value
-                    kvConsumer.accept(name, kvPairs.substring(tokenStart, tokenEnd));
+                // Find kvSeparator in the range of [kvStart, kvEnd)
+                int kvSeparatorIndex;
+                for (kvSeparatorIndex = kvStart; kvSeparatorIndex < kvEnd; kvSeparatorIndex++) {
+                    if (kvPairs.regionMatches(kvSeparatorIndex, kvSeparator, 0, kvSeparator.length())) {
+                        kvConsumer.accept(getTrimedSubstring(kvPairs, kvStart, kvSeparatorIndex),
+                                          getTrimedSubstring(kvPairs, kvSeparatorIndex + kvSeparator.length(), kvEnd));
+                        break;
+                    }
                 }
 
-                tokenStart = tokenEnd + 1;
-            } else if (tokenEnd == tokenStart) {
-                // extra '=' found, e.g: queryString equals to kvSeparator
-                tokenStart = tokenEnd + 1;
+                if (kvSeparatorIndex == kvEnd) {
+                    // The kvSeparator is not found in the given range, treat the whole content as the key
+                    kvConsumer.accept(getTrimedSubstring(kvPairs, kvStart, kvEnd), "");
+                }
             } else {
-                // Not found '=', tokenEnd is -1,
+                // Empty pair
             }
-        } while (tokenEnd != -1);
+
+            kvStart = kvEnd + pairSeparator.length();
+        } while (running);
     }
 
     public static boolean isHexString(String text) {
@@ -337,9 +350,13 @@ public class StringUtils {
         return parts;
     }
 
+    /**
+     * @param start inclusive
+     * @param end   exclusive
+     */
     private static String getTrimedSubstring(String str, int start, int end) {
         // Trim the leading whitespaces
-        while(start < end) {
+        while (start < end) {
             if (!Character.isWhitespace(str.charAt(start))) {
                 break;
             }
@@ -348,7 +365,7 @@ public class StringUtils {
 
         // Trim the trailing whitespaces
         int e = end - 1;
-        while(e >= start) {
+        while (e >= start) {
             if (!Character.isWhitespace(str.charAt(e))) {
                 break;
             }
