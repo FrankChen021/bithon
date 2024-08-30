@@ -38,6 +38,12 @@ public class TraceContextFactory {
 
     public static ITraceContext newContext(SamplingMode samplingMode,
                                            String traceId,
+                                           String parentSpanId) {
+        return newContext(samplingMode, traceId, parentSpanId, Tracer.get().spanIdGenerator().newSpanId(), Tracer.get().spanIdGenerator());
+    }
+
+    public static ITraceContext newContext(SamplingMode samplingMode,
+                                           String traceId,
                                            String parentSpanId,
                                            ISpanIdGenerator spanIdGenerator) {
         return newContext(samplingMode, traceId, parentSpanId, spanIdGenerator.newSpanId(), spanIdGenerator);
