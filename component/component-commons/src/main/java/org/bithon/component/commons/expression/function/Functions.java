@@ -64,6 +64,9 @@ public class Functions implements IFunctionProvider {
 
         register(new TimeFunction.ToStartOfMinute());
         register(new TimeFunction.Now());
+        register(TimeFunction.ToMilliSeconds.INSTANCE);
+        register(TimeFunction.ToMicroSeconds.INSTANCE);
+        register(TimeFunction.ToNanoSeconds.INSTANCE);
 
         register(new AggregateFunction.Min());
         register(new AggregateFunction.Max());

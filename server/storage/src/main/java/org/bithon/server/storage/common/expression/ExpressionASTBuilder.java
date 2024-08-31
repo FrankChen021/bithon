@@ -37,6 +37,7 @@ import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.IFunctionProvider;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
@@ -357,6 +358,25 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
+            if (ctx.children.get(0) instanceof ExpressionParser.DurationLiteralContext durationLiteral) {
+                LiteralExpression.ReadableDurationLiteral duration = LiteralExpression.of(HumanReadableDuration.parse(durationLiteral.READABLE_DURATION_LITERAL().getSymbol().getText()));
+
+                // If this expression has converted,
+                // then we turn this literal and its converter into a FunctionExpression for simplicity
+                if (durationLiteral.children.size() == 2) {
+                    switch (durationLiteral.children.get(1).getText()) {
+                        case ".toMilli":
+                            return new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
+                        case ".toMicro":
+                            return new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
+                        case ".toNano":
+                            return new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
+                    }
+                }
+
+                return duration;
+            }
+
             TerminalNode literal = ctx.getChild(TerminalNode.class, 0);
 
             return switch (literal.getSymbol().getType()) {
@@ -372,8 +392,6 @@ public class ExpressionASTBuilder {
                     LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
                 case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
                     LiteralExpression.of(HumanReadablePercentage.parse(literal.getText()));
-                case ExpressionLexer.READABLE_DURATION_LITERAL ->
-                    LiteralExpression.of(HumanReadableDuration.parse(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };

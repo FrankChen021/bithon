@@ -61,4 +61,58 @@ public class TimeFunction {
             return false;
         }
     }
+
+    public static class ToNanoSeconds extends AbstractFunction {
+        public static final ToNanoSeconds INSTANCE = new ToNanoSeconds();
+
+        private ToNanoSeconds() {
+            super("toNanoSeconds", IDataType.LONG, IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return ((Number) args.get(0)).longValue() * 1000_000_000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
+    }
+
+    public static class ToMicroSeconds extends AbstractFunction {
+        public static final ToMicroSeconds INSTANCE = new ToMicroSeconds();
+
+        private ToMicroSeconds() {
+            super("toMicroSeconds", IDataType.LONG, IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return ((Number) args.get(0)).longValue() * 1000_000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
+    }
+
+    public static class ToMilliSeconds extends AbstractFunction {
+        public static final ToMilliSeconds INSTANCE = new ToMilliSeconds();
+
+        private ToMilliSeconds() {
+            super("ToMilliSeconds", IDataType.LONG, IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            return ((Number) args.get(0)).longValue() * 1000;
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
+    }
 }

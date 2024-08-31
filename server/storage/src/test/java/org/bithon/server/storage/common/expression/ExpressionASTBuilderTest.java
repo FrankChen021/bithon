@@ -254,6 +254,24 @@ public class ExpressionASTBuilderTest {
             Assert.assertEquals("69s", expr.serializeToText(null));
             Assert.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toSeconds());
         }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilli");
+
+            // The 69s.toMilli is interpreted as toMilliSeconds(69s), which has been optimized to 69000
+            Assert.assertEquals("69000", expr.serializeToText(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMicro");
+
+            // The 69s.toMilli is interpreted as toMicroSeconds(69s), which has been optimized to 69000
+            Assert.assertEquals("69000000", expr.serializeToText(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toNano");
+
+            // The 69s.toMilli is interpreted as toNanoSeconds(69s), which has been optimized to 69000
+            Assert.assertEquals("69000000000", expr.serializeToText(null));
+        }
     }
 
     @Test
