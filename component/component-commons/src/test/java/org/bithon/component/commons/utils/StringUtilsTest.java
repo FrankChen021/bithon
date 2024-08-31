@@ -236,13 +236,16 @@ public class StringUtilsTest {
 
     @Test
     public void testExtractKeyValueParis_EmptyPair() {
-        String input = "&&&key1=value1&&&key2==value2&&";
+        String input = "&a&&key1=value1&&&key2==value2&&a&";
         Map<String, String> result = StringUtils.extractKeyValueParis(input, "&", "=", new LinkedHashMap<>());
         Map<String, String> expected = new HashMap<>();
         expected.put("key1", "value1");
 
-        // Whether value has leading '=' depends on how we decide such behaviour
+        // Whether value has leading '=' depends on how we define such behavior
+        // Currently the content after the first kv-separator (in this case it's the '=') is the value
         expected.put("key2", "=value2");
+
+        expected.put("a", "");
         Assert.assertEquals(expected, result);
     }
 }
