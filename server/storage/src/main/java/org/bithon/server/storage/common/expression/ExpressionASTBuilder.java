@@ -359,19 +359,18 @@ public class ExpressionASTBuilder {
         @Override
         public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
             if (ctx.children.get(0) instanceof ExpressionParser.DurationLiteralContext durationLiteral) {
-                LiteralExpression.ReadableDurationLiteral duration = LiteralExpression.of(HumanReadableDuration.parse(durationLiteral.READABLE_DURATION_LITERAL().getSymbol().getText()));
+                String durationText = durationLiteral.children.get(0).getText();
+                LiteralExpression.ReadableDurationLiteral duration = LiteralExpression.of(HumanReadableDuration.parse(durationText));
 
-                // If this expression has converted,
-                // then we turn this literal and its converter into a FunctionExpression for simplicity
+                // If this expression has a converter,
+                // then the literal and its converted will be turned into a FunctionExpression for simplicity
                 if (durationLiteral.children.size() == 2) {
-                    switch (durationLiteral.children.get(1).getText()) {
-                        case ".toMilli":
-                            return new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
-                        case ".toMicro":
-                            return new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
-                        case ".toNano":
-                            return new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
-                    }
+                    return switch (durationLiteral.children.get(1).getText()) {
+                        case ".toMilli" -> new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
+                        case ".toMicro" -> new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
+                        case ".toNano" -> new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
+                        default -> throw new InvalidExpressionException("unexpected right expression type");
+                    };
                 }
 
                 return duration;
