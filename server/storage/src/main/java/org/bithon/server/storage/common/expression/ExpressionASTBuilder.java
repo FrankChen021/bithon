@@ -364,13 +364,22 @@ public class ExpressionASTBuilder {
 
                 // If this expression has a converter,
                 // then the literal and its converted will be turned into a FunctionExpression for simplicity
-                if (durationLiteral.children.size() == 2) {
-                    return switch (durationLiteral.children.get(1).getText()) {
-                        case ".toMilli" -> new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
-                        case ".toMicro" -> new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
-                        case ".toNano" -> new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
-                        default -> throw new InvalidExpressionException("unexpected right expression type");
-                    };
+                if (durationLiteral.children.size() > 1) {
+                    String converter = durationLiteral.children.get(2).getText();
+                    if (converter.startsWith("toMilli")) {
+                        return new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
+                    }
+
+                    if (converter.startsWith("toMicro")) {
+                        return new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
+                    }
+
+                    if (converter.startsWith("toNano")) {
+                        return new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
+                    }
+
+                    // Should never reach here
+                    throw new InvalidExpressionException("unexpected converter [%s]", converter);
                 }
 
                 return duration;
