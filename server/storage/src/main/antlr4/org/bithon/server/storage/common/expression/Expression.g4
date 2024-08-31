@@ -49,6 +49,7 @@ literalExpressionDecl
   ;
 
 durationLiteral
+    // Time unit converters are supported as a suffix of the duration literal for better syntax suggestion
   : READABLE_DURATION_LITERAL ('.toMilli' | '.toMicro' | '.toNano')?
   ;
 
