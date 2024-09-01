@@ -70,7 +70,7 @@ public class UrlUtilsTest {
     @Test
     public void test6() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m");
-        Assert.assertEquals(0, parameters.size());
+        Assert.assertEquals(1, parameters.size());
     }
 
     @Test

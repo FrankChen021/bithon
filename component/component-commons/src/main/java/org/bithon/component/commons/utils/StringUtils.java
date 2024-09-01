@@ -258,13 +258,13 @@ public class StringUtils {
      * (c,d)
      *
      * @param kvPairs       the input string
-     * @param start         the position of the kvPairs to extract from
+     * @param kvStart       the position in the kvPairs to extract from
      * @param pairSeparator the separator of k-v pair
      * @param kvSeparator   the separator of key and value
      * @param kvConsumer    the callback processing for an extracted key-value pair
      */
     public static void extractKeyValueParis(String kvPairs,
-                                            int start,
+                                            int kvStart,
                                             String pairSeparator,
                                             String kvSeparator,
                                             BiConsumer<String, String> kvConsumer) {
@@ -272,16 +272,13 @@ public class StringUtils {
             return;
         }
 
-        boolean running = true;
-        int kvStart = start;
         do {
             int kvEnd = kvPairs.indexOf(pairSeparator, kvStart);
             if (kvEnd == -1) {
                 kvEnd = kvPairs.length();
-                running = false;
             }
 
-            if (kvEnd - kvStart > 1) {
+            if (kvEnd - kvStart > 0) {
 
                 // Find kvSeparator in the range of [kvStart, kvEnd)
                 int kvSeparatorIndex;
@@ -298,11 +295,11 @@ public class StringUtils {
                     kvConsumer.accept(getTrimedSubstring(kvPairs, kvStart, kvEnd), "");
                 }
             } else {
-                // Empty pair
+                // Skip empty pair
             }
 
             kvStart = kvEnd + pairSeparator.length();
-        } while (running);
+        } while (kvStart < kvPairs.length());
     }
 
     public static boolean isHexString(String text) {
@@ -356,22 +353,15 @@ public class StringUtils {
      */
     private static String getTrimedSubstring(String str, int start, int end) {
         // Trim the leading whitespaces
-        while (start < end) {
-            if (!Character.isWhitespace(str.charAt(start))) {
-                break;
-            }
-            ++start;
+        while (start < end && Character.isWhitespace(str.charAt(start))) {
+            start++;
         }
 
         // Trim the trailing whitespaces
-        int e = end - 1;
-        while (e >= start) {
-            if (!Character.isWhitespace(str.charAt(e))) {
-                break;
-            }
-            --e;
+        while (end > start && Character.isWhitespace(str.charAt(end - 1))) {
+            end--;
         }
 
-        return str.substring(start, e + 1);
+        return str.substring(start, end);
     }
 }
