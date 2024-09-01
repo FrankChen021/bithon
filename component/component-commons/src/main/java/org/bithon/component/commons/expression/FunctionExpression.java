@@ -37,6 +37,9 @@ public class FunctionExpression implements IExpression {
      */
     private final List<IExpression> args;
 
+    /**
+     * @param args MUST be a WRITABLE list
+     */
     public FunctionExpression(IFunction function, List<IExpression> args) {
         this.function = function;
         this.args = args;

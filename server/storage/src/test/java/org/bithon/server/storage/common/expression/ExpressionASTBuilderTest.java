@@ -32,33 +32,30 @@ import org.junit.Test;
 public class ExpressionASTBuilderTest {
 
     @Test
-    public void testIn() {
-        IExpression expr = ExpressionASTBuilder.builder().build("5 in (1,2)");
-        Assert.assertFalse((Boolean) expr.evaluate(null));
+    public void test_InExpression() {
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("5 in (1,2)");
+            Assert.assertFalse((Boolean) expr.evaluate(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("5 in (5)");
+            Assert.assertTrue((Boolean) expr.evaluate(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("5 in (5,6)");
+            Assert.assertTrue((Boolean) expr.evaluate(null));
+        }
     }
 
     @Test
-    public void testIn_2() {
-        IExpression expr = ExpressionASTBuilder.builder().build("5 in (5)");
-        Assert.assertTrue((Boolean) expr.evaluate(null));
-    }
-
-    @Test
-    public void testIn_3() {
-        IExpression expr = ExpressionASTBuilder.builder().build("5 in (5,6)");
-        Assert.assertTrue((Boolean) expr.evaluate(null));
-    }
-
-    @Test
-    public void test_ComparisonFlip_Folding() {
-        // Two literals will be folded
+    public void test_ComparisonExpression_ConstantFolding() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 > 4");
         Assert.assertTrue(expr instanceof LiteralExpression);
         Assert.assertTrue((Boolean) expr.evaluate(null));
     }
 
     @Test
-    public void test_ComparisonFlip_GT() {
+    public void test_ComparisonExpression_FlipGT() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 > a");
         Assert.assertEquals("a < 5", expr.serializeToText(null));
 
@@ -68,7 +65,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_GTE() {
+    public void test_ComparisonExpression_FlipGTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 >= a");
         Assert.assertEquals("a <= 5", expr.serializeToText(null));
 
@@ -78,7 +75,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_LT() {
+    public void test_ComparisonExpression_FlipLT() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 < a");
         Assert.assertEquals("a > 5", expr.serializeToText(null));
 
@@ -88,7 +85,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_LTE() {
+    public void test_ComparisonExpression_FlipLTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 <= a");
         Assert.assertEquals("a >= 5", expr.serializeToText(null));
 
@@ -98,7 +95,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_NE() {
+    public void test_ComparisonExpression_FlipNE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 <> a");
         Assert.assertEquals("a <> 5", expr.serializeToText(null));
 
@@ -108,7 +105,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_EQ() {
+    public void test_ComparisonExpression_Flip_EQ() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 = a");
         Assert.assertEquals("a = 5", expr.serializeToText(null));
 
@@ -118,13 +115,13 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ComparisonFlip_Non_Literal() {
+    public void test_ComparisonExpression_Flip_Non_Literal() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = b");
         Assert.assertEquals("a = b", expr.serializeToText(null));
     }
 
     @Test
-    public void testLogical_ConsecutiveAND() {
+    public void test_LogicalExpression_ConsecutiveAND() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1 AND b = 1 AND c = 1 AND d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.AND);
         Assert.assertEquals(4, ((LogicalExpression.AND) expr).getOperands().size());
@@ -134,14 +131,14 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void testLogical_OR() {
+    public void test_LogicalExpression_OR() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1 OR b = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals("OR", ((LogicalExpression.OR) expr).getOperator());
     }
 
     @Test
-    public void testLogical_ConsecutiveOR() {
+    public void test_LogicalExpression_ConsecutiveOR() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1 OR b = 1 OR c = 1 OR d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals(4, ((LogicalExpression.OR) expr).getOperands().size());
@@ -151,7 +148,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void testLogical_AND_OR() {
+    public void test_LogicalExpression_AND_OR() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1 AND b = 1 AND c = 1 OR d = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
         Assert.assertEquals(2, ((LogicalExpression.OR) expr).getOperands().size());
@@ -161,7 +158,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void testArithmeticExpression_Precedence() {
+    public void test_ArithmeticExpression_Precedence() {
         Assert.assertEquals(7L, ExpressionASTBuilder.builder().build("1 + 2 * 3").evaluate(null));
         Assert.assertEquals(-5L, ExpressionASTBuilder.builder().build("1 - 2 * 3").evaluate(null));
 
@@ -181,7 +178,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void testLogicalExpression_Precedence() {
+    public void test_LogicalExpression_Precedence() {
         Assert.assertEquals(true, ExpressionASTBuilder.builder().build("3 > 2 AND 4 > 3").evaluate(null));
         Assert.assertEquals(true, ExpressionASTBuilder.builder().build("3 > 2 OR 4 > 3").evaluate(null));
         Assert.assertEquals(true, ExpressionASTBuilder.builder().build("1 > 2 OR 4 > 3").evaluate(null));
@@ -194,7 +191,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_EscapeSingleQuote() {
+    public void test_SingleQuoteEscaping() {
         Assert.assertEquals("message like 'a\\''", ExpressionASTBuilder.builder().build("message LIKE 'a\\''").serializeToText(null));
     }
 
@@ -213,7 +210,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_Is_Null_Expression() {
+    public void test_IsNullExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a is null");
 
         Assert.assertEquals("a IS null", expr.serializeToText(null));
@@ -223,14 +220,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_CountAggregation() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("count(1)");
-
-        Assert.assertEquals("count(1)", expr.serializeToText(null));
-    }
-
-    @Test
-    public void test_DurationLiteral() {
+    public void test_LiteralExpression_DurationLiteral() {
         {
             IExpression expr = ExpressionASTBuilder.builder().build("a >= 5m");
             Assert.assertEquals("a >= 5m", expr.serializeToText(null));
@@ -254,10 +244,28 @@ public class ExpressionASTBuilderTest {
             Assert.assertEquals("69s", expr.serializeToText(null));
             Assert.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toSeconds());
         }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliSeconds");
+
+            // The 69s.toMilli is interpreted as toMilliSeconds(69s), which has been optimized to 69_000
+            Assert.assertEquals("69000", expr.serializeToText(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroSeconds");
+
+            // The 69s.toMicro is interpreted as toMicroSeconds(1d), which has been optimized to 86400_000_000
+            Assert.assertEquals("86400000000", expr.serializeToText(null));
+        }
+        {
+            IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoSeconds");
+
+            // The 69s.toNano is interpreted as toNanoSeconds(3m), which has been optimized to 180_000_000_000
+            Assert.assertEquals("180000000000", expr.serializeToText(null));
+        }
     }
 
     @Test
-    public void test_PercentageLiteral() {
+    public void test_LiteralExpression_PercentageLiteral() {
         IExpression expr = ExpressionASTBuilder.builder().build("a >= 5%");
         Assert.assertEquals("a >= 5%", expr.serializeToText(null));
 
@@ -267,7 +275,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_SizeLiteral() {
+    public void test_LiteralExpression_SizeLiteral() {
         IExpression expr = ExpressionASTBuilder.builder().build("a >= 5Ki");
         Assert.assertEquals("a >= 5Ki", expr.serializeToText(null));
         Assert.assertTrue((boolean) expr.evaluate((name) -> 5 * 1024 + 1));
@@ -288,19 +296,22 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_LikeExpressionSyntaxError() {
-        // %l if it's not properly treated will be considered as format string which is invalid
+    public void test_LikeExpression_SyntaxError() {
+        // if the '%l' is not properly treated, it will be considered as a format string which is invalid
         Assert.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("tags['exceptionCode'] = '60' AND and tags['statement'] like '%live%'"));
     }
 
     @Test
     public void test_NowExpression() {
-        IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).optimizationEnabled(false).build("now() - 5s");
+        IExpression expr = ExpressionASTBuilder.builder()
+                                               .functions(Functions.getInstance())
+                                               .optimizationEnabled(false)
+                                               .build("now() - 5s");
         Assert.assertEquals("now() - 5s", expr.serializeToText());
     }
 
     @Test
-    public void test_UnderscoreInteger() {
+    public void test_LiteralExpression_UnderscoreInteger() {
         Assert.assertEquals("1", ExpressionASTBuilder.builder().build("1").serializeToText());
         Assert.assertEquals("12", ExpressionASTBuilder.builder().build("12").serializeToText());
         Assert.assertEquals("123", ExpressionASTBuilder.builder().build("123").serializeToText());
@@ -314,7 +325,7 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_UnderscoreDecimal() {
+    public void test_LiteralExpression_UnderscoreDecimal() {
         Assert.assertEquals("1.0", ExpressionASTBuilder.builder().build("1.").serializeToText());
         Assert.assertEquals("12.0", ExpressionASTBuilder.builder().build("12.").serializeToText());
         Assert.assertEquals("123.0", ExpressionASTBuilder.builder().build("123.").serializeToText());

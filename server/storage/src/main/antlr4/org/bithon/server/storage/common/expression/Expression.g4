@@ -39,7 +39,18 @@ expressionListDecl
   ;
 
 literalExpressionDecl
-  : (INTEGER_LITERAL | DECIMAL_LITERAL | STRING_LITERAL | BOOL_LITERAL | READABLE_DURATION_LITERAL | READABLE_SIZE_LITERAL | READABLE_PERCENTAGE_LITERAL)
+  : INTEGER_LITERAL
+  | DECIMAL_LITERAL
+  | STRING_LITERAL
+  | BOOL_LITERAL
+  | durationLiteral
+  | READABLE_SIZE_LITERAL
+  | READABLE_PERCENTAGE_LITERAL
+  ;
+
+durationLiteral
+    // Time unit converters are supported as a suffix of the duration literal for better syntax suggestion
+  : READABLE_DURATION_LITERAL (DOT ('toMilliSeconds' | 'toMicroSeconds' | 'toNanoSeconds'))?
   ;
 
 identifierExpressionDecl
