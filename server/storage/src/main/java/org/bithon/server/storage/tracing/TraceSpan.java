@@ -17,11 +17,13 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,8 +50,27 @@ import java.util.TreeMap;
 @NoArgsConstructor
 public class TraceSpan implements IInputRow {
 
+    public static class TraceSpanDeserializer extends StdDeserializer<TraceSpan> {
+        private final JsonDeserializer<TraceSpan> deserializer;
+
+        public TraceSpanDeserializer(JsonDeserializer<TraceSpan> deserializer) {
+            super(TraceSpan.class);
+            this.deserializer = deserializer;
+        }
+
+        @Override
+        public TraceSpan deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+            TraceSpan span = deserializer.deserialize(p, ctxt);
+            if (span.tags == null) {
+                // Make sure 'tags' is not null
+                span.tags = new TreeMap<>();
+            }
+            return span;
+        }
+    }
+
     public static class TagDeserializer extends JsonDeserializer<TreeMap<String, String>> {
-        public static final TypeReference<TreeMap<String, String>> TYPE = new TypeReference<TreeMap<String, String>>() {
+        public static final TypeReference<TreeMap<String, String>> TYPE = new TypeReference<>() {
         };
 
         @Override
