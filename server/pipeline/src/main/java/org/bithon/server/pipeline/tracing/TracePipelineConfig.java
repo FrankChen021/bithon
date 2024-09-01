@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @ConfigurationProperties(prefix = "bithon.pipelines.traces")
 public class TracePipelineConfig extends PipelineConfig {
 

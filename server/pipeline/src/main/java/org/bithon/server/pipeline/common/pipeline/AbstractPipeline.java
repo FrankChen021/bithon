@@ -22,7 +22,11 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.pipeline.common.transformer.ExceptionSafeTransformer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.slf4j.Logger;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,20 +38,38 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 12/4/22 11:38 AM
  */
-public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle {
+public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle, ApplicationListener<EnvironmentChangeEvent> {
 
     protected final ObjectMapper objectMapper;
     protected PipelineConfig pipelineConfig;
 
     protected final List<RECEIVER> receivers;
-    protected final List<ITransformer> processors;
+    protected List<ITransformer> processors;
     protected final List<EXPORTER> exporters = new ArrayList<>();
     private boolean isRunning = false;
+
+    private final String processorConfigKey;
 
     public AbstractPipeline(Class<RECEIVER> receiverClass,
                             Class<EXPORTER> exporterClass,
                             PipelineConfig pipelineConfig,
                             ObjectMapper objectMapper) {
+        Class<?> configClass = pipelineConfig.getClass();
+        if (configClass.getName().contains("SpringCGLIB$$")) {
+            configClass = configClass.getSuperclass();
+        }
+
+        // To support dynamic configuration change,
+        // the pipelineConfig must be annotated with @Configuration and be a proxied bean
+        Configuration configurationAnnotation = configClass.getAnnotation(Configuration.class);
+        Preconditions.checkNotNull(configurationAnnotation, "PipelineConfig class must be annotated with @Configuration");
+        Preconditions.checkIfTrue(configurationAnnotation.proxyBeanMethods(), "proxyBeanMethods must be set to false");
+
+        // Get the prefix of the configuration properties
+        ConfigurationProperties properties = configClass.getAnnotation(ConfigurationProperties.class);
+        Preconditions.checkNotNull(properties, "PipelineConfig class must be annotated with @ConfigurationProperties");
+        this.processorConfigKey = properties.prefix() + ".processors";
+
         this.pipelineConfig = pipelineConfig;
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
         this.processors = createProcessors(pipelineConfig, objectMapper);
@@ -189,5 +211,15 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     @Override
     public boolean isRunning() {
         return isRunning;
+    }
+
+    @Override
+    public void onApplicationEvent(EnvironmentChangeEvent event) {
+        if (!event.getKeys().contains(this.processorConfigKey)) {
+            return;
+        }
+
+        getLogger().info("Reloading processors...");
+        this.processors = this.createProcessors(this.pipelineConfig, this.objectMapper);
     }
 }
