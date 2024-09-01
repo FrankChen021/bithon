@@ -22,7 +22,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.ResolvableDeserializer;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,7 +52,7 @@ import java.util.TreeMap;
 @NoArgsConstructor
 public class TraceSpan implements IInputRow {
 
-    public static class TraceSpanDeserializer extends StdDeserializer<TraceSpan> {
+    public static class TraceSpanDeserializer extends StdDeserializer<TraceSpan> implements ResolvableDeserializer {
         private final JsonDeserializer<TraceSpan> deserializer;
 
         public TraceSpanDeserializer(JsonDeserializer<TraceSpan> deserializer) {
@@ -66,6 +68,13 @@ public class TraceSpan implements IInputRow {
                 span.tags = new TreeMap<>();
             }
             return span;
+        }
+
+        @Override
+        public void resolve(DeserializationContext ctxt) throws JsonMappingException {
+            if (deserializer instanceof ResolvableDeserializer) {
+                ((ResolvableDeserializer) deserializer).resolve(ctxt);
+            }
         }
     }
 

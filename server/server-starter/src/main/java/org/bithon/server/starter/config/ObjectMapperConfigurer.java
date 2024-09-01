@@ -99,7 +99,7 @@ public class ObjectMapperConfigurer {
                           public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config,
                                                                         BeanDescription beanDesc,
                                                                         JsonDeserializer<?> deserializer) {
-                              if (TraceSpan.class.isAssignableFrom(beanDesc.getBeanClass())) {
+                              if (TraceSpan.class.equals(beanDesc.getBeanClass())) {
                                   //noinspection unchecked
                                   return new TraceSpan.TraceSpanDeserializer((JsonDeserializer<TraceSpan>) deserializer);
                               }
