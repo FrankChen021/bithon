@@ -16,17 +16,22 @@
 
 package org.bithon.server.pipeline.common.pipeline;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.pipeline.common.transformer.ExceptionSafeTransformer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.slf4j.Logger;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,12 +40,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * NOTE: Subclasses must be instantiated as Spring beans
+ *
  * @author frank.chen021@outlook.com
  * @date 12/4/22 11:38 AM
  */
-public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter> implements SmartLifecycle, ApplicationListener<EnvironmentChangeEvent> {
+public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER extends IExporter>
+    implements SmartLifecycle, ApplicationListener<EnvironmentChangeEvent>, ApplicationContextAware {
 
+    private ApplicationContext applicationContext;
     protected final ObjectMapper objectMapper;
+
     protected PipelineConfig pipelineConfig;
 
     protected final List<RECEIVER> receivers;
@@ -48,31 +58,25 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     protected final List<EXPORTER> exporters = new ArrayList<>();
     private boolean isRunning = false;
 
-    private final String processorConfigKey;
+    private final String pipelineConfigPrefix;
 
-    public AbstractPipeline(Class<RECEIVER> receiverClass,
-                            Class<EXPORTER> exporterClass,
-                            PipelineConfig pipelineConfig,
-                            ObjectMapper objectMapper) {
+    protected AbstractPipeline(Class<RECEIVER> receiverClass,
+                               Class<EXPORTER> exporterClass,
+                               PipelineConfig pipelineConfig,
+                               ObjectMapper objectMapper) {
+        // Get the prefix of the configuration properties for further dynamic property change handling
         Class<?> configClass = pipelineConfig.getClass();
         if (configClass.getName().contains("SpringCGLIB$$")) {
             configClass = configClass.getSuperclass();
         }
-
-        // To support dynamic configuration change,
-        // the pipelineConfig must be annotated with @Configuration and be a proxied bean
-        Configuration configurationAnnotation = configClass.getAnnotation(Configuration.class);
-        Preconditions.checkNotNull(configurationAnnotation, "PipelineConfig class must be annotated with @Configuration");
-        Preconditions.checkIfTrue(configurationAnnotation.proxyBeanMethods(), "proxyBeanMethods must be set to false");
-
-        // Get the prefix of the configuration properties
         ConfigurationProperties properties = configClass.getAnnotation(ConfigurationProperties.class);
         Preconditions.checkNotNull(properties, "PipelineConfig class must be annotated with @ConfigurationProperties");
-        this.processorConfigKey = properties.prefix() + ".processors";
+        this.pipelineConfigPrefix = properties.prefix();
 
         this.pipelineConfig = pipelineConfig;
         this.receivers = createReceivers(pipelineConfig, objectMapper, receiverClass);
         this.processors = createProcessors(pipelineConfig, objectMapper);
+
         this.objectMapper = objectMapper;
 
         initializeExportersFromConfig(pipelineConfig, objectMapper, exporterClass);
@@ -213,13 +217,30 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         return isRunning;
     }
 
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
     @Override
     public void onApplicationEvent(EnvironmentChangeEvent event) {
-        if (!event.getKeys().contains(this.processorConfigKey)) {
+        if (event.getKeys()
+                 .stream()
+                 .noneMatch((key) -> key.startsWith(this.pipelineConfigPrefix))) {
             return;
         }
 
-        getLogger().info("Reloading processors...");
-        this.processors = this.createProcessors(this.pipelineConfig, this.objectMapper);
+        PipelineConfig pipelineConfig = Binder.get(this.applicationContext.getEnvironment())
+                                              .bind(this.pipelineConfigPrefix, PipelineConfig.class)
+                                              .orElse(null);
+        if (pipelineConfig == null) {
+            return;
+        }
+        try {
+            getLogger().info("Reloading processors:\n{}", this.objectMapper.copy()
+                                                                           .configure(SerializationFeature.INDENT_OUTPUT, true)
+                                                                           .writeValueAsString(pipelineConfig.getProcessors()));
+        } catch (JsonProcessingException ignored) {
+        }
+        this.processors = this.createProcessors(pipelineConfig, this.objectMapper);
     }
 }
