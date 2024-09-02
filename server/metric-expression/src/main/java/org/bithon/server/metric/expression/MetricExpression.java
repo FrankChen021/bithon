@@ -156,7 +156,7 @@ public class MetricExpression implements IExpression {
 
         // Use double quote to serialize the expression by default
         @Override
-        public boolean visit(LiteralExpression expression) {
+        public boolean visit(LiteralExpression<?> expression) {
             Object value = expression.getValue();
             if (expression instanceof LiteralExpression.StringLiteral) {
                 sb.append('"');

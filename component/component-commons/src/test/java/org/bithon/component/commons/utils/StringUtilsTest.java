@@ -63,26 +63,28 @@ public class StringUtilsTest {
 
     @Test
     public void testEscapeSingleQuote() {
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("'", '\\'));
-        Assert.assertEquals("\\'a", StringUtils.escapeSingleQuoteIfNecessary("'a", '\\'));
-        Assert.assertEquals("a\\'", StringUtils.escapeSingleQuoteIfNecessary("a'", '\\'));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("''", '\\'));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank's", '\\'));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank\\'s", '\\'));
-
-        // Make sure existing escape character is not escaped
-        Assert.assertEquals("\\t", StringUtils.escapeSingleQuoteIfNecessary("\\t", '\\'));
+        Assert.assertEquals("\\'", StringUtils.escapeIfNecessary("'", '\\', '\''));
+        Assert.assertEquals("\\'a", StringUtils.escapeIfNecessary("'a", '\\', '\''));
+        Assert.assertEquals("a\\'", StringUtils.escapeIfNecessary("a'", '\\', '\''));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeIfNecessary("''", '\\', '\''));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeIfNecessary("Frank's", '\\', '\''));
 
         // No need to escape already escaped input
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("\\'", '\\'));
-        Assert.assertEquals("b\\'", StringUtils.escapeSingleQuoteIfNecessary("b\\'", '\\'));
+        Assert.assertEquals("Frank\\'s", StringUtils.escapeIfNecessary("Frank\\'s", '\\', '\''));
+
+        // Make sure existing escape character is not escaped
+        Assert.assertEquals("\\t", StringUtils.escapeIfNecessary("\\t", '\\', '\''));
+
+        // No need to escape already escaped input
+        Assert.assertEquals("\\'", StringUtils.escapeIfNecessary("\\'", '\\', '\''));
+        Assert.assertEquals("b\\'", StringUtils.escapeIfNecessary("b\\'", '\\', '\''));
 
         // Fist is escaped, second is not, so the second one should be escaped
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("\\''", '\\'));
+        Assert.assertEquals("\\'\\'", StringUtils.escapeIfNecessary("\\''", '\\', '\''));
 
         // There are 4 '\'s in the input, and are all escaped,
         // But the single quote is not escaped, so it should be escaped
-        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuoteIfNecessary("a\\\\\\\\'", '\\'));
+        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeIfNecessary("a\\\\\\\\'", '\\', '\''));
     }
 
     @Test

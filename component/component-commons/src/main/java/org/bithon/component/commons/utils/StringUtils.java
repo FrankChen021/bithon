@@ -16,8 +16,6 @@
 
 package org.bithon.component.commons.utils;
 
-import org.bithon.component.commons.exception.HttpMappableException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -183,31 +181,42 @@ public class StringUtils {
     }
 
     /**
-     * @param input      The input string that needs to be escaped.
-     *                   If the input has escaped character by using leading \ character,
-     *                   the escaped character will not be escaped again.
-     * @param escapeChar The character that is used to escape the single quote. Like ' or \
+     * Escape a given string if it contains characters that need to be escaped.
+     * If the character is already escaped in the given string, it will not be escaped again.
+     *
+     * For example, given the following input:
+     * <code>
+     * <pre>
+     *  input: This is Frank's book
+     *  escapeCharacter: '\'
+     *  toBeEscaped: '\'
+     * </pre>
+     * </code>
+     *
+     * The result would be: <code>This is Frank\'s book</code>
+     *
+     * @param input           The input string that needs to be escaped.
+     * @param escapeCharacter The character that escapes target character. It will be added before the target character.
+     * @param toBeEscaped     The target character that needs to be escaped.
+     * @return The escaped string.
+     *
      */
-    public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
+    public static String escapeIfNecessary(String input, char escapeCharacter, char toBeEscaped) {
         int inputLength = input.length();
 
         StringBuilder escaped = new StringBuilder(inputLength + 1);
         for (int i = 0; i < inputLength; i++) {
             char c = input.charAt(i);
-            if (c == '\\' && i + 1 < input.length()) {
-                char next = input.charAt(i + 1);
-                if (next == '\'') {
-                    // The single quote is escaped, only replace the leading character to escapeChar
-                    escaped.append(escapeChar).append(next);
-                } else {
-                    // Treat the first '\' as an escape character
-                    escaped.append(c).append(next);
-                }
+            if (c == escapeCharacter) {
+                escaped.append(escapeCharacter);
 
-                i++;
-            } else if (c == '\'') {
+                if (i + 1 < inputLength) {
+                    // Add and skip the escaped character
+                    escaped.append(input.charAt(++i));
+                }
+            } else if (c == toBeEscaped) {
                 // Find the target character, escape it
-                escaped.append(escapeChar).append(c);
+                escaped.append(escapeCharacter).append(c);
             } else {
                 escaped.append(c);
             }
