@@ -52,7 +52,7 @@ public class StringUtils {
     }
 
     public static boolean hasText(String str) {
-        return (str != null && !str.isEmpty() && containsText(str));
+        return str != null && !str.isEmpty() && containsText(str);
     }
 
     public static boolean isEmpty(String v) {
@@ -64,8 +64,7 @@ public class StringUtils {
     }
 
     private static boolean containsText(CharSequence str) {
-        int strLen = str.length();
-        for (int i = 0; i < strLen; i++) {
+        for (int i = 0, len = str.length(); i < len; i++) {
             if (!Character.isWhitespace(str.charAt(i))) {
                 return true;
             }
@@ -79,9 +78,9 @@ public class StringUtils {
 
     public static String from(InputStream inputStream) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int length;
         byte[] buffer = new byte[1024];
-        while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
             bos.write(buffer, 0, length);
         }
         bos.flush();
@@ -190,43 +189,27 @@ public class StringUtils {
      * @param escapeChar The character that is used to escape the single quote. Like ' or \
      */
     public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
-        int i = input.indexOf('\'');
-        if (i < 0) {
-            // If no single quote found, no escape is necessary
-            return input;
-        }
+        int inputLength = input.length();
 
-        StringBuilder escaped = new StringBuilder(input.length() + 1);
-        {
-            // Processing from non-escape character
-            while (i > 0 && input.charAt(--i) == '\\') {
-            }
-            if (i > 0) {
-                // Before the slash character, there are characters
-                escaped.append(input, 0, i);
-            }
-
-            for (int size = input.length(); i < size; i++) {
-                char c = input.charAt(i);
-                if (c == '\\') {
-                    if (i + 1 == size) {
-                        throw new HttpMappableException(400,
-                                                        StringUtils.format("The string literal[%s] has ill-format escaping at the end of the string."));
-                    }
-                    char next = input.charAt(++i);
-                    if (next == '\'') {
-                        escaped.append(escapeChar);
-                    } else {
-                        escaped.append('\\');
-                    }
-                    escaped.append(next);
-                } else if (c == '\'') {
-                    // Escape the single quote
-                    escaped.append(escapeChar);
-                    escaped.append(c);
+        StringBuilder escaped = new StringBuilder(inputLength + 1);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+            if (c == '\\' && i + 1 < input.length()) {
+                char next = input.charAt(i + 1);
+                if (next == '\'') {
+                    // The single quote is escaped, only replace the leading character to escapeChar
+                    escaped.append(escapeChar).append(next);
                 } else {
-                    escaped.append(c);
+                    // Treat the first '\' as an escape character
+                    escaped.append(c).append(next);
                 }
+
+                i++;
+            } else if (c == '\'') {
+                // Find the target character, escape it
+                escaped.append(escapeChar).append(c);
+            } else {
+                escaped.append(c);
             }
         }
         return escaped.toString();
