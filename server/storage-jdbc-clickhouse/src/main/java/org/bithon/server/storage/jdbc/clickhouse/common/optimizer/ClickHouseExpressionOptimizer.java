@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,28 +70,32 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
 
             String pattern = ((LiteralExpression<?>) expression.getArgs().get(1)).asString();
 
-            int i = 0;
-            int needleLength = pattern.length();
-            while (i < needleLength && isTokenSeparator(pattern.charAt(i))) {
-                i++;
+            // Skip leading non-token characters
+            int leadingTokenIndex = 0;
+            int pattenLength = pattern.length();
+            while (leadingTokenIndex < pattenLength && isTokenSeparator(pattern.charAt(leadingTokenIndex))) {
+                leadingTokenIndex++;
             }
 
-            int j = needleLength - 1;
-            while (j >= 0 && isTokenSeparator(pattern.charAt(j))) {
-                j--;
+            // Skip trailing non-token characters
+            int trailingTokenIndex = pattenLength - 1;
+            while (trailingTokenIndex >= 0 && isTokenSeparator(pattern.charAt(trailingTokenIndex))) {
+                trailingTokenIndex--;
             }
-            if (i > 0 && j < needleLength - 1) {
-                // This is the case that the needle is surrounded by token separators,
+            if (leadingTokenIndex > 0 && trailingTokenIndex < pattenLength - 1) {
+                // This is the case that the pattern is surrounded by token separators,
                 // CK can use index for such LIKE expression.
+                pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
+                pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
                 return new ConditionalExpression.Like(input,
                                                       LiteralExpression.ofString("%" + pattern + "%"));
             }
 
-            // Otherwise, we try to extract tokens from the needle to turn this function as
+            // Otherwise, we try to extract tokens from the pattern to turn this function as
             // hasToken() AND xxx LIKE '%needle%'
             List<IExpression> subExpressions = new ArrayList<>();
             int tokenStart = 0;
-            for (i = 0; i < needleLength; i++) {
+            for (int i = 0; i < pattenLength; i++) {
                 char chr = pattern.charAt(i);
                 if (isTokenSeparator(chr)) {
                     if (i > tokenStart) {
@@ -103,15 +108,17 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                     tokenStart = i + 1;
                 }
             }
-            if (tokenStart > 0 && tokenStart < needleLength) {
+            if (tokenStart > 0 && tokenStart < pattenLength) {
                 IExpression literal = LiteralExpression.ofString(pattern.substring(tokenStart));
                 subExpressions.add(new FunctionExpression(expression.getFunction(), input, literal));
             }
             if (subExpressions.isEmpty()) {
-                // No token separator in the needle, no need to optimize
+                // No token separator in the pattern, no need to optimize
                 return expression;
             }
 
+            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
+            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
             subExpressions.add(new ConditionalExpression.Like(input,
                                                               LiteralExpression.ofString("%" + pattern + "%")));
 
