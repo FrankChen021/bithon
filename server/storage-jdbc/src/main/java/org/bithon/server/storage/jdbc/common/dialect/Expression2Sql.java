@@ -16,8 +16,10 @@
 
 package org.bithon.server.storage.jdbc.common.dialect;
 
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
@@ -36,6 +38,9 @@ public class Expression2Sql extends ExpressionSerializer {
         if (expression == null) {
             return null;
         }
+
+        // Transform 'contains' operator if needed
+        expression = expression.accept(new ContainsOperatorTransformer());
 
         // Apply DB-related transformation on general AST
         IExpression transformed = sqlDialect.transform(expression);
@@ -79,6 +84,26 @@ public class Expression2Sql extends ExpressionSerializer {
         }
 
         return false;
+    }
+
+    /**
+     * Transform the 'contains' operator into 'LIKE' operator.
+     * The pattern will be escaped if necessary.
+     */
+    private static class ContainsOperatorTransformer extends ExpressionOptimizer.AbstractOptimizer {
+        @Override
+        public IExpression visit(ConditionalExpression expression) {
+            if (!(expression instanceof ConditionalExpression.Contains)) {
+                return super.visit(expression);
+            }
+
+            String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
+            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
+            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
+
+            return new ConditionalExpression.Like(expression.getLhs(),
+                                                  LiteralExpression.ofString("%" + pattern + "%"));
+        }
     }
 }
 
