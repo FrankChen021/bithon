@@ -35,11 +35,6 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
 
     @Override
     public IExpression visit(ConditionalExpression expression) {
-        if (expression instanceof ConditionalExpression.Contains) {
-            return new ConditionalExpression.Like(expression.getLhs(),
-                                                  LiteralExpression.ofString("%" + ((LiteralExpression) expression.getRhs()).asString() + "%"));
-        }
-
         if (expression instanceof ConditionalExpression.StartsWith) {
             return new FunctionExpression(
                 Functions.getInstance().getFunction("startsWith"),
@@ -64,30 +59,31 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
         if (!"hasToken".equals(expression.getName())) {
             return expression;
         }
-        return new HasTokenFunction().optimize(expression);
+        return HasTokenFunctionOptimizer.optimize(expression);
     }
 
-    static class HasTokenFunction {
-        public IExpression optimize(FunctionExpression expression) {
+    static class HasTokenFunctionOptimizer {
+        static IExpression optimize(FunctionExpression expression) {
             // The hasToken already checks the parameter is a type of Literal
-            IExpression haystack = expression.getArgs().get(0);
-            String needle = ((LiteralExpression) expression.getArgs().get(1)).asString();
+            IExpression input = expression.getArgs().get(0);
+
+            String pattern = ((LiteralExpression<?>) expression.getArgs().get(1)).asString();
 
             int i = 0;
-            int needleLength = needle.length();
-            while (i < needleLength && isTokenSeparator(needle.charAt(i))) {
+            int needleLength = pattern.length();
+            while (i < needleLength && isTokenSeparator(pattern.charAt(i))) {
                 i++;
             }
 
             int j = needleLength - 1;
-            while (j >= 0 && isTokenSeparator(needle.charAt(j))) {
+            while (j >= 0 && isTokenSeparator(pattern.charAt(j))) {
                 j--;
             }
             if (i > 0 && j < needleLength - 1) {
                 // This is the case that the needle is surrounded by token separators,
                 // CK can use index for such LIKE expression.
-                return new ConditionalExpression.Like(haystack,
-                                                      LiteralExpression.ofString("%" + needle + "%"));
+                return new ConditionalExpression.Like(input,
+                                                      LiteralExpression.ofString("%" + pattern + "%"));
             }
 
             // Otherwise, we try to extract tokens from the needle to turn this function as
@@ -95,11 +91,11 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
             List<IExpression> subExpressions = new ArrayList<>();
             int tokenStart = 0;
             for (i = 0; i < needleLength; i++) {
-                char chr = needle.charAt(i);
+                char chr = pattern.charAt(i);
                 if (isTokenSeparator(chr)) {
                     if (i > tokenStart) {
-                        IExpression literal = LiteralExpression.ofString(needle.substring(tokenStart, i));
-                        subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
+                        IExpression literal = LiteralExpression.ofString(pattern.substring(tokenStart, i));
+                        subExpressions.add(new FunctionExpression(expression.getFunction(), input, literal));
                     }
 
                     // Since the current character is a token separator,
@@ -108,27 +104,29 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 }
             }
             if (tokenStart > 0 && tokenStart < needleLength) {
-                IExpression literal = LiteralExpression.ofString(needle.substring(tokenStart));
-                subExpressions.add(new FunctionExpression(expression.getFunction(), haystack, literal));
+                IExpression literal = LiteralExpression.ofString(pattern.substring(tokenStart));
+                subExpressions.add(new FunctionExpression(expression.getFunction(), input, literal));
             }
             if (subExpressions.isEmpty()) {
                 // No token separator in the needle, no need to optimize
                 return expression;
             }
 
-            subExpressions.add(new ConditionalExpression.Like(haystack,
-                                                              LiteralExpression.ofString("%" + needle + "%")));
+            subExpressions.add(new ConditionalExpression.Like(input,
+                                                              LiteralExpression.ofString("%" + pattern + "%")));
 
             return new LogicalExpression.AND(subExpressions);
         }
 
         /**
+         * <code><pre>
          * ALWAYS_INLINE static bool isTokenSeparator(const uint8_t c)
          * {
-         * return !(isAlphaNumericASCII(c) || !isASCII(c));
+         *      return !(isAlphaNumericASCII(c) || !isASCII(c));
          * }
+         * </pre></code>
          */
-        private boolean isTokenSeparator(char chr) {
+        private static boolean isTokenSeparator(char chr) {
             return !(Character.isLetterOrDigit(chr) || (chr > 127));
         }
     }

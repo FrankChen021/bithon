@@ -101,10 +101,6 @@ public class H2SqlDialect implements ISqlDialect {
                     return MapAccessExpressionTransformer.transform(expression);
                 }
 
-                if (expression instanceof ConditionalExpression.Contains) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
-                }
                 if (expression instanceof ConditionalExpression.StartsWith) {
                     return new ConditionalExpression.Like(expression.getLhs(),
                                                           LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
