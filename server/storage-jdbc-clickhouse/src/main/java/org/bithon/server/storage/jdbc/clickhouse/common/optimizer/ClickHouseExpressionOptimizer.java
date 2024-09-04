@@ -85,8 +85,8 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
             if (leadingTokenIndex > 0 && trailingTokenIndex < pattenLength - 1) {
                 // This is the case that the pattern is surrounded by token separators,
                 // CK can use index for such LIKE expression.
-                pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
-                pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
+                pattern = StringUtils.escape(pattern, '\\', '%');
+                pattern = StringUtils.escape(pattern, '\\', '_');
                 return new ConditionalExpression.Like(input,
                                                       LiteralExpression.ofString("%" + pattern + "%"));
             }
@@ -117,8 +117,8 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 return expression;
             }
 
-            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
-            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
+            pattern = StringUtils.escape(pattern, '\\', '%');
+            pattern = StringUtils.escape(pattern, '\\', '_');
             subExpressions.add(new ConditionalExpression.Like(input,
                                                               LiteralExpression.ofString("%" + pattern + "%")));
 

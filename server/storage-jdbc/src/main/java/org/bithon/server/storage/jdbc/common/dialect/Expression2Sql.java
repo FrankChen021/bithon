@@ -60,7 +60,7 @@ public class Expression2Sql extends ExpressionSerializer {
         if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
-            sb.append(StringUtils.escapeIfNecessary(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
+            sb.append(StringUtils.escape(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
             sb.append('\'');
         } else if (expression instanceof LiteralExpression.LongLiteral longLiteral) {
             sb.append(longLiteral.getValue());
@@ -98,8 +98,8 @@ public class Expression2Sql extends ExpressionSerializer {
             }
 
             String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
-            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '%');
-            pattern = StringUtils.escapeIfNecessary(pattern, '\\', '_');
+            pattern = StringUtils.escape(pattern, '\\', '%');
+            pattern = StringUtils.escape(pattern, '\\', '_');
 
             return new ConditionalExpression.Like(expression.getLhs(),
                                                   LiteralExpression.ofString("%" + pattern + "%"));

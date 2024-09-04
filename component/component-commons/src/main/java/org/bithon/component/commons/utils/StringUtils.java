@@ -183,7 +183,7 @@ public class StringUtils {
     /**
      * Escape a given string if it contains characters that need to be escaped.
      * If the character is already escaped in the given string, it will not be escaped again.
-     *
+     * <p>
      * For example, given the following input:
      * <code>
      * <pre>
@@ -192,14 +192,13 @@ public class StringUtils {
      *  toBeEscaped: '\'
      * </pre>
      * </code>
-     *
+     * <p>
      * The result would be: <code>This is Frank\'s book</code>
      *
      * @param input           The input string that needs to be escaped.
      * @param escapeCharacter The character that escapes target character. It will be added before the target character.
      * @param toBeEscaped     The target character that needs to be escaped.
      * @return The escaped string.
-     *
      */
     public static String escapeIfNecessary(String input, char escapeCharacter, char toBeEscaped) {
         int inputLength = input.length();
@@ -222,6 +221,52 @@ public class StringUtils {
             }
         }
         return escaped.toString();
+    }
+
+    /**
+     * For all character of toBeEscaped in the input, escape it with escapeCharacter.
+     */
+    public static String escape(String input, char escapeCharacter, char toBeEscaped) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        int inputLength = input.length();
+        StringBuilder escaped = new StringBuilder(inputLength + 1);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+            if (c == toBeEscaped) {
+                escaped.append(escapeCharacter).append(c);
+            } else {
+                escaped.append(c);
+            }
+        }
+        return escaped.toString();
+    }
+
+    public static String unEscape(String input, char escapeCharacter, char escaped) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        int inputLength = input.length();
+
+        StringBuilder unEscaped = new StringBuilder(inputLength);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+
+            if (c == escapeCharacter && i + 1 < inputLength) {
+                char next = input.charAt(i + 1);
+                if (next == escaped) {
+                    unEscaped.append(next);
+                    i++;
+                    continue;
+                }
+            }
+
+            unEscaped.append(c);
+        }
+        return unEscaped.toString();
     }
 
     public static Map<String, String> extractKeyValueParis(String kvPairs,

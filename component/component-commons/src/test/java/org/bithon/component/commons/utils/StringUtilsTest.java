@@ -63,52 +63,48 @@ public class StringUtilsTest {
 
     @Test
     public void testEscapeSingleQuote() {
-        Assert.assertEquals("\\'", StringUtils.escapeIfNecessary("'", '\\', '\''));
-        Assert.assertEquals("\\'a", StringUtils.escapeIfNecessary("'a", '\\', '\''));
-        Assert.assertEquals("a\\'", StringUtils.escapeIfNecessary("a'", '\\', '\''));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeIfNecessary("''", '\\', '\''));
-        Assert.assertEquals("\\'a\\'", StringUtils.escapeIfNecessary("'a'", '\\', '\''));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeIfNecessary("Frank's", '\\', '\''));
+        Assert.assertEquals("\\'", StringUtils.escape("'",  '\\', '\''));
+        Assert.assertEquals("\\'\\'", StringUtils.escape("''", '\\', '\''));
 
-        // No need to escape already escaped input
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeIfNecessary("Frank\\'s", '\\', '\''));
+        Assert.assertEquals("\\'a\\'", StringUtils.escape("'a'", '\\', '\''));
+        Assert.assertEquals("\\'a", StringUtils.escape("'a", '\\', '\''));
+        Assert.assertEquals("a\\'", StringUtils.escape("a'", '\\', '\''));
+        Assert.assertEquals("Frank\\'s", StringUtils.escape("Frank's", '\\', '\''));
 
         // Make sure existing escape character is not escaped
-        Assert.assertEquals("\\t", StringUtils.escapeIfNecessary("\\t", '\\', '\''));
+        Assert.assertEquals("\\t", StringUtils.escape("\\t", '\\', '\''));
 
         // No need to escape already escaped input
-        Assert.assertEquals("\\'", StringUtils.escapeIfNecessary("\\'", '\\', '\''));
-        Assert.assertEquals("b\\'", StringUtils.escapeIfNecessary("b\\'", '\\', '\''));
+        Assert.assertEquals("\\\\'", StringUtils.escape("\\'", '\\', '\''));
+        Assert.assertEquals("b\\\\'", StringUtils.escape("b\\'", '\\', '\''));
 
-        // Fist is escaped, second is not, so the second one should be escaped
-        Assert.assertEquals("\\'\\'", StringUtils.escapeIfNecessary("\\''", '\\', '\''));
+        // Escape consecutive single quotes
+        Assert.assertEquals("\\\\'\\'", StringUtils.escape("\\''", '\\', '\''));
 
         // There are 4 '\'s in the input, and are all escaped,
         // But the single quote is not escaped, so it should be escaped
-        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeIfNecessary("a\\\\\\\\'", '\\', '\''));
+        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escape("a\\\\\\\\'", '\\', '\''));
     }
 
     @Test
     public void testEscapePercentSign() {
-        Assert.assertEquals("\\%", StringUtils.escapeIfNecessary("%", '\\', '%'));
-        Assert.assertEquals("\\%a", StringUtils.escapeIfNecessary("%a", '\\', '%'));
-        Assert.assertEquals("a\\%", StringUtils.escapeIfNecessary("a%", '\\', '%'));
-        Assert.assertEquals("\\%\\%", StringUtils.escapeIfNecessary("%%", '\\', '%'));
-        Assert.assertEquals("\\%a\\%", StringUtils.escapeIfNecessary("%a%", '\\', '%'));
-        Assert.assertEquals("Frank\\%s", StringUtils.escapeIfNecessary("Frank%s", '\\', '%'));
+        Assert.assertEquals("\\%", StringUtils.escape("%", '\\', '%'));
+        Assert.assertEquals("\\%\\%", StringUtils.escape("%%", '\\', '%'));
 
-        // No need to escape already escaped input
-        Assert.assertEquals("Frank\\%s", StringUtils.escapeIfNecessary("Frank\\%s", '\\', '%'));
+        Assert.assertEquals("\\%a", StringUtils.escape("%a", '\\', '%'));
+        Assert.assertEquals("a\\%", StringUtils.escape("a%", '\\', '%'));
+        Assert.assertEquals("\\%a\\%", StringUtils.escape("%a%", '\\', '%'));
+        Assert.assertEquals("Frank\\%s", StringUtils.escape("Frank%s", '\\', '%'));
 
-        // Make sure existing escape character is not escaped
-        Assert.assertEquals("\\t", StringUtils.escapeIfNecessary("\\t", '\\', '%'));
+        Assert.assertEquals("\\\\%\\%", StringUtils.escape("\\%%", '\\', '%'));
+    }
 
-        // No need to escape already escaped input
-        Assert.assertEquals("\\%", StringUtils.escapeIfNecessary("\\%", '\\', '%'));
-        Assert.assertEquals("b\\%", StringUtils.escapeIfNecessary("b\\%", '\\', '%'));
-
-        // Fist is escaped, second is not, so the second one should be escaped
-        Assert.assertEquals("\\%\\%", StringUtils.escapeIfNecessary("\\%%", '\\', '%'));
+    @Test
+    public void testUnEscape() {
+        Assert.assertEquals("%", StringUtils.unEscape("%", '\\', '%'));
+        Assert.assertEquals("%a", StringUtils.unEscape("%a", '\\', '%'));
+        Assert.assertEquals("a%", StringUtils.unEscape("a\\%", '\\', '%'));
+        Assert.assertEquals("\\a%", StringUtils.unEscape("\\a\\%", '\\', '%'));
     }
 
     @Test
