@@ -51,7 +51,7 @@ public class StringUtilsTest {
     public void testCamelToSnake() {
         Assert.assertNull(StringUtils.camelToSnake(null));
         Assert.assertEquals("", StringUtils.camelToSnake(""));
-  
+
         Assert.assertEquals("print", StringUtils.camelToSnake("print"));
         Assert.assertEquals("show_database", StringUtils.camelToSnake("showDatabase"));
         Assert.assertEquals("show_database_and_table", StringUtils.camelToSnake("showDatabaseAndTable"));
