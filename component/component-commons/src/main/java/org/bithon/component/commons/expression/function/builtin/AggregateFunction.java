@@ -51,8 +51,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
         }
 
         @Override
@@ -70,8 +70,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
         }
 
         @Override
@@ -89,8 +89,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -111,7 +111,7 @@ public abstract class AggregateFunction extends AbstractFunction {
          */
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
+            validateTrue(args.isEmpty() || args.size() == 1, "Function [count] accepts 0 or 1 parameter, but got [%d]", args.size());
         }
 
         @Override
@@ -127,8 +127,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -146,8 +146,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -165,8 +165,8 @@ public abstract class AggregateFunction extends AbstractFunction {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
