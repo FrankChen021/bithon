@@ -33,7 +33,8 @@ public class Interval {
     private final TimeSpan endTime;
 
     /**
-     * precision: in second
+     * In second
+     * Can be null. For example, for the SELECT query, the step is not needed
      */
     private final Duration step;
 
