@@ -30,7 +30,6 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
@@ -127,7 +126,7 @@ public class AlertChannelApi {
                                                                               this.objectMapper)) {
             channel.send(NotificationMessage.builder()
                                             .alertRecordId("fake")
-                                            .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
+                                            .expressions(Collections.singletonList(AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationResult.MATCHED,
                                                 new OutputMessage("1", "2", "1")

@@ -21,7 +21,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
@@ -120,16 +119,18 @@ public class AlertQueryApi {
     public ApiResponse<ParseAlertExpressionResponse> parseAlertExpression(@Valid @RequestBody ParseAlertExpressionRequest request) {
         try {
             // Parse expression first
-            IExpression alertExpression = AlertExpressionASTParser.parse(request.getExpression());
+            AlertExpression alertExpression = AlertExpressionASTParser.parse(request.getExpression());
 
             // Get Schema for validation
             Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
+            // Flatten expressions
             List<AlertExpression> alertExpressions = new ArrayList<>();
             alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
                 expression.getMetricExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
+
             return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));
         } catch (InvalidExpressionException e) {
             return ApiResponse.fail(e.getMessage());

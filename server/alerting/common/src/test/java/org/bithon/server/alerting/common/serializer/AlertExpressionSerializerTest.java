@@ -34,7 +34,7 @@ public class AlertExpressionSerializerTest {
 
     @Test
     public void testJsonSerialization() throws JsonProcessingException {
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1[-7m]");
+        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1[-7m]");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
             .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
@@ -50,8 +50,27 @@ public class AlertExpressionSerializerTest {
     }
 
     @Test
+    public void testEscapeLabel() throws JsonProcessingException {
+        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='ab\"cd', instance='ab\\'cd'})[5m] > 1[-7m]");
+
+        ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
+            .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
+            .indentOutput(true)
+            .build();
+
+        String val = objectMapper.writeValueAsString(expression);
+        JsonNode tree = objectMapper.readTree(val);
+
+        Assert.assertEquals("1", tree.get("id").asText());
+
+        // appName should be escaped as ab\"cd
+        Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"ab\\\"cd\", instance = \"ab'cd\"})[5m] > 1[-7m]", tree.get("expressionText").asText());
+        Assert.assertEquals("(appName = 'ab\"cd' AND instance = 'ab\\'cd')", tree.get("where").asText());
+    }
+
+    @Test
     public void testJsonSerialization_NoExpectedWindow() throws JsonProcessingException {
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
+        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
             .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())

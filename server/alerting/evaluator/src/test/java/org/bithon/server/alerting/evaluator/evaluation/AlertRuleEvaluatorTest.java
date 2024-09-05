@@ -97,7 +97,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -120,7 +120,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 5", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -143,7 +143,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 6", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -166,7 +166,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 5", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -190,7 +190,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -213,7 +213,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -241,7 +241,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 100%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -269,7 +269,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 99%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -299,7 +299,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -330,7 +330,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
@@ -361,7 +361,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s{type like 'a'})[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .appName("bithon")
@@ -393,7 +393,7 @@ public class AlertRuleEvaluatorTest {
         EasyMock.replay(dataSourceProvider);
 
         String expr = StringUtils.format("sum(test-metrics.%s{type not like 'a'})[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+        AlertExpression expression = AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .appName("bithon")

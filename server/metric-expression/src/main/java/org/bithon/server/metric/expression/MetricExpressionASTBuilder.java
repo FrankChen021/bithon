@@ -34,7 +34,6 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
-import org.bithon.server.commons.antlr4.TokenUtils;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
@@ -60,7 +59,7 @@ public class MetricExpressionASTBuilder {
         }
     }
 
-    public static IExpression parse(String expression) {
+    public static MetricExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
         lexer.addErrorListener(SyntaxErrorListener.of(expression));
@@ -316,13 +315,26 @@ public class MetricExpressionASTBuilder {
         public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
             Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
             return switch (symbol.getType()) {
-                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
+                case MetricExpressionParser.DECIMAL_LITERAL ->
+                    LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
                 case MetricExpressionParser.INTEGER_LITERAL ->
                     LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
                 case MetricExpressionParser.PERCENTAGE_LITERAL ->
                     LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
-                case MetricExpressionParser.STRING_LITERAL ->
-                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(symbol));
+                case MetricExpressionParser.STRING_LITERAL -> {
+                    String input = symbol.getText();
+                    if (!input.isEmpty()) {
+                        char quote = input.charAt(0);
+                        input = input.substring(1, input.length() - 1);
+
+                        if (quote == '\'') {
+                            input = StringUtils.unEscape(input, '\\', '\'');
+                        } else {
+                            input = StringUtils.unEscape(input, '\\', '\"');
+                        }
+                    }
+                    yield LiteralExpression.ofString(input);
+                }
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
                 case MetricExpressionParser.SIZE_LITERAL ->
                     LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));

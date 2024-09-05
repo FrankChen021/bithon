@@ -92,7 +92,7 @@ public class AlertRule {
     private boolean enabled = true;
 
     @JsonIgnore
-    private IExpression evaluationExpression;
+    private IExpression alertExpression;
 
     @JsonIgnore
     private Map<String, AlertExpression> flattenExpressions;
@@ -103,21 +103,21 @@ public class AlertRule {
     }
 
     public AlertRule initialize() throws InvalidExpressionException {
-        if (evaluationExpression != null) {
+        if (alertExpression != null) {
             return this;
         }
 
         Preconditions.checkIfTrue(!StringUtils.isEmpty(expr), "There must be at least one expression in the alert [%s]", this.name);
 
-        this.evaluationExpression = AlertExpressionASTParser.parse(this.expr);
+        this.alertExpression = AlertExpressionASTParser.parse(this.expr);
         if (StringUtils.isBlank(this.appName)) {
-            this.appName = new ApplicationNameExtractor().extract(this.evaluationExpression);
+            this.appName = new ApplicationNameExtractor().extract(this.alertExpression);
         }
 
         // Use LinkedHashMap to keep order
         this.flattenExpressions = new LinkedHashMap<>();
 
-        this.evaluationExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
+        this.alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
             // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
         });
@@ -155,7 +155,7 @@ public class AlertRule {
                             && (expression.getLhs() instanceof IdentifierExpression)
                             && expression.getRhs() instanceof LiteralExpression
                             && ((IdentifierExpression) expression.getLhs()).getIdentifier().equals("appName")) {
-                            applicationName = ((LiteralExpression) expression.getRhs()).asString();
+                            applicationName = ((LiteralExpression<?>) expression.getRhs()).asString();
                             return false;
                         }
                         return true;

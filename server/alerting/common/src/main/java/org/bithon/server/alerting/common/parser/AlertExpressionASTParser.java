@@ -54,7 +54,7 @@ import java.util.List;
  */
 public class AlertExpressionASTParser {
 
-    public static IExpression parse(String expression) {
+    public static AlertExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
         lexer.addErrorListener(SyntaxErrorListener.of(expression));
@@ -75,7 +75,7 @@ public class AlertExpressionASTParser {
                                                     "Unexpected token: " + last.getText());
         }
 
-        return ctx.accept(new MetricExpressionBuilder());
+        return (AlertExpression) ctx.accept(new MetricExpressionBuilder());
     }
 
     private static class MetricExpressionBuilder extends MetricExpressionBaseVisitor<IExpression> {
