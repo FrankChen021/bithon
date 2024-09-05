@@ -181,49 +181,6 @@ public class StringUtils {
     }
 
     /**
-     * Escape a given string if it contains characters that need to be escaped.
-     * If the character is already escaped in the given string, it will not be escaped again.
-     * <p>
-     * For example, given the following input:
-     * <code>
-     * <pre>
-     *  input: This is Frank's book
-     *  escapeCharacter: '\'
-     *  toBeEscaped: '\'
-     * </pre>
-     * </code>
-     * <p>
-     * The result would be: <code>This is Frank\'s book</code>
-     *
-     * @param input           The input string that needs to be escaped.
-     * @param escapeCharacter The character that escapes target character. It will be added before the target character.
-     * @param toBeEscaped     The target character that needs to be escaped.
-     * @return The escaped string.
-     */
-    public static String escapeIfNecessary(String input, char escapeCharacter, char toBeEscaped) {
-        int inputLength = input.length();
-
-        StringBuilder escaped = new StringBuilder(inputLength + 1);
-        for (int i = 0; i < inputLength; i++) {
-            char c = input.charAt(i);
-            if (c == escapeCharacter) {
-                escaped.append(escapeCharacter);
-
-                if (i + 1 < inputLength) {
-                    // Add and skip the escaped character
-                    escaped.append(input.charAt(++i));
-                }
-            } else if (c == toBeEscaped) {
-                // Find the target character, escape it
-                escaped.append(escapeCharacter).append(c);
-            } else {
-                escaped.append(c);
-            }
-        }
-        return escaped.toString();
-    }
-
-    /**
      * For all character of toBeEscaped in the input, escape it with escapeCharacter.
      */
     public static String escape(String input, char escapeCharacter, char toBeEscaped) {
