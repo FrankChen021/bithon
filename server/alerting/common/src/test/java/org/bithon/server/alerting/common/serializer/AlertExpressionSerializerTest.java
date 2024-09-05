@@ -34,7 +34,7 @@ public class AlertExpressionSerializerTest {
 
     @Test
     public void testJsonSerialization() throws JsonProcessingException {
-        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1[-7m]");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1[-7m]");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
             .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
@@ -51,7 +51,7 @@ public class AlertExpressionSerializerTest {
 
     @Test
     public void testEscapeLabel() throws JsonProcessingException {
-        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='ab\"cd', instance='ab\\'cd'})[5m] > 1[-7m]");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='ab\"cd', instance='ab\\'cd'})[5m] > 1[-7m]");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
             .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
@@ -70,7 +70,7 @@ public class AlertExpressionSerializerTest {
 
     @Test
     public void testJsonSerialization_NoExpectedWindow() throws JsonProcessingException {
-        AlertExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
 
         ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
             .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
