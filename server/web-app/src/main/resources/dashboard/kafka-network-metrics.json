@@ -83,7 +83,7 @@
           "fields": [
             "cluster",
             "type",
-            "count",
+            {"name": "count","expression": "count()"},
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"
