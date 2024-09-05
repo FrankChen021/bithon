@@ -44,7 +44,7 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
                                String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Last.NAME, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Last.INSTANCE, name);
     }
 
     @Override

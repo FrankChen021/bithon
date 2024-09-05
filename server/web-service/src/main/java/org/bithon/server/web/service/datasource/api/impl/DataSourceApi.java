@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;

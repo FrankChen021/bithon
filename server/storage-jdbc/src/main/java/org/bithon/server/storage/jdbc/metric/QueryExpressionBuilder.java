@@ -243,7 +243,7 @@ public class QueryExpressionBuilder {
         Aggregator(FunctionExpression aggregateFunction, String output) {
             this.aggregateFunction = aggregateFunction;
             this.output = output;
-            this.isSimpleAggregation = aggregateFunction.getArgs().get(0) instanceof IdentifierExpression;
+            this.isSimpleAggregation = aggregateFunction.getArgs().isEmpty() || aggregateFunction.getArgs().get(0) instanceof IdentifierExpression;
         }
     }
 
@@ -260,23 +260,28 @@ public class QueryExpressionBuilder {
             }
         }
 
-        private boolean contains(FunctionExpression functionExpression) {
-            if (!(functionExpression.getArgs().get(0) instanceof IdentifierExpression)) {
-                return false;
-            }
-
+        private boolean contains(FunctionExpression rhs) {
             return aggregators.stream()
-                              .anyMatch(aggregator -> {
-                                  if (!aggregator.isSimpleAggregation) {
+                              .anyMatch(lhs -> {
+                                  if (!lhs.isSimpleAggregation) {
                                       return false;
                                   }
 
-                                  if (!aggregator.aggregateFunction.getName().equals(functionExpression.getName())) {
+                                  FunctionExpression lhsFunction = lhs.aggregateFunction;
+                                  if (!lhsFunction.getName().equals(rhs.getName())) {
                                       return false;
                                   }
 
-                                  String col = ((IdentifierExpression) aggregator.aggregateFunction.getArgs().get(0)).getIdentifier();
-                                  return col.equals(((IdentifierExpression) functionExpression.getArgs().get(0)).getIdentifier());
+                                  if (lhsFunction.getArgs().size() != rhs.getArgs().size()) {
+                                      return false;
+                                  }
+
+                                  if (lhsFunction.getArgs().isEmpty()) {
+                                      return true;
+                                  }
+
+                                  String lhsCol = ((IdentifierExpression) lhs.aggregateFunction.getArgs().get(0)).getIdentifier();
+                                  return lhsCol.equals(((IdentifierExpression) rhs.getArgs().get(0)).getIdentifier());
                               });
         }
 
@@ -515,7 +520,7 @@ public class QueryExpressionBuilder {
                             return super.visit(functionCallExpression);
                         }
 
-                        IExpression inputArg = functionCallExpression.getArgs().get(0);
+                        IExpression inputArg = functionCallExpression.getArgs().isEmpty() ? null : functionCallExpression.getArgs().get(0);
                         if (inputArg instanceof FunctionExpression && ((FunctionExpression) inputArg).getFunction().isAggregator()) {
                             throw new InvalidExpressionException("Aggregator [%s] is not allowed in another aggregator [%s].", inputArg.serializeToText(), functionCallExpression.getName());
                         }

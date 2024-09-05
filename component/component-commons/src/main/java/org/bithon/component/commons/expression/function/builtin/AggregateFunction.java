@@ -19,6 +19,7 @@ package org.bithon.component.commons.expression.function.builtin;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
+import org.bithon.component.commons.expression.function.IFunction;
 
 import java.util.List;
 
@@ -43,10 +44,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Min extends AggregateFunction {
-        public static final String NAME = "min";
+        public static final IFunction INSTANCE = new Min();
 
-        public Min() {
-            super(NAME);
+        private Min() {
+            super("min");
         }
 
         @Override
@@ -62,10 +63,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Max extends AggregateFunction {
-        public static final String NAME = "max";
+        public static final IFunction INSTANCE = new Max();
 
-        public Max() {
-            super(NAME);
+        private Max() {
+            super("max");
         }
 
         @Override
@@ -81,10 +82,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Sum extends AggregateFunction {
-        public static final String NAME = "sum";
+        public static final IFunction INSTANCE = new Sum();
 
         public Sum() {
-            super(NAME);
+            super("sum");
         }
 
         @Override
@@ -100,10 +101,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Count extends AggregateFunction {
-        public static final String NAME = "count";
+        public static final Count INSTANCE = new Count();
 
-        public Count() {
-            super(NAME);
+        private Count() {
+            super("count");
         }
 
         /**
@@ -121,7 +122,9 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Avg extends AggregateFunction {
-        public Avg() {
+        public static final IFunction INSTANCE = new Avg();
+
+        private Avg() {
             super("avg");
         }
 
@@ -138,10 +141,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class First extends AggregateFunction {
-        public static final String NAME = "first";
+        public static final IFunction INSTANCE = new First();
 
-        public First() {
-            super(NAME);
+        private First() {
+            super("first");
         }
 
         @Override
@@ -157,10 +160,10 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Last extends AggregateFunction {
-        public static final String NAME = "last";
+        public static final IFunction INSTANCE = new Last();
 
-        public Last() {
-            super(NAME);
+        private Last() {
+            super("last");
         }
 
         @Override

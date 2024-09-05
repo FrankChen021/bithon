@@ -84,8 +84,8 @@ public class H2SqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return AggregateFunction.First.NAME.equals(aggregator)
-               || AggregateFunction.Last.NAME.equals(aggregator);
+        return AggregateFunction.First.INSTANCE.getName().equals(aggregator)
+               || AggregateFunction.Last.INSTANCE.getName().equals(aggregator);
     }
 
     @Override

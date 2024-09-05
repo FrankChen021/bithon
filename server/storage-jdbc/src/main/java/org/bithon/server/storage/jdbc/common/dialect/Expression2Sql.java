@@ -17,9 +17,10 @@
 package org.bithon.server.storage.jdbc.common.dialect;
 
 import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
@@ -38,9 +39,6 @@ public class Expression2Sql extends ExpressionSerializer {
         if (expression == null) {
             return null;
         }
-
-        // Transform 'contains' operator if needed
-        expression = expression.accept(new ContainsOperatorTransformer());
 
         // Apply DB-related transformation on general AST
         IExpression transformed = sqlDialect.transform(expression);
@@ -86,24 +84,36 @@ public class Expression2Sql extends ExpressionSerializer {
         return false;
     }
 
+    @Override
+    public boolean visit(FunctionExpression expression) {
+        if (expression.getFunction() instanceof AggregateFunction.Count
+            && expression.getArgs().isEmpty()) {
+            // Some DBMSs require parameter on the 'count' function
+            sb.append("count(1)");
+            return false;
+        }
+
+        return super.visit(expression);
+    }
+
     /**
      * Transform the 'contains' operator into 'LIKE' operator.
-     * The pattern will be escaped if necessary.
+     * The pattern in the 'contains' operator will be escaped if necessary.
      */
-    private static class ContainsOperatorTransformer extends ExpressionOptimizer.AbstractOptimizer {
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            if (!(expression instanceof ConditionalExpression.Contains)) {
-                return super.visit(expression);
-            }
-
-            String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
-            pattern = StringUtils.escape(pattern, '\\', '%');
-            pattern = StringUtils.escape(pattern, '\\', '_');
-
-            return new ConditionalExpression.Like(expression.getLhs(),
-                                                  LiteralExpression.ofString("%" + pattern + "%"));
+    @Override
+    public boolean visit(ConditionalExpression expression) {
+        if (!(expression instanceof ConditionalExpression.Contains)) {
+            return super.visit(expression);
         }
+
+        String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
+        pattern = StringUtils.escape(pattern, '\\', '%');
+        pattern = StringUtils.escape(pattern, '\\', '_');
+
+        serializeBinary(new ConditionalExpression.Like(expression.getLhs(),
+                                                       LiteralExpression.ofString("%" + pattern + "%")));
+
+        return false;
     }
 }
 

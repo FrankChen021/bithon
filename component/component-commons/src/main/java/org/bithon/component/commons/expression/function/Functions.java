@@ -68,13 +68,13 @@ public class Functions implements IFunctionProvider {
         register(TimeFunction.ToMicroSeconds.INSTANCE);
         register(TimeFunction.ToNanoSeconds.INSTANCE);
 
-        register(new AggregateFunction.Min());
-        register(new AggregateFunction.Max());
-        register(new AggregateFunction.Sum());
-        register(new AggregateFunction.Count());
-        register(new AggregateFunction.Avg());
-        register(new AggregateFunction.First());
-        register(new AggregateFunction.Last());
+        register(AggregateFunction.Min.INSTANCE);
+        register(AggregateFunction.Max.INSTANCE);
+        register(AggregateFunction.Sum.INSTANCE);
+        register(AggregateFunction.Count.INSTANCE);
+        register(AggregateFunction.Avg.INSTANCE);
+        register(AggregateFunction.First.INSTANCE);
+        register(AggregateFunction.Last.INSTANCE);
     }
 
     public void register(IFunction function) {
