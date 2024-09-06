@@ -49,6 +49,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
+
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
@@ -73,6 +74,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 // tracing
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
+                    System.out.println("=================>Responsed");
                     httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
                                   .tag(Tags.Http.URL, uri)
                                   .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),
@@ -85,6 +87,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                                                     }
                                                 })
                                   .finish();
+                    httpClientSpan.context().finish();
                 }
 
                 // metrics

@@ -50,32 +50,35 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
-        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
             // Span will be finished in ResponseConnection interceptor
-            httpClientContext.setSpan(span.kind(SpanKind.CLIENT)
-                                          .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .tag(Tags.Http.URL, httpClient.configuration().uri())
-                                          .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
-                                          .tag(Tags.Http.CLIENT, "webflux")
-                                          .start());
+            // If the Span is null, we still need to continue because the response connection also records metrics
+            httpClientContext.setSpan(span);
         }
 
         //noinspection unchecked
         BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>> originalSender
-                = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
+            = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
 
-        //replace the Publisher to propagate trace
-        aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
-            Publisher<Void> publisher = originalSender.apply(httpClientRequest, nettyOutbound);
+        // Replace the Publisher to propagate trace
+        if (span != null) {
+            aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
+                System.out.println("=================>Sending");
 
-            // propagate trace along this HTTP
-            if (span != null) {
-                span.context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
-            }
+                // Propagate trace along this HTTP
+                span.kind(SpanKind.CLIENT)
+                    .method(aopContext.getTargetClass(), aopContext.getMethod())
+                    .tag(Tags.Http.URL, httpClient.configuration().uri())
+                    .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
+                    .tag(Tags.Http.CLIENT, "webflux")
+                    .context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
+                span.start();
 
-            return publisher;
-        };
+
+                return originalSender.apply(httpClientRequest, nettyOutbound);
+            };
+        }
 
         return InterceptionDecision.CONTINUE;
     }

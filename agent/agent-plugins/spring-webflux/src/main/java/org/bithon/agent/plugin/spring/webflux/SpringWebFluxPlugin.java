@@ -56,6 +56,11 @@ public class SpringWebFluxPlugin implements IPlugin {
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
+                .onMethod("_connect")
+                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Connect")
+                .build(),
+
+            forClass("reactor.netty.http.client.HttpClientFinalizer")
                 .onMethod("send")
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
 
