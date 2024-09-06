@@ -64,7 +64,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
     }
 
     @Override
-    public boolean visit(LiteralExpression expression) {
+    public boolean visit(LiteralExpression<?> expression) {
         Object value = expression.getValue();
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
@@ -118,13 +118,13 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
 
     @Override
     public boolean visit(ConditionalExpression expression) {
-        visitBinary(expression);
+        serializeBinary(expression);
         return false;
     }
 
     @Override
     public boolean visit(ArithmeticExpression expression) {
-        visitBinary(expression);
+        serializeBinary(expression);
         return false;
     }
 
@@ -203,7 +203,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         return false;
     }
 
-    private boolean visitBinary(BinaryExpression expression) {
+    protected boolean serializeBinary(BinaryExpression expression) {
         IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {
             sb.append('(');

@@ -45,7 +45,7 @@ public class QueryStageFunctions implements InitializingBean {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
+            validateParameterSize(1, args.size());
         }
 
         @Override
@@ -61,7 +61,7 @@ public class QueryStageFunctions implements InitializingBean {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
+            validateParameterSize(1, args.size());
         }
 
         @Override
@@ -77,7 +77,7 @@ public class QueryStageFunctions implements InitializingBean {
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
+            validateParameterSize(1, args.size());
         }
 
         @Override

@@ -84,8 +84,8 @@ public class H2SqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return AggregateFunction.First.NAME.equals(aggregator)
-               || AggregateFunction.Last.NAME.equals(aggregator);
+        return AggregateFunction.First.INSTANCE.getName().equals(aggregator)
+               || AggregateFunction.Last.INSTANCE.getName().equals(aggregator);
     }
 
     @Override
@@ -101,10 +101,6 @@ public class H2SqlDialect implements ISqlDialect {
                     return MapAccessExpressionTransformer.transform(expression);
                 }
 
-                if (expression instanceof ConditionalExpression.Contains) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
-                }
                 if (expression instanceof ConditionalExpression.StartsWith) {
                     return new ConditionalExpression.Like(expression.getLhs(),
                                                           LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));

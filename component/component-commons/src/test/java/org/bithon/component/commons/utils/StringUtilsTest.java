@@ -63,17 +63,48 @@ public class StringUtilsTest {
 
     @Test
     public void testEscapeSingleQuote() {
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("'", '\\'));
-        Assert.assertEquals("\\'a", StringUtils.escapeSingleQuoteIfNecessary("'a", '\\'));
-        Assert.assertEquals("a\\'", StringUtils.escapeSingleQuoteIfNecessary("a'", '\\'));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("''", '\\'));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank's", '\\'));
-        Assert.assertEquals("Frank\\'s", StringUtils.escapeSingleQuoteIfNecessary("Frank\\'s", '\\'));
-        Assert.assertEquals("\\t", StringUtils.escapeSingleQuoteIfNecessary("\\t", '\\'));
-        Assert.assertEquals("\\'", StringUtils.escapeSingleQuoteIfNecessary("\\'", '\\'));
-        Assert.assertEquals("b\\'", StringUtils.escapeSingleQuoteIfNecessary("b\\'", '\\'));
-        Assert.assertEquals("\\'\\'", StringUtils.escapeSingleQuoteIfNecessary("\\''", '\\'));
-        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escapeSingleQuoteIfNecessary("a\\\\\\\\'", '\\'));
+        Assert.assertEquals("\\'", StringUtils.escape("'", '\\', '\''));
+        Assert.assertEquals("\\'\\'", StringUtils.escape("''", '\\', '\''));
+
+        Assert.assertEquals("\\'a\\'", StringUtils.escape("'a'", '\\', '\''));
+        Assert.assertEquals("\\'a", StringUtils.escape("'a", '\\', '\''));
+        Assert.assertEquals("a\\'", StringUtils.escape("a'", '\\', '\''));
+        Assert.assertEquals("Frank\\'s", StringUtils.escape("Frank's", '\\', '\''));
+
+        // Make sure existing escape character is not escaped
+        Assert.assertEquals("\\t", StringUtils.escape("\\t", '\\', '\''));
+
+        // No need to escape already escaped input
+        Assert.assertEquals("\\\\'", StringUtils.escape("\\'", '\\', '\''));
+        Assert.assertEquals("b\\\\'", StringUtils.escape("b\\'", '\\', '\''));
+
+        // Escape consecutive single quotes
+        Assert.assertEquals("\\\\'\\'", StringUtils.escape("\\''", '\\', '\''));
+
+        // There are 4 '\'s in the input, and are all escaped,
+        // But the single quote is not escaped, so it should be escaped
+        Assert.assertEquals("a\\\\\\\\\\'", StringUtils.escape("a\\\\\\\\'", '\\', '\''));
+    }
+
+    @Test
+    public void testEscapePercentSign() {
+        Assert.assertEquals("\\%", StringUtils.escape("%", '\\', '%'));
+        Assert.assertEquals("\\%\\%", StringUtils.escape("%%", '\\', '%'));
+
+        Assert.assertEquals("\\%a", StringUtils.escape("%a", '\\', '%'));
+        Assert.assertEquals("a\\%", StringUtils.escape("a%", '\\', '%'));
+        Assert.assertEquals("\\%a\\%", StringUtils.escape("%a%", '\\', '%'));
+        Assert.assertEquals("Frank\\%s", StringUtils.escape("Frank%s", '\\', '%'));
+
+        Assert.assertEquals("\\\\%\\%", StringUtils.escape("\\%%", '\\', '%'));
+    }
+
+    @Test
+    public void testUnEscape() {
+        Assert.assertEquals("%", StringUtils.unEscape("%", '\\', '%'));
+        Assert.assertEquals("%a", StringUtils.unEscape("%a", '\\', '%'));
+        Assert.assertEquals("a%", StringUtils.unEscape("a\\%", '\\', '%'));
+        Assert.assertEquals("\\a%", StringUtils.unEscape("\\a\\%", '\\', '%'));
     }
 
     @Test

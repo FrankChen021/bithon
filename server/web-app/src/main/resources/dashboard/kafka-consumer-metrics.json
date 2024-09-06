@@ -73,7 +73,7 @@
             "topic",
             "groupId",
             "partition",
-            "count",
+            {"name" : "count", "expression": "count()"},
             "consumedRecordsRate",
             "consumedRecords"
           ],
@@ -146,7 +146,7 @@
             "topic",
             "groupId",
             "partition",
-            "count",
+            {"name": "count", "expression": "count()"},
             "consumedBytesRate",
             "consumedBytes"
           ],

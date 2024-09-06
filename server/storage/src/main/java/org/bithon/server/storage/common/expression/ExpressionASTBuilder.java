@@ -393,7 +393,7 @@ public class ExpressionASTBuilder {
                 case ExpressionLexer.DECIMAL_LITERAL ->
                     LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
                 case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(literal.getSymbol()));
+                    LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
                 case ExpressionLexer.BOOL_LITERAL ->
                     LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
                 case ExpressionLexer.READABLE_SIZE_LITERAL ->

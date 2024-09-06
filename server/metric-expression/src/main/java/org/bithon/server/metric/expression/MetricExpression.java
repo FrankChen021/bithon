@@ -86,7 +86,7 @@ public class MetricExpression implements IExpression {
         this.labelSelectorExpression = labelSelectorExpression;
 
         // The where property holds the internal expression that will be passed to the query module
-        this.whereText = labelSelectorExpression == null ? null : labelSelectorExpression.serializeToText(null);
+        this.whereText = labelSelectorExpression == null ? null : new SqlStyleSerializer().serialize(labelSelectorExpression);
 
         // This variable holds the raw text
         this.labelSelectorText = labelSelectorExpression == null ? "" : "{" + new LabelSelectorExpressionSerializer().serialize(labelSelectorExpression) + "}";
@@ -137,6 +137,24 @@ public class MetricExpression implements IExpression {
         return sb.toString();
     }
 
+    static class SqlStyleSerializer extends ExpressionSerializer {
+        public SqlStyleSerializer() {
+            super(null);
+        }
+
+        @Override
+        public boolean visit(LiteralExpression<?> expression) {
+            if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
+                sb.append('\'');
+                sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '\''));
+                sb.append('\'');
+            } else {
+                sb.append(expression.getValue());
+            }
+            return false;
+        }
+    }
+
     static class LabelSelectorExpressionSerializer extends ExpressionSerializer {
 
         public LabelSelectorExpressionSerializer() {
@@ -156,14 +174,13 @@ public class MetricExpression implements IExpression {
 
         // Use double quote to serialize the expression by default
         @Override
-        public boolean visit(LiteralExpression expression) {
-            Object value = expression.getValue();
-            if (expression instanceof LiteralExpression.StringLiteral) {
+        public boolean visit(LiteralExpression<?> expression) {
+            if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('"');
-                sb.append(value);
+                sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '"'));
                 sb.append('"');
             } else {
-                sb.append(value);
+                sb.append(expression.getValue());
             }
             return false;
         }

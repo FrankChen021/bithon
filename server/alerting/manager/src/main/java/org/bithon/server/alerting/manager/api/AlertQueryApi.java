@@ -125,11 +125,13 @@ public class AlertQueryApi {
             // Get Schema for validation
             Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
+            // Flatten expressions
             List<AlertExpression> alertExpressions = new ArrayList<>();
             alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
                 expression.getMetricExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
+
             return ApiResponse.success(new ParseAlertExpressionResponse(alertExpressions));
         } catch (InvalidExpressionException e) {
             return ApiResponse.fail(e.getMessage());

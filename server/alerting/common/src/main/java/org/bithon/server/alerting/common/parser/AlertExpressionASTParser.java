@@ -54,6 +54,9 @@ import java.util.List;
  */
 public class AlertExpressionASTParser {
 
+    /**
+     * The return is either a MetricExpression or a LogicalExpression
+     */
     public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();

@@ -16,8 +16,11 @@
 
 package org.bithon.server.storage.jdbc.common.dialect;
 
+import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
@@ -51,15 +54,16 @@ public class Expression2Sql extends ExpressionSerializer {
     }
 
     @Override
-    public boolean visit(LiteralExpression expression) {
-        Object value = expression.getValue();
-        if (expression instanceof LiteralExpression.StringLiteral) {
+    public boolean visit(LiteralExpression<?> expression) {
+        if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
-            sb.append(StringUtils.escapeSingleQuoteIfNecessary((String) value, sqlDialect.getEscapeCharacter4SingleQuote()));
+            sb.append(StringUtils.escape(stringLiteral.getValue(), sqlDialect.getEscapeCharacter4SingleQuote(), '\''));
             sb.append('\'');
-        } else if (expression instanceof LiteralExpression.LongLiteral || expression instanceof LiteralExpression.DoubleLiteral) {
-            sb.append(value);
+        } else if (expression instanceof LiteralExpression.LongLiteral longLiteral) {
+            sb.append(longLiteral.getValue());
+        } else if (expression instanceof LiteralExpression.DoubleLiteral doubleLiteral) {
+            sb.append(doubleLiteral.getValue());
         } else if (expression instanceof LiteralExpression.BooleanLiteral) {
             // Some old versions of CK do not support true/false literal, we use integer instead
             sb.append(expression.asBoolean() ? 1 : 0);
@@ -67,15 +71,48 @@ public class Expression2Sql extends ExpressionSerializer {
             sb.append(sqlDialect.formatDateTime((LiteralExpression.TimestampLiteral) expression));
         } else if (expression instanceof LiteralExpression.AsteriskLiteral) {
             sb.append('*');
-        } else if (expression instanceof LiteralExpression.ReadableDurationLiteral) {
-            sb.append(((LiteralExpression.ReadableDurationLiteral) expression).getValue().getDuration().getSeconds());
-        } else if (expression instanceof LiteralExpression.ReadableNumberLiteral) {
-            sb.append(((LiteralExpression.ReadableNumberLiteral) expression).getValue().longValue());
-        } else if (expression instanceof LiteralExpression.ReadablePercentageLiteral) {
-            sb.append(((LiteralExpression.ReadablePercentageLiteral) expression).getValue().getFraction());
+        } else if (expression instanceof LiteralExpression.ReadableDurationLiteral durationLiteral) {
+            sb.append(durationLiteral.getValue().getDuration().getSeconds());
+        } else if (expression instanceof LiteralExpression.ReadableNumberLiteral numberLiteral) {
+            sb.append(numberLiteral.getValue().longValue());
+        } else if (expression instanceof LiteralExpression.ReadablePercentageLiteral percentageLiteral) {
+            sb.append(percentageLiteral.getValue().getFraction());
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }
+
+        return false;
+    }
+
+    @Override
+    public boolean visit(FunctionExpression expression) {
+        if (expression.getFunction() instanceof AggregateFunction.Count
+            && expression.getArgs().isEmpty()) {
+            // Some DBMSs require parameter on the 'count' function
+            sb.append("count(1)");
+            return false;
+        }
+
+        return super.visit(expression);
+    }
+
+    /**
+     * Transform the 'contains' operator into 'LIKE' operator.
+     * The pattern in the 'contains' operator will be escaped if necessary.
+     */
+    @Override
+    public boolean visit(ConditionalExpression expression) {
+        if (!(expression instanceof ConditionalExpression.Contains)) {
+            return super.visit(expression);
+        }
+
+        String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
+        pattern = StringUtils.escape(pattern, '\\', '%');
+        pattern = StringUtils.escape(pattern, '\\', '_');
+
+        serializeBinary(new ConditionalExpression.Like(expression.getLhs(),
+                                                       LiteralExpression.ofString("%" + pattern + "%")));
+
         return false;
     }
 }

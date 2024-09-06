@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -37,6 +39,7 @@ import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
+import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -143,6 +146,67 @@ public class QueryConverter {
                       .schema(schema)
                       .filter(QueryFilter.build(schema, query.getFilterExpression()))
                       .interval(Interval.of(start, end, step, new IdentifierExpression(timestampColumn)))
+                      .orderBy(query.getOrderBy())
+                      .limit(query.getLimit())
+                      .resultFormat(query.getResultFormat() == null
+                                        ? Query.ResultFormat.Object
+                                        : query.getResultFormat())
+                      .build();
+    }
+
+    public static Query toSelectQuery(ISchema schema,
+                                      QueryRequest query) {
+
+        validateQueryRequest(schema, query);
+        Preconditions.checkIfTrue(CollectionUtils.isEmpty(query.getGroupBy()), "Select query should not come with the 'groupBy' property.");
+        Preconditions.checkNotNull(query.getLimit(), "Select query must come with the 'limit' property");
+
+        Query.QueryBuilder builder = Query.builder();
+
+        List<Selector> selectorList = new ArrayList<>(query.getFields().size());
+        for (QueryField field : query.getFields()) {
+            if (field.getExpression() != null) {
+                // TODO: check if there's any aggregation function in the expression
+                selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
+
+                continue;
+            }
+
+            if (field.getAggregator() != null) {
+                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                                "Aggregator [%s] on field [%s] is not allowed in select query",
+                                                field.getAggregator(),
+                                                field.getName());
+            }
+            IColumn columnSpec = schema.getColumnByName(field.getField());
+            Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
+
+            Selector selector;
+            if (columnSpec instanceof ExpressionColumn) {
+                selector = columnSpec.toSelector();
+                // TODO: check if there's any aggregation function in the expression
+            } else {
+                selector = new Selector(columnSpec.getName());
+            }
+            if (columnSpec.getAlias().equals(field.getName())) {
+                selector = selector.withOutput(field.getName());
+            }
+            selectorList.add(selector);
+        }
+
+        TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
+
+        String timestampColumn = schema.getTimestampSpec().getColumnName();
+        if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
+            // Try to use query's timestamp column if provided
+            timestampColumn = query.getInterval().getTimestampColumn();
+        }
+
+        return builder.selectors(selectorList)
+                      .schema(schema)
+                      .filter(QueryFilter.build(schema, query.getFilterExpression()))
+                      .interval(Interval.of(start, end, null, new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null

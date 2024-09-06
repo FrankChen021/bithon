@@ -41,7 +41,7 @@ public abstract class AggregateSumColumn implements IAggregatableColumn {
                               String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Sum.NAME, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Sum.INSTANCE, name);
     }
 
     @JsonIgnore

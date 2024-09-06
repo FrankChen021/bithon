@@ -157,7 +157,7 @@ public class AlertEvaluator implements SmartLifecycle {
         context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
         try {
-            AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator((AlertExpression) alertRule.getEvaluationExpression());
+            AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator((AlertExpression) alertRule.getAlertExpression());
             if (expressionEvaluator.evaluate(context)) {
                 context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 

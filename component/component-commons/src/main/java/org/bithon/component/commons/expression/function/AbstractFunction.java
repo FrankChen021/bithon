@@ -92,33 +92,32 @@ public abstract class AbstractFunction implements IFunction {
         }
     }
 
-    protected static class Validator {
-        public static void validateParameterSize(int expectedSize, int actualSize) {
-            if (expectedSize != actualSize) {
-                throw new InvalidExpressionException("The function requires [%d] parameters, but got [%d]",
-                                                     expectedSize,
-                                                     actualSize);
+    protected void validateParameterSize(int expectedSize, int actualSize) {
+        if (expectedSize != actualSize) {
+            throw new InvalidExpressionException("Function [%s] requires [%d] parameters, but got [%d]",
+                                                 this.name,
+                                                 expectedSize,
+                                                 actualSize);
+        }
+    }
+
+    protected void validateType(IDataType actual, IDataType... expected) {
+        for (IDataType ex : expected) {
+            if (actual.equals(ex)) {
+                return;
             }
         }
 
-        public static void validateType(IDataType actual, IDataType... expected) {
-            for (IDataType ex : expected) {
-                if (actual.equals(ex)) {
-                    return;
-                }
-            }
+        throw new InvalidExpressionException("The given parameter is type of [%s], but required one of [%s]",
+                                             actual,
+                                             Arrays.stream(expected)
+                                                   .map(Object::toString)
+                                                   .collect(Collectors.joining(",")));
+    }
 
-            throw new InvalidExpressionException("The given parameter is type of [%s], but required one of [%s]",
-                                                 actual,
-                                                 Arrays.stream(expected)
-                                                       .map(Object::toString)
-                                                       .collect(Collectors.joining(",")));
-        }
-
-        public static void validateTrue(boolean expression, String messageFormat, Object... args) {
-            if (!expression) {
-                throw new InvalidExpressionException(messageFormat, args);
-            }
+    protected void validateTrue(boolean expression, String messageFormat, Object... args) {
+        if (!expression) {
+            throw new InvalidExpressionException(messageFormat, args);
         }
     }
 }
