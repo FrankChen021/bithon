@@ -24,19 +24,19 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
  */
 public class HttpClientContext {
 
-    private final long startTimeNs;
+    private long startTimeNs;
 
     /**
      * available when tracing is enabled on this request
      */
     private ITraceSpan span;
 
-    public HttpClientContext() {
-        this.startTimeNs = System.nanoTime();
-    }
-
     public long getStartTimeNs() {
         return startTimeNs;
+    }
+
+    public void setStartTimeNs(long startTimeNs) {
+        this.startTimeNs = startTimeNs;
     }
 
     public ITraceSpan getSpan() {

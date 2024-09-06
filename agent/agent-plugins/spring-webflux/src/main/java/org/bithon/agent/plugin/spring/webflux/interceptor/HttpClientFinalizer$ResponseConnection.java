@@ -74,7 +74,6 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                 // tracing
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
-                    System.out.println("=================>Responsed");
                     httpClientSpan.tag(Tags.Http.STATUS, String.valueOf(httpClientResponse.status().code()))
                                   .tag(Tags.Http.URL, uri)
                                   .configIfTrue(!traceConfig.getHeaders().getResponse().isEmpty(),

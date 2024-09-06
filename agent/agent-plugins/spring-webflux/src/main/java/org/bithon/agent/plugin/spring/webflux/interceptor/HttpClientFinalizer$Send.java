@@ -64,7 +64,7 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         // Replace the Publisher to propagate trace
         if (span != null) {
             aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
-                System.out.println("=================>Sending");
+                httpClientContext.setStartTimeNs(System.nanoTime());
 
                 // Propagate trace along this HTTP
                 span.kind(SpanKind.CLIENT)
