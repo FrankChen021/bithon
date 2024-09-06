@@ -37,7 +37,7 @@ public class ForkJoinPool$Ctor extends AfterInterceptor {
             ForkJoinPool pool = aopContext.getTargetAs();
             registry.addThreadPool(pool,
                                    pool.getClass().getName(),
-                                   ThreadPoolNameHelper.trimRight((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
+                                   ThreadPoolNameHelper.tidyNameFormat((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
                                    ForkJoinPoolMetrics::new);
         }
     }

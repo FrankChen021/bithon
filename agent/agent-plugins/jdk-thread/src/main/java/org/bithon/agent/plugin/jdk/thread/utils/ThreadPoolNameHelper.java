@@ -46,24 +46,26 @@ public class ThreadPoolNameHelper {
      * key - class name of a thread factory
      * val - field name in the thread factory that holds the name format of thread
      */
-    private final Map<String, String> threadFactoryNames = new ConcurrentHashMap<>();
+    private final Map<String, String> nameFormatFields = new ConcurrentHashMap<>();
+
+    private final String[] SUFFIX_LIST = {"-", ".", "- %d", "-%d", ".%d", "%d", "%n", "%s"};
 
     /**
      * TODO: move to configuration
      */
     ThreadPoolNameHelper() {
-        threadFactoryNames.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
-        threadFactoryNames.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
-        threadFactoryNames.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
-        threadFactoryNames.put("com.alibaba.druid.util", "nameStart");
+        nameFormatFields.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
+        nameFormatFields.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
+        nameFormatFields.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
+        nameFormatFields.put("com.alibaba.druid.util", "nameStart");
 
         // Special cases to search name on a list of formats
-        threadFactoryNames.put("1", "name");
-        threadFactoryNames.put("2", "nameFormat");
+        nameFormatFields.put("1", "name");
+        nameFormatFields.put("2", "nameFormat");
 
         // com.google.common.util.concurrent.ThreadFactoryBuilder creates an anonymous thread factory,
         // and java compiles the nameFormat as val$nameFormat
-        threadFactoryNames.put("3", "val$nameFormat");
+        nameFormatFields.put("3", "val$nameFormat");
     }
 
     public String getThreadPoolName(ThreadPoolExecutor executor) {
@@ -120,7 +122,7 @@ public class ThreadPoolNameHelper {
         Class<?> factoryClass = threadFactory.getClass();
         while (factoryClass != null && fieldName == null) {
             String className = factoryClass.getName();
-            fieldName = threadFactoryNames.get(className);
+            fieldName = nameFormatFields.get(className);
             if (fieldName == null) {
                 // Current ThreadFactory does not exist in the map, search for its parent
                 factoryClass = factoryClass.getSuperclass();
@@ -134,7 +136,7 @@ public class ThreadPoolNameHelper {
             return getNameOnGivenFields(threadFactory,
                                         threadFactory.getClass(),
                                         // Use a hash set to deduplicate
-                                        new HashSet<>(threadFactoryNames.values()));
+                                        new HashSet<>(nameFormatFields.values()));
         }
     }
 
@@ -145,10 +147,10 @@ public class ThreadPoolNameHelper {
             try {
                 Field field = threadFactoryClass.getDeclaredField(nameField);
                 field.setAccessible(true);
-                String name = trimRight((String) field.get(threadFactoryObj), "-", ".", "-%d");
+                String name = tidyNameFormat((String) field.get(threadFactoryObj), SUFFIX_LIST);
                 if (name != null) {
                     // Save the class and the name of field to save further time
-                    threadFactoryNames.putIfAbsent(threadFactoryClass.getName(), nameField);
+                    nameFormatFields.putIfAbsent(threadFactoryClass.getName(), nameField);
                 }
                 return name;
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
@@ -157,14 +159,18 @@ public class ThreadPoolNameHelper {
         return null;
     }
 
-    public static String trimRight(String text, String... suffixList) {
+    public static String tidyNameFormat(String text, String... suffixList) {
         if (text == null) {
             return null;
         }
 
         for (String suffix : suffixList) {
             if (text.endsWith(suffix)) {
-                return text.substring(0, text.length() - suffix.length());
+                String trimmed = text.substring(0, text.length() - suffix.length()).trim();
+                if (trimmed.endsWith("-")) {
+                    trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+                }
+                return trimmed;
             }
         }
         return text;
