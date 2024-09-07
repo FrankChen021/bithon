@@ -41,7 +41,7 @@ public class ThreadPoolNameExtractor {
      * we cache its class name to reduce unnecessary object creation
      */
     private static final String DEFAULT_THREAD_FACTORY = Executors.defaultThreadFactory().getClass().getName();
-    static final String[] SUFFIX_LIST = {"-", ".", "%d", "%n", "%s"};
+    static final String[] SUFFIX_LIST = {"-", ".", "/", "%d", "%n", "%s"};
 
     /**
      * key - class name of a thread factory
