@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.jdk.thread.utils;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,15 +32,16 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:49 下午
  */
-public class ThreadPoolNameHelper {
+public class ThreadPoolNameExtractor {
 
-    public static final ThreadPoolNameHelper INSTANCE = new ThreadPoolNameHelper();
+    public static final ThreadPoolNameExtractor INSTANCE = new ThreadPoolNameExtractor();
 
     /**
      * Since defaultThreadFactory returns a new object for each call,
      * we cache its class name to reduce unnecessary object creation
      */
     private static final String DEFAULT_THREAD_FACTORY = Executors.defaultThreadFactory().getClass().getName();
+    static final String[] SUFFIX_LIST = {"-", ".", "%d", "%n", "%s"};
 
     /**
      * key - class name of a thread factory
@@ -48,12 +49,10 @@ public class ThreadPoolNameHelper {
      */
     private final Map<String, String> nameFormatFields = new ConcurrentHashMap<>();
 
-    private final String[] SUFFIX_LIST = {"-", ".", "- %d", "-%d", ".%d", "%d", "%n", "%s"};
-
     /**
      * TODO: move to configuration
      */
-    ThreadPoolNameHelper() {
+    ThreadPoolNameExtractor() {
         nameFormatFields.put("java.util.concurrent.Executors$DefaultThreadFactory", "namePrefix");
         nameFormatFields.put("org.springframework.util.CustomizableThreadCreator", "threadNamePrefix");
         nameFormatFields.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
@@ -68,10 +67,10 @@ public class ThreadPoolNameHelper {
         nameFormatFields.put("3", "val$nameFormat");
     }
 
-    public String getThreadPoolName(ThreadPoolExecutor executor) {
+    public String extract(ThreadPoolExecutor executor) {
         String name;
         //
-        // For the default thread factory, it's pool name is meaningless,
+        // For the default thread factory, its pool name is meaningless,
         // So, we find the caller name as the thread pool name,
         //
         ThreadFactory threadFactory = executor.getThreadFactory();
@@ -135,7 +134,7 @@ public class ThreadPoolNameHelper {
             // Try to get the name on known fields
             return getNameOnGivenFields(threadFactory,
                                         threadFactory.getClass(),
-                                        // Use a hash set to deduplicate
+                                        // Use a hash set to deduplicate values
                                         new HashSet<>(nameFormatFields.values()));
         }
     }
@@ -144,35 +143,37 @@ public class ThreadPoolNameHelper {
                                         Class<?> threadFactoryClass,
                                         Collection<String> nameFields) {
         for (String nameField : nameFields) {
-            try {
-                Field field = threadFactoryClass.getDeclaredField(nameField);
-                field.setAccessible(true);
-                String name = tidyNameFormat((String) field.get(threadFactoryObj), SUFFIX_LIST);
-                if (name != null) {
-                    // Save the class and the name of field to save further time
-                    nameFormatFields.putIfAbsent(threadFactoryClass.getName(), nameField);
-                }
-                return name;
-            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            String name = (String) ReflectionUtils.getFieldValue(threadFactoryObj, nameField);
+            name = stripSuffix(name, SUFFIX_LIST);
+            if (name != null) {
+                // Save the class and the name of field to save further time
+                nameFormatFields.putIfAbsent(threadFactoryClass.getName(), nameField);
             }
+            return name;
         }
         return null;
     }
 
-    public static String tidyNameFormat(String text, String... suffixList) {
+    public static String stripSuffix(String text, String... suffixList) {
         if (text == null) {
             return null;
         }
+        boolean running;
+        do {
+            running = false;
 
-        for (String suffix : suffixList) {
-            if (text.endsWith(suffix)) {
-                String trimmed = text.substring(0, text.length() - suffix.length()).trim();
-                if (trimmed.endsWith("-")) {
-                    trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+            text = text.trim();
+            for (String suffix : suffixList) {
+                if (text.endsWith(suffix)) {
+                    text = text.substring(0, text.length() - suffix.length());
+
+                    // Continue to remove suffixes
+                    running = !text.isEmpty();
+                    break;
                 }
-                return trimmed;
             }
-        }
+        } while (running);
+
         return text;
     }
 }
