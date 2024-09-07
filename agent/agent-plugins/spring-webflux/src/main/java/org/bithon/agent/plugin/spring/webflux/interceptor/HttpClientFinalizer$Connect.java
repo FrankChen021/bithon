@@ -51,12 +51,16 @@ public class HttpClientFinalizer$Connect extends BeforeInterceptor {
         HttpClient httpClient = aopContext.getTargetAs();
         HttpClientConfig httpClientConfig = httpClient.configuration();
 
-        Consumer<HttpClientConfig> doOnConnect = (config) -> {
+        Consumer doOnConnect = (config) -> {
             span.method(aopContext.getTargetClass(), "connect")
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.Http.CLIENT, "webflux")
                 .start();
         };
+        if (httpClientConfig.doOnConnect() != null) {
+            doOnConnect = doOnConnect.andThen(httpClientConfig.doOnConnect());
+        }
+
         try {
             ReflectionUtils.setFieldValue(httpClientConfig, "doOnConnect", doOnConnect);
         } catch (NoSuchFieldException | IllegalAccessException ignored) {
