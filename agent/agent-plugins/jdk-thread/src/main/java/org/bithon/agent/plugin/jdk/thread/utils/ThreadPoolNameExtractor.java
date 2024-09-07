@@ -139,17 +139,18 @@ public class ThreadPoolNameExtractor {
         }
     }
 
-    private String getNameOnGivenFields(ThreadFactory threadFactoryObj,
+    private String getNameOnGivenFields(ThreadFactory threadFactory,
                                         Class<?> threadFactoryClass,
                                         Collection<String> nameFields) {
         for (String nameField : nameFields) {
-            String name = (String) ReflectionUtils.getFieldValue(threadFactoryObj, nameField);
+            String name = (String) ReflectionUtils.getFieldValue(threadFactory, nameField);
             name = stripSuffix(name, SUFFIX_LIST);
             if (name != null) {
                 // Save the class and the name of field to save further time
                 nameFormatFields.putIfAbsent(threadFactoryClass.getName(), nameField);
+
+                return name;
             }
-            return name;
         }
         return null;
     }
