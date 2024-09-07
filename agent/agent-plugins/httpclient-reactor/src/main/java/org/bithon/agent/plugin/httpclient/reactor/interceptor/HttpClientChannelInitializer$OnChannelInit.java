@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.interceptor;
+package org.bithon.agent.plugin.httpclient.reactor.interceptor;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,8 +22,8 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
-import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
-import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
+import org.bithon.agent.plugin.httpclient.reactor.metric.HttpBodySizeCollector;
+import org.bithon.agent.plugin.httpclient.reactor.metric.HttpIOMetrics;
 import reactor.netty.NettyPipeline;
 import reactor.netty.channel.ChannelOperations;
 import reactor.netty.http.client.HttpClientInfos;

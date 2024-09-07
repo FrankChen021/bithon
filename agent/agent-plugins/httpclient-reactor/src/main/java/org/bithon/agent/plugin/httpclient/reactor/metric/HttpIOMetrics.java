@@ -14,36 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.context;
-
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
+package org.bithon.agent.plugin.httpclient.reactor.metric;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/11/21 3:21 pm
+ * @date 6/11/21 7:55 pm
  */
-public class HttpClientContext {
-
-    private long startTimeNs;
-
-    /**
-     * available when tracing is enabled on this request
-     */
-    private ITraceSpan span;
-
-    public long getStartTimeNs() {
-        return startTimeNs;
-    }
-
-    public void setStartTimeNs(long startTimeNs) {
-        this.startTimeNs = startTimeNs;
-    }
-
-    public ITraceSpan getSpan() {
-        return span;
-    }
-
-    public void setSpan(ITraceSpan span) {
-        this.span = span;
-    }
+public class HttpIOMetrics {
+    public long requestBytes = -1;
+    public long responseBytes = -1;
+    public long receivedTimeNs = 0;
 }

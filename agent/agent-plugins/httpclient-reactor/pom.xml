@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-spring-webflux</artifactId>
+  <artifactId>agent-plugin-httpclient-reactor</artifactId>
 
   <dependencies>
     <dependency>
@@ -16,22 +16,10 @@
       <artifactId>agent-observability</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webflux</artifactId>
-      <version>5.3.10</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>io.projectreactor.netty</groupId>
       <artifactId>reactor-netty-http</artifactId>
       <version>1.0.11</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-gateway-server</artifactId>
-      <version>3.0.4</version>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
 
