@@ -23,7 +23,7 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolExecutorMetrics;
 import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.agent.plugin.jdk.thread.utils.ObservedExecutionHandler;
-import org.bithon.agent.plugin.jdk.thread.utils.ThreadPoolNameHelper;
+import org.bithon.agent.plugin.jdk.thread.utils.ThreadPoolNameExtractor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.concurrent.BlockingQueue;
@@ -57,7 +57,7 @@ public class ThreadPoolExecutor$Ctor extends AroundInterceptor {
 
         ThreadPoolExecutor executor = aopContext.getTargetAs();
         try {
-            String poolName = ThreadPoolNameHelper.INSTANCE.getThreadPoolName(executor);
+            String poolName = ThreadPoolNameExtractor.INSTANCE.extract(executor);
             registry.addThreadPool(executor,
                                    executor.getClass().getName(),
                                    poolName,
