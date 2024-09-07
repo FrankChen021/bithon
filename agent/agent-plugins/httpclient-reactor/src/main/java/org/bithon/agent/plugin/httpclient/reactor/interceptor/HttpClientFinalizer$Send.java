@@ -71,7 +71,7 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
                     .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .tag(Tags.Http.URL, httpClient.configuration().uri())
                     .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
-                    .tag(Tags.Http.CLIENT, "webflux")
+                    .tag(Tags.Http.CLIENT, "reactor")
                     .context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
                 span.start();
 

@@ -51,10 +51,10 @@ public class HttpClientFinalizer$Connect extends BeforeInterceptor {
         HttpClient httpClient = aopContext.getTargetAs();
         HttpClientConfig httpClientConfig = httpClient.configuration();
 
-        Consumer doOnConnect = (config) -> {
+        Consumer<HttpClientConfig> doOnConnect = (config) -> {
             span.method(aopContext.getTargetClass(), "connect")
                 .kind(SpanKind.CLIENT)
-                .tag(Tags.Http.CLIENT, "webflux")
+                .tag(Tags.Http.CLIENT, "reactor")
                 .start();
         };
         if (httpClientConfig.doOnConnect() != null) {

@@ -37,25 +37,25 @@ public class HttpClientReactorPlugin implements IPlugin {
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
                 .onMethod("_connect")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Connect")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
                 .onMethod("send")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Send")
 
                 .onMethod("responseConnection")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$ResponseConnection")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
                 .onMethod("onChannelInit")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientChannelInitializer$OnChannelInit")
                 .build(),
 
             forClass("reactor.netty.http.client.HttpClientOperations")
                 .onConstructor()
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientOperations$Ctor")
                 .build(),
 
             forClass("reactor.core.publisher.Flux")
@@ -63,7 +63,7 @@ public class HttpClientReactorPlugin implements IPlugin {
                 .andRawArgs("org.reactivestreams.Publisher",
                             "java.util.function.Function",
                             "org.reactivestreams.Publisher")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.Flux$Timeout")
                 .build()
         );
     }
