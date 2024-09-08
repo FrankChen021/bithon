@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.spring.webflux.context;
 
+import org.bithon.agent.observability.metric.domain.http.HttpIOMetrics;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 
 /**
  * @author frank.chen021@outlook.com

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.metric;
+package org.bithon.agent.plugin.httpclient.reactor.metric;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;

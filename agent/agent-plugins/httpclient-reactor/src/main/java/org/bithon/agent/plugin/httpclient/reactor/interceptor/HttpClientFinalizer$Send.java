@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.interceptor;
+package org.bithon.agent.plugin.httpclient.reactor.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
+import org.bithon.agent.plugin.httpclient.reactor.HttpClientContext;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.reactivestreams.Publisher;
@@ -50,32 +50,35 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
-        ITraceSpan span = TraceContextFactory.newSpan("http-client");
+        ITraceSpan span = TraceContextFactory.newAsyncSpan("http-client");
         if (span != null) {
             // Span will be finished in ResponseConnection interceptor
-            httpClientContext.setSpan(span.kind(SpanKind.CLIENT)
-                                          .method(aopContext.getTargetClass(), aopContext.getMethod())
-                                          .tag(Tags.Http.URL, httpClient.configuration().uri())
-                                          .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
-                                          .tag(Tags.Http.CLIENT, "webflux")
-                                          .start());
+            // If the Span is null, we still need to continue because the response connection also records metrics
+            httpClientContext.setSpan(span);
         }
 
         //noinspection unchecked
         BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>> originalSender
-                = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
+            = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
 
-        //replace the Publisher to propagate trace
-        aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
-            Publisher<Void> publisher = originalSender.apply(httpClientRequest, nettyOutbound);
+        // Replace the Publisher to propagate trace
+        if (span != null) {
+            aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
+                httpClientContext.setStartTimeNs(System.nanoTime());
 
-            // propagate trace along this HTTP
-            if (span != null) {
-                span.context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
-            }
+                // Propagate trace along this HTTP
+                span.kind(SpanKind.CLIENT)
+                    .method(aopContext.getTargetClass(), aopContext.getMethod())
+                    .tag(Tags.Http.URL, httpClient.configuration().uri())
+                    .tag(Tags.Http.METHOD, httpClient.configuration().method().name())
+                    .tag(Tags.Http.CLIENT, "reactor")
+                    .context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
+                span.start();
 
-            return publisher;
-        };
+
+                return originalSender.apply(httpClientRequest, nettyOutbound);
+            };
+        }
 
         return InterceptionDecision.CONTINUE;
     }

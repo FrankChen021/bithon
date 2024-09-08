@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.interceptor;
+package org.bithon.agent.plugin.httpclient.reactor.interceptor;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
@@ -24,10 +24,10 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
+import org.bithon.agent.plugin.httpclient.reactor.HttpClientContext;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.ReflectionUtils;
 import org.reactivestreams.Publisher;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.netty.Connection;
 import reactor.netty.http.client.HttpClient;
@@ -49,6 +49,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
 
     @Override
     public InterceptionDecision before(AopContext aopContext) {
+
         HttpClient httpClient = aopContext.getTargetAs();
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
@@ -85,6 +86,7 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
                                                     }
                                                 })
                                   .finish();
+                    httpClientSpan.context().finish();
                 }
 
                 // metrics
@@ -122,8 +124,9 @@ public class HttpClientFinalizer$ResponseConnection extends AroundInterceptor {
          */
         Flux<?> replacedReturning = responseFlux.doOnError((throwable -> {
             Integer statusCode = null;
-            if (throwable instanceof ResponseStatusException) {
-                statusCode = ((ResponseStatusException) throwable).getStatus().value();
+            if ("org.springframework.web.server.ResponseStatusException".equals(throwable.getClass().getName())) {
+                Object httpStatusCode = ReflectionUtils.getFieldValue(throwable, "status");
+                statusCode = (Integer) ReflectionUtils.getFieldValue(httpStatusCode, "value");
             }
 
             // tracing

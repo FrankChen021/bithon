@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.interceptor;
+package org.bithon.agent.plugin.httpclient.reactor.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
+import org.bithon.agent.observability.metric.domain.http.HttpIOMetrics;
 
 /**
  * Inject an object to HttpClientOperations to make the code in HttpBodySizeCollector a little easier

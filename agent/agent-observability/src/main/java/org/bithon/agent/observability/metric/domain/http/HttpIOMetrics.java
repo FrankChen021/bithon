@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.webflux.metric;
+package org.bithon.agent.observability.metric.domain.http;
 
 /**
  * @author frank.chen021@outlook.com
