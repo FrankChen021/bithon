@@ -103,7 +103,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         public void sendMessage(REQ message) {
             int size = MessageUtils.getMessageSize(message);
             if (size > 0) {
-                span.tag(Tags.Rpc.RPC_MESSAGE_REQUEST_SIZE, size);
+                span.tag(Tags.Rpc.RPC_CLIENT_REQ_SIZE, size);
             }
             try {
                 super.sendMessage(message);
@@ -133,7 +133,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         public void onMessage(RSP message) {
             int size = MessageUtils.getMessageSize(message);
             if (size > 0) {
-                span.tag(Tags.Rpc.RPC_MESSAGE_RESPONSE_SIZE, size);
+                span.tag(Tags.Rpc.RPC_CLIENT_RSP_SIZE, size);
             }
             delegate.onMessage(message);
         }

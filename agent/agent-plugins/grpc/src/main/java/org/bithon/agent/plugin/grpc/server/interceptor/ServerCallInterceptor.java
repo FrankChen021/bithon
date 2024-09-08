@@ -111,7 +111,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
         public void sendMessage(RSP message) {
             int messageSize = MessageUtils.getMessageSize(message);
             if (messageSize > 0) {
-                this.rootSpan.tag(Tags.Rpc.RPC_MESSAGE_RESPONSE_SIZE, messageSize);
+                this.rootSpan.tag(Tags.Rpc.RPC_SERVER_RSP_SIZE, messageSize);
             }
             super.sendMessage(message);
         }
@@ -141,7 +141,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
         public void onMessage(REQ message) {
             int size = MessageUtils.getMessageSize(message);
             if (size > 0) {
-                rootSpan.tag(Tags.Rpc.RPC_MESSAGE_REQUEST_SIZE, size);
+                rootSpan.tag(Tags.Rpc.RPC_SERVER_REQ_SIZE, size);
             }
             try {
                 delegate().onMessage(message);
