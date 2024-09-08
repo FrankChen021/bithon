@@ -27,6 +27,7 @@ import io.grpc.Status;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.plugin.grpc.utils.MessageUtils;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -100,6 +101,10 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
         @Override
         public void sendMessage(REQ message) {
+            int size = MessageUtils.getMessageSize(message);
+            if (size > 0) {
+                span.tag(Tags.Rpc.RPC_MESSAGE_REQUEST_SIZE, size);
+            }
             try {
                 super.sendMessage(message);
             } catch (Throwable t) {
@@ -126,6 +131,10 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
         @Override
         public void onMessage(RSP message) {
+            int size = MessageUtils.getMessageSize(message);
+            if (size > 0) {
+                span.tag(Tags.Rpc.RPC_MESSAGE_RESPONSE_SIZE, size);
+            }
             delegate.onMessage(message);
         }
 

@@ -190,5 +190,12 @@ public class Tags {
         public static final String SYSTEM = "rpc.system";
 
         public static final String REQUEST_META_PREFIX = "rpc.grpc.request.metadata.";
+
+        /**
+         * Note: Opentelemetry does not define a request/response attributes for the size
+         * These two are not part of that standard
+         */
+        public static final String RPC_MESSAGE_REQUEST_SIZE = "rpc.message.request.size";
+        public static final String RPC_MESSAGE_RESPONSE_SIZE = "rpc.message.response.size";
     }
 }
