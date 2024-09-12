@@ -16,15 +16,12 @@
 
 package org.bithon.agent.plugin.httpclient.reactor.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.ReflectionUtils;
-import reactor.netty.Connection;
-import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientConfig;
 
@@ -52,46 +49,34 @@ public class HttpClientFinalizer$Connect extends BeforeInterceptor {
         HttpClientConfig httpClientConfig = httpClient.configuration();
 
         Consumer<HttpClientConfig> doOnConnect = (config) -> {
-            span.method(aopContext.getTargetClass(), "connect")
-                .kind(SpanKind.CLIENT)
-                .tag(Tags.Http.CLIENT, "reactor")
+            span.method(HttpClient.class, "connect")
                 .start();
         };
         if (httpClientConfig.doOnConnect() != null) {
             doOnConnect = doOnConnect.andThen(httpClientConfig.doOnConnect());
         }
-
         try {
             ReflectionUtils.setFieldValue(httpClientConfig, "doOnConnect", doOnConnect);
         } catch (NoSuchFieldException | IllegalAccessException ignored) {
         }
 
-        ConnectionObserver newObserver = httpClientConfig.connectionObserver().then(new ConnectionObserver() {
-            @Override
-            public void onUncaughtException(Connection connection, Throwable error) {
-                span.tag(error).finish();
-                span.context().finish();
-            }
-
-            @Override
-            public void onStateChange(Connection connection, State newState) {
-                if (newState.equals(State.CONNECTED)) {
-                    span.tag(Tags.Net.PEER, connection.channel().remoteAddress())
-                        .finish();
-                    span.context().finish();
-                }
-                if (newState.equals(State.ACQUIRED)) {
-                    span.method(aopContext.getTargetClass(), "acquireConnection")
-                        .tag(Tags.Net.PEER, connection.channel().remoteAddress())
-                        .finish();
-                    span.context().finish();
-                }
-            }
-        });
-
-        try {
-            ReflectionUtils.setFieldValue(httpClientConfig, "observer", newObserver);
-        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        // This is tricky.
+        // On the HttpClient above, it provides doOnConnected callback,
+        // however, it's triggered after the connection is turned into ACQUIRED if a connection is reused.
+        // When an ACQUIRED state change is triggered, it will trigger to send the http request first.
+        // See the MonoHttpConnect in the HttpClientConnect to know more about it.
+        //
+        // This is why we have to hook on the ConnectionObserver to get the connection state change before ACQUIRED state change notified.
+        //
+        // And we can't change the 'observer' field in HttpClientConfig directly,
+        // because the 'observer' is used to compute a hash value to determine if a new connection pool is necessary.
+        // So we have to hook on the 'defaultConnectionObserver' method to add our own observer.
+        //
+        // Once the instrumentation of HttpClientConfig is successfully installed,
+        // it has the interface of IBithonObject
+        //noinspection ConstantValue
+        if ((Object) httpClientConfig instanceof IBithonObject) {
+            ((IBithonObject) (Object) httpClientConfig).setInjectedObject(span);
         }
     }
 }
