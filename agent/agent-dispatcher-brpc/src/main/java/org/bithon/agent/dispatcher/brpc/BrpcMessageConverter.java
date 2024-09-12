@@ -209,8 +209,8 @@ public class BrpcMessageConverter implements IMessageConverter {
                     measurement.addMetric(metricSet.getMetricValue(i));
                 }
                 messageBuilder.addMeasurement(measurement.build());
-            } catch (RuntimeException ignored) {
-                // ignore invalid metric values
+            } catch (RuntimeException e) {
+                logger.error("Invalid metric values", e);
             }
         });
 

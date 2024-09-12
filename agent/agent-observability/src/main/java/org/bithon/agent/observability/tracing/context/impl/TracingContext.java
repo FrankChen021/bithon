@@ -133,12 +133,17 @@ public class TracingContext implements ITraceContext {
 
             this.spans.clear();
             this.spanStack.clear();
+            this.finished = true;
+            return;
+        }
+
+        // Allow this method to be re-entered
+        if (this.finished) {
             return;
         }
 
         // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
         this.finished = true;
-
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
