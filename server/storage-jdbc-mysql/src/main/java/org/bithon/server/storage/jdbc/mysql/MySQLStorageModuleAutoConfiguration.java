@@ -30,7 +30,6 @@ import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -78,7 +77,7 @@ public class MySQLStorageModuleAutoConfiguration {
                                          new NamedType(AlertObjectJdbcStorage.class, "mysql"),
                                          new NamedType(AlertRecordJdbcStorage.class, "mysql"),
                                          new NamedType(NotificationChannelJdbcStorage.class, "mysql")
-                                         );
+                );
             }
         };
     }

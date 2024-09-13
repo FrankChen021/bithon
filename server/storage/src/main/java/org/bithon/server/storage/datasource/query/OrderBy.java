@@ -32,4 +32,8 @@ import lombok.NoArgsConstructor;
 public class OrderBy {
     private String name;
     private Order order;
+
+    public org.bithon.server.storage.datasource.query.ast.OrderBy toAST() {
+        return new org.bithon.server.storage.datasource.query.ast.OrderBy(name, order);
+    }
 }

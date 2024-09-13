@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,9 @@ public class Where implements IASTNode {
     private final List<String> expressions = new ArrayList<>();
 
     public Where addExpression(String expression) {
-        expressions.add(expression);
+        if (!StringUtils.isEmpty(expression)) {
+            expressions.add(expression);
+        }
         return this;
     }
 
