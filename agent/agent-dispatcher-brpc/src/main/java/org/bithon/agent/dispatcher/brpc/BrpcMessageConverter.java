@@ -210,7 +210,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                 }
                 messageBuilder.addMeasurement(measurement.build());
             } catch (RuntimeException e) {
-                logger.error("Invalid metric values", e);
+                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s", schema.getName(), metricSet.getDimensions()), e);
             }
         });
 
