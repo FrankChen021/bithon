@@ -24,7 +24,12 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
  */
 public class HttpClientContext {
 
-    private long startTimeNs;
+    /**
+     * Set the default value to the current time.
+     * It can be overridden by the actual start time of the request.
+     * However, when an exception is raised, this default value will be used to calculate the duration.
+     */
+    private long startTimeNs = System.nanoTime();
 
     /**
      * available when tracing is enabled on this request

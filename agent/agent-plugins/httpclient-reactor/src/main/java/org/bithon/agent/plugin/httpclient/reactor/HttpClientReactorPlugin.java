@@ -48,6 +48,11 @@ public class HttpClientReactorPlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$ResponseConnection")
                 .build(),
 
+            forClass("reactor.netty.http.client.HttpClientConfig")
+                .onMethod("defaultConnectionObserver")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientConfig$DefaultConnectionObserver")
+                .build(),
+
             forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
                 .onMethod("onChannelInit")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientChannelInitializer$OnChannelInit")
