@@ -103,7 +103,7 @@ public class QueryExpressionBuilderTest {
 
         @Override
         public IExpression toTimestampExpression(TimeSpan timeSpan) {
-            return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
+            return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")));
         }
 
         @Override
