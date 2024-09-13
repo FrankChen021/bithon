@@ -22,6 +22,10 @@ package org.bithon.component.commons.expression;
  */
 public class IdentifierExpression implements IExpression {
 
+    public static IdentifierExpression of(String identifier) {
+        return new IdentifierExpression(identifier);
+    }
+
     /**
      * NOT final to allow AST optimization
      */

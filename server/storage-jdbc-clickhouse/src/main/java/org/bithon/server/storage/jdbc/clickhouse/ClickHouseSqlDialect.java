@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.common.optimizer.ClickHouseExpressionOptimizer;
@@ -84,6 +85,11 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     @Override
     public String formatTimestamp(TimeSpan timeSpan) {
         return StringUtils.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
+    }
+
+    @Override
+    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+        return new FunctionExpression(TimeFunction.FromUnixTimestamp.INSTANCE, LiteralExpression.LongLiteral.ofLong(timeSpan.getMilliseconds() / 1000));
     }
 
     @Override

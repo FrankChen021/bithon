@@ -29,6 +29,7 @@ import org.bithon.component.commons.expression.function.builtin.AggregateFunctio
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
@@ -59,6 +60,11 @@ public class H2SqlDialect implements ISqlDialect {
     @Override
     public boolean needTableAlias() {
         return false;
+    }
+
+    @Override
+    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+        return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
     }
 
     @Override

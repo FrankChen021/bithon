@@ -115,4 +115,26 @@ public class TimeFunction {
             return true;
         }
     }
+
+    /**
+     * Accepts a unix timestamp in second and returns a datetime
+     */
+    public static class FromUnixTimestamp extends AbstractFunction {
+        public static final FromUnixTimestamp INSTANCE = new FromUnixTimestamp();
+
+        public FromUnixTimestamp() {
+            // TODO: Change the DateTime_3 to DateTime
+            super("fromUnixTimestamp", IDataType.LONG, IDataType.DATETIME_3);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
+    }
 }

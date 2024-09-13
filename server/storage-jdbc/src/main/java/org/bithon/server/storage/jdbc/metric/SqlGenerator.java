@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
@@ -31,6 +32,7 @@ import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.datasource.query.ast.WhereClause;
+import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 import java.util.List;
@@ -159,16 +161,20 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(WhereClause where) {
+        if (where.isEmpty()) {
+            return;
+        }
+
         sql.append('\n');
         sql.append(indent);
         sql.append("WHERE ");
 
-        List<String> expressions = where.getExpressions();
+        List<IExpression> expressions = where.getExpressions();
         for (int i = 0, expressionsSize = expressions.size(); i < expressionsSize; i++) {
             if (i != 0) {
                 sql.append(" AND ");
             }
-            sql.append(expressions.get(i));
+            sql.append(new Expression2Sql(null, this.sqlDialect).serialize(expressions.get(i)));
         }
     }
 

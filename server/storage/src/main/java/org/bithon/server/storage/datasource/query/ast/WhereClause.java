@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.expression.IExpression;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +29,17 @@ import java.util.List;
 @Getter
 public class WhereClause implements IASTNode {
 
-    private final List<String> expressions = new ArrayList<>();
+    private final List<IExpression> expressions = new ArrayList<>();
 
-    public WhereClause addExpression(String expression) {
-        if (!StringUtils.isEmpty(expression)) {
+    public WhereClause and(IExpression expression) {
+        if (expression != null) {
             expressions.add(expression);
         }
         return this;
+    }
+
+    public boolean isEmpty() {
+        return expressions.isEmpty();
     }
 
     @Override

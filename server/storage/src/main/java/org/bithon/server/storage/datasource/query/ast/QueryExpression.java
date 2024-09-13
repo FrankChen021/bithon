@@ -34,7 +34,7 @@ public class QueryExpression implements IASTNode {
     private final SelectorList selectorList = new SelectorList();
 
     private final FromClause from = new FromClause();
-    private WhereClause where;
+    private final WhereClause where = new WhereClause();
     private GroupByClause groupBy = new GroupByClause();
     private OrderByClause orderBy;
     private LimitClause limit;
@@ -46,7 +46,7 @@ public class QueryExpression implements IASTNode {
         {
             selectorList.accept(visitor);
             from.accept(visitor);
-            if (where != null) {
+            if (!where.isEmpty()) {
                 where.accept(visitor);
             }
             if (groupBy != null) {

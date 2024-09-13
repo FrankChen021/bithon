@@ -49,6 +49,8 @@ public interface ISqlDialect {
         return "'" + timeSpan.toISO8601() + "'";
     }
 
+    IExpression toTimestampExpression(TimeSpan timeSpan);
+
     String stringAggregator(String field);
 
     String firstAggregator(String field, long window);

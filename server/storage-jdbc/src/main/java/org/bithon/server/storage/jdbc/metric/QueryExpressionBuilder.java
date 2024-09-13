@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import jakarta.annotation.Nullable;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -45,7 +46,6 @@ import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
-import org.bithon.server.storage.datasource.query.ast.WhereClause;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
@@ -657,20 +657,16 @@ public class QueryExpressionBuilder {
 
     private void buildWhere(Pipeline pipeline) {
         IExpression timestampExpression = this.interval.getTimestampColumn();
-        WhereClause preFilter = new WhereClause();
-        preFilter.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
-        preFilter.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
+        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(interval.getStartTime())));
+        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(interval.getEndTime())));
 
         if (filter != null) {
 
             // Separate the filter to pre-filter and post-filter
             FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
             filter = filter.accept(splitter);
-
             if (filter != null) {
-                preFilter.addExpression(Expression2Sql.from(((TableIdentifier) pipeline.innermost.getFrom().getExpression()).getName(),
-                                                            sqlDialect,
-                                                            filter));
+                pipeline.innermost.getWhere().and(filter);
             }
 
             if (!splitter.postFilters.isEmpty()) {
@@ -695,13 +691,10 @@ public class QueryExpressionBuilder {
                         pipeline.outermost = query;
                     }
 
-                    pipeline.outermost.setWhere(new WhereClause());
-                    pipeline.outermost.getWhere().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
+                    pipeline.outermost.getWhere().and(postFilter);
                 }
             }
         }
-
-        pipeline.innermost.setWhere(preFilter);
     }
 
     private void buildGroupBy(Pipeline pipeline) {
