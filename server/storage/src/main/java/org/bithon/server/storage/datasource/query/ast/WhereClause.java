@@ -17,21 +17,24 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/8/1 21:40
+ * @date 2022/9/4 14:55
  */
-public class Having implements IASTNode {
+@Getter
+public class WhereClause implements IASTNode {
 
-    @Getter
     private final List<String> expressions = new ArrayList<>();
 
-    public Having addExpression(String expression) {
-        expressions.add(expression);
+    public WhereClause addExpression(String expression) {
+        if (!StringUtils.isEmpty(expression)) {
+            expressions.add(expression);
+        }
         return this;
     }
 

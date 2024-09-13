@@ -25,11 +25,12 @@ import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
-import org.bithon.server.storage.datasource.query.ast.Where;
+import org.bithon.server.storage.datasource.query.ast.WhereClause;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.jooq.DSLContext;
@@ -140,11 +141,11 @@ public class MetricJdbcReader implements IDataSourceReader {
         String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
 
         QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new Table(query.getSchema().getDataStoreSpec().getStore()));
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         for (Selector selector : query.getSelectors()) {
             queryExpression.getSelectorList().add(selector.getSelectExpression(), selector.getOutput());
         }
-        queryExpression.setWhere(new Where());
+        queryExpression.setWhere(new WhereClause());
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(timestampCol) + " >= " + sqlDialect.formatTimestamp(query.getInterval().getStartTime()));
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(timestampCol) + " < " + sqlDialect.formatTimestamp(query.getInterval().getEndTime()));
         queryExpression.getWhere().addExpression(Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()));
@@ -161,9 +162,9 @@ public class MetricJdbcReader implements IDataSourceReader {
         String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
 
         QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new Table(query.getSchema().getDataStoreSpec().getStore()));
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         queryExpression.getSelectorList().add(new TextNode("count(1)"));
-        queryExpression.setWhere(new Where());
+        queryExpression.setWhere(new WhereClause());
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(timestampCol) + " >= " + sqlDialect.formatTimestamp(query.getInterval().getStartTime()));
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(timestampCol) + " < " + sqlDialect.formatTimestamp(query.getInterval().getEndTime()));
         queryExpression.getWhere().addExpression(Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()));
@@ -216,15 +217,15 @@ public class MetricJdbcReader implements IDataSourceReader {
         String dimension = query.getSelectors().get(0).getOutputName();
 
         QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new Table(query.getSchema().getDataStoreSpec().getStore()));
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         queryExpression.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension);
-        queryExpression.setWhere(new Where());
+        queryExpression.setWhere(new WhereClause());
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier("timestamp") + " >= " + sqlDialect.formatTimestamp(query.getInterval().getStartTime()));
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier("timestamp") + " < " + sqlDialect.formatTimestamp(query.getInterval().getEndTime()));
         queryExpression.getWhere().addExpression(Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()));
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(dimension) + " IS NOT NULL");
         queryExpression.getWhere().addExpression(sqlDialect.quoteIdentifier(dimension) + " <> ''");
-        queryExpression.setOrderBy(new org.bithon.server.storage.datasource.query.ast.OrderBy(dimension, Order.asc));
+        queryExpression.setOrderBy(new OrderByClause(dimension, Order.asc));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
         queryExpression.accept(generator);
         String sql = generator.getSQL();

@@ -16,29 +16,27 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Getter;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:04
+ * @date 2022/9/4 15:43
  */
-public class Table  implements IASTNode {
+@Data
+public class FromClause implements IASTNode {
+    private IASTNode expression;
+    private Alias alias;
 
-    @Getter
-    private final String name;
-
-    public Table(String name) {
-        this.name = name;
+    public void setAlias(String alias) {
+        this.alias = new Alias(alias);
     }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
+        expression.accept(visitor);
+        if (alias != null) {
+            alias.accept(visitor);
+        }
     }
 }

@@ -35,17 +35,17 @@ import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Having;
+import org.bithon.server.storage.datasource.query.ast.FromClause;
+import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.LimitClause;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
-import org.bithon.server.storage.datasource.query.ast.Where;
+import org.bithon.server.storage.datasource.query.ast.WhereClause;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
@@ -323,7 +323,7 @@ public class QueryExpressionBuilder {
             }
 
             for (int i = 1; i < pipelines.size(); i++) {
-                From from = pipelines.get(i).getFrom();
+                FromClause from = pipelines.get(i).getFrom();
                 from.setExpression(pipelines.get(i - 1));
 
                 if (sqlDialect.needTableAlias()) {
@@ -626,7 +626,7 @@ public class QueryExpressionBuilder {
         // Chain the pipelines together
         //
         pipeline.chain(this.sqlDialect);
-        pipeline.innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+        pipeline.innermost.getFrom().setExpression(new TableIdentifier(schema.getDataStoreSpec().getStore()));
 
         // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
         buildGroupBy(pipeline);
@@ -644,7 +644,7 @@ public class QueryExpressionBuilder {
         }
         Preconditions.checkNotNull(this.orderBy, "Limit must be used with order by clause");
 
-        pipeline.outermost.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+        pipeline.outermost.setLimit(new LimitClause(limit.getLimit(), limit.getOffset()));
     }
 
     private void buildOrderBy(Pipeline pipeline) {
@@ -652,12 +652,12 @@ public class QueryExpressionBuilder {
             return;
         }
 
-        pipeline.outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+        pipeline.outermost.setOrderBy(new OrderByClause(orderBy.getName(), orderBy.getOrder()));
     }
 
     private void buildWhere(Pipeline pipeline) {
         IExpression timestampExpression = this.interval.getTimestampColumn();
-        Where preFilter = new Where();
+        WhereClause preFilter = new WhereClause();
         preFilter.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
         preFilter.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
 
@@ -668,7 +668,7 @@ public class QueryExpressionBuilder {
             filter = filter.accept(splitter);
 
             if (filter != null) {
-                preFilter.addExpression(Expression2Sql.from(((Table) pipeline.innermost.getFrom().getExpression()).getName(),
+                preFilter.addExpression(Expression2Sql.from(((TableIdentifier) pipeline.innermost.getFrom().getExpression()).getName(),
                                                             sqlDialect,
                                                             filter));
             }
@@ -677,7 +677,7 @@ public class QueryExpressionBuilder {
                 IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
 
                 if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
-                    pipeline.outermost.setHaving(new Having());
+                    pipeline.outermost.setHaving(new HavingClause());
                     pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
                 } else {
 
@@ -695,7 +695,7 @@ public class QueryExpressionBuilder {
                         pipeline.outermost = query;
                     }
 
-                    pipeline.outermost.setWhere(new Where());
+                    pipeline.outermost.setWhere(new WhereClause());
                     pipeline.outermost.getWhere().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
                 }
             }

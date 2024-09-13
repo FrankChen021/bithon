@@ -22,7 +22,7 @@ import lombok.Getter;
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:08
  */
-public class Limit implements IASTNode {
+public class LimitClause implements IASTNode {
 
     @Getter
     private final int limit;
@@ -30,7 +30,7 @@ public class Limit implements IASTNode {
     @Getter
     private final int offset;
 
-    public Limit(int limit, int offset) {
+    public LimitClause(int limit, int offset) {
         this.limit = limit;
         this.offset = offset;
     }

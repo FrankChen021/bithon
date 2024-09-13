@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,7 +34,7 @@ public class OrderBy {
     private String name;
     private Order order;
 
-    public org.bithon.server.storage.datasource.query.ast.OrderBy toAST() {
-        return new org.bithon.server.storage.datasource.query.ast.OrderBy(name, order);
+    public OrderByClause toAST() {
+        return new OrderByClause(name, order);
     }
 }
