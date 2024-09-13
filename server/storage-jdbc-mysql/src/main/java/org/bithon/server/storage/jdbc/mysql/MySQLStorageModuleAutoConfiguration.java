@@ -68,7 +68,7 @@ public class MySQLStorageModuleAutoConfiguration {
                                          new NamedType(MetricJdbcStorage.class, "mysql"),
                                          new NamedType(SettingJdbcStorage.class, "mysql"),
                                          new NamedType(TraceJdbcStorage.class, "mysql"),
-                                         new NamedType(DashboardJdbcStorage.class, "mysql"),
+                                         new NamedType(DashboardMySqlStorage.class, "mysql"),
                                          new NamedType(EventJdbcStorage.class, "mysql"),
                                          new NamedType(SchemaJdbcStorage.class, "mysql"),
                                          new NamedType(MetadataJdbcStorage.class, "mysql"),

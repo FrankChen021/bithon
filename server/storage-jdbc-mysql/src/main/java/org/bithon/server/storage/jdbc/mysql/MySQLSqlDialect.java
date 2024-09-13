@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.mysql;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -139,7 +140,12 @@ public class MySQLSqlDialect implements ISqlDialect {
                                                           patternExpression);
                 }
 
-                return expression;
+                return super.visit(expression);
+            }
+
+            @Override
+            public IExpression visit(ArithmeticExpression expression) {
+                return SafeDivisionTransformer.transform(expression);
             }
         });
     }

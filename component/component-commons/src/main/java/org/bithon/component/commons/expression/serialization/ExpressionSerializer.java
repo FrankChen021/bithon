@@ -203,6 +203,10 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         return false;
     }
 
+    public void append(String str) {
+        sb.append(str);
+    }
+
     protected boolean serializeBinary(BinaryExpression expression) {
         IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {

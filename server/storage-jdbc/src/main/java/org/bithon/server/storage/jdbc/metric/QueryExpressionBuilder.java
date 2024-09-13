@@ -177,6 +177,13 @@ public class QueryExpressionBuilder {
         }
 
         @Override
+        public String serialize(IExpression expression) {
+            // Apply optimization for different DBMS first
+            sqlDialect.transform(expression).accept(this);
+            return sb.toString();
+        }
+
+        @Override
         public boolean visit(MacroExpression expression) {
             Object variableValue = variables.get(expression.getMacro());
             if (variableValue == null) {
