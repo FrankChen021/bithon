@@ -30,6 +30,7 @@ import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.bithon.server.webapp.services.DashboardManager;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
  * @date 2021-10-01
  */
 @Slf4j
+@CrossOrigin
 @RestController
 @Conditional(value = WebAppModuleEnabler.class)
 public class DashboardController {
