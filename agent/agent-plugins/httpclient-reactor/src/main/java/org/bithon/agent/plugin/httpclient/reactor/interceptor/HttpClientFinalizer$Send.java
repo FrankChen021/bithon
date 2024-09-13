@@ -54,6 +54,7 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
         if (span != null) {
             // Span will be finished in ResponseConnection interceptor
             // If the Span is null, we still need to continue because the response connection also records metrics
+            //
             httpClientContext.setSpan(span);
         }
 
@@ -62,11 +63,12 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
             = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
 
         // Replace the Publisher to propagate trace
-        if (span != null) {
-            aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
-                httpClientContext.setStartTimeNs(System.nanoTime());
+        aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
+            // Update the start time
+            httpClientContext.setStartTimeNs(System.nanoTime());
 
-                // Propagate trace along this HTTP
+            // Propagate trace along this HTTP
+            if (span != null) {
                 span.kind(SpanKind.CLIENT)
                     .method(aopContext.getTargetClass(), aopContext.getMethod())
                     .tag(Tags.Http.URL, httpClient.configuration().uri())
@@ -74,11 +76,10 @@ public class HttpClientFinalizer$Send extends AroundInterceptor {
                     .tag(Tags.Http.CLIENT, "reactor")
                     .context().propagate(httpClientRequest, (request, key, value) -> request.requestHeaders().set(key, value));
                 span.start();
+            }
 
-
-                return originalSender.apply(httpClientRequest, nettyOutbound);
-            };
-        }
+            return originalSender.apply(httpClientRequest, nettyOutbound);
+        };
 
         return InterceptionDecision.CONTINUE;
     }
