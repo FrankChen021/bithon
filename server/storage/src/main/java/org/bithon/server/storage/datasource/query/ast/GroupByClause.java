@@ -42,6 +42,10 @@ public class GroupByClause implements IASTNode {
         return this;
     }
 
+    public boolean isEmpty() {
+        return fields.isEmpty();
+    }
+
     @Override
     public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
