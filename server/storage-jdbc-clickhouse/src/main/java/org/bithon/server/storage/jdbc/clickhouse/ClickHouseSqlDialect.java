@@ -79,14 +79,6 @@ public class ClickHouseSqlDialect implements ISqlDialect {
         return false;
     }
 
-    /**
-     * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
-     */
-    @Override
-    public String formatTimestamp(TimeSpan timeSpan) {
-        return StringUtils.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
-    }
-
     @Override
     public IExpression toTimestampExpression(TimeSpan timeSpan) {
         return new FunctionExpression(TimeFunction.FromUnixTimestamp.INSTANCE, LiteralExpression.LongLiteral.ofLong(timeSpan.getMilliseconds() / 1000));

@@ -45,10 +45,6 @@ public interface ISqlDialect {
      */
     boolean needTableAlias();
 
-    default String formatTimestamp(TimeSpan timeSpan) {
-        return "'" + timeSpan.toISO8601() + "'";
-    }
-
     IExpression toTimestampExpression(TimeSpan timeSpan);
 
     String stringAggregator(String field);

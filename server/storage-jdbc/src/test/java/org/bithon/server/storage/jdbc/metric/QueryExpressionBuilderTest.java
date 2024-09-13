@@ -102,11 +102,6 @@ public class QueryExpressionBuilderTest {
     final ISqlDialect h2Dialect = new ISqlDialect() {
 
         @Override
-        public String formatTimestamp(TimeSpan timeSpan) {
-            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
-        }
-
-        @Override
         public IExpression toTimestampExpression(TimeSpan timeSpan) {
             return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
         }
@@ -172,11 +167,6 @@ public class QueryExpressionBuilderTest {
     final ISqlDialect mysql = new ISqlDialect() {
 
         @Override
-        public String formatTimestamp(TimeSpan timeSpan) {
-            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
-        }
-
-        @Override
         public IExpression toTimestampExpression(TimeSpan timeSpan) {
             return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")));
         }
@@ -240,10 +230,6 @@ public class QueryExpressionBuilderTest {
     };
 
     final ISqlDialect clickHouseDialect = new ISqlDialect() {
-        @Override
-        public String formatTimestamp(TimeSpan timeSpan) {
-            return "'" + timeSpan.toISO8601(TimeZone.getTimeZone("GMT+8:00")) + "'";
-        }
 
         @Override
         public IExpression toTimestampExpression(TimeSpan timeSpan) {
