@@ -660,40 +660,44 @@ public class QueryExpressionBuilder {
         pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(interval.getStartTime())));
         pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(interval.getEndTime())));
 
+        if (filter == null) {
+            return;
+        }
+
+        // Separate the filter to pre-filter and post-filter
+        FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
+        filter = filter.accept(splitter);
         if (filter != null) {
+            // The user filters might filter on a column that is being aggregated, to make the query work,
+            // We think this filter is NOT a post filter on the result of aggregation but on the original column.
+            // So we need to transform the filter first to make it qualified
+            pipeline.innermost.getWhere().and(filter.accept(new QualifyExpressionTransformer(schema)));
+        }
 
-            // Separate the filter to pre-filter and post-filter
-            FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
-            filter = filter.accept(splitter);
-            if (filter != null) {
-                pipeline.innermost.getWhere().and(filter);
-            }
+        if (splitter.postFilters.isEmpty()) {
+            return;
+        }
 
-            if (!splitter.postFilters.isEmpty()) {
-                IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
+        IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
+        if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
+            pipeline.outermost.setHaving(new HavingClause());
+            pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
+        } else {
+            if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
+                // some DBMS does not allow alias to be referenced in the WHERE clause,
+                // in such a case, a 'SELECT *' is added to the outermost query
+                QueryExpression query = new QueryExpression();
+                query.getSelectorList().add(new TextNode("*"));
+                query.getFrom().setExpression(pipeline.outermost);
 
-                if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
-                    pipeline.outermost.setHaving(new HavingClause());
-                    pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
-                } else {
-
-                    if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
-                        // some DBMS does not allow alias to be referenced in the WHERE clause,
-                        // in such a case, a 'SELECT *' is added to the outermost query
-                        QueryExpression query = new QueryExpression();
-                        query.getSelectorList().add(new TextNode("*"));
-                        query.getFrom().setExpression(pipeline.outermost);
-
-                        if (sqlDialect.needTableAlias()) {
-                            query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
-                        }
-
-                        pipeline.outermost = query;
-                    }
-
-                    pipeline.outermost.getWhere().and(postFilter);
+                if (sqlDialect.needTableAlias()) {
+                    query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
                 }
+
+                pipeline.outermost = query;
             }
+
+            pipeline.outermost.getWhere().and(postFilter);
         }
     }
 
@@ -747,6 +751,20 @@ public class QueryExpressionBuilder {
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
             }
+        }
+    }
+
+    static class QualifyExpressionTransformer extends ExpressionOptimizer.AbstractOptimizer {
+        private final String qualifier;
+
+        public QualifyExpressionTransformer(ISchema schema) {
+            this.qualifier = schema.getDataStoreSpec().getStore();
+        }
+
+        @Override
+        public IExpression visit(IdentifierExpression expression) {
+            expression.setQualifier(qualifier);
+            return expression;
         }
     }
 }

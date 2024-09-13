@@ -898,7 +898,7 @@ public class QueryExpressionBuilderTest {
                             SELECT "appName",
                                    count(1) AS "cnt"
                             FROM "bithon_jvm_metrics"
-                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND ("totalCount" > 1048576 AND "totalCount" < 3600 AND "totalCount" < 0.5)
+                            WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND ("bithon_jvm_metrics"."totalCount" > 1048576 AND "bithon_jvm_metrics"."totalCount" < 3600 AND "bithon_jvm_metrics"."totalCount" < 0.5)
                             GROUP BY "appName"
                             ORDER BY "appName" asc
                             """.trim(),
@@ -941,7 +941,7 @@ public class QueryExpressionBuilderTest {
                                        sum("responseTime" * 2) AS "_var0",
                                        sum("totalCount") AS "totalCount"
                                 FROM "bithon_jvm_metrics"
-                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "appName" = 'bithon'
+                                WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
                                 GROUP BY "appName", "instanceName"
                               )
                             )

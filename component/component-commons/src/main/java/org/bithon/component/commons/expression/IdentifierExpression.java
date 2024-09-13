@@ -29,17 +29,30 @@ public class IdentifierExpression implements IExpression {
     /**
      * NOT final to allow AST optimization
      */
+    private String qualifier;
     private String identifier;
-    private boolean isQualified;
     private IDataType dataType;
 
     public IdentifierExpression(String identifier) {
         setIdentifier(identifier);
     }
 
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
+    }
+
     public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-        this.isQualified = identifier.indexOf('.') > 0;
+        int idx = identifier.indexOf('.');
+        if (idx > 0) {
+            this.qualifier = identifier.substring(0, idx);
+            this.identifier = identifier.substring(idx + 1);
+        } else {
+            this.identifier = identifier;
+        }
+    }
+
+    public String getQualifier() {
+        return qualifier;
     }
 
     public String getIdentifier() {
@@ -52,7 +65,7 @@ public class IdentifierExpression implements IExpression {
     }
 
     public boolean isQualified() {
-        return isQualified;
+        return this.qualifier != null;
     }
 
     @Override
