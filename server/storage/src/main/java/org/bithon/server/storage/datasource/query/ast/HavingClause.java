@@ -17,27 +17,22 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-import org.bithon.server.storage.datasource.query.Order;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2024/8/1 21:40
  */
-public class OrderBy implements IASTNode {
+public class HavingClause implements IASTNode {
 
     @Getter
-    private final String field;
+    private final List<String> expressions = new ArrayList<>();
 
-    @Getter
-    private final Order order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderBy(String field, Order order) {
-        this.field = field;
-        this.order = order;
+    public HavingClause addExpression(String expression) {
+        expressions.add(expression);
+        return this;
     }
 
     @Override

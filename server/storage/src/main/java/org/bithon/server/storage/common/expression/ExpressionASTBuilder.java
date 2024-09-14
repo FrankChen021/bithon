@@ -146,10 +146,10 @@ public class ExpressionASTBuilder {
         private void flattenLogicalExpression(List<IExpression> flattenList, int logicalOperatorType, IExpression subexpression) {
             if (subexpression instanceof LogicalExpression) {
                 String subExpressionLogicalOperator = ((LogicalExpression) subexpression).getOperator();
-                if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.equals(subExpressionLogicalOperator)) {
+                if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.OP.equals(subExpressionLogicalOperator)) {
                     // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
-                } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.equals(subExpressionLogicalOperator)) {
+                } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.OP.equals(subExpressionLogicalOperator)) {
                     // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
                 } else {

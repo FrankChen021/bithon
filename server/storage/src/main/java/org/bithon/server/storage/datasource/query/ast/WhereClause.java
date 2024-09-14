@@ -17,22 +17,29 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IExpression;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/10/30 15:08
+ * @date 2022/9/4 14:55
  */
-public class Limit implements IASTNode {
+@Getter
+public class WhereClause implements IASTNode {
 
-    @Getter
-    private final int limit;
+    private final List<IExpression> expressions = new ArrayList<>();
 
-    @Getter
-    private final int offset;
+    public WhereClause and(IExpression expression) {
+        if (expression != null) {
+            expressions.add(expression);
+        }
+        return this;
+    }
 
-    public Limit(int limit, int offset) {
-        this.limit = limit;
-        this.offset = offset;
+    public boolean isEmpty() {
+        return expressions.isEmpty();
     }
 
     @Override

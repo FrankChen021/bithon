@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import jakarta.annotation.Nullable;
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -35,17 +36,16 @@ import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.Having;
+import org.bithon.server.storage.datasource.query.ast.FromClause;
+import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.LimitClause;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
-import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
@@ -174,6 +174,13 @@ public class QueryExpressionBuilder {
                     windowFunctionLength *= 2;
                 }
             }
+        }
+
+        @Override
+        public String serialize(IExpression expression) {
+            // Apply optimization for different DBMS first
+            sqlDialect.transform(expression).accept(this);
+            return sb.toString();
         }
 
         @Override
@@ -316,7 +323,7 @@ public class QueryExpressionBuilder {
             }
 
             for (int i = 1; i < pipelines.size(); i++) {
-                From from = pipelines.get(i).getFrom();
+                FromClause from = pipelines.get(i).getFrom();
                 from.setExpression(pipelines.get(i - 1));
 
                 if (sqlDialect.needTableAlias()) {
@@ -619,7 +626,7 @@ public class QueryExpressionBuilder {
         // Chain the pipelines together
         //
         pipeline.chain(this.sqlDialect);
-        pipeline.innermost.getFrom().setExpression(new Table(schema.getDataStoreSpec().getStore()));
+        pipeline.innermost.getFrom().setExpression(new TableIdentifier(schema.getDataStoreSpec().getStore()));
 
         // Build GroupBy first, because we might need to move some filters to the group-by as HAVING
         buildGroupBy(pipeline);
@@ -637,7 +644,7 @@ public class QueryExpressionBuilder {
         }
         Preconditions.checkNotNull(this.orderBy, "Limit must be used with order by clause");
 
-        pipeline.outermost.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+        pipeline.outermost.setLimit(new LimitClause(limit.getLimit(), limit.getOffset()));
     }
 
     private void buildOrderBy(Pipeline pipeline) {
@@ -645,56 +652,53 @@ public class QueryExpressionBuilder {
             return;
         }
 
-        pipeline.outermost.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+        pipeline.outermost.setOrderBy(new OrderByClause(orderBy.getName(), orderBy.getOrder()));
     }
 
     private void buildWhere(Pipeline pipeline) {
         IExpression timestampExpression = this.interval.getTimestampColumn();
-        Where preFilter = new Where();
-        preFilter.addExpression(StringUtils.format("%s >= %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getStartTime())));
-        preFilter.addExpression(StringUtils.format("%s < %s", Expression2Sql.from((String) null, sqlDialect, timestampExpression), sqlDialect.formatTimestamp(interval.getEndTime())));
+        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(interval.getStartTime())));
+        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(interval.getEndTime())));
 
-        if (filter != null) {
-
-            // Separate the filter to pre-filter and post-filter
-            FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
-            filter = filter.accept(splitter);
-
-            if (filter != null) {
-                preFilter.addExpression(Expression2Sql.from(((Table) pipeline.innermost.getFrom().getExpression()).getName(),
-                                                            sqlDialect,
-                                                            filter));
-            }
-
-            if (!splitter.postFilters.isEmpty()) {
-                IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
-
-                if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
-                    pipeline.outermost.setHaving(new Having());
-                    pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
-                } else {
-
-                    if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
-                        // some DBMS does not allow alias to be referenced in the WHERE clause,
-                        // in such a case, a 'SELECT *' is added to the outermost query
-                        QueryExpression query = new QueryExpression();
-                        query.getSelectorList().add(new TextNode("*"));
-                        query.getFrom().setExpression(pipeline.outermost);
-
-                        if (sqlDialect.needTableAlias()) {
-                            query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
-                        }
-
-                        pipeline.outermost = query;
-                    }
-
-                    pipeline.outermost.setWhere(new Where());
-                    pipeline.outermost.getWhere().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
-                }
-            }
+        if (filter == null) {
+            return;
         }
 
-        pipeline.innermost.setWhere(preFilter);
+        // Separate the filter to pre-filter and post-filter
+        FilterSplitter splitter = new FilterSplitter(pipeline.outermost);
+        filter = filter.accept(splitter);
+        if (filter != null) {
+            // The user filters might filter on a column that is being aggregated, to make the query work,
+            // We think this filter is NOT a post filter on the result of aggregation but on the original column.
+            // So we need to transform the filter first to make it qualified
+            pipeline.innermost.getWhere().and(filter.accept(new QualifyExpressionTransformer(schema)));
+        }
+
+        if (splitter.postFilters.isEmpty()) {
+            return;
+        }
+
+        IExpression postFilter = splitter.postFilters.size() > 1 ? new LogicalExpression.AND(splitter.postFilters) : splitter.postFilters.get(0);
+        if (!pipeline.outermost.getGroupBy().getFields().isEmpty()) {
+            pipeline.outermost.setHaving(new HavingClause());
+            pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
+        } else {
+            if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
+                // some DBMS does not allow alias to be referenced in the WHERE clause,
+                // in such a case, a 'SELECT *' is added to the outermost query
+                QueryExpression query = new QueryExpression();
+                query.getSelectorList().add(new TextNode("*"));
+                query.getFrom().setExpression(pipeline.outermost);
+
+                if (sqlDialect.needTableAlias()) {
+                    query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
+                }
+
+                pipeline.outermost = query;
+            }
+
+            pipeline.outermost.getWhere().and(postFilter);
+        }
     }
 
     private void buildGroupBy(Pipeline pipeline) {
@@ -747,6 +751,20 @@ public class QueryExpressionBuilder {
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
             }
+        }
+    }
+
+    static class QualifyExpressionTransformer extends ExpressionOptimizer.AbstractOptimizer {
+        private final String qualifier;
+
+        public QualifyExpressionTransformer(ISchema schema) {
+            this.qualifier = schema.getDataStoreSpec().getStore();
+        }
+
+        @Override
+        public IExpression visit(IdentifierExpression expression) {
+            expression.setQualifier(qualifier);
+            return expression;
         }
     }
 }

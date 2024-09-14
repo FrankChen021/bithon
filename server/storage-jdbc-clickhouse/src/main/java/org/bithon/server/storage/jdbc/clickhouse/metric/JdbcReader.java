@@ -64,8 +64,8 @@ public class JdbcReader extends MetricJdbcReader {
             dimension,
             query.getSchema().getDataStoreSpec().getStore(),
             condition,
-            sqlDialect.formatTimestamp(start),
-            sqlDialect.formatTimestamp(end),
+            sqlDialect.toTimestampExpression(start).serializeToText(),
+            sqlDialect.toTimestampExpression(end).serializeToText(),
             dimension,
             dimension);
 

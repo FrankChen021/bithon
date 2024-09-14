@@ -58,7 +58,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
     @Override
     public IExpression visit(FunctionExpression expression) {
         if (!"hasToken".equals(expression.getName())) {
-            return expression;
+            return super.visit(expression);
         }
         return HasTokenFunctionOptimizer.optimize(expression);
     }

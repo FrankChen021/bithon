@@ -33,12 +33,12 @@ public class QueryExpression implements IASTNode {
     @Getter
     private final SelectorList selectorList = new SelectorList();
 
-    private final From from = new From();
-    private Where where;
-    private GroupBy groupBy = new GroupBy();
-    private OrderBy orderBy;
-    private Limit limit;
-    private Having having;
+    private final FromClause from = new FromClause();
+    private final WhereClause where = new WhereClause();
+    private final GroupByClause groupBy = new GroupByClause();
+    private OrderByClause orderBy;
+    private LimitClause limit;
+    private HavingClause having;
 
     @Override
     public void accept(IASTNodeVisitor visitor) {
@@ -46,10 +46,10 @@ public class QueryExpression implements IASTNode {
         {
             selectorList.accept(visitor);
             from.accept(visitor);
-            if (where != null) {
+            if (!where.isEmpty()) {
                 where.accept(visitor);
             }
-            if (groupBy != null) {
+            if (!groupBy.isEmpty()) {
                 groupBy.accept(visitor);
             }
             if (having != null) {

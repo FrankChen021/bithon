@@ -16,21 +16,23 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.From;
-import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.Having;
+import org.bithon.server.storage.datasource.query.ast.FromClause;
+import org.bithon.server.storage.datasource.query.ast.GroupByClause;
+import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
-import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.LimitClause;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
-import org.bithon.server.storage.datasource.query.ast.Where;
+import org.bithon.server.storage.datasource.query.ast.WhereClause;
+import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 
 import java.util.List;
@@ -84,7 +86,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(OrderBy orderBy) {
+    public void visit(OrderByClause orderBy) {
         sql.append('\n');
         sql.append(indent);
         sql.append("ORDER BY ");
@@ -97,7 +99,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(Limit limit) {
+    public void visit(LimitClause limit) {
         sql.append('\n');
         sql.append(indent);
         sql.append("LIMIT ");
@@ -145,35 +147,39 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(From from) {
+    public void visit(FromClause from) {
         sql.append('\n');
         sql.append(indent);
         sql.append("FROM");
     }
 
     @Override
-    public void visit(Table table) {
+    public void visit(TableIdentifier table) {
         sql.append(' ');
         sql.append(sqlDialect.quoteIdentifier(table.getName()));
     }
 
     @Override
-    public void visit(Where where) {
+    public void visit(WhereClause where) {
+        if (where.isEmpty()) {
+            return;
+        }
+
         sql.append('\n');
         sql.append(indent);
         sql.append("WHERE ");
 
-        List<String> expressions = where.getExpressions();
+        List<IExpression> expressions = where.getExpressions();
         for (int i = 0, expressionsSize = expressions.size(); i < expressionsSize; i++) {
             if (i != 0) {
                 sql.append(" AND ");
             }
-            sql.append(expressions.get(i));
+            sql.append(new Expression2Sql(null, this.sqlDialect).serialize(expressions.get(i)));
         }
     }
 
     @Override
-    public void visit(GroupBy groupBy) {
+    public void visit(GroupByClause groupBy) {
         if (groupBy.getFields().isEmpty()) {
             return;
         }
@@ -192,7 +198,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(Having having) {
+    public void visit(HavingClause having) {
         if (CollectionUtils.isEmpty(having.getExpressions())) {
             return;
         }

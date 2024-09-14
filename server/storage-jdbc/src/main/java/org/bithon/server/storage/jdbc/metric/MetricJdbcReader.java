@@ -18,14 +18,21 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
+import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 import org.bithon.server.storage.datasource.query.ast.QueryExpression;
-import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
+import org.bithon.server.storage.datasource.query.ast.Selector;
+import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
+import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -98,25 +105,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
-/*
-        QueryExpression timestampFilterExpression = queryExpression;
-        if (queryExpression.getFrom().getExpression() instanceof QueryExpression) {
-            // Has a sub-query, timestampExpression will be put in sub-query
-            timestampFilterExpression = (QueryExpression) queryExpression.getFrom().getExpression();
 
-            // Add timestamp field to an outer query at first position
-            queryExpression.getSelectColumnList().insert(new Column(TIMESTAMP_ALIAS_NAME));
-        }
-
-        // Add timestamp expression to the innermost query
-        timestampFilterExpression.getSelectColumnList()
-                                 .insert(new StringNode(StringUtils.format("%s AS \"%s\"",
-                                                                           sqlDialect.timeFloorExpression(query.getInterval().getTimestampColumn(),
-                                                                                                          query.getInterval().getStep()),
-                                                                           TIMESTAMP_ALIAS_NAME)));
-
-        queryExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
-*/
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
         queryExpression.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
@@ -150,54 +139,39 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> select(Query query) {
-        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
-        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
-        String sql = StringUtils.format(
-            "SELECT %s FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s %s LIMIT %d OFFSET %d",
-            query.getSelectors()
-                 .stream()
-                 .map(field -> {
-                     String expr = field.getSelectExpression().toString();
-                     String alias = field.getOutputName();
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
-                     return expr.equals(alias) ?
-                         StringUtils.format("\"%s\"", field.getSelectExpression())
-                         :
-                         StringUtils.format("\"%s\" AS \"%s\"", field.getSelectExpression(), field.getOutputName());
-                 })
-                 .collect(Collectors.joining(",")),
-            sqlTableName,
-            StringUtils.hasText(filter) ? filter : "",
-            StringUtils.hasText(filter) ? "AND" : "",
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            getOrderBySQL(query.getOrderBy()),
-            query.getLimit().getLimit(),
-            query.getLimit().getOffset());
+        QueryExpression queryExpression = new QueryExpression();
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        for (Selector selector : query.getSelectors()) {
+            queryExpression.getSelectorList().add(selector.getSelectExpression(), selector.getOutput());
+        }
+        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        queryExpression.getWhere().and(query.getFilter());
+        queryExpression.setOrderBy(query.getOrderBy().toAST());
+        SqlGenerator generator = new SqlGenerator(sqlDialect);
+        queryExpression.accept(generator);
+        String sql = generator.getSQL();
 
         return executeSql(sql);
     }
 
     @Override
     public int count(Query query) {
-        String sqlTableName = query.getSchema().getDataStoreSpec().getStore();
-        String timestampCol = query.getSchema().getTimestampSpec().getColumnName();
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
-        String filter = Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter());
-        String sql = StringUtils.format(
-            "SELECT count(1) FROM \"%s\" WHERE %s %s \"%s\" >= %s AND \"%s\" < %s",
-            sqlTableName,
-            StringUtils.hasText(filter) ? filter : "",
-            StringUtils.hasText(filter) ? "AND" : "",
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
-            timestampCol,
-            sqlDialect.formatTimestamp(query.getInterval().getEndTime())
-        );
+        QueryExpression queryExpression = new QueryExpression();
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        queryExpression.getSelectorList().add(new TextNode("count(1)"));
+        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        queryExpression.getWhere().and(query.getFilter());
+        SqlGenerator generator = new SqlGenerator(sqlDialect);
+        queryExpression.accept(generator);
+        String sql = generator.getSQL();
 
+        log.info("Executing {}", sql);
         Record record = dslContext.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
     }
@@ -227,7 +201,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         // PAY ATTENTION:
         //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        //  this is might be a bug of JDK
+        //  this might be a bug of JDK
         return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>(record.fields().length);
             for (Field<?> field : record.fields()) {
@@ -239,20 +213,21 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<String> distinct(Query query) {
-        String filterText = query.getFilter() == null ? "" : Expression2Sql.from(query.getSchema(), sqlDialect, query.getFilter()) + " AND ";
+        IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
+
         String dimension = query.getSelectors().get(0).getOutputName();
 
-        String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s AND \"%s\" IS NOT NULL ORDER BY \"%s\"",
-            dimension,
-            dimension,
-            query.getSchema().getDataStoreSpec().getStore(),
-            filterText,
-            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
-            sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
-            dimension,
-            dimension
-        );
+        QueryExpression queryExpression = new QueryExpression();
+        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        queryExpression.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension);
+        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        queryExpression.getWhere().and(query.getFilter());
+        queryExpression.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
+        queryExpression.setOrderBy(new OrderByClause(dimension, Order.asc));
+        SqlGenerator generator = new SqlGenerator(sqlDialect);
+        queryExpression.accept(generator);
+        String sql = generator.getSQL();
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);

@@ -26,20 +26,24 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:58
  */
-public class GroupBy implements IASTNode {
+public class GroupByClause implements IASTNode {
     @Getter
     private final List<String> fields = new ArrayList<>(2);
 
-    public GroupBy addField(String field) {
+    public GroupByClause addField(String field) {
         this.fields.add(field);
         return this;
     }
 
-    public GroupBy addFields(Collection<String> fields) {
+    public GroupByClause addFields(Collection<String> fields) {
         if (fields != null) {
             this.fields.addAll(fields);
         }
         return this;
+    }
+
+    public boolean isEmpty() {
+        return fields.isEmpty();
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.mysql;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.expression.function.builtin.AggregateFunctio
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
@@ -58,6 +60,11 @@ public class MySQLSqlDialect implements ISqlDialect {
     @Override
     public boolean needTableAlias() {
         return true;
+    }
+
+    @Override
+    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+        return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
     }
 
     @Override
@@ -139,7 +146,12 @@ public class MySQLSqlDialect implements ISqlDialect {
                                                           patternExpression);
                 }
 
-                return expression;
+                return super.visit(expression);
+            }
+
+            @Override
+            public IExpression visit(ArithmeticExpression expression) {
+                return SafeDivisionTransformer.transform(expression);
             }
         });
     }

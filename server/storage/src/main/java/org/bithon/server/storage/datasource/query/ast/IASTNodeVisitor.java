@@ -28,17 +28,17 @@ public interface IASTNodeVisitor {
 
     void after(QueryExpression queryExpression);
 
-    void visit(OrderBy orderBy);
+    void visit(OrderByClause orderBy);
 
-    void visit(Table table);
+    void visit(TableIdentifier table);
 
-    void visit(Where where);
+    void visit(WhereClause where);
 
-    void visit(GroupBy groupBy);
+    void visit(GroupByClause groupBy);
 
-    void visit(Having having);
+    void visit(HavingClause having);
 
-    void visit(From from);
+    void visit(FromClause from);
 
     void visit(TextNode textNode);
 
@@ -48,7 +48,7 @@ public interface IASTNodeVisitor {
 
     void visit(Alias alias);
 
-    void visit(Limit limit);
+    void visit(LimitClause limit);
 
     void visit(Expression expression);
 }

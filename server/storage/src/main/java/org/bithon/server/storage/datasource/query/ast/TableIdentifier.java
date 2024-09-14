@@ -22,12 +22,12 @@ import lombok.Getter;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:04
  */
-public class Table  implements IASTNode {
+public class TableIdentifier implements IASTNode {
 
     @Getter
     private final String name;
 
-    public Table(String name) {
+    public TableIdentifier(String name) {
         this.name = name;
     }
 

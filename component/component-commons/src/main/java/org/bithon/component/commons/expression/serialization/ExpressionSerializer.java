@@ -103,8 +103,14 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
             && !expression.isQualified()) {
             quoteIdentifierIfNeeded(qualifier);
             sb.append('.');
+            quoteIdentifierIfNeeded(expression.getIdentifier());
+        } else {
+            if (expression.isQualified()) {
+                quoteIdentifierIfNeeded(expression.getQualifier());
+                sb.append('.');
+            }
+            quoteIdentifierIfNeeded(expression.getIdentifier());
         }
-        quoteIdentifierIfNeeded(expression.getIdentifier());
         return false;
     }
 
@@ -201,6 +207,10 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         sb.append(' ');
         expression.getFalseExpression().accept(this);
         return false;
+    }
+
+    public void append(String str) {
+        sb.append(str);
     }
 
     protected boolean serializeBinary(BinaryExpression expression) {
