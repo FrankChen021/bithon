@@ -34,7 +34,7 @@ public class OrderBy {
     private String name;
     private Order order;
 
-    public OrderByClause toAST() {
+    public OrderByClause toOrderByClause() {
         return new OrderByClause(name, order);
     }
 }

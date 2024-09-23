@@ -149,7 +149,8 @@ public class MetricJdbcReader implements IDataSourceReader {
         queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         queryExpression.getWhere().and(query.getFilter());
-        queryExpression.setOrderBy(query.getOrderBy().toAST());
+        queryExpression.setLimit(query.getLimit().toLimitClause());
+        queryExpression.setOrderBy(query.getOrderBy().toOrderByClause());
         SqlGenerator generator = new SqlGenerator(sqlDialect);
         queryExpression.accept(generator);
         String sql = generator.getSQL();

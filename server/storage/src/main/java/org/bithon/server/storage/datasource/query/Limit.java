@@ -22,6 +22,7 @@ import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.storage.datasource.query.ast.LimitClause;
 
 
 /**
@@ -60,5 +61,9 @@ public class Limit {
     @JsonCreator
     public static Limit fromLong(long limit) {
         return new Limit((int) limit, 0);
+    }
+
+    public LimitClause toLimitClause() {
+        return new LimitClause(limit, offset);
     }
 }
