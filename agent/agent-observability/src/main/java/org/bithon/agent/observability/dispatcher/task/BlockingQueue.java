@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 2021/5/14 10:46 上午
  */
-public class BlockingQueue implements IMessageQueue {
+public class BlockingQueue implements IThreadSafeQueue {
     private final LinkedBlockingQueue<Object> queue;
     private final int capacity;
 

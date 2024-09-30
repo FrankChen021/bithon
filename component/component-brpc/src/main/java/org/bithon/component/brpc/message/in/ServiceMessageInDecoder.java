@@ -31,7 +31,8 @@ import java.util.List;
  * Decode input stream to an incoming service message, either it's {@link ServiceRequestMessageIn}
  * or {@link ServiceResponseMessageIn}
  * <p>
- * Note that the {@link ByteToMessageDecoder} DOES NOT allow its subclasses to be {@link org.bithon.shaded.io.netty.channel.ChannelHandler.Sharable}.
+ *
+ * NOTE that the {@link ByteToMessageDecoder} DOES NOT allow its subclasses to be {@link org.bithon.shaded.io.netty.channel.ChannelHandler.Sharable}.
  * However, {@link org.bithon.shaded.io.netty.handler.codec.MessageToByteEncoder} CAN BE shared
  *
  * @author frankchen
@@ -51,16 +52,21 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         is.pushLimit(in.readableBytes());
 
         int messageType = is.readInt32();
-        if (messageType == ServiceMessageType.CLIENT_REQUEST
-            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY
-            || messageType == ServiceMessageType.CLIENT_REQUEST_V2) {
-            out.add(new ServiceRequestMessageIn(messageType).decode(is));
-        } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
-            out.add(new ServiceResponseMessageIn().decode(is));
-        } else {
-            throw new UnknownMessageException(ctx.channel().remoteAddress().toString(),
-                                              ctx.channel().localAddress().toString(),
-                                              messageType);
+        switch (messageType) {
+            case ServiceMessageType.CLIENT_REQUEST:
+            case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
+            case ServiceMessageType.CLIENT_REQUEST_V2:
+                out.add(new ServiceRequestMessageIn(messageType).decode(is));
+                break;
+
+            case ServiceMessageType.SERVER_RESPONSE:
+                out.add(new ServiceResponseMessageIn().decode(is));
+                break;
+
+            default:
+                throw new UnknownMessageException(ctx.channel().remoteAddress().toString(),
+                                                  ctx.channel().localAddress().toString(),
+                                                  messageType);
         }
     }
 }
