@@ -24,6 +24,8 @@ import org.bithon.server.alerting.notification.channel.http.HttpNotificationChan
 import org.bithon.server.alerting.notification.channel.kafka.KafkaNotificationChannel;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
+import java.time.Duration;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 6:50 下午
@@ -38,6 +40,8 @@ import org.bithon.server.alerting.notification.message.NotificationMessage;
 public interface INotificationChannel extends AutoCloseable {
 
     void send(NotificationMessage message) throws Exception;
+
+    void test(NotificationMessage message, Duration timeout) throws Exception;
 
     default void close() {
     }

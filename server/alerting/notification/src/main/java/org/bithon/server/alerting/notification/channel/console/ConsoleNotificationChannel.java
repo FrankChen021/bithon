@@ -21,6 +21,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
+import java.time.Duration;
+
 /**
  * Mainly for development
  *
@@ -38,5 +40,10 @@ public class ConsoleNotificationChannel implements INotificationChannel {
             sb.append(StringUtils.format("Expression %s: %s", sn, cnd.getOutputs()));
         });
         log.info(sb.toString());
+    }
+
+    @Override
+    public void test(NotificationMessage message, Duration timeout) {
+        send(message);
     }
 }

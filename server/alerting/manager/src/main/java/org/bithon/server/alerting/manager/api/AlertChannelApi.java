@@ -20,11 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -56,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,6 +70,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 19:12
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(ManagerModuleEnabler.class)
@@ -118,14 +123,22 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
+    @Data
+    public static class TestChannelRequest extends CreateChannelRequest {
+        // The timeout in seconds
+        @Min(1)
+        @Max(60)
+        private int timeout = 10;
+    }
+
     @PostMapping("/api/alerting/channel/test")
-    public ApiResponse<Void> testChannel(@Validated @RequestBody CreateChannelRequest request) throws Exception {
+    public ApiResponse<Void> testChannel(@Validated @RequestBody TestChannelRequest request) throws Exception {
         String props = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
         try (INotificationChannel channel = NotificationChannelFactory.create(request.getType(),
                                                                               request.getName(),
                                                                               props,
                                                                               this.objectMapper)) {
-            channel.send(NotificationMessage.builder()
+            channel.test(NotificationMessage.builder()
                                             .alertRecordId("fake")
                                             .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
@@ -137,7 +150,14 @@ public class AlertChannelApi {
                                                                 .name("Notification Channel Test")
                                                                 .expr("avg(processCpuLoad) > 1")
                                                                 .build())
-                                            .build());
+                                            .build(),
+                         Duration.ofSeconds(request.getTimeout()));
+        } catch (RuntimeException e) {
+            log.error(StringUtils.format("Failed to send notification to channel [%s]", request.getName()), e);
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Failed to send notification to channel [%s]: %s",
+                                            request.getName(),
+                                            e.getMessage());
         }
 
         return ApiResponse.success();

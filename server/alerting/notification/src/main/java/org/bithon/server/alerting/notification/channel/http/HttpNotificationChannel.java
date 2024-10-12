@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
@@ -47,6 +48,7 @@ import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -112,6 +114,15 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     @Override
     public void send(NotificationMessage message) throws IOException {
+        send(message, Duration.ofSeconds(30));
+    }
+
+    @Override
+    public void test(NotificationMessage message, Duration timeout) throws Exception {
+        send(message, timeout);
+    }
+
+    private void send(NotificationMessage message, Duration timeout) throws IOException {
         String defaultMessage;
         if (message.getExpressions().size() == 1) {
             ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
@@ -144,7 +155,11 @@ public class HttpNotificationChannel implements INotificationChannel {
                                      .replace("{alert.message}", defaultMessage);
         AbstractHttpEntity bodyEntity = serializeRequestBody(body);
 
-        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+        RequestConfig requestConfig = RequestConfig.custom()
+                                                   .setSocketTimeout((int) timeout.toMillis())
+                                                   .setConnectTimeout(1000)
+                                                   .build();
+        try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             HttpPost request = new HttpPost(this.props.url);
 
             // Custom headers
