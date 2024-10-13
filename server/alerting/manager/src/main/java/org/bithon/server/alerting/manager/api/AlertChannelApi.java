@@ -27,6 +27,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
@@ -88,7 +89,8 @@ public class AlertChannelApi {
         this.objectMapper = objectMapper;
     }
 
-    @Data
+    @Getter
+    @Setter
     public static class CreateChannelRequest {
         @NotEmpty
         private String name;
@@ -123,7 +125,8 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
-    @Data
+    @Getter
+    @Setter
     public static class TestChannelRequest extends CreateChannelRequest {
         // The timeout in seconds
         @Min(1)
