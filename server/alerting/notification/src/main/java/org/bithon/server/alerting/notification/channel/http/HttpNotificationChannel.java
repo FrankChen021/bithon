@@ -193,7 +193,7 @@ public class HttpNotificationChannel implements INotificationChannel {
                '}';
     }
 
-    protected AbstractHttpEntity serializeRequestBody(String body) throws IOException {
+    protected AbstractHttpEntity serializeRequestBody(String body) {
         return new StringEntity(body, StandardCharsets.UTF_8);
     }
 
