@@ -37,6 +37,8 @@ import org.bithon.server.alerting.notification.message.format.NotificationTextSe
 import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
 import org.bithon.server.alerting.notification.message.format.TextLine;
 
+import java.time.Duration;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 6:53 下午
@@ -123,6 +125,11 @@ public class DingNotificationChannel implements INotificationChannel {
                    .header(title)
                    .title(title)
                    .build();
+    }
+
+    @Override
+    public void test(NotificationMessage message, Duration timeout) throws Exception {
+        send(message);
     }
 
     @Override
