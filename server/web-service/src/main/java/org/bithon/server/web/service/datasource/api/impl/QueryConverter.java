@@ -127,11 +127,14 @@ public class QueryConverter {
                                                                end.getMilliseconds(),
                                                                query.getInterval().getBucketCount()).getLength());
             }
+
             if (query.getInterval().getMinBucketLength() != null) {
-                int minStep = query.getInterval().getMinBucketLength();
-                if (minStep > step.getSeconds()) {
-                    step = Duration.ofSeconds(minStep);
-                }
+                Preconditions.checkIfTrue(query.getInterval().getMinBucketLength() > 0, "minBucketLength must be greater than 0");
+                step = Duration.ofSeconds(query.getInterval().getMinBucketLength());
+            }
+            if (query.getInterval().getStep() != null) {
+                Preconditions.checkIfTrue(query.getInterval().getStep() > 0, "step must be greater than 0");
+                step = Duration.ofSeconds(query.getInterval().getStep());
             }
         }
 
