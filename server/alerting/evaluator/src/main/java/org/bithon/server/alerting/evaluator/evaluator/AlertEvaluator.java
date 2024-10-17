@@ -43,6 +43,7 @@ import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -59,7 +60,7 @@ import java.util.UUID;
  * @date 2020/12/11 10:40 上午
  */
 @Slf4j
-public class AlertEvaluator {
+public class AlertEvaluator implements DisposableBean {
 
     private final IAlertStateStorage stateStorage;
     private final IEvaluationLogWriter evaluationLogWriter;
@@ -279,5 +280,10 @@ public class AlertEvaluator {
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);
         return alertRecord.getRecordId();
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        this.evaluationLogWriter.close();
     }
 }
