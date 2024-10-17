@@ -29,7 +29,7 @@ public class DispatcherConfig {
     private Map<String, Boolean> messageDebug = Collections.emptyMap();
 
     public enum QueueFullStrategy {
-        DISCARD,
+        DISCARD_NEWEST,
         DISCARD_OLDEST
     }
 

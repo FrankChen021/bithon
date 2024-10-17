@@ -68,8 +68,8 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
                             ServiceMessageOut out = ((ServiceMessageEncodingException) cause).out;
                             if (out.getMessageType() == ServiceMessageType.CLIENT_REQUEST
                                     || out.getMessageType() == ServiceMessageType.CLIENT_REQUEST_V2) {
-                                invocationManager.onClientException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
-                                                                    cause.getCause());
+                                invocationManager.handleException(((ServiceMessageEncodingException) cause).out.getTransactionId(),
+                                                                  cause.getCause());
                                 return;
                             }
                         }
