@@ -40,6 +40,9 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     private final Map<String, Long> silenced = new ConcurrentHashMap<>();
     private final Map<String, Long> evaluationTime = new ConcurrentHashMap<>();
 
+    public AlertStateLocalMemoryStorage() {
+    }
+
     @JsonCreator
     public AlertStateLocalMemoryStorage(@JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
         alertRepository.addListener(new IAlertChangeListener() {

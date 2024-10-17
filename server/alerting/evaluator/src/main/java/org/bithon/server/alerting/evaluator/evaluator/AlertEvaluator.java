@@ -30,7 +30,6 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -39,17 +38,14 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.IEvaluationLogStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -63,19 +59,17 @@ import java.util.UUID;
  * @date 2020/12/11 10:40 上午
  */
 @Slf4j
-@Service
-@Conditional(EvaluatorModuleEnabler.class)
-public class AlertEvaluator implements SmartLifecycle {
+public class AlertEvaluator {
 
     private final IAlertStateStorage stateStorage;
-    private final EvaluationLogBatchWriter evaluationLogWriter;
+    private final IEvaluationLogWriter evaluationLogWriter;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
     private final INotificationApi notificationApi;
 
     public AlertEvaluator(IAlertStateStorage stateStorage,
-                          IEvaluationLogStorage logStorage,
+                          IEvaluationLogWriter evaluationLogWriter,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
@@ -84,7 +78,7 @@ public class AlertEvaluator implements SmartLifecycle {
         this.stateStorage = stateStorage;
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
-        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
+        this.evaluationLogWriter = evaluationLogWriter;
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
 
         // Use Indent output for better debugging
@@ -285,22 +279,5 @@ public class AlertEvaluator implements SmartLifecycle {
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);
         return alertRecord.getRecordId();
-    }
-
-    @Override
-    public void start() {
-        log.info("Start alert evaluator");
-        this.evaluationLogWriter.start();
-    }
-
-    @Override
-    public void stop() {
-        log.info("Shutdown alert evaluator");
-        this.evaluationLogWriter.stop();
-    }
-
-    @Override
-    public boolean isRunning() {
-        return this.evaluationLogWriter.isStarted();
     }
 }

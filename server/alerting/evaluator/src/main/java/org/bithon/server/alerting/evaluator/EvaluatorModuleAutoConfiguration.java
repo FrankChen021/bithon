@@ -22,15 +22,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.BaselineMetricCacheManager;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +44,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 
 /**
@@ -70,6 +77,27 @@ public class EvaluatorModuleAutoConfiguration {
     @Bean
     public BaselineMetricCacheManager cacheManager(IDataSourceApi dataSourceApi) {
         return new BaselineMetricCacheManager(dataSourceApi);
+    }
+
+    @Bean
+    public AlertEvaluator alertEvaluator(IAlertStateStorage stateStorage,
+                                         IEvaluationLogStorage logStorage,
+                                         IAlertRecordStorage recordStorage,
+                                         IDataSourceApi dataSourceApi,
+                                         ServerProperties serverProperties,
+                                         ApplicationContext applicationContext,
+                                         ObjectMapper objectMapper) {
+
+        EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
+        logWriter.start();
+
+        return new AlertEvaluator(stateStorage,
+                                  logWriter,
+                                  recordStorage,
+                                  dataSourceApi,
+                                  serverProperties,
+                                  applicationContext,
+                                  objectMapper);
     }
 
     @Bean

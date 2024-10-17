@@ -35,7 +35,6 @@ public class EvaluationLogEvent {
     private Timestamp timestamp;
     private long sequence;
     private String alertId;
-    private String instance;
     private String clazz;
     private String message;
 }

@@ -41,6 +41,11 @@
             <groupId>org.bithon.server</groupId>
             <artifactId>server-alerting-notification</artifactId>
         </dependency>
+        <!-- For test rule -->
+        <dependency>
+            <groupId>org.bithon.server</groupId>
+            <artifactId>server-alerting-evaluator</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

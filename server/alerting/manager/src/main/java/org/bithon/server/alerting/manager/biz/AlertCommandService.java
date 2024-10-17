@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.manager.biz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
@@ -24,19 +25,38 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogReader;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.ObjectAction;
+import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
+import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -55,19 +75,22 @@ public class AlertCommandService {
     final IDataSourceApi dataSourceApi;
     final IUserProvider userProvider;
     final IAlertNotificationChannelStorage notificationChannelStorage;
+    final ApplicationContext applicationContext;
 
     public AlertCommandService(final IAlertObjectStorage dao,
                                final IMetadataApi metadataApi,
                                ObjectMapper objectMapper,
                                IDataSourceApi dataSourceApi,
                                IUserProvider userProvider,
-                               IAlertNotificationChannelStorage notificationChannelStorage) {
+                               IAlertNotificationChannelStorage notificationChannelStorage,
+                               ApplicationContext applicationContext) {
         this.alertObjectStorage = dao;
         this.metadataApi = metadataApi;
         this.objectMapper = objectMapper;
         this.dataSourceApi = dataSourceApi;
         this.userProvider = userProvider;
         this.notificationChannelStorage = notificationChannelStorage;
+        this.applicationContext = applicationContext;
     }
 
     static class AlertExpressionSerializer extends ExpressionSerializer implements IAlertInDepthExpressionVisitor {
@@ -118,7 +141,7 @@ public class AlertCommandService {
         return alertObject;
     }
 
-    public String createAlert(AlertRule alertRule, CommandArgs args) throws BizException {
+    public String createRule(AlertRule alertRule, CommandArgs args) throws BizException {
         if (args.isCheckApplicationExist() && !metadataApi.isApplicationExist(alertRule.getAppName())) {
             throw new BizException("Target application [%s] does not exist", alertRule.getAppName());
         }
@@ -150,7 +173,7 @@ public class AlertCommandService {
         });
     }
 
-    public void updateAlert(AlertRule newAlertRule) throws BizException {
+    public void updateRule(AlertRule newAlertRule) throws BizException {
         AlertStorageObject oldObject = this.alertObjectStorage.getAlertById(newAlertRule.getId());
         if (oldObject == null) {
             throw new BizException("Alert object [%s] not exist.", newAlertRule.getName());
@@ -172,7 +195,7 @@ public class AlertCommandService {
         });
     }
 
-    public void enableAlert(String alertId) throws BizException {
+    public void enableRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
             throw new BizException("Alert object [%s] not exist.", alertId);
@@ -191,7 +214,7 @@ public class AlertCommandService {
         });
     }
 
-    public void disableAlert(String alertId) throws BizException {
+    public void disableRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
             throw new BizException("Alert object [%s] not exist.", alertId);
@@ -209,7 +232,7 @@ public class AlertCommandService {
         });
     }
 
-    public void deleteAlert(String alertId) throws BizException {
+    public void deleteRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
             throw new BizException("Alert object [%s] not exist.", alertId);
@@ -226,5 +249,130 @@ public class AlertCommandService {
                                                  "{}");
             return true;
         });
+    }
+
+    public List<String> testRule(AlertRule rule) {
+        EvaluationLogMemStorage logStorage = new EvaluationLogMemStorage();
+
+        IAlertRecordStorage recordStorage = new IAlertRecordStorage() {
+            @Override
+            public Timestamp getLastAlert(String alertId) {
+                return null;
+            }
+
+            @Override
+            public void addAlertRecord(AlertRecordObject record) {
+
+            }
+
+            @Override
+            public ListResult<AlertRecordObject> getAlertRecords(String alertId, int pageNumber, int pageSize) {
+                return null;
+            }
+
+            @Override
+            public AlertRecordObject getAlertRecord(String id) {
+                return null;
+            }
+
+            @Override
+            public List<AlertRecordObject> getRecordsByNotificationStatus(int statusCode) {
+                return List.of();
+            }
+
+            @Override
+            public void setNotificationResult(String id, int statusCode, String status) {
+            }
+
+            @Override
+            public void initialize() {
+            }
+
+            @Override
+            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
+
+            }
+
+            @Override
+            public String getName() {
+                return "";
+            }
+
+            @Override
+            public IExpirationRunnable getExpirationRunnable() {
+                return null;
+            }
+        };
+
+        AlertEvaluator evaluator = new AlertEvaluator(new AlertStateLocalMemoryStorage(),
+                                                      logStorage.createWriter(),
+                                                      recordStorage,
+                                                      this.dataSourceApi,
+                                                      applicationContext.getBean(ServerProperties.class),
+                                                      applicationContext,
+                                                      this.objectMapper);
+
+        TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
+
+        AlertStateObject stateObject = new AlertStateObject();
+        stateObject.setStatus(AlertStatus.PENDING);
+        evaluator.evaluate(now, rule, stateObject);
+
+        return logStorage.getLogs();
+    }
+
+    private static class EvaluationLogMemStorage implements IEvaluationLogStorage {
+        @Getter
+        private final List<String> logs = new ArrayList<>();
+
+        @Override
+        public void initialize() {
+        }
+
+        @Override
+        public IEvaluationLogWriter createWriter() {
+            return new IEvaluationLogWriter() {
+                private String instance;
+
+                @Override
+                public void setInstance(String instance) {
+                    this.instance = instance;
+                }
+
+                @Override
+                public void write(EvaluationLogEvent logEvent) {
+                    logs.add(StringUtils.format("[%16s] [%20s] [%20s]: %s",
+                                                logEvent.getTimestamp(),
+                                                instance,
+                                                logEvent.getClazz(),
+                                                logEvent.getMessage()
+                    ));
+                }
+
+                @Override
+                public void write(List<EvaluationLogEvent> logs) {
+                    logs.forEach(this::write);
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }
+
+        @Override
+        public IEvaluationLogReader createReader() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return "";
+        }
+
+        @Override
+        public IExpirationRunnable getExpirationRunnable() {
+            return null;
+        }
     }
 }

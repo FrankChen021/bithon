@@ -35,7 +35,7 @@ import java.util.List;
  * @date 2020/12/31
  */
 @Data
-public class CreateAlertRequest {
+public class CreateAlertRuleRequest {
 
     /**
      * check if target application exists before create an alert for that application
@@ -74,7 +74,7 @@ public class CreateAlertRequest {
     private String expr;
 
     @Valid
-    @NotNull
+    @NotEmpty
     private List<String> notifications;
 
     public AlertRule toAlert() {

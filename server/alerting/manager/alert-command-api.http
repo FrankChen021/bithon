@@ -8,7 +8,7 @@ appName: "bithon-web-local"
 
 name: "Alert1"
 expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
-for: 1m
+for: 1
 every: 1m
 notifications:
   - console-1
@@ -62,3 +62,18 @@ Content-Type: application/json
 {
   "alertId": "f7f87ce1e0b444919b123849f4c7939e"
 }
+
+### Test an alert
+POST http://localhost:9897/api/alerting/alert/test
+Content-Type: application/yaml
+
+id: "f7f87ce1e0b444919b123849f4c7939f"
+checkApplication: "false"
+appName: "bithon-web-local"
+
+name: "Alert1"
+expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
+for: 1
+every: 1m
+notifications:
+  - console-1
