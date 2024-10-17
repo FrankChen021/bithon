@@ -464,6 +464,9 @@ public class QueryExpressionBuilder {
         Aggregators aggregators = new Aggregators();
 
         if (this.filter != null) {
+            // Apply dialect's transformation on general AST
+            this.filter = sqlDialect.transform(this.filter);
+
             this.filter.accept(new IExpressionInDepthVisitor() {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
