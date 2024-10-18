@@ -21,6 +21,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -158,9 +160,46 @@ public class AlertQueryApi {
         return new SuggestAlertExpressionResponse(suggestions);
     }
 
+    public static class GetAlertRuleResponse extends AlertStorageObject {
+        @Getter
+        @Setter
+        private Collection<AlertExpression> parsedExpressions;
+
+        public GetAlertRuleResponse(AlertStorageObject alertStorageObject, Collection<AlertExpression> parsedExpressions) {
+            setId(alertStorageObject.getId());
+            setName(alertStorageObject.getName());
+            setAppName(alertStorageObject.getAppName());
+            setNamespace(alertStorageObject.getNamespace());
+            setDisabled(alertStorageObject.isDisabled());
+            setDeleted(alertStorageObject.isDeleted());
+            setPayload(alertStorageObject.getPayload());
+            setCreatedAt(alertStorageObject.getCreatedAt());
+            setUpdatedAt(alertStorageObject.getUpdatedAt());
+            setLastOperator(alertStorageObject.getLastOperator());
+            this.parsedExpressions = parsedExpressions;
+        }
+    }
+
     @PostMapping("/api/alerting/alert/get")
-    public ApiResponse<AlertStorageObject> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
-        return ApiResponse.success(alertStorage.getAlertById(request.getAlertId()));
+    public ApiResponse<GetAlertRuleResponse> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
+        AlertStorageObject ruleObject = alertStorage.getAlertById(request.getAlertId());
+
+        // Parse expression first
+        if (ruleObject != null) {
+            IExpression alertExpression = AlertExpressionASTParser.parse(ruleObject.getPayload().getExpr());
+
+            // Get Schema for validation
+            Map<String, ISchema> schemas = dataSourceApi.getSchemas();
+
+            // Flatten expressions
+            List<AlertExpression> alertExpressions = new ArrayList<>();
+            alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
+                expression.getMetricExpression().validate(schemas);
+                alertExpressions.add(expression);
+            });
+            return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));
+        }
+        return ApiResponse.fail("Alert rule not found");
     }
 
     @PostMapping("/api/alerting/alert/list")
