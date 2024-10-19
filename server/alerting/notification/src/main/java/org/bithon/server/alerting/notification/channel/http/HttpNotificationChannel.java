@@ -47,6 +47,8 @@ import org.bithon.server.alerting.notification.message.ExpressionEvaluationResul
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
@@ -105,6 +107,13 @@ public class HttpNotificationChannel implements INotificationChannel {
                                    @JacksonInject(useInput = OptBoolean.FALSE) NotificationProperties notificationProperties) {
         this.props = Preconditions.checkNotNull(props, "props property can not be null.");
         Preconditions.checkIfTrue(!StringUtils.isBlank(this.props.url), "The url property can not be empty");
+
+        try {
+            URL url = new URL(props.url.trim());
+            Preconditions.checkIfTrue(!StringUtils.isEmpty(url.getHost()), "Invalid URL: %s. Missing host", props.url);
+        } catch (MalformedURLException e) {
+            throw new Preconditions.InvalidValueException("Invalid URL: %s", props.url);
+        }
 
         this.props.url = props.url.trim();
         this.props.headers = props.headers == null ? Collections.emptyMap() : props.headers;
