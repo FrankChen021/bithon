@@ -22,14 +22,24 @@ package org.bithon.server.storage.alerting.pojo;
  */
 public enum AlertStatus {
     /**
-     * PENDING for evaluation
+     * The initial status of an alert
      */
-    PENDING(0),
+    NORMAL(0),
 
     /**
-     * An alert is firing
+     * The rule is evaluated as true, but wait for more evaluation to fire
      */
-    FIRING(10),
+    PENDING(5),
+
+    /**
+     * The alert has been triggered
+     */
+    ALERTING(10),
+
+    /**
+     * The alert has been triggered, but the notification is suppressed during the silence period
+     */
+    SUPPRESSING(15),
 
     /**
      * A fired alert is resolved

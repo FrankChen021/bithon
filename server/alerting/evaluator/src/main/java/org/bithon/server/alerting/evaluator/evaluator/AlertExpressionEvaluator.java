@@ -17,11 +17,14 @@
 package org.bithon.server.alerting.evaluator.evaluator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -31,17 +34,37 @@ import org.bithon.server.commons.time.TimeSpan;
 @Slf4j
 public class AlertExpressionEvaluator {
 
-    private final AlertExpression expression;
+    private final IExpression expression;
 
-    public AlertExpressionEvaluator(AlertExpression expression) {
+    public AlertExpressionEvaluator(IExpression expression) {
         this.expression = expression;
     }
 
     public boolean evaluate(EvaluationContext context) {
-        context.log(AlertExpressionEvaluator.class, "Evaluating expression: %s", expression.serializeToText());
+        return this.expression.accept(new IAlertExpressionVisitor<>() {
+            @Override
+            public Boolean visit(LogicalExpression expression) {
+                if (expression instanceof LogicalExpression.AND) {
+                    return expression.getOperands().stream().allMatch(e -> e.accept(this));
+                } else if (expression instanceof LogicalExpression.OR) {
+                    return expression.getOperands().stream().anyMatch(e -> e.accept(this));
+                } else {
+                    throw new UnsupportedOperationException("Unsupported logical expression: " + expression.getClass().getName());
+                }
+            }
+
+            @Override
+            public Boolean visit(AlertExpression expression) {
+                return evaluate(expression, context);
+            }
+        });
+    }
+
+    private boolean evaluate(AlertExpression expression, EvaluationContext context) {
+        context.log(AlertExpressionEvaluator.class, "Evaluating expression [%s]: %s", expression.getId(), expression.serializeToText());
 
         IMetricEvaluator metricEvaluator = expression.getMetricEvaluator();
-        context.setEvaluatingExpression(this.expression);
+        context.setEvaluatingExpression(expression);
 
         TimeSpan end = context.getIntervalEnd();
         TimeSpan start = end.before(expression.getMetricExpression().getWindow());

@@ -22,7 +22,6 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
@@ -88,12 +87,12 @@ public class AlertEvaluator implements DisposableBean {
         this.notificationApi = createNotificationApi(applicationContext);
     }
 
-    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevStatus) {
+    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
                                                           dataSourceApi,
-                                                          prevStatus);
+                                                          prevState);
 
         Duration interval = alertRule.getEvery().getDuration();
         try {
@@ -110,11 +109,14 @@ public class AlertEvaluator implements DisposableBean {
                 return;
             }
 
-            if (evaluate(context)) {
+            AlertStatus newStatus = evaluate(context);
+            if (newStatus == AlertStatus.ALERTING) {
                 fireAlert(alertRule, context);
-            } else {
-                resolveAlert(alertRule, context);
             }
+
+            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.NORMAL : context.getPrevState().getStatus();
+            context.log(AlertEvaluator.class, "Alert status is switched from [%s] to [%s]", prevStatus, newStatus);
+            this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), AlertStatus.RESOLVED);
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
@@ -146,74 +148,57 @@ public class AlertEvaluator implements DisposableBean {
         throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
     }
 
-    private boolean evaluate(EvaluationContext context) {
+    private AlertStatus evaluate(EvaluationContext context) {
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
-        try {
-            AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator((AlertExpression) alertRule.getAlertExpression());
-            if (expressionEvaluator.evaluate(context)) {
-                context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
+        AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
+        if (expressionEvaluator.evaluate(context)) {
+            context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
 
-                long expectedMatchCount = alertRule.getExpectedMatchCount();
-                long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
-                                                                   alertRule.getEvery()
-                                                                            .getDuration()
-                                                                            // Add 30 seconds for margin
-                                                                            .plus(Duration.ofSeconds(30)));
-                if (successiveCount >= expectedMatchCount) {
-                    stateStorage.resetMatchCount(alertRule.getId());
-
-                    context.log(AlertEvaluator.class,
-                                "Rule tested %d times successively，and reaches the expected count：%d",
-                                successiveCount,
-                                expectedMatchCount);
-                    return true;
-                } else {
-                    context.log(AlertEvaluator.class,
-                                "Rule tested %d times successively，expected times：%d",
-                                successiveCount,
-                                expectedMatchCount);
-                    return false;
-                }
-            } else {
+            long expectedMatchCount = alertRule.getExpectedMatchCount();
+            long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
+                                                               alertRule.getEvery()
+                                                                        .getDuration()
+                                                                        // Add 30 seconds for margin
+                                                                        .plus(Duration.ofSeconds(30)));
+            if (successiveCount >= expectedMatchCount) {
                 stateStorage.resetMatchCount(alertRule.getId());
-                return false;
+
+                context.log(AlertEvaluator.class,
+                            "Rule tested %d times successively，and reaches the expected count：%d",
+                            successiveCount,
+                            expectedMatchCount);
+
+                HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
+                if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
+                    Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
+                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
+                                silenceDuration,
+                                TimeSpan.of(System.currentTimeMillis() - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
+                    return AlertStatus.SUPPRESSING;
+                }
+
+                return AlertStatus.ALERTING;
+            } else {
+                context.log(AlertEvaluator.class,
+                            "Rule tested %d times successively，expected times：%d",
+                            successiveCount,
+                            expectedMatchCount);
+                return AlertStatus.PENDING;
             }
-        } catch (Exception e) {
-            context.logException(AlertEvaluator.class,
-                                 e,
-                                 "Exception during evaluation of alert [%s]: %s",
-                                 alertRule.getName(),
-                                 e.getMessage());
-            return true;
-        }
-    }
-
-    private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
-        if (context.getPrevState() == null || context.getPrevState().getStatus() != AlertStatus.FIRING) {
-            return;
+        } else {
+            stateStorage.resetMatchCount(alertRule.getId());
+            return AlertStatus.RESOLVED;
         }
 
-        context.log(AlertEvaluator.class, "Alert is resolved.");
-        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), AlertStatus.RESOLVED);
     }
 
+    /**
+     * Fire alert and update its status
+     */
     private void fireAlert(AlertRule alertRule, EvaluationContext context) {
-        long now = System.currentTimeMillis();
-
-        HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
-        if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
-            Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-            context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
-                        silenceDuration,
-                        TimeSpan.of(now - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
-            return;
-        }
-
-        //
         // Prepare notification
-        //
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions().values());

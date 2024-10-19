@@ -106,12 +106,12 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                       .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
+                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.ALERTING.statusCode())
                       .onDuplicateKeyUpdate()
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
+                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.ALERTING.statusCode())
                       .execute();
         });
     }
