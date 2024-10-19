@@ -59,7 +59,6 @@ import java.util.UUID;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 10:40 上午
  */
-@Slf4j
 public class AlertEvaluator implements DisposableBean {
 
     private final IAlertStateStorage stateStorage;
@@ -117,7 +116,7 @@ public class AlertEvaluator implements DisposableBean {
                 resolveAlert(alertRule, context);
             }
         } catch (Exception e) {
-            log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
+            context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
 
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
@@ -247,11 +246,11 @@ public class AlertEvaluator implements DisposableBean {
                 try {
                     notificationApi.notify(name, notification);
                 } catch (Exception e) {
-                    log.error("Exception when notifying " + name, e);
+                    context.logException(AlertEvaluator.class, e, "Exception when notifying %s", name);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertExpression.class, e, "Exception when sending notification.");
+            context.logException(AlertEvaluator.class, e, "Exception when sending notification");
         }
     }
 

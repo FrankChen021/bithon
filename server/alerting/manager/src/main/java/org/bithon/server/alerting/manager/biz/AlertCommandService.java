@@ -251,8 +251,8 @@ public class AlertCommandService {
         });
     }
 
-    public List<String> testRule(AlertRule rule) {
-        EvaluationLogMemStorage logStorage = new EvaluationLogMemStorage();
+    public List<EvaluationLogEvent> testRule(AlertRule rule) {
+        EvaluationLogLocalStorage logStorage = new EvaluationLogLocalStorage();
 
         IAlertRecordStorage recordStorage = new IAlertRecordStorage() {
             @Override
@@ -321,9 +321,9 @@ public class AlertCommandService {
         return logStorage.getLogs();
     }
 
-    private static class EvaluationLogMemStorage implements IEvaluationLogStorage {
+    private static class EvaluationLogLocalStorage implements IEvaluationLogStorage {
         @Getter
-        private final List<String> logs = new ArrayList<>();
+        private final List<EvaluationLogEvent> logs = new ArrayList<>();
 
         @Override
         public void initialize() {
@@ -341,12 +341,8 @@ public class AlertCommandService {
 
                 @Override
                 public void write(EvaluationLogEvent logEvent) {
-                    logs.add(StringUtils.format("[%16s] [%20s] [%20s]: %s",
-                                                logEvent.getTimestamp(),
-                                                instance,
-                                                logEvent.getClazz(),
-                                                logEvent.getMessage()
-                    ));
+                    logEvent.setInstance(instance);
+                    logs.add(logEvent);
                 }
 
                 @Override
