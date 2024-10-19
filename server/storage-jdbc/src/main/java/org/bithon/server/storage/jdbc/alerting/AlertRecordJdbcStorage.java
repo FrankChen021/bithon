@@ -70,10 +70,15 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     @Override
     public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-        dslContext.update(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState == null ? new Timestamp(0).toLocalDateTime() : new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState == null ? "" : prevState.getLastRecordId())
                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .where(Tables.BITHON_ALERT_STATE.ALERT_ID.eq(id))
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+                  .onDuplicateKeyUpdate()
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
                   .execute();
     }
 

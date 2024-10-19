@@ -109,14 +109,19 @@ public class AlertEvaluator implements DisposableBean {
                 return;
             }
 
-            AlertStatus newStatus = evaluate(context);
-            if (newStatus == AlertStatus.ALERTING) {
-                fireAlert(alertRule, context);
-            }
-
             AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.NORMAL : context.getPrevState().getStatus();
-            context.log(AlertEvaluator.class, "Alert status is switched from [%s] to [%s]", prevStatus, newStatus);
-            this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), AlertStatus.RESOLVED);
+            AlertStatus newStatus = evaluate(context, context.getPrevState());
+
+            if (prevStatus.canTransitTo(newStatus)) {
+                context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+
+                if (newStatus == AlertStatus.ALERTING) {
+                    fireAlert(alertRule, context);
+                }
+                this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+            } else {
+                context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
+            }
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
@@ -148,13 +153,13 @@ public class AlertEvaluator implements DisposableBean {
         throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
     }
 
-    private AlertStatus evaluate(EvaluationContext context) {
+    private AlertStatus evaluate(EvaluationContext context, AlertStateObject prevState) {
         AlertRule alertRule = context.getAlertRule();
-        context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
+        context.log(AlertEvaluator.class, "Evaluating rule [%s] %s ", alertRule.getName(), alertRule.getExpr());
 
         AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
         if (expressionEvaluator.evaluate(context)) {
-            context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
+            context.log(AlertEvaluator.class, "Rule [%s] evaluated successfully.", alertRule.getName());
 
             long expectedMatchCount = alertRule.getExpectedMatchCount();
             long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
@@ -166,16 +171,17 @@ public class AlertEvaluator implements DisposableBean {
                 stateStorage.resetMatchCount(alertRule.getId());
 
                 context.log(AlertEvaluator.class,
-                            "Rule tested %d times successively，and reaches the expected count：%d",
+                            "Rule tested %d times successively，and reaches the expected threshold：%d",
                             successiveCount,
                             expectedMatchCount);
 
                 HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
                 if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
                     Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
+                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s) to %s. Last alert at: %s",
                                 silenceDuration,
-                                TimeSpan.of(System.currentTimeMillis() - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
+                                TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"),
+                                prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss"));
                     return AlertStatus.SUPPRESSING;
                 }
 
@@ -185,13 +191,13 @@ public class AlertEvaluator implements DisposableBean {
                             "Rule tested %d times successively，expected times：%d",
                             successiveCount,
                             expectedMatchCount);
+
                 return AlertStatus.PENDING;
             }
         } else {
             stateStorage.resetMatchCount(alertRule.getId());
             return AlertStatus.RESOLVED;
         }
-
     }
 
     /**
@@ -220,18 +226,19 @@ public class AlertEvaluator implements DisposableBean {
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
-            context.log(AlertExpression.class, "Saving alert record");
+            context.log(AlertEvaluator.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
 
             // notification
-            context.log(AlertExpression.class, "Sending notification");
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
-            for (String name : alertRule.getNotifications()) {
+            for (String channelName : alertRule.getNotifications()) {
+                context.log(AlertEvaluator.class, "Sending notification to channel [%s]", channelName);
+
                 try {
-                    notificationApi.notify(name, notification);
+                    notificationApi.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when notifying %s", name);
+                    context.logException(AlertEvaluator.class, e, "Exception when notifying %s", channelName);
                 }
             }
         } catch (Exception e) {

@@ -24,33 +24,60 @@ public enum AlertStatus {
     /**
      * The initial status of an alert
      */
-    NORMAL(0),
+    NORMAL(0) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return (newStatus == PENDING || newStatus == ALERTING);
+        }
+    },
 
     /**
      * The rule is evaluated as true, but wait for more evaluation to fire
      */
-    PENDING(5),
+    PENDING(5) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == ALERTING || newStatus == RESOLVED;
+        }
+    },
 
     /**
      * The alert has been triggered
      */
-    ALERTING(10),
+    ALERTING(10) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == SUPPRESSING || newStatus == RESOLVED;
+        }
+    },
 
     /**
      * The alert has been triggered, but the notification is suppressed during the silence period
      */
-    SUPPRESSING(15),
+    SUPPRESSING(15) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == ALERTING || newStatus == RESOLVED;
+        }
+    },
 
     /**
      * A fired alert is resolved
      */
-    RESOLVED(20);
+    RESOLVED(20) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == PENDING || newStatus == ALERTING;
+        }
+    };
 
     private final int statusCode;
 
     AlertStatus(int statusCode) {
         this.statusCode = statusCode;
     }
+
+    public abstract boolean canTransitTo(AlertStatus newStatus);
 
     public static AlertStatus fromCode(int statusCode) {
         for (AlertStatus status : AlertStatus.values()) {

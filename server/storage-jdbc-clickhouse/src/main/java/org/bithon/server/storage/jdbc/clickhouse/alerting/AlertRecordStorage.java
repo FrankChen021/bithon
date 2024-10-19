@@ -33,6 +33,8 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
+import org.jooq.InsertSetMoreStep;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -74,13 +76,16 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
 
     @Override
     public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState.getLastAlertAt())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState.getLastRecordId())
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.RESOLVED.statusCode())
-                  .execute();
+        InsertSetMoreStep<BithonAlertStateRecord> step = dslContext.insertInto(Tables.BITHON_ALERT_STATE)
+                                                                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                                                                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime());
+        if (prevState != null) {
+            step = step.set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState.getLastAlertAt())
+                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState.getLastRecordId());
+        }
+
+        step.set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+            .execute();
     }
 
     @Override

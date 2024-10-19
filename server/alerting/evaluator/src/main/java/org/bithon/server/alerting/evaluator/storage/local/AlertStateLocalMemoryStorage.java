@@ -70,48 +70,52 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     }
 
     @Override
-    public void resetMatchCount(String alertId) {
-        matchCounters.remove(alertId);
+    public void resetMatchCount(String ruleId) {
+        matchCounters.remove(ruleId);
     }
 
     @Override
-    public long incrMatchCount(String alertId, Duration duration) {
-        return matchCounters.computeIfAbsent(alertId, k -> new AtomicInteger())
+    public long incrMatchCount(String ruleId, Duration duration) {
+        return matchCounters.computeIfAbsent(ruleId, k -> new AtomicInteger())
                             .incrementAndGet();
     }
 
     @Override
-    public boolean tryEnterSilence(String alertId, Duration silenceDuration) {
-        long silencedTill = System.currentTimeMillis() + silenceDuration.toMillis();
-        if (silenced.putIfAbsent(alertId, silencedTill) == null) {
+    public boolean tryEnterSilence(String ruleId, Duration silenceDuration) {
+        long silenceExpiration = System.currentTimeMillis() + silenceDuration.toMillis();
+        Long prevExpirationTimestamp = silenced.putIfAbsent(ruleId, silenceExpiration);
+        if (prevExpirationTimestamp == null) {
             // No records, means that this is the first time to enter
             return false;
         }
 
-        long prevTillTimestamp = silenced.get(alertId);
-        if (System.currentTimeMillis() <= prevTillTimestamp) {
+        if (System.currentTimeMillis() <= prevExpirationTimestamp) {
             // Still in the previous silence period
             return true;
         } else {
-            // Previous silence period expires, Set a new one
-            silenced.put(alertId, silencedTill);
+            // The previous silence period expires, Set a new one
+            silenced.put(ruleId, silenceExpiration);
             return false;
         }
     }
 
     @Override
-    public Duration getSilenceRemainTime(String alertId) {
-        long silencedTill = silenced.get(alertId);
-        return Duration.ofMillis(silencedTill - System.currentTimeMillis());
+    public Duration getSilenceRemainTime(String ruleId) {
+        long silencedTill = silenced.getOrDefault(ruleId, 0L);
+        if (silencedTill == 0) {
+            return Duration.ZERO;
+        }
+        long duration = silencedTill - System.currentTimeMillis();
+        return duration < 0 ? Duration.ZERO : Duration.ofMillis(duration);
     }
 
     @Override
-    public void setEvaluationTime(String alertId, long timestamp, Duration interval) {
-        this.evaluationTime.put(alertId, timestamp);
+    public void setEvaluationTime(String ruleId, long timestamp, Duration interval) {
+        this.evaluationTime.put(ruleId, timestamp);
     }
 
     @Override
-    public long getEvaluationTimestamp(String alertId) {
-        return this.evaluationTime.getOrDefault(alertId, 0L);
+    public long getEvaluationTimestamp(String ruleId) {
+        return this.evaluationTime.getOrDefault(ruleId, 0L);
     }
 }
