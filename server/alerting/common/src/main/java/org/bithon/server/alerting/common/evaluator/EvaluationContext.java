@@ -88,11 +88,11 @@ public class EvaluationContext implements IEvaluationContext {
     }
 
     public void log(Class<?> loggerClass, String message) {
-        this.evaluationLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, message);
+        this.evaluationLogger.info(this.alertRule.getId(), this.alertRule.getName(), loggerClass, message);
     }
 
     public void log(Class<?> loggerClass, String messageFormat, Object... args) {
-        this.evaluationLogger.log(this.alertRule.getId(), this.alertRule.getName(), loggerClass, messageFormat, args);
+        this.evaluationLogger.info(this.alertRule.getId(), this.alertRule.getName(), loggerClass, messageFormat, args);
     }
 
     public void logException(Class<?> loggerClass,

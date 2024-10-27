@@ -238,7 +238,7 @@ public class AlertEvaluator implements DisposableBean {
                 try {
                     notificationApi.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when notifying %s", channelName);
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {

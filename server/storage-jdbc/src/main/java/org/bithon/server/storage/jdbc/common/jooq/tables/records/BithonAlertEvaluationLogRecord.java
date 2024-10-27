@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertEvaluationLog;
 import org.jooq.Field;
-import org.jooq.Record6;
-import org.jooq.Row6;
+import org.jooq.Record7;
+import org.jooq.Row7;
 import org.jooq.impl.TableRecordImpl;
 
 
@@ -17,7 +17,7 @@ import org.jooq.impl.TableRecordImpl;
  * Evaluation logs of alert
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertEvaluationLogRecord> implements Record6<LocalDateTime, String, Long, String, String, String> {
+public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertEvaluationLogRecord> implements Record7<LocalDateTime, String, Long, String, String, String, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -82,45 +82,61 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
     }
 
     /**
+     * Setter for <code>bithon_alert_evaluation_log.level</code>. Logger Level:
+     * INFO, WARN, ERROR
+     */
+    public void setLevel(String value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_evaluation_log.level</code>. Logger Level:
+     * INFO, WARN, ERROR
+     */
+    public String getLevel() {
+        return (String) get(4);
+    }
+
+    /**
      * Setter for <code>bithon_alert_evaluation_log.clazz</code>. Logger Class
      */
     public void setClazz(String value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>bithon_alert_evaluation_log.clazz</code>. Logger Class
      */
     public String getClazz() {
-        return (String) get(4);
+        return (String) get(5);
     }
 
     /**
      * Setter for <code>bithon_alert_evaluation_log.message</code>.
      */
     public void setMessage(String value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>bithon_alert_evaluation_log.message</code>.
      */
     public String getMessage() {
-        return (String) get(5);
+        return (String) get(6);
     }
 
     // -------------------------------------------------------------------------
-    // Record6 type implementation
+    // Record7 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<LocalDateTime, String, Long, String, String, String> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<LocalDateTime, String, Long, String, String, String, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 
     @Override
-    public Row6<LocalDateTime, String, Long, String, String, String> valuesRow() {
-        return (Row6) super.valuesRow();
+    public Row7<LocalDateTime, String, Long, String, String, String, String> valuesRow() {
+        return (Row7) super.valuesRow();
     }
 
     @Override
@@ -145,11 +161,16 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
 
     @Override
     public Field<String> field5() {
-        return BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG.CLAZZ;
+        return BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG.LEVEL;
     }
 
     @Override
     public Field<String> field6() {
+        return BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG.CLAZZ;
+    }
+
+    @Override
+    public Field<String> field7() {
         return BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG.MESSAGE;
     }
 
@@ -175,11 +196,16 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
 
     @Override
     public String component5() {
-        return getClazz();
+        return getLevel();
     }
 
     @Override
     public String component6() {
+        return getClazz();
+    }
+
+    @Override
+    public String component7() {
         return getMessage();
     }
 
@@ -205,11 +231,16 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
 
     @Override
     public String value5() {
-        return getClazz();
+        return getLevel();
     }
 
     @Override
     public String value6() {
+        return getClazz();
+    }
+
+    @Override
+    public String value7() {
         return getMessage();
     }
 
@@ -239,24 +270,31 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
 
     @Override
     public BithonAlertEvaluationLogRecord value5(String value) {
-        setClazz(value);
+        setLevel(value);
         return this;
     }
 
     @Override
     public BithonAlertEvaluationLogRecord value6(String value) {
+        setClazz(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertEvaluationLogRecord value7(String value) {
         setMessage(value);
         return this;
     }
 
     @Override
-    public BithonAlertEvaluationLogRecord values(LocalDateTime value1, String value2, Long value3, String value4, String value5, String value6) {
+    public BithonAlertEvaluationLogRecord values(LocalDateTime value1, String value2, Long value3, String value4, String value5, String value6, String value7) {
         value1(value1);
         value2(value2);
         value3(value3);
         value4(value4);
         value5(value5);
         value6(value6);
+        value7(value7);
         return this;
     }
 
@@ -274,13 +312,14 @@ public class BithonAlertEvaluationLogRecord extends TableRecordImpl<BithonAlertE
     /**
      * Create a detached, initialised BithonAlertEvaluationLogRecord
      */
-    public BithonAlertEvaluationLogRecord(LocalDateTime timestamp, String alertId, Long sequence, String instance, String clazz, String message) {
+    public BithonAlertEvaluationLogRecord(LocalDateTime timestamp, String alertId, Long sequence, String instance, String level, String clazz, String message) {
         super(BithonAlertEvaluationLog.BITHON_ALERT_EVALUATION_LOG);
 
         setTimestamp(timestamp);
         setAlertId(alertId);
         setSequence(sequence);
         setInstance(instance);
+        setLevel(level);
         setClazz(clazz);
         setMessage(message);
     }

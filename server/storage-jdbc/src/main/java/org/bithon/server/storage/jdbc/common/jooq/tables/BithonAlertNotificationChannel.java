@@ -14,11 +14,11 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertNotificationChannelRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function4;
+import org.jooq.Function5;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row4;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -72,6 +72,12 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
      * create time
      */
     public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "create time");
+
+    /**
+     * The column <code>bithon_alert_notification_channel.updated_at</code>.
+     * update time
+     */
+    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "update time");
 
     private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased) {
         this(alias, aliased, null);
@@ -158,18 +164,18 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
     }
 
     // -------------------------------------------------------------------------
-    // Row4 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<String, String, String, LocalDateTime> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row5<String, String, String, LocalDateTime, LocalDateTime> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function4<? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function5<? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -177,7 +183,7 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super String, ? super String, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super String, ? super String, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

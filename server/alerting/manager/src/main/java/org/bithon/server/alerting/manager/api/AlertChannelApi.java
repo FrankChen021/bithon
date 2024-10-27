@@ -205,22 +205,21 @@ public class AlertChannelApi {
                                             request.getName());
         }
 
-        String props = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
+        String newProps = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
 
         // Make sure the given request can be used to create a channel object correctly
         NotificationChannelFactory.create(channel.getType(),
                                           request.getName(),
-                                          props,
+                                          newProps,
                                           this.objectMapper)
                                   .close();
 
-        if (!channelStorage.updateChannel(channel.getType(), request.getName(), props)) {
+        if (!channelStorage.updateChannel(channel, newProps)) {
             throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                             "Failed to update the channel with name [%s]",
                                             request.getName());
         }
     }
-
 
     @Data
     public static class GetChannelListRequest {

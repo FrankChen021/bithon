@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
@@ -53,12 +54,13 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     }
 
     @Override
-    public boolean updateChannel(String type, String name, String props) {
+    public boolean updateChannel(NotificationChannelObject old, String props) {
         return dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
-                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type)
-                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, old.getType())
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, old.getName())
                          .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
                          .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                          .execute() > 0;
     }
 

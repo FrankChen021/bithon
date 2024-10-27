@@ -36,6 +36,8 @@ public class EvaluationLogEvent {
     private long sequence;
     private String alertId;
     private String instance; // Map to the instance field in the db
+    // INFO, ERROR
+    private String level;
     private String clazz;
     private String message;
 }

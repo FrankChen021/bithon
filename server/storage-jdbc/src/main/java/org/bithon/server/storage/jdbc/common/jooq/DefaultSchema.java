@@ -63,7 +63,7 @@ public class DefaultSchema extends SchemaImpl {
     public final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 
     /**
-     * Alert
+     * Alert Rules
      */
     public final BithonAlertObject BITHON_ALERT_OBJECT = BithonAlertObject.BITHON_ALERT_OBJECT;
 

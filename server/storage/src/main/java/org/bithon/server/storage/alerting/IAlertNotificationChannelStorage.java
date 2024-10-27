@@ -17,7 +17,6 @@
 package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.validation.constraints.NotBlank;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 
 import java.util.List;
@@ -44,5 +43,5 @@ public interface IAlertNotificationChannelStorage {
     /**
      * Update channel by name
      */
-    boolean updateChannel(String type, String name, String props);
+    boolean updateChannel(NotificationChannelObject old, String props);
 }

@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Alert
+ * Alert Rules
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
@@ -109,7 +109,7 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     }
 
     private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alert"), TableOptions.table());
+        super(alias, null, aliased, parameters, DSL.comment("Alert Rules"), TableOptions.table());
     }
 
     /**

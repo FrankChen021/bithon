@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertNotificationChannel;
 import org.jooq.Field;
-import org.jooq.Record4;
-import org.jooq.Row4;
+import org.jooq.Record5;
+import org.jooq.Row5;
 import org.jooq.impl.TableRecordImpl;
 
 
@@ -17,7 +17,7 @@ import org.jooq.impl.TableRecordImpl;
  * Alert Notification channels
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertNotificationChannelRecord extends TableRecordImpl<BithonAlertNotificationChannelRecord> implements Record4<String, String, String, LocalDateTime> {
+public class BithonAlertNotificationChannelRecord extends TableRecordImpl<BithonAlertNotificationChannelRecord> implements Record5<String, String, String, LocalDateTime, LocalDateTime> {
 
     private static final long serialVersionUID = 1L;
 
@@ -81,18 +81,34 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
         return (LocalDateTime) get(3);
     }
 
+    /**
+     * Setter for <code>bithon_alert_notification_channel.updated_at</code>.
+     * update time
+     */
+    public void setUpdatedAt(LocalDateTime value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_notification_channel.updated_at</code>.
+     * update time
+     */
+    public LocalDateTime getUpdatedAt() {
+        return (LocalDateTime) get(4);
+    }
+
     // -------------------------------------------------------------------------
-    // Record4 type implementation
+    // Record5 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<String, String, String, LocalDateTime> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row5<String, String, String, LocalDateTime, LocalDateTime> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 
     @Override
-    public Row4<String, String, String, LocalDateTime> valuesRow() {
-        return (Row4) super.valuesRow();
+    public Row5<String, String, String, LocalDateTime, LocalDateTime> valuesRow() {
+        return (Row5) super.valuesRow();
     }
 
     @Override
@@ -116,6 +132,11 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     }
 
     @Override
+    public Field<LocalDateTime> field5() {
+        return BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT;
+    }
+
+    @Override
     public String component1() {
         return getName();
     }
@@ -136,6 +157,11 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     }
 
     @Override
+    public LocalDateTime component5() {
+        return getUpdatedAt();
+    }
+
+    @Override
     public String value1() {
         return getName();
     }
@@ -153,6 +179,11 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     @Override
     public LocalDateTime value4() {
         return getCreatedAt();
+    }
+
+    @Override
+    public LocalDateTime value5() {
+        return getUpdatedAt();
     }
 
     @Override
@@ -180,11 +211,18 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     }
 
     @Override
-    public BithonAlertNotificationChannelRecord values(String value1, String value2, String value3, LocalDateTime value4) {
+    public BithonAlertNotificationChannelRecord value5(LocalDateTime value) {
+        setUpdatedAt(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertNotificationChannelRecord values(String value1, String value2, String value3, LocalDateTime value4, LocalDateTime value5) {
         value1(value1);
         value2(value2);
         value3(value3);
         value4(value4);
+        value5(value5);
         return this;
     }
 
@@ -202,12 +240,13 @@ public class BithonAlertNotificationChannelRecord extends TableRecordImpl<Bithon
     /**
      * Create a detached, initialised BithonAlertNotificationChannelRecord
      */
-    public BithonAlertNotificationChannelRecord(String name, String type, String payload, LocalDateTime createdAt) {
+    public BithonAlertNotificationChannelRecord(String name, String type, String payload, LocalDateTime createdAt, LocalDateTime updatedAt) {
         super(BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL);
 
         setName(name);
         setType(type);
         setPayload(payload);
         setCreatedAt(createdAt);
+        setUpdatedAt(updatedAt);
     }
 }
