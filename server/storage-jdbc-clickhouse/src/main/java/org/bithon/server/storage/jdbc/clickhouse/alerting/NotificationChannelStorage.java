@@ -28,6 +28,8 @@ import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 
+import java.sql.Timestamp;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 17:48
@@ -48,6 +50,16 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     public void deleteChannel(String name) {
         new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL,
                                                                         Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name));
+    }
+
+    @Override
+    public boolean updateChannel(String type, String name, String props) {
+        return dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .execute() > 0;
     }
 
     @Override

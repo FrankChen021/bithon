@@ -99,5 +99,6 @@ CREATE TABLE `bithon_alert_notification_channel`
     `type` varchar(16) NOT NULL,
     `payload`   text NOT NULL COMMENT 'channel payload',
     `created_at` timestamp(3) NOT NULL COMMENT 'create time',
+    `updated_at` timestamp(3) NOT NULL COMMENT 'update time',
     UNIQUE KEY  `alert_notification_channel_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert Notification channels';

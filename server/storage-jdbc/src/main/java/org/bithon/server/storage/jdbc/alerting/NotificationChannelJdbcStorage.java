@@ -64,6 +64,15 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     }
 
     @Override
+    public boolean updateChannel(String type, String name, String props) {
+        return dslContext.update(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                         .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
+                         .and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE.eq(type))
+                         .execute() > 0;
+    }
+
+    @Override
     public void deleteChannel(String name) {
         dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                   .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
