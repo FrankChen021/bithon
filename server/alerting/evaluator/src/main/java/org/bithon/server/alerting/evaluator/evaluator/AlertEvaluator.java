@@ -197,6 +197,10 @@ public class AlertEvaluator implements DisposableBean {
                 return AlertStatus.PENDING;
             }
         } else {
+            context.log(AlertEvaluator.class,
+                        "Rule [%s] evaluated as FALSE",
+                        alertRule.getName());
+
             stateStorage.resetMatchCount(alertRule.getId());
             return AlertStatus.RESOLVED;
         }
