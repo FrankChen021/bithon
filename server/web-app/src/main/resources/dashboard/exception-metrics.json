@@ -54,9 +54,9 @@
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
-          "instanceName",
           "eventCount"
         ],
+        "groupBy": ["instanceName"],
         "limit": 5,
         "orderBy": {
           "name": "eventCount",
@@ -76,9 +76,9 @@
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
-          "exceptionClass",
           "eventCount"
         ],
+        "groupBy": ["exceptionClass"],
         "limit": 5,
         "orderBy": {
           "name": "eventCount",

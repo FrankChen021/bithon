@@ -61,8 +61,6 @@
         "dataSource": "jvm-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
-          "instanceName",
           "processors",
           "instanceStartTime",
           "instanceUpTime",
@@ -72,6 +70,10 @@
           },
           "heapMax",
           "processCpuLoad"
+        ],
+        "groupBy": [
+          "appName",
+          "instanceName"
         ],
         "orderBy": {
           "name": "instanceUpTime",
@@ -86,7 +88,7 @@
     },
     {
       "title": "Top 10 QPS Incoming HTTP Requests",
-      "width": 1,
+      "width": 4,
       "type": "table",
       "columns": [
         {
@@ -109,7 +111,7 @@
           "totalCount"
         ],
         "limit": "10",
-        "groupBy": ["uri"],
+        "groupBy": ["appName", "uri"],
         "orderBy": {
           "name": "totalCount",
           "order": "desc"
@@ -123,7 +125,7 @@
     },
     {
       "title": "Top 10 Error Incoming HTTP Requests",
-      "width": 1,
+      "width": 4,
       "type": "table",
       "columns": [
         {
@@ -151,7 +153,7 @@
             "expression": "round(sum(errorCount)*100.0/sum(totalCount), 2)"
           }
         ],
-        "groupBy": ["uri"],
+        "groupBy": ["appName", "uri"],
         "limit": "10",
         "orderBy": {
           "name": "errorCount",
@@ -167,7 +169,7 @@
     },
     {
       "title": "Top 10 Slowest Incoming HTTP Requests",
-      "width": 1,
+      "width": 4,
       "type": "table",
       "columns": [
         {
@@ -187,7 +189,7 @@
           "uri",
           "avgResponseTime"
         ],
-        "groupBy": ["uri"],
+        "groupBy": ["appName","uri"],
         "limit": "10",
         "orderBy": {
           "name": "avgResponseTime",
@@ -233,8 +235,6 @@
         "dataSource": "http-outgoing-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
-          "path",
           "qps",
           "requestCount",
           {
@@ -247,6 +247,7 @@
           },
           "avgResponseTime"
         ],
+        "groupBy": ["appName", "path"],
         "limit": "10",
         "orderBy": {
           "name": "requestCount",
@@ -278,11 +279,11 @@
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
           "exceptionClass",
           "eventCount"
         ],
         "limit": 10,
+        "groupBy": ["appName", "exceptionClass"],
         "orderBy": {
           "name": "eventCount",
           "order": "desc"
