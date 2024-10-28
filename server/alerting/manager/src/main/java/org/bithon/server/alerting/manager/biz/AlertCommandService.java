@@ -147,11 +147,11 @@ public class AlertCommandService {
         }
 
         if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existAlertById(alertRule.getId())) {
-            throw new BizException("Alert object with the same id [%s] already exists.", alertRule.getId());
+            throw new BizException("Alert rule with the same id [%s] already exists.", alertRule.getId());
         }
 
         if (this.alertObjectStorage.existAlertByName(alertRule.getName())) {
-            throw new BizException("Alert object with the same name [%s] already exists.", alertRule.getName());
+            throw new BizException("Alert rule with the name [%s] already exists.", alertRule.getName());
         }
 
         AlertStorageObject alertObject = toAlertStorageObject(alertRule);
@@ -176,7 +176,7 @@ public class AlertCommandService {
     public void updateRule(AlertRule newAlertRule) throws BizException {
         AlertStorageObject oldObject = this.alertObjectStorage.getAlertById(newAlertRule.getId());
         if (oldObject == null) {
-            throw new BizException("Alert object [%s] not exist.", newAlertRule.getName());
+            throw new BizException("Alert rule [%s] not exist.", newAlertRule.getName());
         }
 
         AlertStorageObject newObject = toAlertStorageObject(newAlertRule);
@@ -198,7 +198,7 @@ public class AlertCommandService {
     public void enableRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
-            throw new BizException("Alert object [%s] not exist.", alertId);
+            throw new BizException("Alert rule [%s] not exist.", alertId);
         }
 
         this.alertObjectStorage.executeTransaction(() -> {
@@ -217,7 +217,7 @@ public class AlertCommandService {
     public void disableRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
-            throw new BizException("Alert object [%s] not exist.", alertId);
+            throw new BizException("Alert rule [%s] not exist.", alertId);
         }
         this.alertObjectStorage.executeTransaction(() -> {
             if (!this.alertObjectStorage.disableAlert(alertId, userProvider.getCurrentUser().getUserName())) {
@@ -235,7 +235,7 @@ public class AlertCommandService {
     public void deleteRule(String alertId) throws BizException {
         AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
         if (alertObject == null) {
-            throw new BizException("Alert object [%s] not exist.", alertId);
+            throw new BizException("Alert rule[%s] not exist.", alertId);
         }
 
         this.alertObjectStorage.executeTransaction(() -> {
