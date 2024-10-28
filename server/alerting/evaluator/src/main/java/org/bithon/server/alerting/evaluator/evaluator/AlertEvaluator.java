@@ -155,11 +155,11 @@ public class AlertEvaluator implements DisposableBean {
 
     private AlertStatus evaluate(EvaluationContext context, AlertStateObject prevState) {
         AlertRule alertRule = context.getAlertRule();
-        context.log(AlertEvaluator.class, "Evaluating rule [%s] %s ", alertRule.getName(), alertRule.getExpr());
+        context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
         AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
         if (expressionEvaluator.evaluate(context)) {
-            context.log(AlertEvaluator.class, "Rule [%s] evaluated successfully.", alertRule.getName());
+            context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
 
             long expectedMatchCount = alertRule.getExpectedMatchCount();
             long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
@@ -171,7 +171,8 @@ public class AlertEvaluator implements DisposableBean {
                 stateStorage.resetMatchCount(alertRule.getId());
 
                 context.log(AlertEvaluator.class,
-                            "Rule tested %d times successively，and reaches the expected threshold：%d",
+                            "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
+                            alertRule.getName(),
                             successiveCount,
                             expectedMatchCount);
 
@@ -188,7 +189,8 @@ public class AlertEvaluator implements DisposableBean {
                 return AlertStatus.ALERTING;
             } else {
                 context.log(AlertEvaluator.class,
-                            "Rule tested %d times successively，expected times：%d",
+                            "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
+                            alertRule.getName(),
                             successiveCount,
                             expectedMatchCount);
 
