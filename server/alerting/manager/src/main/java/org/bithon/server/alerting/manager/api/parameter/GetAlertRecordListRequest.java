@@ -19,6 +19,9 @@ package org.bithon.server.alerting.manager.api.parameter;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
+
+import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,6 +33,12 @@ public class GetAlertRecordListRequest {
     @Size(max = 32)
     private String alertId;
 
-    private int pageSize = 15;
-    private int pageNumber = 0;
+    @Nullable
+    private IntervalRequest interval;
+
+    @Nullable
+    private Integer pageSize;
+
+    @Nullable
+    private Integer pageNumber;
 }

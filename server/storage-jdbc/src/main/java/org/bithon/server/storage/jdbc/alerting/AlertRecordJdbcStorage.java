@@ -27,8 +27,10 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.metrics.Interval;
 import org.jooq.DSLContext;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
@@ -122,7 +124,7 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
     }
 
     @Override
-    public ListResult<AlertRecordObject> getAlertRecords(String alertId, int pageNumber, int pageSize) {
+    public ListResult<AlertRecordObject> getAlertRecords(String alertId, Interval interval, Limit limit) {
         Select<?> sql = dslContext.select(Tables.BITHON_ALERT_RECORD.RECORD_ID,
                                           Tables.BITHON_ALERT_RECORD.ALERT_ID,
                                           Tables.BITHON_ALERT_RECORD.ALERT_NAME,
@@ -132,11 +134,20 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
             sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.ALERT_ID.eq(alertId));
         }
 
-        return new ListResult<>(dslContext.selectCount().from(sql).fetchOne(0, int.class),
-                                ((SelectConditionStep<?>) sql).orderBy(Tables.BITHON_ALERT_RECORD.CREATED_AT.desc())
-                                                              .limit(pageSize)
-                                                              .offset(pageSize * pageNumber)
-                                                              .fetchInto(AlertRecordObject.class));
+        if (interval != null) {
+            sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.CREATED_AT.ge(interval.getStartTime().toTimestamp().toLocalDateTime()))
+                                            .and(Tables.BITHON_ALERT_RECORD.CREATED_AT.lt(interval.getEndTime().toTimestamp().toLocalDateTime()));
+        }
+
+        int total = dslContext.selectCount().from(sql).fetchOne(0, int.class);
+
+        if (limit != null) {
+            sql = ((SelectConditionStep<?>) sql).orderBy(Tables.BITHON_ALERT_RECORD.CREATED_AT.desc())
+                                                .limit(limit.getLimit())
+                                                .offset(limit.getOffset());
+        }
+
+        return new ListResult<>(total, sql.fetchInto(AlertRecordObject.class));
     }
 
     @Override

@@ -46,6 +46,8 @@ import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -266,7 +268,7 @@ public class AlertCommandService {
             }
 
             @Override
-            public ListResult<AlertRecordObject> getAlertRecords(String alertId, int pageNumber, int pageSize) {
+            public ListResult<AlertRecordObject> getAlertRecords(String alertId, Interval interval, Limit limit) {
                 return null;
             }
 

@@ -43,7 +43,6 @@ import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
 import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
-import org.bithon.server.alerting.manager.api.parameter.ListRecordBo;
 import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
 import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
@@ -57,6 +56,8 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -238,20 +239,18 @@ public class AlertQueryApi {
 
     @PostMapping("/api/alerting/alert/record/list")
     public GetAlertRecordListResponse getRecordList(@Valid @RequestBody GetAlertRecordListRequest request) {
-        ListResult<AlertRecordObject> results = alertRecordStorage.getAlertRecords(request.getAlertId(), request.getPageNumber(), request.getPageSize());
+        Interval interval = null;
+        if (request.getInterval() != null) {
+            interval = Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601());
+        }
+        Limit limit = null;
+        if (request.getPageNumber() != null && request.getPageSize() != null) {
+            limit = new Limit((int) request.getPageSize(), request.getPageNumber() * request.getPageSize());
+        }
+
+        ListResult<AlertRecordObject> results = alertRecordStorage.getAlertRecords(request.getAlertId(), interval, limit);
         return new GetAlertRecordListResponse(results.getRows(),
-                                              results.getData()
-                                                     .stream()
-                                                     .map(obj -> {
-                                                         ListRecordBo bo = new ListRecordBo();
-                                                         bo.setAlarmName(obj.getAlertName());
-                                                         bo.setAlertId(obj.getAlertId());
-                                                         bo.setAppName(obj.getAppName());
-                                                         bo.setEnv(obj.getNamespace());
-                                                         bo.setId(obj.getRecordId());
-                                                         bo.setServerCreateTime(obj.getCreatedAt());
-                                                         return bo;
-                                                     }).collect(Collectors.toList()));
+                                              results.getData());
     }
 
     @PostMapping("/api/alerting/alert/change-log/get")
