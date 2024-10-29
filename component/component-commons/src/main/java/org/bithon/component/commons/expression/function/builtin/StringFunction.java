@@ -41,7 +41,7 @@ public class StringFunction {
         @Override
         public Object evaluate(List<Object> args) {
             String v1 = args.get(0).toString();
-            String v2 = args.get(0).toString();
+            String v2 = args.get(1).toString();
             return v1 + v2;
         }
 
