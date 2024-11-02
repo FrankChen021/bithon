@@ -17,7 +17,7 @@
 package org.bithon.agent.instrumentation.aop.interceptor;
 
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AbstractInterceptor;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.loader.InterceptorClassLoaderManager;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
 import java.io.PrintWriter;
@@ -85,7 +85,7 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
     private AbstractInterceptor createInterceptor(String interceptorClassName, ClassLoader userClassLoader) {
         try {
             // Load class out of lock in case of deadlock
-            ClassLoader interceptorClassLoader = PluginClassLoaderManager.getClassLoader(userClassLoader);
+            ClassLoader interceptorClassLoader = InterceptorClassLoaderManager.getClassLoader(userClassLoader);
             Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
             return (AbstractInterceptor) interceptorClass.getConstructor().newInstance();
