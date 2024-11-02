@@ -29,6 +29,7 @@ public final class InterceptorClassLoaderManager {
     private static final Map<ClassLoader, ClassLoader> LOADER_MAPPING = new ConcurrentHashMap<>();
 
     private static final InterceptorClassLoader DEFAULT_LOADER = new InterceptorClassLoader(PluginClassLoader.getClassLoader());
+
     /**
      * class loader for class which is being transformed.
      * it can be null if the class is loaded by bootstrap class loader
