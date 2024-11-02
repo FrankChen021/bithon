@@ -41,8 +41,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
     private Field authenticationExceptionField;
 
     public NetworkClient$CompleteResponses() {
-        metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-network",
-                                                                   NetworkMetricRegistry::new);
+        metricRegistry = MetricRegistryFactory.register(NetworkMetricRegistry::new);
 
         try {
             authenticationExceptionField = ReflectionUtils.getField(ClientResponse.class, "authenticationException");
