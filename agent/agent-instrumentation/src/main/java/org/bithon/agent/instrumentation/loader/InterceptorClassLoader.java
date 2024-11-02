@@ -27,16 +27,19 @@ import java.util.Locale;
  */
 public class InterceptorClassLoader extends ClassLoader {
     private final JarClassLoader pluginClassLoader;
+    private final ClassLoader applicationClassLoader;
 
-    private final ClassLoader appClassLoader;
+    public InterceptorClassLoader(JarClassLoader pluginClassLoader) {
+        this(pluginClassLoader, null);
+    }
 
-    public InterceptorClassLoader(JarClassLoader pluginClassLoader, ClassLoader appClassLoader) {
+    public InterceptorClassLoader(JarClassLoader pluginClassLoader, ClassLoader applicationClassLoader) {
         // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
 
         this.pluginClassLoader = pluginClassLoader;
-        this.appClassLoader = appClassLoader;
+        this.applicationClassLoader = applicationClassLoader;
     }
 
     /**
@@ -44,7 +47,6 @@ public class InterceptorClassLoader extends ClassLoader {
      * instead of the parent class loader.
      * <p>
      * This makes sure that this class loader can find those classes referenced in the plugin.
-     *
      */
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -74,14 +76,20 @@ public class InterceptorClassLoader extends ClassLoader {
         }
 
         // Find in application class loader if it's referenced by the class in the plugin
-        try {
-            return appClassLoader.loadClass(name);
-        } catch (ClassNotFoundException e) {
-            throw new ClassNotFoundException(String.format(Locale.ENGLISH,
-                                                           "%s not found in parent [%s] and agent plugins.",
-                                                           name,
-                                                           appClassLoader.getClass().getName()));
+        if (applicationClassLoader != null) {
+            try {
+                return applicationClassLoader.loadClass(name);
+            } catch (ClassNotFoundException e) {
+                throw new ClassNotFoundException(String.format(Locale.ENGLISH,
+                                                               "%s not found in parent [%s] and agent plugins.",
+                                                               name,
+                                                               applicationClassLoader.getClass().getName()));
+            }
         }
+
+        throw new ClassNotFoundException(String.format(Locale.ENGLISH,
+                                                       "%s not found in agent plugins.",
+                                                       name));
     }
 
     @Override
@@ -91,11 +99,11 @@ public class InterceptorClassLoader extends ClassLoader {
         if (url != null) {
             return url;
         }
-        return appClassLoader.getResource(name);
+        return applicationClassLoader.getResource(name);
     }
 
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
-        return appClassLoader.getResources(name);
+        return applicationClassLoader.getResources(name);
     }
 }
