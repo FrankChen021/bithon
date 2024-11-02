@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc;
+package org.bithon.agent.plugin.spring.webmvc;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
@@ -27,7 +27,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class SpringMvcPlugin implements IPlugin {
+public class SpringWebMvcPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -36,14 +36,14 @@ public class SpringMvcPlugin implements IPlugin {
 
             forClass("org.springframework.web.client.RestTemplate")
                 .onMethod("doExecute")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute")
+                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$Execute")
                 .onMethod("handleResponse")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
+                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.rs.RestTemplate$HandleResponse")
                 .build(),
 
             forClass("org.springframework.web.method.support.InvocableHandlerMethod")
                 .onMethod("doInvoke")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.InvocableHandlerMethod$DoInvoke")
+                .interceptedBy("org.bithon.agent.plugin.spring.webmvc.controller.InvocableHandlerMethod$DoInvoke")
                 .build()
         );
     }

@@ -49,9 +49,9 @@
     <module>logging-logback</module>
     <module>spring-bean</module>
     <module>spring-boot</module>
-    <module>spring-mvc</module>
     <module>spring-scheduling</module>
     <module>spring-webflux</module>
+    <module>spring-webmvc</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
     <module>webserver-jetty</module>
@@ -272,7 +272,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-mvc</artifactId>
+      <artifactId>agent-plugin-spring-web</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
