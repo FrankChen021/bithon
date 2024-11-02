@@ -125,11 +125,7 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     @Override
     public ListResult<AlertRecordObject> getAlertRecords(String alertId, Interval interval, Limit limit) {
-        Select<?> sql = dslContext.select(Tables.BITHON_ALERT_RECORD.RECORD_ID,
-                                          Tables.BITHON_ALERT_RECORD.ALERT_ID,
-                                          Tables.BITHON_ALERT_RECORD.ALERT_NAME,
-                                          Tables.BITHON_ALERT_RECORD.APP_NAME,
-                                          Tables.BITHON_ALERT_RECORD.CREATED_AT).from(Tables.BITHON_ALERT_RECORD);
+        Select<?> sql = dslContext.selectFrom(Tables.BITHON_ALERT_RECORD);
         if (alertId != null) {
             sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.ALERT_ID.eq(alertId));
         }
