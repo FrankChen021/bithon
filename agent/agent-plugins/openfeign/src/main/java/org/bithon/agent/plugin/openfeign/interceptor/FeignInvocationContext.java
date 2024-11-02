@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc.feign;
+package org.bithon.agent.plugin.openfeign.interceptor;
 
 import feign.MethodMetadata;
 import feign.Target;
