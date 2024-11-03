@@ -21,6 +21,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.StringUtils;
@@ -41,7 +43,6 @@ import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
 import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
-import org.bithon.server.alerting.manager.api.parameter.ListRecordBo;
 import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
 import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
@@ -55,6 +56,8 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -158,9 +161,46 @@ public class AlertQueryApi {
         return new SuggestAlertExpressionResponse(suggestions);
     }
 
+    public static class GetAlertRuleResponse extends AlertStorageObject {
+        @Getter
+        @Setter
+        private Collection<AlertExpression> parsedExpressions;
+
+        public GetAlertRuleResponse(AlertStorageObject alertStorageObject, Collection<AlertExpression> parsedExpressions) {
+            setId(alertStorageObject.getId());
+            setName(alertStorageObject.getName());
+            setAppName(alertStorageObject.getAppName());
+            setNamespace(alertStorageObject.getNamespace());
+            setDisabled(alertStorageObject.isDisabled());
+            setDeleted(alertStorageObject.isDeleted());
+            setPayload(alertStorageObject.getPayload());
+            setCreatedAt(alertStorageObject.getCreatedAt());
+            setUpdatedAt(alertStorageObject.getUpdatedAt());
+            setLastOperator(alertStorageObject.getLastOperator());
+            this.parsedExpressions = parsedExpressions;
+        }
+    }
+
     @PostMapping("/api/alerting/alert/get")
-    public ApiResponse<AlertStorageObject> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
-        return ApiResponse.success(alertStorage.getAlertById(request.getAlertId()));
+    public ApiResponse<GetAlertRuleResponse> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
+        AlertStorageObject ruleObject = alertStorage.getAlertById(request.getAlertId());
+
+        // Parse expression first
+        if (ruleObject != null) {
+            IExpression alertExpression = AlertExpressionASTParser.parse(ruleObject.getPayload().getExpr());
+
+            // Get Schema for validation
+            Map<String, ISchema> schemas = dataSourceApi.getSchemas();
+
+            // Flatten expressions
+            List<AlertExpression> alertExpressions = new ArrayList<>();
+            alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
+                expression.getMetricExpression().validate(schemas);
+                alertExpressions.add(expression);
+            });
+            return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));
+        }
+        return ApiResponse.fail("Alert rule not found");
     }
 
     @PostMapping("/api/alerting/alert/list")
@@ -199,20 +239,18 @@ public class AlertQueryApi {
 
     @PostMapping("/api/alerting/alert/record/list")
     public GetAlertRecordListResponse getRecordList(@Valid @RequestBody GetAlertRecordListRequest request) {
-        ListResult<AlertRecordObject> results = alertRecordStorage.getAlertRecords(request.getAlertId(), request.getPageNumber(), request.getPageSize());
+        Interval interval = null;
+        if (request.getInterval() != null) {
+            interval = Interval.of(request.getInterval().getStartISO8601(), request.getInterval().getEndISO8601());
+        }
+        Limit limit = null;
+        if (request.getPageNumber() != null && request.getPageSize() != null) {
+            limit = new Limit((int) request.getPageSize(), request.getPageNumber() * request.getPageSize());
+        }
+
+        ListResult<AlertRecordObject> results = alertRecordStorage.getAlertRecords(request.getAlertId(), interval, limit);
         return new GetAlertRecordListResponse(results.getRows(),
-                                              results.getData()
-                                                     .stream()
-                                                     .map(obj -> {
-                                                         ListRecordBo bo = new ListRecordBo();
-                                                         bo.setAlarmName(obj.getAlertName());
-                                                         bo.setAlertId(obj.getAlertId());
-                                                         bo.setAppName(obj.getAppName());
-                                                         bo.setEnv(obj.getNamespace());
-                                                         bo.setId(obj.getRecordId());
-                                                         bo.setServerCreateTime(obj.getCreatedAt());
-                                                         return bo;
-                                                     }).collect(Collectors.toList()));
+                                              results.getData());
     }
 
     @PostMapping("/api/alerting/alert/change-log/get")

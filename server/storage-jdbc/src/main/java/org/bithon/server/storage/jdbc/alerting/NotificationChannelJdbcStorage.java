@@ -28,6 +28,7 @@ import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertNoti
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -55,12 +56,24 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     public void createChannel(String type,
                               String name,
                               String props) {
+        LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
         dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
                   .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type)
                   .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name)
                   .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
-                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, now)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, now)
                   .execute();
+    }
+
+    @Override
+    public boolean updateChannel(NotificationChannelObject old, String props) {
+        return dslContext.update(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(old.getName()))
+                         .and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE.eq(old.getType()))
+                         .execute() > 0;
     }
 
     @Override
@@ -90,12 +103,17 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     }
 
     protected NotificationChannelObject toChannelObject(BithonAlertNotificationChannelRecord record) {
-        NotificationChannelObject obj = new NotificationChannelObject();
-        obj.setName(record.getName());
-        obj.setType(record.getType());
-        obj.setPayload(record.getPayload());
-        obj.setCreatedAt(Timestamp.valueOf(record.getCreatedAt()));
-        return obj;
+        NotificationChannelObject channel = new NotificationChannelObject();
+        channel.setName(record.getName());
+        channel.setType(record.getType());
+        channel.setPayload(record.getPayload());
+        channel.setCreatedAt(Timestamp.valueOf(record.getCreatedAt()));
+        if (record.getUpdatedAt() == null) {
+            channel.setUpdatedAt(channel.getCreatedAt());
+        } else {
+            channel.setUpdatedAt(Timestamp.valueOf(record.getUpdatedAt()));
+        }
+        return channel;
     }
 
     @Override

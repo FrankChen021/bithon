@@ -65,6 +65,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -186,8 +187,42 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
+    @Getter
+    @Setter
+    public static class UpdateChannelRequest {
+        @NotBlank
+        private String name;
+
+        private Map<String, Object> props;
+    }
+
+    @PostMapping("/api/alerting/channel/update")
+    public void updateChannel(@Validated @RequestBody UpdateChannelRequest request) throws IOException {
+        NotificationChannelObject channel = channelStorage.getChannel(request.getName());
+        if (channel == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                            "The channel with name [%s] does not exist",
+                                            request.getName());
+        }
+
+        String newProps = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
+
+        // Make sure the given request can be used to create a channel object correctly
+        NotificationChannelFactory.create(channel.getType(),
+                                          request.getName(),
+                                          newProps,
+                                          this.objectMapper)
+                                  .close();
+
+        if (!channelStorage.updateChannel(channel, newProps)) {
+            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            "Failed to update the channel with name [%s]",
+                                            request.getName());
+        }
+    }
+
     @Data
-    public static class GetChannelRequest {
+    public static class GetChannelListRequest {
         /**
          * The format of the returned props
          * Can be either one of yaml/json
@@ -198,13 +233,13 @@ public class AlertChannelApi {
 
     @Getter
     @AllArgsConstructor
-    public static class GetChannelResponse {
+    public static class GetChannelListResponse {
         private int total;
         private List<Map<String, Object>> rows;
     }
 
-    @PostMapping("/api/alerting/channel/get")
-    public GetChannelResponse getChannels(@Validated @RequestBody GetChannelRequest request) {
+    @PostMapping("/api/alerting/channel/list")
+    public GetChannelListResponse getChannelList(@Validated @RequestBody GetChannelListRequest request) {
         JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
 
         List<Map<String, Object>> channels = this.channelStorage.getChannels(0)
@@ -219,7 +254,44 @@ public class AlertChannelApi {
                                                                     return map;
                                                                 })
                                                                 .collect(Collectors.toList());
-        return new GetChannelResponse(channels.size(), channels);
+        return new GetChannelListResponse(channels.size(), channels);
+    }
+
+    @Getter
+    @Setter
+    public static class GetChannelRequest {
+        @NotBlank
+        private String name;
+
+        /**
+         * The format of the returned props
+         * Can be either one of yaml/json
+         */
+        @NotBlank
+        private String format = "json";
+    }
+
+    public static class GetChannelResponse extends TreeMap<String, Object> {
+    }
+
+    @PostMapping("/api/alerting/channel/get")
+    public GetChannelResponse getChannel(@Validated @RequestBody GetChannelRequest request) {
+        JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
+
+        NotificationChannelObject channel = this.channelStorage.getChannel(request.getName());
+        if (channel == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                            "The channel with name [%s] does not exist",
+                                            request.getName());
+        }
+
+        GetChannelResponse resp = new GetChannelResponse();
+
+        resp.put("name", channel.getName());
+        resp.put("type", channel.getType());
+        resp.put("props", formatter.format(channel.getPayload(), this.objectMapper, null));
+        resp.put("createdAt", channel.getCreatedAt());
+        return resp;
     }
 
     @Data

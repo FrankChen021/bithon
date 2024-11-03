@@ -188,7 +188,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                       .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, updateTimestamp.toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException(StringUtils.format("Alert object with id [%s] already exists.", alert.getId()));
+            throw new RuntimeException(StringUtils.format("Alert rule with id [%s] already exists.", alert.getId()));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

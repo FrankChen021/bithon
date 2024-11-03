@@ -57,7 +57,6 @@ public class AlertExpressionSuggester {
         }
     }
 
-    private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
     private final Set<Integer> predicateOperators = ImmutableSet.of(
         MetricExpressionParser.LT,
@@ -74,8 +73,6 @@ public class AlertExpressionSuggester {
         MetricExpressionParser.ENDSWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
-        this.dataSourceApi = dataSourceApi;
-
         DefaultLexerAndParserFactory factory = new DefaultLexerAndParserFactory(
             MetricExpressionLexer.class,
             MetricExpressionParser.class
@@ -129,7 +126,7 @@ public class AlertExpressionSuggester {
         // Suggest data source names
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
             dataSourceApi.getSchemaNames()
-                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("DataSource"))));
+                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("Data Source"))));
             return false;
         });
 

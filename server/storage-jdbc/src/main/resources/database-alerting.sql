@@ -34,7 +34,7 @@ CREATE TABLE `bithon_alert_object`
     UNIQUE `uq_alert_object_id` (`alert_id`),
     KEY             `idx_alert_object_app_name` (`app_name`),
     KEY             `idx_alert_object_updated_at` (`updated_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert Rules';
 
 
 DROP TABLE IF EXISTS `bithon_alert_record`;
@@ -86,6 +86,7 @@ CREATE TABLE `bithon_alert_evaluation_log`
     `alert_id`  varchar(32)  NOT NULL DEFAULT '' COMMENT 'Alert ID',
     `sequence`  bigint(20)   NOT NULL DEFAULT 0 COMMENT 'Used for ordering',
     `instance`  varchar(32)  NOT NULL COMMENT 'The instance that runs the evaluation',
+    `level`     varchar(16) NOT NULL DEFAULT '' COMMENT 'Logger Level: INFO, WARN, ERROR',
     `clazz`     varchar(128) NOT NULL DEFAULT '' COMMENT 'Logger Class',
     `message`   text COMMENT '',
     KEY         `bithon_alert_evaluation_log_timestamp` (`timestamp`),
@@ -99,5 +100,6 @@ CREATE TABLE `bithon_alert_notification_channel`
     `type` varchar(16) NOT NULL,
     `payload`   text NOT NULL COMMENT 'channel payload',
     `created_at` timestamp(3) NOT NULL COMMENT 'create time',
+    `updated_at` timestamp(3) NOT NULL COMMENT 'update time',
     UNIQUE KEY  `alert_notification_channel_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alert Notification channels';

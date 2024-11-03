@@ -67,12 +67,13 @@ public class NullValuePredicate implements IMetricEvaluator {
 
         //noinspection unchecked
         List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
-        boolean matches = false;
+        boolean matches;
         Number nowValue = null;
         if (CollectionUtils.isEmpty(now) || !now.get(0).containsKey(metric.getName())) {
             matches = true;
         } else {
             nowValue = (Number) now.get(0).get(metric.getName());
+            matches = nowValue == null;
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();

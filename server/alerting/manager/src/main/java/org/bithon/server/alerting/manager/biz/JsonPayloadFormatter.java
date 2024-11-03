@@ -23,6 +23,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -34,9 +35,7 @@ public enum JsonPayloadFormatter {
     YAML {
         @Override
         public String format(String jsonString, ObjectMapper jsonDeserializer, Function<Object, Object> transformer) {
-            ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                                                                .enable(YAMLGenerator.Feature.INDENT_ARRAYS)
-                                                                .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
+
             try {
                 Object deserialized = jsonDeserializer.readValue(jsonString,
                                                                  // Use LinkedHashMap
@@ -46,6 +45,18 @@ public enum JsonPayloadFormatter {
                 if (transformer != null) {
                     deserialized = transformer.apply(deserialized);
                 }
+
+                //noinspection unchecked
+                if (((Map<String, Object>) deserialized).isEmpty()) {
+                    // YAML will serialize an empty map as {}.
+                    // However, we want it to be serialized as empty string
+                    return "";
+                }
+
+                ObjectMapper om = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                                                                    .enable(YAMLGenerator.Feature.INDENT_ARRAYS)
+                                                                    .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
+
                 return om.writeValueAsString(deserialized);
 
             } catch (JsonProcessingException e) {

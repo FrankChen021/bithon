@@ -82,7 +82,6 @@
             <driver>com.mysql.cj.jdbc.Driver</driver>
             <url>jdbc:mysql://localhost:3306/bithon_codegen?useSSL=false</url>
             <user>root</user>
-            <password/>
           </jdbc>
           <generator>
             <database>

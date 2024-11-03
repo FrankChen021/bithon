@@ -21,7 +21,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -35,7 +34,7 @@ import java.util.List;
  * @date 2020/12/31
  */
 @Data
-public class CreateAlertRequest {
+public class CreateAlertRuleRequest {
 
     /**
      * check if target application exists before create an alert for that application
@@ -74,7 +73,7 @@ public class CreateAlertRequest {
     private String expr;
 
     @Valid
-    @NotNull
+    @NotEmpty
     private List<String> notifications;
 
     public AlertRule toAlert() {

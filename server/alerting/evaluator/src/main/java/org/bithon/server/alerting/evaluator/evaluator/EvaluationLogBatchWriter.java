@@ -95,10 +95,6 @@ public class EvaluationLogBatchWriter implements IEvaluationLogWriter {
         return this.flushTask.isRunning();
     }
 
-    public void stop() {
-        this.close();
-    }
-
     @Override
     public void close() {
         flushTask.stop();

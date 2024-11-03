@@ -89,7 +89,7 @@ public class AlertRepository {
         this.lastLoadedAt = now;
     }
 
-    public Map<String, AlertStateObject> loadStatus() {
+    public Map<String, AlertStateObject> loadStates() {
         return alertObjectStorage.getAlertStates();
     }
 

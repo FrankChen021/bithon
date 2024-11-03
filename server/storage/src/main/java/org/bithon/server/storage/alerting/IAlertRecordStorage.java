@@ -23,6 +23,8 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.metrics.Interval;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -41,7 +43,7 @@ public interface IAlertRecordStorage extends IStorage, IExpirable {
 
     void addAlertRecord(AlertRecordObject record);
 
-    ListResult<AlertRecordObject> getAlertRecords(String alertId, int pageNumber, int pageSize);
+    ListResult<AlertRecordObject> getAlertRecords(String alertId, Interval interval, Limit limit);
 
     AlertRecordObject getAlertRecord(String id);
 

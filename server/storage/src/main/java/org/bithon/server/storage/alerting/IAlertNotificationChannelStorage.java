@@ -39,4 +39,9 @@ public interface IAlertNotificationChannelStorage {
     boolean exists(String name);
 
     NotificationChannelObject getChannel(String name);
+
+    /**
+     * Update channel by name
+     */
+    boolean updateChannel(NotificationChannelObject old, String props);
 }

@@ -86,7 +86,7 @@ CREATE TABLE `bithon_trace_span`
     `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Micro Second',
     `tags`          TEXT COMMENT 'Kept for compatibility',
-    `attributes`          TEXT COMMENT '',
+    `attributes`    TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
     KEY `idx_ts_1_traceId` (`traceId`), -- NOTE: jOOQ generates indexes in the alphabetic order not the declaration order
