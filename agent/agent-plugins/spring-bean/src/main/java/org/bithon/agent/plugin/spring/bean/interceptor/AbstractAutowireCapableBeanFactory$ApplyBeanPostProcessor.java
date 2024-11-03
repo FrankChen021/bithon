@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.spring.bean.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelper;
+import org.bithon.agent.plugin.spring.bean.installer.SpringBeanMethodAopInstaller;
 
 /**
  * {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsBeforeInstantiation}
@@ -45,6 +45,6 @@ public class AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor extends A
         if (beanInstance == null) {
             return;
         }
-        BeanMethodAopInstallerHelper.install(beanInstance.getClass());
+        SpringBeanMethodAopInstaller.installFor(beanInstance.getClass());
     }
 }

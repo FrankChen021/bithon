@@ -2,6 +2,8 @@ agent:
   plugin:
     spring:
       bean:
+        # If this is set to true, the plugin will only instrument those classes that are annotated with @Service, @Component, @Repository
+        enableServiceComponentOnly: false
 #        includedClasses:
 #          - matcher:
 #              type: endwith

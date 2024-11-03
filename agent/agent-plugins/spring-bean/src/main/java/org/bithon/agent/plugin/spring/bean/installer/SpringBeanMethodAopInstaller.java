@@ -19,29 +19,29 @@ package org.bithon.agent.plugin.spring.bean.installer;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.aop.BeanMethodAopInstaller;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 13:05
  */
-public class BeanMethodAopInstallerHelper {
+public class SpringBeanMethodAopInstaller {
 
-    public static void install(Class<?> targetClass) {
-        if (targetClass.getDeclaredAnnotation(RestController.class) != null) {
-            return;
-        }
-        if (targetClass.getDeclaredAnnotation(Controller.class) != null) {
+    public static void installFor(Class<?> beanClass) {
+        if (BeanMethodAopInstaller.isProcessed(beanClass)) {
             return;
         }
 
-        BeanMethodAopInstaller.BeanTransformationConfig transformationConfig = ConfigurationManager.getInstance()
-                                                                                                   .getConfig("agent.plugin.spring.bean",
-                                                                                                              BeanMethodAopInstaller.BeanTransformationConfig.class,
-                                                                                                              true);
-        BeanMethodAopInstaller.install(targetClass,
+        SpringBeanPluginConfig pluginConfig = ConfigurationManager.getInstance()
+                                                                  .getConfig(SpringBeanPluginConfig.class);
+
+        String componentName = TracingComponentNameManager.computeComponentName(beanClass, pluginConfig.isEnableServiceComponentOnly());
+        if (componentName == null) {
+            return;
+        }
+        TracingComponentNameManager.setComponentName(beanClass, componentName);
+
+        BeanMethodAopInstaller.install(beanClass,
                                        BeanMethod$Invoke.class.getName(),
-                                       transformationConfig);
+                                       pluginConfig);
     }
 }
