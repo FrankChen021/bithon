@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc;
+package org.bithon.agent.plugin.openfeign;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
@@ -27,7 +27,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class SpringMvcPlugin implements IPlugin {
+public class OpenFeignPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -36,24 +36,12 @@ public class SpringMvcPlugin implements IPlugin {
             forClass("feign.SynchronousMethodHandler$Factory")
                 .onMethod("create")
                 .andArgs(1, "feign.MethodMetadata")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
+                .interceptedBy("org.bithon.agent.plugin.openfeign.interceptor.SynchronousMethodHandlerFactory$Create")
                 .build(),
 
             forClass("feign.SynchronousMethodHandler")
                 .onMethod("invoke")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
-                .build(),
-
-            forClass("org.springframework.web.client.RestTemplate")
-                .onMethod("doExecute")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$Execute")
-                .onMethod("handleResponse")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.RestTemplate$HandleResponse")
-                .build(),
-
-            forClass("org.springframework.web.method.support.InvocableHandlerMethod")
-                .onMethod("doInvoke")
-                .interceptedBy("org.bithon.agent.plugin.spring.mvc.InvocableHandlerMethod$DoInvoke")
+                .interceptedBy("org.bithon.agent.plugin.openfeign.interceptor.SynchronousMethodHandler$Invoke")
                 .build()
         );
     }

@@ -176,6 +176,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Jersey                                                       | 1.19.4      |             |                                                | &check; |
 | MongoDB                                                      | 3.4.2       |             | &check;                                        |         |
 | MySQL                                                        | 5.x         | 8.x         | &check;                                        |         |
+| Open Feign                                                   | 10.8        |             |                                                | &check; |
 | Quartz                                                       | 2.x         |             | &check;                                        | &check; |
 | Redis - Jedis                                                | 2.9         | 5.x         | &check;                                        | &check; |
 | Redis - Lettuce(2)                                           | 5.1.2       | 6.x         | &check;                                        | &check; |

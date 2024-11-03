@@ -304,4 +304,15 @@ public class FunctionsTest {
         Assert.assertEquals(2000000000L,
                             builder.build("toNanoseconds(2)").evaluate(null));
     }
+
+    @Test
+    public void test_concat() {
+        Assert.assertEquals("hello world",
+                            builder.build("concat('hello',' world')").evaluate(null));
+
+        Assert.assertEquals("hello ",
+                            builder.build("concat('hello',' ')").evaluate(null));
+
+        Assert.assertThrows(InvalidExpressionException.class, () -> builder.build("concat('hello',1"));
+    }
 }

@@ -81,9 +81,9 @@ public abstract class PluginResolver {
                         InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
                         pointcutDescriptor.setInterceptorType(type);
                     } catch (AgentException e) {
-                        LOG.error("Unable to resolve interceptor type for [{}]. Exception: {}",
-                                  pointcutDescriptor.getInterceptorClassName(),
-                                  e.getMessage());
+                        // This is typically an error caused by the plugin developer,
+                        // So we throw an exception to exit the application let the developer know the problem
+                        throw new AgentException("Unable to resolve interceptor type for [" + pointcutDescriptor.getInterceptorClassName() + "]:" + e.getMessage());
                     }
                 }
             }
