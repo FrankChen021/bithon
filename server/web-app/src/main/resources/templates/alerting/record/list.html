@@ -51,7 +51,7 @@
                     title: 'Alerting History',
                     align: 'center',
                     formatter: function (value, row) {
-                        return `<a href='#' onclick="return showDetail('${row.id}')">${moment(row.serverCreateTime).local().format('yyyy-MM-DD HH:mm:ss')}</a>`;
+                        return `<a href='#' onclick="return showDetail('${row.recordId}')">${moment(row.serverCreateTime).local().format('yyyy-MM-DD HH:mm:ss')}</a>`;
                     }
                 }]
             })
@@ -61,7 +61,7 @@
             if (window.parent != null) {
                 const detailFrame = window.parent.document.getElementById('detail');
                 if (detailFrame != null) {
-                    detailFrame.src = '/web/alerting/record/detail?id=' + id;
+                    detailFrame.src = '/web/alerting/record/detail?recordId=' + id;
                 }
             }
             return false;
