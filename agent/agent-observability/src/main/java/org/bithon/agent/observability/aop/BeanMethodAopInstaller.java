@@ -56,6 +56,10 @@ public class BeanMethodAopInstaller {
         });
     }
 
+    public static boolean isProcessed(Class<?> targetClass) {
+        return PROCESSED.contains(targetClass.getName());
+    }
+
     public static void install(Class<?> targetClass,
                                String interceptor,
                                BeanTransformationConfig transformationConfig) {

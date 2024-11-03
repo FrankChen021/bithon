@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.plugin.spring.bean.installer.SpringBeanMethodAopInstaller;
+import org.bithon.agent.plugin.spring.bean.installer.TracingComponentNameManager;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,7 +37,7 @@ public class BeanMethod$Invoke extends AroundInterceptor {
         }
 
         Class<?> beanClass = aopContext.getTargetClass();
-        String component = SpringBeanMethodAopInstaller.BeanClassAnnotations.getTracingComponentName(beanClass);
+        String component = TracingComponentNameManager.getComponentName(beanClass);
         if (component == null) {
             // unexpected
             component = "spring-bean";
