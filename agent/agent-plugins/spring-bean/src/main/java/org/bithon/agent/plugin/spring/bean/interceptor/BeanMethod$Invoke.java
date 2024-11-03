@@ -21,14 +21,9 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-
-import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.bithon.agent.plugin.spring.bean.installer.SpringBeanMethodAopInstaller;
 
 /**
- *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
@@ -41,8 +36,15 @@ public class BeanMethod$Invoke extends AroundInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setSpan(span.component(AnnotationHelper.getComponentName(aopContext.getTargetClass()))
-                               .method(aopContext.getTargetClass(), aopContext.getMethod())
+        Class<?> beanClass = aopContext.getTargetClass();
+        String component = SpringBeanMethodAopInstaller.BeanClassAnnotations.getTracingComponentName(beanClass);
+        if (component == null) {
+            // unexpected
+            component = "spring-bean";
+        }
+
+        aopContext.setSpan(span.component(component)
+                               .method(beanClass, aopContext.getMethod())
                                .start());
 
         return InterceptionDecision.CONTINUE;
@@ -52,37 +54,5 @@ public class BeanMethod$Invoke extends AroundInterceptor {
     public void after(AopContext aopContext) {
         ITraceSpan span = aopContext.getSpan();
         span.tag(aopContext.getException()).finish();
-    }
-
-    public static class AnnotationHelper {
-        private static final Map<String, String> ANNOTATION2_NAME = new HashMap<>();
-        private static final Map<String, String> COMPONENT_NAMES = new ConcurrentHashMap<>();
-
-        // Use string format class name instead of using Class to avoid ClassNotFound problem
-        // when target application does not ship with spring-web
-        static {
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Component", "spring-component");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Controller", "spring-controller");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Repository", "spring-repository");
-            ANNOTATION2_NAME.put("org.springframework.stereotype.Service", "spring-service");
-            ANNOTATION2_NAME.put("org.springframework.web.bind.annotation.RestController", "spring-controller");
-        }
-
-        public static String getComponentName(Class<?> clazz) {
-            return COMPONENT_NAMES.computeIfAbsent(clazz.getSimpleName(), (key) -> getComponentNameByClass(clazz));
-        }
-
-        private static String getComponentNameByClass(Class<?> beanClass) {
-            Annotation[] annotations = beanClass.getAnnotations();
-            for (Annotation annotation : annotations) {
-                String name = ANNOTATION2_NAME.get(annotation.annotationType().getName());
-                if (name != null) {
-                    return name;
-                }
-            }
-
-            // created by @Bean or BeanFactory
-            return "spring-bean";
-        }
     }
 }
