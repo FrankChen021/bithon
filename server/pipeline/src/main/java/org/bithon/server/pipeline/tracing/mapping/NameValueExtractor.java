@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -34,6 +35,7 @@ import java.util.function.BiConsumer;
  */
 public class NameValueExtractor implements ITraceIdMappingExtractor {
 
+    @Getter
     private final Collection<String> tags;
 
     public NameValueExtractor(Collection<String> tags) {

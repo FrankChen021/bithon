@@ -78,7 +78,8 @@ public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExport
                 return;
             }
 
-            if (!processors.isEmpty()) {
+            ITransformer[] processors = getCopyOfProcessors();
+            if (processors.length > 0) {
                 spans = spans.parallelStream()
                              .filter((span) -> {
                                  for (ITransformer processor : processors) {
