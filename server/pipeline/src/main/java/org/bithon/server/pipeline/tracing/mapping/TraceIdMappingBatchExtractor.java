@@ -16,13 +16,20 @@
 
 package org.bithon.server.pipeline.tracing.mapping;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
@@ -32,8 +39,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,101 +47,127 @@ import java.util.function.Function;
 @Slf4j
 public class TraceIdMappingBatchExtractor {
 
-    /**
-     * create trace id mapping extractors from configuration
-     */
-    public static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ApplicationContext context) {
-        final List<ITraceIdMappingExtractor> extractorList = new ArrayList<>();
+    private List<ITraceIdMappingExtractor> extractorList;
 
-        //
-        // Create extractors from configuration
-        //
-        TracePipelineConfig config = context.getBean(TracePipelineConfig.class);
-        if (!CollectionUtils.isEmpty(config.getMapping())) {
-            ObjectMapper mapper = context.getBean(ObjectMapper.class);
-            for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
-                try {
-                    String json = mapper.writeValueAsString(mappingConfig);
-                    extractorList.add(mapper.readValue(json, ITraceIdMappingExtractor.class));
-                } catch (IOException e) {
-                    throw new RuntimeException("Unable to create extractor for type " + mappingConfig.getOrDefault("type", ""), e);
-                }
+    public TraceIdMappingBatchExtractor(List<ITraceIdMappingExtractor> extractorList) {
+        this.extractorList = extractorList;
+    }
+
+    private void setExtractorList(List<ITraceIdMappingExtractor> extractorList) {
+        this.extractorList = extractorList;
+    }
+
+    public List<TraceIdMapping> extract(Collection<TraceSpan> spanList) {
+        Set<String> duplication = new HashSet<>();
+
+        // remove duplicated mappings from returned values of extractors
+        List<TraceIdMapping> mappings = new ArrayList<>();
+
+        for (TraceSpan span : spanList) {
+            // extractors extract mapping from tags,
+            // if there are no tags, it's no need to call extractors
+            if (CollectionUtils.isEmpty(span.getTags())) {
+                continue;
+            }
+
+            for (ITraceIdMappingExtractor extractor : extractorList) {
+                extractor.extract(span,
+                                  (thisSpan, userId) -> {
+                                      if (duplication.add(thisSpan.getTraceId() + "/" + userId)) {
+                                          mappings.add(new TraceIdMapping(userId,
+                                                                          thisSpan.getStartTime() / 1000,
+                                                                          thisSpan.getTraceId()));
+
+                                      }
+                                  });
             }
         }
 
-        return create(extractorList);
+        return mappings;
+    }
+
+    /**
+     * create trace id mapping extractors from configuration
+     */
+    public static TraceIdMappingBatchExtractor create(ConfigurableApplicationContext applicationContext) {
+        //
+        // Create extractors from configuration
+        //
+        TracePipelineConfig config = applicationContext.getBean(TracePipelineConfig.class);
+        TraceIdMappingBatchExtractor factory = new TraceIdMappingBatchExtractor(deserializeExtractors(applicationContext.getBean(ObjectMapper.class), config));
+
+        //
+        // Register a listener to reload extractors when configuration changed
+        //
+        ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
+        Preconditions.checkNotNull(properties, "PipelineConfig class must be annotated with @ConfigurationProperties");
+        String pipelineConfigPrefix = properties.prefix();
+        String prefix = properties.prefix() + ".mapping";
+        applicationContext.addApplicationListener((ApplicationListener<EnvironmentChangeEvent>) event -> {
+            boolean isMappingChanged = event.getKeys()
+                                            .stream()
+                                            .anyMatch(key -> key.startsWith(prefix));
+            if (!isMappingChanged) {
+                return;
+            }
+
+            TracePipelineConfig pipelineConfig = Binder.get(applicationContext.getEnvironment())
+                                                       .bind(pipelineConfigPrefix, TracePipelineConfig.class)
+                                                       .orElse(null);
+            if (pipelineConfig == null) {
+                log.warn("Trace mapping configuration changed. But failed to reload configurations.");
+                return;
+            }
+
+            ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
+            try {
+                String json = pipelineConfig.getMapping() == null ? "[]" : objectMapper.copy()
+                                                                                       .configure(SerializationFeature.INDENT_OUTPUT, true)
+                                                                                       .writeValueAsString(pipelineConfig.getMapping());
+                log.info("Reloading trace id mappings:\n{}", json);
+            } catch (JsonProcessingException ignored) {
+            }
+
+            factory.setExtractorList(deserializeExtractors(objectMapper, pipelineConfig));
+        });
+
+        return factory;
+    }
+
+    private static List<ITraceIdMappingExtractor> deserializeExtractors(ObjectMapper objectMapper, TracePipelineConfig config) {
+        List extractors = initializeExtractors();
+
+        if (CollectionUtils.isEmpty(config.getMapping())) {
+            return extractors;
+        }
+
+        for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
+            try {
+                String json = objectMapper.writeValueAsString(mappingConfig);
+                extractors.add(objectMapper.readValue(json, ITraceIdMappingExtractor.class));
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to create extractor for type " + mappingConfig.getOrDefault("type", ""), e);
+            }
+        }
+
+        return extractors;
     }
 
     /**
      * Only for test cases
      */
-    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ITraceIdMappingExtractor... extractors) {
-        return create(new ArrayList<>(Arrays.asList(extractors)));
+    @VisibleForTesting
+    static TraceIdMappingBatchExtractor create(ITraceIdMappingExtractor... extractors) {
+        List<ITraceIdMappingExtractor> extractorList = initializeExtractors();
+        extractorList.addAll(Arrays.asList(extractors));
+        return new TraceIdMappingBatchExtractor(extractorList);
     }
 
-    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(List<ITraceIdMappingExtractor> extractorList) {
+    private static List<ITraceIdMappingExtractor> initializeExtractors() {
         // Add default extractor to first
-        extractorList.add(0, CompatibilityIdMappingExtractor.INSTANCE);
-        extractorList.add(0, TraceIdExtractor.INSTANCE);
-
-        return spanList -> {
-            Set<String> duplication = new HashSet<>();
-
-            // remove duplicated mappings from returned values of extractors
-            List<TraceIdMapping> mappings = new ArrayList<>();
-
-            for (TraceSpan span : spanList) {
-                // extractors extract mapping from tags,
-                // if there are no tags, it's no need to call extractors
-                if (CollectionUtils.isEmpty(span.getTags())) {
-                    continue;
-                }
-
-                for (ITraceIdMappingExtractor extractor : extractorList) {
-                    extractor.extract(span,
-                                      (thisSpan, uTxId) -> {
-                                          if (duplication.add(uTxId)) {
-                                              mappings.add(new TraceIdMapping(uTxId,
-                                                                              thisSpan.getStartTime() / 1000,
-                                                                              thisSpan.getTraceId()));
-
-                                          }
-                                      });
-                }
-            }
-
-            return mappings;
-        };
-    }
-
-    /**
-     * see: <a href="https://github.com/FrankChen021/bithon/issues/260">This issue</a>
-     */
-    static class CompatibilityIdMappingExtractor implements ITraceIdMappingExtractor {
-        static final ITraceIdMappingExtractor INSTANCE = new CompatibilityIdMappingExtractor();
-
-        @Override
-        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
-            if (!"SERVER".equals(span.getKind())) {
-                return;
-            }
-            String upstreamTraceId = span.getTags().get("upstreamTraceId");
-            if (StringUtils.hasText(upstreamTraceId)) {
-                consumer.accept(span, upstreamTraceId);
-            }
-        }
-    }
-
-    /**
-     * Extract trace id itself as a mapping-entry.
-     * This helps to improve the search performance when searching trace by given trace-id
-     */
-    static class TraceIdExtractor implements ITraceIdMappingExtractor {
-        static final ITraceIdMappingExtractor INSTANCE = new TraceIdExtractor();
-
-        @Override
-        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> consumer) {
-            consumer.accept(span, span.getTraceId());
-        }
+        List extractors = new ArrayList();
+        extractors.add(CurrentTraceIdExtractor.INSTANCE);
+        extractors.add(UpstreamTraceIdExtractor.INSTANCE);
+        return extractors;
     }
 }
