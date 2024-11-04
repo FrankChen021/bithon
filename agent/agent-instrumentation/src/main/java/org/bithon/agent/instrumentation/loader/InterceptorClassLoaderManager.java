@@ -16,8 +16,6 @@
 
 package org.bithon.agent.instrumentation.loader;
 
-import org.bithon.agent.instrumentation.utils.AgentDirectory;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,9 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  * @date 2020-12-31 22:28:23
  */
-public final class PluginClassLoaderManager {
-    private static JarClassLoader defaultLoader;
+public final class InterceptorClassLoaderManager {
     private static final Map<ClassLoader, ClassLoader> LOADER_MAPPING = new ConcurrentHashMap<>();
+
+    private static final InterceptorClassLoader DEFAULT_LOADER = new InterceptorClassLoader(PluginClassLoader.getClassLoader());
 
     /**
      * class loader for class which is being transformed.
@@ -37,21 +36,9 @@ public final class PluginClassLoaderManager {
      */
     public static ClassLoader getClassLoader(ClassLoader appClassLoader) {
         return appClassLoader == null
-               ? defaultLoader
-               : LOADER_MAPPING.computeIfAbsent(appClassLoader,
-                                                k -> new PluginClassLoader(defaultLoader,
-                                                                           appClassLoader));
-    }
-
-    public static JarClassLoader getDefaultLoader() {
-        return defaultLoader;
-    }
-
-    public static synchronized void createDefault() {
-        if (defaultLoader == null) {
-            defaultLoader = new JarClassLoader("plugin",
-                                               AgentDirectory.getSubDirectory("plugins"),
-                                               AgentClassLoader.getClassLoader());
-        }
+            ? DEFAULT_LOADER
+            : LOADER_MAPPING.computeIfAbsent(appClassLoader,
+                                             k -> new InterceptorClassLoader(PluginClassLoader.getClassLoader(),
+                                                                             appClassLoader));
     }
 }

@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
@@ -45,7 +45,7 @@ public abstract class PluginResolver {
 
     public PluginResolver() {
         // create plugin class loader first
-        PluginClassLoaderManager.createDefault();
+        PluginClassLoader.createClassLoader();
     }
 
     public Descriptors resolveInterceptors() {
@@ -72,7 +72,7 @@ public abstract class PluginResolver {
      */
     private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
         LOG.info("Resolving interceptor type from all enabled plugins...");
-        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoaderManager.getDefaultLoader());
+        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
 
         for (Descriptors.Descriptor descriptor : descriptors) {
             for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
@@ -92,7 +92,7 @@ public abstract class PluginResolver {
     }
 
     private List<IPlugin> loadPlugins() {
-        JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
+        JarClassLoader pluginClassLoader = PluginClassLoader.getClassLoader();
         return pluginClassLoader.getJars()
                                 .stream()
                                 .flatMap(JarFile::stream)
