@@ -40,7 +40,7 @@ import java.util.function.Function;
  * @date 10/12/21 4:44 PM
  */
 @Slf4j
-public class TraceMappingFactory {
+public class TraceIdMappingBatchExtractor {
 
     /**
      * create trace id mapping extractors from configuration
