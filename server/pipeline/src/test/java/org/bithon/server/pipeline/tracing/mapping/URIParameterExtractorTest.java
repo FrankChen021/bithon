@@ -22,10 +22,8 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,8 +41,8 @@ public class URIParameterExtractorTest {
                                                         "status",
                                                         "200")).build();
 
-        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
-        List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
+        TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
+        List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
         Assert.assertEquals(2, mappings.size());
 
         // Trace Id
@@ -68,8 +66,8 @@ public class URIParameterExtractorTest {
                                      "status",
                                      "200"));
 
-        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
-        List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
+        TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
+        List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
 
         Assert.assertEquals(2, mappings.size());
 
@@ -94,8 +92,8 @@ public class URIParameterExtractorTest {
                                      "status",
                                      "200"));
 
-        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
-        List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
+        TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
+        List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
 
         Assert.assertEquals(2, mappings.size());
         // Trace Id
@@ -116,8 +114,8 @@ public class URIParameterExtractorTest {
         span.setStartTime(System.currentTimeMillis());
         span.setTags(ImmutableMap.of("uri", "/?query=SELECT+1&query_id====", "status", "200"));
 
-        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
-        List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
+        TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
+        List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
         Assert.assertEquals(2, mappings.size());
 
         // Trace Id
@@ -127,6 +125,33 @@ public class URIParameterExtractorTest {
 
         // User Id
         Assert.assertEquals("===", mappings.get(1).getUserId());
+        Assert.assertEquals("1", mappings.get(1).getTraceId());
+        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+    }
+
+    @Test
+    public void test_Deduplication() {
+        TraceSpan span = new TraceSpan();
+        span.setTraceId("1");
+        span.setStartTime(System.currentTimeMillis());
+        span.setTags(ImmutableMap.of("uri", "/?query=SELECT+1&query_id=uid", "status", "200"));
+
+        TraceSpan span2 = new TraceSpan();
+        span2.setTraceId("1");
+        span2.setStartTime(System.currentTimeMillis());
+        span2.setTags(ImmutableMap.of("uri", "/?query=SELECT+1&query_id=uid", "status", "200"));
+
+        TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
+        List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
+        Assert.assertEquals(2, mappings.size());
+
+        // Trace Id
+        Assert.assertEquals("1", mappings.get(0).getUserId());
+        Assert.assertEquals("1", mappings.get(0).getTraceId());
+        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+
+        // User Id
+        Assert.assertEquals("uid", mappings.get(1).getUserId());
         Assert.assertEquals("1", mappings.get(1).getTraceId());
         Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }

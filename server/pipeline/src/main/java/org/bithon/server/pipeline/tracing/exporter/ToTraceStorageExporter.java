@@ -24,20 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.pipeline.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.pipeline.tracing.index.TagIndexGenerator;
-import org.bithon.server.pipeline.tracing.mapping.TraceMappingFactory;
+import org.bithon.server.pipeline.tracing.mapping.TraceIdMappingBatchExtractor;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Function;
 
 /**
  * Backpressure sink handler
@@ -52,7 +49,7 @@ public class ToTraceStorageExporter implements ITraceExporter {
     private final Handler handler;
 
     @JsonCreator
-    public ToTraceStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public ToTraceStorageExporter(@JacksonInject(useInput = OptBoolean.FALSE) ConfigurableApplicationContext applicationContext) {
         this.handler = new Handler(applicationContext);
     }
 
@@ -69,10 +66,10 @@ public class ToTraceStorageExporter implements ITraceExporter {
     static class Handler extends AbstractThreadPoolMessageHandler<List<TraceSpan>> {
 
         private final ITraceWriter traceWriter;
-        private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
+        private final TraceIdMappingBatchExtractor mappingExtractor;
         private final TagIndexGenerator tagIndexBuilder;
 
-        public Handler(ApplicationContext applicationContext) {
+        public Handler(ConfigurableApplicationContext applicationContext) {
             super("trace-sink",
                   1,
                   10,
@@ -83,7 +80,7 @@ public class ToTraceStorageExporter implements ITraceExporter {
 
             TracePipelineConfig sinkConfig = applicationContext.getBean(TracePipelineConfig.class);
             this.traceWriter = new TraceBatchWriter(applicationContext.getBean(ITraceStorage.class).createWriter(), sinkConfig);
-            this.mappingExtractor = TraceMappingFactory.create(applicationContext);
+            this.mappingExtractor = TraceIdMappingBatchExtractor.create(applicationContext);
             this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceStorageConfig.class));
         }
 
@@ -94,7 +91,7 @@ public class ToTraceStorageExporter implements ITraceExporter {
             }
 
             traceWriter.write(spans,
-                              mappingExtractor.apply(spans),
+                              mappingExtractor.extract(spans),
                               tagIndexBuilder.generate(spans));
         }
 
