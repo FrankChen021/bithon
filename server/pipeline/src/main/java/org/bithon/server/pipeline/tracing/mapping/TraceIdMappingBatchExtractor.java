@@ -70,7 +70,10 @@ public class TraceIdMappingBatchExtractor {
                 continue;
             }
 
-            for (ITraceIdMappingExtractor extractor : extractorList) {
+            // Since the reference of extractorList might be changed during runtime to support dynamic configuration,
+            // we need to make a copy of the list to avoid concurrent modification exception
+            ITraceIdMappingExtractor[] extractors = this.extractorList.toArray(new ITraceIdMappingExtractor[0]);
+            for (ITraceIdMappingExtractor extractor : extractors) {
                 extractor.extract(span,
                                   (thisSpan, userId) -> {
                                       if (duplication.add(thisSpan.getTraceId() + "/" + userId)) {

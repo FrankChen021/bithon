@@ -54,10 +54,9 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
     protected PipelineConfig pipelineConfig;
 
     protected final List<RECEIVER> receivers;
-    protected List<ITransformer> processors;
+    private List<ITransformer> processors;
     protected final List<EXPORTER> exporters = new ArrayList<>();
     private boolean isRunning = false;
-
     private final String pipelineConfigPrefix;
 
     protected AbstractPipeline(Class<RECEIVER> receiverClass,
@@ -80,6 +79,11 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         this.objectMapper = objectMapper;
 
         initializeExportersFromConfig(pipelineConfig, objectMapper, exporterClass);
+    }
+
+    public ITransformer[] getCopyOfProcessors() {
+        // Create a new copy of processors to avoid concurrent modification exception
+        return processors.toArray(new ITransformer[0]);
     }
 
     private <T> T createObject(Class<T> clazz, ObjectMapper objectMapper, Object configuration) throws IOException {
