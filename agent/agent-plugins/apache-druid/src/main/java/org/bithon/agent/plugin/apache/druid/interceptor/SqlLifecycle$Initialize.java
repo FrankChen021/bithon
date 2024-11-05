@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.Tags;
@@ -30,19 +30,20 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 4/1/22 6:37 PM
  */
-public class SqlLifecycle$Initialize extends BeforeInterceptor {
+public class SqlLifecycle$Initialize extends AfterInterceptor {
 
     @Override
-    public void before(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
-        if (ctx != null) {
-            Object query = aopContext.getArgs()[0];
-            Map<String, Object> context = aopContext.getArgAs(1);
-            if (query != null && !ctx.currentSpan().tags().containsKey("query")) {
-                ctx.currentSpan()
-                   .tag("query_id", context == null ? null : (String) context.getOrDefault("queryId", null))
-                   .tag(Tags.Database.STATEMENT, query.toString());
-            }
+        if (ctx == null) {
+            return;
+        }
+
+        String sql = aopContext.getArgAs(0);
+        if (sql != null && !ctx.currentSpan().tags().containsKey("sql")) {
+            ctx.currentSpan()
+               .tag("druid.query_id", aopContext.getReturning())
+               .tag(Tags.Database.STATEMENT, sql.toString());
         }
     }
 }
