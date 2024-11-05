@@ -81,8 +81,8 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
 
                 String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                 if (StringUtils.hasText(traceIdHeader)) {
-                    exchange.getResponseHeaders().put(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
-                    exchange.getResponseHeaders().put(HttpString.tryFromString(traceConfig.getTraceModeResponseHeader()), traceContext.traceMode().text());
+                    exchange.getResponseHeaders().add(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
+                    exchange.getResponseHeaders().add(HttpString.tryFromString(traceConfig.getTraceModeResponseHeader()), traceContext.traceMode().text());
                 }
             }
         }

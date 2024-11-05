@@ -130,8 +130,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
                         final HttpServerResponse response = aopContext.getArgAs(1);
                         String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                         if (StringUtils.hasText(traceIdHeader)) {
-                            response.header(traceIdHeader, traceContext.traceId());
-                            response.header(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
+                            response.addHeader(traceIdHeader, traceContext.traceId());
+                            response.addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
                         }
                     }
 

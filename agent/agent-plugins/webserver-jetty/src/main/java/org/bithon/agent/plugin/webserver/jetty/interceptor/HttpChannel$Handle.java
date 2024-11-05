@@ -89,8 +89,8 @@ public class HttpChannel$Handle extends AroundInterceptor {
 
                     String traceIdHeader = traceConfig.getTraceIdResponseHeader();
                     if (StringUtils.hasText(traceIdHeader)) {
-                        httpChannel.getResponse().setHeader(traceIdHeader, traceContext.traceId());
-                        httpChannel.getResponse().setHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
+                        httpChannel.getResponse().addHeader(traceIdHeader, traceContext.traceId());
+                        httpChannel.getResponse().addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
                     }
                 }
             }
