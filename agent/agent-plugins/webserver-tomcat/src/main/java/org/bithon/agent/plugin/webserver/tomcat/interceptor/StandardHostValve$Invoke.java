@@ -98,8 +98,8 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
 
             String traceIdHeader = traceConfig.getTraceIdResponseHeader();
             if (StringUtils.hasText(traceIdHeader)) {
-                request.getResponse().addHeader(traceIdHeader, traceContext.traceId());
-                request.getResponse().addHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
+                request.getResponse().setHeader(traceIdHeader, traceContext.traceId());
+                request.getResponse().setHeader(traceConfig.getTraceModeResponseHeader(), traceContext.traceMode().text());
             }
         }
 
