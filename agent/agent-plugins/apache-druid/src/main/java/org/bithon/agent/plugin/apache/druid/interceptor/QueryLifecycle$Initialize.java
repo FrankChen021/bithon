@@ -16,29 +16,52 @@
 
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.druid.jackson.DefaultObjectMapper;
+import org.apache.druid.query.Query;
 import org.apache.druid.server.QueryLifecycle;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.component.commons.tracing.Tags;
 
 /**
+ * {@link org.apache.druid.server.QueryLifecycle#initialize(Query)}
+ *
  * @author frank.chen021@outlook.com
  * @date 4/1/22 6:38 PM
  */
 public class QueryLifecycle$Initialize extends AfterInterceptor {
 
+    private static volatile ObjectMapper objectMapper = null;
+
     @Override
     public void after(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
-        if (ctx != null) {
-            QueryLifecycle lifecycle = aopContext.getTargetAs();
-            if (!ctx.currentSpan().tags().containsKey("query")) {
-                ctx.currentSpan()
-                   .tag("query_id", lifecycle.getQuery().getId())
-                   .tag(Tags.Database.STATEMENT, lifecycle.getQuery().toString());
+        if (ctx == null) {
+            return;
+        }
+
+        // Defer initialization to runtime
+        if (objectMapper == null) {
+            synchronized (QueryLifecycle$Initialize.class) {
+                if (objectMapper == null) {
+                    objectMapper = DefaultObjectMapper.INSTANCE.copy()
+                                                               .configure(SerializationFeature.INDENT_OUTPUT, true);
+                }
             }
+        }
+
+        QueryLifecycle lifecycle = aopContext.getTargetAs();
+        ctx.currentSpan()
+           .tag("druid.query_id", lifecycle.getQuery().getId());
+
+        try {
+            ctx.currentSpan().tag("druid.query", objectMapper.writeValueAsString(lifecycle.getQuery()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
