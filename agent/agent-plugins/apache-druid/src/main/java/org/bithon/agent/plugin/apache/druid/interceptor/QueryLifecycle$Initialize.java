@@ -16,16 +16,14 @@
 
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.druid.jackson.DefaultObjectMapper;
 import org.apache.druid.query.Query;
 import org.apache.druid.server.QueryLifecycle;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
+
+import java.io.IOException;
 
 /**
  * {@link org.apache.druid.server.QueryLifecycle#initialize(Query)}
@@ -35,8 +33,6 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
  */
 public class QueryLifecycle$Initialize extends AfterInterceptor {
 
-    private static volatile ObjectMapper objectMapper = null;
-
     @Override
     public void after(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
@@ -44,23 +40,16 @@ public class QueryLifecycle$Initialize extends AfterInterceptor {
             return;
         }
 
-        // Defer initialization to runtime
-        if (objectMapper == null) {
-            synchronized (QueryLifecycle$Initialize.class) {
-                if (objectMapper == null) {
-                    objectMapper = DefaultObjectMapper.INSTANCE.copy()
-                                                               .configure(SerializationFeature.INDENT_OUTPUT, true);
-                }
-            }
-        }
-
+        // Defer initialization to runtime.
+        // This is because the DefaultObjectMapper is part of the druid library,
+        // initializing it in agent might change the loading order of the druid library.
         QueryLifecycle lifecycle = aopContext.getTargetAs();
         ctx.currentSpan()
            .tag("druid.query_id", lifecycle.getQuery().getId());
 
         try {
-            ctx.currentSpan().tag("druid.query", objectMapper.writeValueAsString(lifecycle.getQuery()));
-        } catch (JsonProcessingException e) {
+            ctx.currentSpan().tag("druid.query", ObjectMapperInstance.toString(lifecycle.getQuery()));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

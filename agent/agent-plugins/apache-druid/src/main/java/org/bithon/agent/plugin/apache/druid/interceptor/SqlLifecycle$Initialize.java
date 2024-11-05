@@ -40,10 +40,8 @@ public class SqlLifecycle$Initialize extends AfterInterceptor {
         }
 
         String sql = aopContext.getArgAs(0);
-        if (sql != null && !ctx.currentSpan().tags().containsKey("sql")) {
-            ctx.currentSpan()
-               .tag("druid.query_id", aopContext.getReturning())
-               .tag(Tags.Database.STATEMENT, sql.toString());
-        }
+        ctx.currentSpan()
+           .tag("druid.query_id", aopContext.getReturning())
+           .tag(Tags.Database.STATEMENT, sql);
     }
 }
