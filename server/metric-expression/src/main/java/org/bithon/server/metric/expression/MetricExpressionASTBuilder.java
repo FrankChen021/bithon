@@ -39,6 +39,7 @@ import org.bithon.server.web.service.datasource.api.QueryField;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -129,13 +130,13 @@ public class MetricExpressionASTBuilder {
                 }
             }
 
-            List<String> groupBy = null;
+            Set<String> groupBy = null;
             MetricExpressionParser.GroupByExpressionContext groupByExpression = ctx.groupByExpression();
             if (groupByExpression != null) {
                 groupBy = groupByExpression.IDENTIFIER()
                                            .stream()
                                            .map((identifier) -> identifier.getSymbol().getText())
-                                           .collect(Collectors.toList());
+                                           .collect(Collectors.toSet());
             }
 
             MetricExpression expression = new MetricExpression();

@@ -29,6 +29,7 @@ import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -54,7 +55,7 @@ public class QueryRequest {
     private List<QueryField> fields;
 
     @Nullable
-    private List<String> groupBy;
+    private Set<String> groupBy;
 
     @Nullable
     private OrderBy orderBy;
