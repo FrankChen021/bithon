@@ -43,7 +43,9 @@ import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -59,11 +61,11 @@ public class QueryConverter {
 
         Query.QueryBuilder builder = Query.builder();
 
-        List<String> groupBy;
+        Set<String> groupBy;
         if (useInputGroupBy) {
             groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
         } else {
-            groupBy = new ArrayList<>(4);
+            groupBy = new HashSet<>(4);
         }
 
         // Turn into internal objects (post aggregators...)
@@ -237,7 +239,8 @@ public class QueryConverter {
         if (orderBy != null && StringUtils.hasText(orderBy.getName())) {
             boolean exists = request.getFields()
                                     .stream()
-                                    .anyMatch((filter) -> filter.getName().equals(orderBy.getName()));
+                                    .anyMatch((filter) -> filter.getName().equals(orderBy.getName()))
+                             || (request.getGroupBy() != null && request.getGroupBy().contains(orderBy.getName()));
 
             Preconditions.checkIfTrue(exists, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
         }
