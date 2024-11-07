@@ -162,8 +162,8 @@ If the target application runs under JDK 11 and above, the following arguments s
 | JDK - Thread Pool                                            | 1.8         |             | &check;                                        |         |
 | JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Alibaba Druid                                                | 1.0.28      |             | &check;                                        |         |
-| Apache Druid                                                 | 0.16        | 24.0        |                                                | &check; |
-| Apache Kafka(1)                                              | 0.10        |             | &check;                                        | &check; |
+| Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
+| Apache Kafka(2)                                              | 0.10        |             | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
 | GRPC                                                         | 1.57.0      |             | &check;                                        |         |
@@ -179,7 +179,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Open Feign                                                   | 10.8        |             |                                                | &check; |
 | Quartz                                                       | 2.x         |             | &check;                                        | &check; |
 | Redis - Jedis                                                | 2.9         | 5.x         | &check;                                        | &check; |
-| Redis - Lettuce(2)                                           | 5.1.2       | 6.x         | &check;                                        | &check; |
+| Redis - Lettuce(3)                                           | 5.1.2       | 6.x         | &check;                                        | &check; |
 | Redis - Redisson                                             | 3.19.0      |             | &check;                                        | &check; |
 | Spring Boot                                                  | 1.5         | 3.0+        |                                                | &check; |
 | [Spring Bean](doc/configuration/agent/plugin/spring-bean.md) | 4.3.12      |             |                                                | &check; |
@@ -194,8 +194,9 @@ If the target application runs under JDK 11 and above, the following arguments s
 | xxl-job                                                      | 2.3.0       |             |                                                | &check; |
 
 ## Restrictions
-1. For Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
-2. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API.
+1. For Apache Druid, the Jersey plugin is required to be enabled to collect query information.
+2. For Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
+3. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API.
 
 
 
