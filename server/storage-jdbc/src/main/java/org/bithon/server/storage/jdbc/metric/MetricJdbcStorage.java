@@ -112,6 +112,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                                        }
                                    })
                                    .filter(Objects::nonNull)
+                                   .sorted()
                                    .collect(Collectors.toList());
     }
 
