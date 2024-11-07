@@ -48,29 +48,29 @@ public class SqlResource$DoPost extends BeforeInterceptor {
         }
 
         SqlQuery sqlQuery = aopContext.getArgAs(0);
-        Object queryId = sqlQuery.getContext().get("sqlQueryId");
-        if (queryId == null) {
+        Object sqlQueryId = sqlQuery.getContext().get("sqlQueryId");
+        if (sqlQueryId == null) {
             try {
-                queryId = UUID.randomUUID().toString();
+                sqlQueryId = UUID.randomUUID().toString();
 
                 ObjectNode newQuery = ObjectMapperInstance.toTree(sqlQuery);
                 ObjectNode context = (ObjectNode) newQuery.get("context");
                 if (context == null) {
                     context = newQuery.putObject("context");
                 }
-                context.put("sqlQueryId", (String) queryId);
+                context.put("sqlQueryId", (String) sqlQueryId);
                 sqlQuery = ObjectMapperInstance.fromTree(newQuery, SqlQuery.class);
 
                 // Update the input argument
                 aopContext.getArgs()[0] = sqlQuery;
             } catch (IOException ignored) {
                 // Ignore the exception
-                queryId = "";
+                sqlQueryId = "";
             }
         }
 
         ctx.currentSpan()
-           .tag("druid.query_id", queryId.toString())
+           .tag("druid.sql_query_id", sqlQueryId.toString())
            .tag(Tags.Database.STATEMENT, sqlQuery.getQuery());
     }
 }
