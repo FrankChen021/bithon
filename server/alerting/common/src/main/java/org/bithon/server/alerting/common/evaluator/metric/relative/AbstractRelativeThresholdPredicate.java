@@ -39,6 +39,7 @@ import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,7 +77,8 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                                       TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy, EvaluationContext context) throws IOException {
+                                      Set<String> groupBy,
+                                      EvaluationContext context) throws IOException {
 
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)

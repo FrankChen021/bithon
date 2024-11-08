@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -52,7 +53,7 @@ public class NullValuePredicate implements IMetricEvaluator {
                                       TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy,
+                                      Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)

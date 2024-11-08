@@ -40,6 +40,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -83,15 +84,15 @@ public class AbstractBaselinePredicate implements IMetricEvaluator {
                                       TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy,
+                                      Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
 
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
+                                                                                            .startISO8601(start.toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
                                                                    .filterExpression(filterExpression)
                                                                    .fields(Collections.singletonList(metric))
                                                                    .groupBy(groupBy)

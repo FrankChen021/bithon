@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,8 +48,8 @@ public class CollectionUtils {
         return objs == null || objs.length == 0;
     }
 
-    public static <E> Collection<E> emptyOrOriginal(Collection<E> collection) {
-        return collection == null ? Collections.emptyList() : collection;
+    public static <E> Set<E> emptyOrOriginal(Set<E> collection) {
+        return collection == null ? Collections.emptySet() : collection;
     }
 
     public static <E> List<E> emptyOrOriginal(List<E> collection) {

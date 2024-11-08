@@ -288,7 +288,7 @@ public class TraceService {
                     return false;
                 }
 
-                IExpression mapContainerExpression = ((MapAccessExpression) left).getMap();
+                IExpression mapContainerExpression = mapAccessExpression.getMap();
                 if (!(mapContainerExpression instanceof IdentifierExpression)) {
                     throw new UnsupportedOperationException("Only identifier is supported as map container");
                 }

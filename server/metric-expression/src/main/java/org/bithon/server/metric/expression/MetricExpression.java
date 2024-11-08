@@ -35,12 +35,11 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
- *
  * <p>
  * Absolute comparison
  * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
@@ -65,7 +64,7 @@ public class MetricExpression implements IExpression {
     private HumanReadableDuration window;
 
     @Nullable
-    private List<String> groupBy;
+    private Set<String> groupBy;
 
     /**
      * Post filter
