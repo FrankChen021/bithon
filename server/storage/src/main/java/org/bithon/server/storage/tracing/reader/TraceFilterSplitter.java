@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.ObjectColumn;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,6 +61,7 @@ public class TraceFilterSplitter {
 
     public void split(IExpression expression) {
         if (expression == null) {
+            this.indexedTagFilters = Collections.emptyList();
             return;
         }
 
