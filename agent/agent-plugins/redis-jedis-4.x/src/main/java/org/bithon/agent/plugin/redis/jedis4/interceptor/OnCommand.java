@@ -55,18 +55,15 @@ public class OnCommand extends AroundInterceptor {
         InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 
         ITraceSpan span = TraceContextFactory.newSpan("jedis");
-        if (span == null) {
-            return InterceptionDecision.CONTINUE;
+        if (span != null) {
+            aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), aopContext.getMethod())
+                                   .kind(SpanKind.CLIENT)
+                                   .tag(Tags.Net.PEER, hostAndPort)
+                                   .tag(Tags.Database.SYSTEM, "redis")
+                                   .tag(Tags.Database.OPERATION, command)
+                                   .tag(Tags.Database.REDIS_DB_INDEX, db)
+                                   .start());
         }
-
-        aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), aopContext.getMethod())
-                               .kind(SpanKind.CLIENT)
-                               .tag(Tags.Net.PEER, hostAndPort)
-                               .tag(Tags.Database.SYSTEM, "redis")
-                               .tag(Tags.Database.OPERATION, command)
-                               .tag(Tags.Database.REDIS_DB_INDEX, db)
-                               .start());
-
         return InterceptionDecision.CONTINUE;
     }
 
