@@ -52,6 +52,13 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final SqlDialectManager sqlDialectManager;
     protected final ApplicationContext applicationContext;
 
+    /**
+     * NOTE,
+     * inject ApplicationContext instead of SchemaManager
+     * to defer the object injection so that the circular dependency problem can be resolved.
+     * In the future,
+     * we may need to reverse the dependency of storage and reader/writer to solve the dependency problem from root.
+     */
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
