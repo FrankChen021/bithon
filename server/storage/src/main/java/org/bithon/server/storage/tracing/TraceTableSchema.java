@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public class TraceTableSchema implements ISchema {
 
+    public static final String TRACE_SPAN_SUMMARY_SCHEMA_NAME = "trace_span_summary";
+    public static final String TRACE_SPAN_TAG_INDEX_SCHEMA_NAME = "trace_span_tag_index";
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
     private final String name;
 
@@ -126,9 +128,10 @@ public class TraceTableSchema implements ISchema {
     }
 
     public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
-        return new TraceTableSchema("trace_span_summary",
+        return new TraceTableSchema(TRACE_SPAN_SUMMARY_SCHEMA_NAME,
                                     traceStorage,
-                                    Arrays.asList(new StringColumn("appName",
+                                    Arrays.asList(new StringColumn("traceId", "traceId"),
+                                                  new StringColumn("appName",
                                                                    "appName"),
                                                   new StringColumn("instanceName",
                                                                    "instanceName"),
@@ -142,7 +145,10 @@ public class TraceTableSchema implements ISchema {
 
                                                   // microsecond
                                                   new AggregateLongSumColumn("costTimeMs",
-                                                                             "costTimeMs"))
+                                                                             "costTimeMs"),
+
+                                                  // microsecond
+                                                  new AggregateLongSumColumn("startTimeUs", "startTimeUs"))
         );
     }
 
@@ -158,7 +164,7 @@ public class TraceTableSchema implements ISchema {
             }
         }
 
-        return new TraceTableSchema("trace_span_tag_index",
+        return new TraceTableSchema(TRACE_SPAN_TAG_INDEX_SCHEMA_NAME,
                                     traceStorage,
                                     dimensionSpecs);
 

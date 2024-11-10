@@ -16,31 +16,17 @@
 
 package org.bithon.server.web.service.tracing.service;
 
-import org.bithon.component.commons.exception.HttpMappableException;
-import org.bithon.component.commons.expression.ArithmeticExpression;
-import org.bithon.component.commons.expression.ArrayAccessExpression;
-import org.bithon.component.commons.expression.ComparisonExpression;
-import org.bithon.component.commons.expression.ConditionalExpression;
-import org.bithon.component.commons.expression.ExpressionList;
-import org.bithon.component.commons.expression.FunctionExpression;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaManager;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.ObjectColumn;
-import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
+import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
@@ -48,7 +34,6 @@ import org.bithon.server.web.service.datasource.api.impl.QueryFilter;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -139,11 +124,11 @@ public class TraceService {
     public int getTraceListSize(String filterExpression,
                                 Timestamp start,
                                 Timestamp end) {
-        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
         splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
-        return traceReader.getTraceListSize(splitter.expression,
-                                            splitter.indexedTagFilters,
+        return traceReader.getTraceListSize(splitter.getExpression(),
+                                            splitter.getIndexedTagFilters(),
                                             start,
                                             end);
     }
@@ -151,32 +136,29 @@ public class TraceService {
     public List<TraceSpan> getTraceList(String filterExpression,
                                         Timestamp start,
                                         Timestamp end,
-                                        String orderBy,
-                                        Order order,
-                                        int pageNumber,
-                                        int pageSize) {
-        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+                                        OrderBy orderBy,
+                                        Limit limit) {
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
         splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
-        return traceReader.getTraceList(splitter.expression,
-                                        splitter.indexedTagFilters,
+        return traceReader.getTraceList(splitter.getExpression(),
+                                        splitter.getIndexedTagFilters(),
                                         start,
                                         end,
                                         orderBy,
-                                        order,
-                                        pageNumber, pageSize);
+                                        limit);
     }
 
     public TimeSeriesQueryResult getTraceDistribution(String filterExpression,
                                                       TimeSpan start,
                                                       TimeSpan end,
                                                       int bucketCount) {
-        FilterSplitter splitter = new FilterSplitter(this.summaryTableSchema, this.indexTableSchema);
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
         splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
 
         int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
-        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.expression,
-                                                                                splitter.indexedTagFilters,
+        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.getExpression(),
+                                                                                splitter.getIndexedTagFilters(),
                                                                                 start.toTimestamp(),
                                                                                 end.toTimestamp(),
                                                                                 interval);
@@ -190,151 +172,4 @@ public class TraceService {
                                            metrics);
     }
 
-    static class FilterSplitter {
-        private IExpression expression;
-        private List<IExpression> indexedTagFilters;
-        private final ISchema summaryTableSchema;
-        private final ISchema indexTableSchema;
-
-        public FilterSplitter(ISchema summaryTableSchema,
-                              ISchema indexTableSchema) {
-            this.summaryTableSchema = summaryTableSchema;
-            this.indexTableSchema = indexTableSchema;
-        }
-
-        void split(IExpression expression) {
-            if (expression == null) {
-                return;
-            }
-
-            if (!(expression instanceof LogicalExpression)
-                && !(expression instanceof ConditionalExpression)
-            ) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "The given expression is neither a logical expression(and/or/not) nor a conditional expression, but a %s",
-                                                expression.getType());
-            }
-
-            SplitterImpl splitter = new SplitterImpl(this.summaryTableSchema, this.indexTableSchema);
-            expression.accept(splitter);
-            this.indexedTagFilters = splitter.indexedTagFilters;
-            this.expression = expression;
-        }
-
-        /**
-         * This Splitter extracts filters on the 'attributes' column which is indexed
-         * so that the execution engine will generate queries on the indexed table.
-         * <p>
-         * For example, let's say the tag 'http.method'
-         * is indexed to the first column (defined in the {@link org.bithon.server.storage.tracing.index.TagIndexConfig}),
-         * When the given expression is as:
-         *
-         * <pre><code>
-         * tags['http.method'] = 'GET' AND http.status = 200
-         * </code></pre>
-         * <p>
-         * After the processing of this class, the expression will be turned into:
-         * <pre><code>
-         * http.status = 200
-         * </code></pre>
-         * <p>
-         * and the indexedTagFilters field will hold expression as
-         * <pre><code>
-         * f1 = 'GET'
-         * </code></pre>
-         */
-        private static class SplitterImpl implements IExpressionVisitor<Boolean> {
-
-            private final ISchema indexTableSchema;
-            private final ISchema summaryTableSchema;
-            private final List<IExpression> indexedTagFilters;
-
-            public SplitterImpl(ISchema summaryTableSchema,
-                                ISchema indexTableSchema) {
-                this.indexedTagFilters = new ArrayList<>();
-                this.summaryTableSchema = summaryTableSchema;
-                this.indexTableSchema = indexTableSchema;
-            }
-
-            @Override
-            public Boolean visit(ExpressionList expression) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(ArrayAccessExpression expression) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(ArithmeticExpression expression) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(MacroExpression expression) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(FunctionExpression expression) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(ConditionalExpression expression) {
-                IExpression left = expression.getLhs();
-                if (!(left instanceof MapAccessExpression mapAccessExpression)) {
-                    return false;
-                }
-
-                IExpression mapContainerExpression = mapAccessExpression.getMap();
-                if (!(mapContainerExpression instanceof IdentifierExpression)) {
-                    throw new UnsupportedOperationException("Only identifier is supported as map container");
-                }
-                String mapColumnName = ((IdentifierExpression) mapContainerExpression).getIdentifier();
-
-                IColumn mapColumn = this.summaryTableSchema.getColumnByName(mapColumnName);
-                if (!(mapColumn instanceof ObjectColumn)) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                    "The column [%s] is not a map column",
-                                                    mapColumnName);
-                }
-                ((IdentifierExpression) mapContainerExpression).setIdentifier(mapColumn.getName());
-
-                IColumn indexColumn = this.indexTableSchema.getColumnByName(mapAccessExpression.getKey());
-                if (indexColumn != null) {
-                    // Replace the map access expression in the left to identifier expression
-                    // which refers to the indexed column
-                    expression.setLhs(new IdentifierExpression(indexColumn.getName()));
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Boolean visit(LogicalExpression expression) {
-                if (!(expression instanceof LogicalExpression.AND)) {
-                    throw new RuntimeException("Only AND operator is supported to search tracing.");
-                }
-
-                List<IExpression> nonTagsFilters = new ArrayList<>();
-                for (IExpression subExpression : expression.getOperands()) {
-                    if (subExpression.accept(this)) {
-                        indexedTagFilters.add(subExpression);
-                    } else {
-                        nonTagsFilters.add(subExpression);
-                    }
-                }
-                if (nonTagsFilters.isEmpty()) {
-                    // Add a placeholder expression so simple further processing
-                    nonTagsFilters.add(new ComparisonExpression.EQ(LiteralExpression.ofLong(1), LiteralExpression.ofLong(1)));
-                }
-                expression.setOperands(nonTagsFilters);
-
-                return false;
-            }
-        }
-    }
 }
