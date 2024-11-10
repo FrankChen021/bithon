@@ -23,6 +23,7 @@ import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
@@ -73,6 +74,11 @@ public class TraceApi {
                                         profileEvents);
     }
 
+    /**
+     * Deprecated,
+     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#timeseriesV4(QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/trace/getTraceDistribution")
     public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
         return traceService.getTraceDistribution(request.getExpression(),
@@ -81,6 +87,10 @@ public class TraceApi {
                                                  request.getBucketCount());
     }
 
+    /**
+     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#list(QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
