@@ -161,8 +161,8 @@ public class TraceJdbcReader implements ITraceReader {
             orderedListQuery = listQuery.orderBy(orderField.asc());
         }
 
-        String sql = getSQL(orderedListQuery.offset(limit.getOffset())
-                                            .limit(limit.getLimit()));
+        String sql = toSQL(orderedListQuery.offset(limit.getOffset())
+                                           .limit(limit.getLimit()));
         log.info("Get trace list: {}", sql);
         return dslContext.fetch(sql)
                          .map(this::toTraceSpan);
@@ -219,7 +219,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
-        return dslContext.fetch(getSQL(sql))
+        return dslContext.fetch(decorateSQL(sql))
                          .intoMaps();
     }
 
@@ -260,15 +260,15 @@ public class TraceJdbcReader implements ITraceReader {
             }
         }
 
-        return ((Number) dslContext.fetchOne(getSQL(countQuery)).get(0)).intValue();
+        return ((Number) dslContext.fetchOne(toSQL(countQuery)).get(0)).intValue();
     }
 
     @SuppressWarnings("rawtypes")
-    private String getSQL(Select selectQuery) {
-        return getSQL(dslContext.renderInlined(selectQuery));
+    private String toSQL(Select selectQuery) {
+        return decorateSQL(dslContext.renderInlined(selectQuery));
     }
 
-    protected String getSQL(String sql) {
+    protected String decorateSQL(String sql) {
         return sql;
     }
 

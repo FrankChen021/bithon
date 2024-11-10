@@ -177,7 +177,7 @@ public class TraceStorage extends TraceJdbcStorage {
             }
 
             @Override
-            protected String getSQL(String sql) {
+            protected String decorateSQL(String sql) {
                 return sql + " SETTINGS distributed_product_mode = 'global'";
             }
         };
