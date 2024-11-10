@@ -16,11 +16,11 @@
 
 package org.bithon.server.storage.tracing;
 
-import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
@@ -38,16 +38,14 @@ public interface ITraceReader extends IDataSourceReader {
                                  List<IExpression> indexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
-                                 String orderBy,
-                                 Order order,
-                                 int pageNumber,
-                                 int pageSize);
+                                 OrderBy orderBy,
+                                 Limit limit);
 
     List<Map<String, Object>> getTraceDistribution(IExpression filter,
                                                    List<IExpression> indexedTagFilters,
                                                    Timestamp start,
                                                    Timestamp end,
-                                                   int interval);
+                                                   long interval);
 
     int getTraceListSize(IExpression filter,
                          List<IExpression> indexedTagFilters,
@@ -61,10 +59,4 @@ public interface ITraceReader extends IDataSourceReader {
      */
     TraceIdMapping getTraceIdByMapping(String userId);
 
-    @Data
-    class Histogram {
-        private double lower;
-        private double upper;
-        private double height;
-    }
 }

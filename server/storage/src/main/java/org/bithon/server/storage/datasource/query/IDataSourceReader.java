@@ -35,7 +35,7 @@ public interface IDataSourceReader extends AutoCloseable {
      */
     List<?> groupBy(Query query);
 
-    List<Map<String, Object>> select(Query query);
+    List<?> select(Query query);
 
     int count(Query query);
 

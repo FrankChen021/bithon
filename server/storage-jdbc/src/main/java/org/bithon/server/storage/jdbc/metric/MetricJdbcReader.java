@@ -138,7 +138,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     }
 
     @Override
-    public List<Map<String, Object>> select(Query query) {
+    public List<?> select(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
         QueryExpression queryExpression = new QueryExpression();

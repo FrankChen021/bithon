@@ -147,7 +147,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<List<?>> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we create a new AST
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
