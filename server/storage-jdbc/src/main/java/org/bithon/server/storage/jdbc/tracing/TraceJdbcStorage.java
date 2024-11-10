@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -33,7 +33,9 @@ import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.TraceTableSchema;
 import org.jooq.DSLContext;
+import org.springframework.context.ApplicationContext;
 
 import java.sql.Timestamp;
 
@@ -47,28 +49,28 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig storageConfig;
-    protected final ISchema traceSpanSchema;
-    protected final ISchema traceTagIndexSchema;
     protected final SqlDialectManager sqlDialectManager;
+    protected final ApplicationContext applicationContext;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(providerConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager);
+                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this(providerConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager, applicationContext);
     }
 
     public TraceJdbcStorage(DSLContext dslContext,
                             ObjectMapper objectMapper,
                             TraceStorageConfig storageConfig,
-                            SqlDialectManager sqlDialectManager) {
+                            SqlDialectManager sqlDialectManager,
+                            ApplicationContext applicationContext) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
-        this.traceSpanSchema = null;
-        this.traceTagIndexSchema = null;
         this.sqlDialectManager = sqlDialectManager;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -104,8 +106,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     public ITraceReader createReader() {
         return new TraceJdbcReader(this.dslContext,
                                    this.objectMapper,
-                                   this.traceSpanSchema,
-                                   this.traceTagIndexSchema,
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(dslContext));
     }

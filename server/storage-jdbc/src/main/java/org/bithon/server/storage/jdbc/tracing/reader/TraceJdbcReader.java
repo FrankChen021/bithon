@@ -161,8 +161,10 @@ public class TraceJdbcReader implements ITraceReader {
             orderedListQuery = listQuery.orderBy(orderField.asc());
         }
 
-        return dslContext.fetch(getSQL(orderedListQuery.offset(limit.getOffset())
-                                                       .limit(limit.getLimit())))
+        String sql = getSQL(orderedListQuery.offset(limit.getOffset())
+                                            .limit(limit.getLimit()));
+        log.info("Get trace list: {}", sql);
+        return dslContext.fetch(sql)
                          .map(this::toTraceSpan);
     }
 
