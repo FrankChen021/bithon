@@ -32,6 +32,33 @@ public class TraceSpanBo extends TraceSpan {
 
     public List<TraceSpanBo> children = new ArrayList<>();
 
+    /**
+     * if children is not set, then this field is used to store the child indexes
+     */
+    public List<Integer> childRefs = new ArrayList<>();
+
+    /**
+     * A property that will be sent to clients
+     */
+    public int getChildCount() {
+        // Since only children or childRefs is set, it's safe to add them together
+        return children.size() + childRefs.size();
+    }
+
+    public int depth = 0;
+
+    /**
+     * row index in the array
+     */
+    public int index = 0;
+
+    /**
+     * The gap between the start time of this span and the end time of the previous span in microseconds
+     */
+    public long gap = 0;
+
+    public String unQualifiedClassName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -60,16 +60,16 @@ public class TraceApi {
                                                                                               request.getStartTimeISO8601(),
                                                                                               request.getEndTimeISO8601()));
 
-        Watch<List<TraceSpan>> buildTree = new Watch<>(() -> traceService.asTree(getSpanList.getResult()));
+        Watch<List<TraceSpanBo>> transformResult = new Watch<>(() -> traceService.transformSpanList(getSpanList.getResult(), request.isAsTree()));
 
-        Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(buildTree.getResult()));
+        Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(transformResult.getResult()));
 
         Map<String, Long> profileEvents = new HashMap<>();
         profileEvents.put("getSpanList", getSpanList.getDuration());
-        profileEvents.put("buildTree", buildTree.getDuration());
+        profileEvents.put("transformation", transformResult.getDuration());
         profileEvents.put("buildTopo", buildTopo.getDuration());
 
-        return new GetTraceByIdResponse(request.isAsTree() ? buildTree.getResult() : getSpanList.getResult(),
+        return new GetTraceByIdResponse(transformResult.getResult(),
                                         buildTopo.getResult(),
                                         profileEvents);
     }
