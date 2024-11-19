@@ -137,7 +137,7 @@ public class TraceTopoBuilder {
         // Step 2. Traverse the tree to get Topo
         //
         for (TraceSpanBo root : (List<TraceSpanBo>) spans) {
-            buildLink(root, root.children);
+            buildLink(root, root, root.children);
         }
 
         //
@@ -239,7 +239,7 @@ public class TraceTopoBuilder {
      * Span: SERVER ---> PRODUCER ---> CONSUMER
      * Topo: SERVER ---> PRODUCER ---> CONSUMER
      */
-    private boolean buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
+    private boolean buildLink(TraceSpanBo parentApplicationSpan, TraceSpanBo parentSpan, List<?> childSpans) {
         // Determine if a tree path has a termination node.
         // Termination node is a node ends with 'CLIENT' or 'PRODUCER' span
         // OR a CLIENT/PRODUCER span that has no child CLIENT/PRODUCER span.
@@ -259,8 +259,11 @@ public class TraceTopoBuilder {
         //noinspection unchecked
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
-            if (parentSpan.getAppName().equals(childSpan.getAppName())
-                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+            // Update the depth;
+            childSpan.depth = parentSpan.depth + 1;
+
+            if (parentApplicationSpan.getAppName().equals(childSpan.getAppName())
+                && Objects.equals(parentApplicationSpan.getInstanceName(), childSpan.getInstanceName())
                 && !SpanKind.SERVER.name().equals(childSpan.getKind())
                 && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
                 // The instance of childSpan is the same as the parentSpan,
@@ -269,16 +272,16 @@ public class TraceTopoBuilder {
                 // But if the childSpan is a SERVER/CONSUMER, it means the application itself sends a request/message to itself,
                 // in that case, we need to go to the 'else' case
                 //
-                if (buildLink(parentSpan, childSpan.children)) {
+                if (buildLink(parentApplicationSpan, childSpan, childSpan.children)) {
                     hasTermination = true;
                 }
             } else {
                 // There's a link from the parentSpan to the childSpan,
                 // for this parentSpan, it terminates
                 hasTermination = true;
-                this.addLink(parentSpan, childSpan);
+                this.addLink(parentApplicationSpan, childSpan);
 
-                buildLink(childSpan, childSpan.children);
+                buildLink(childSpan, childSpan, childSpan.children);
             }
 
             // This childSpan is a CLIENT termination.

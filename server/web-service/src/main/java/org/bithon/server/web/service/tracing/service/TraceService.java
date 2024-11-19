@@ -141,7 +141,6 @@ public class TraceService {
                     } else {
                         parentSpan.childRefs.add(i);
                     }
-                    span.depth = parentSpan.depth + 1;
                 }
             }
         }
