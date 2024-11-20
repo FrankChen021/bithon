@@ -43,13 +43,19 @@ bithon:
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
       processors:
+        - # drop spans
         - type: drop
-          expr: endsWith(clazz,  'UriNormalizer')
+          expr: clazz endsWith 'UriNormalizer'
+          # drop successful and quick(<1ms) health check requests
+        - type: drop
+          expr: tags['http.url'] in ('/actuator/info', '/status/health') AND parentSpanId = '' AND tags['http.status'] = '200' AND costTime < 1000
+          # sanitize sensitive parameters
         - type: url-sanitize-transform
           sensitiveParameters:
             "[http.uri]": password
             "[http.url]": password
             "uri": password
+          # built-in span transform
         - type: builtin-span-transform
       mapping:
         - type: uri
