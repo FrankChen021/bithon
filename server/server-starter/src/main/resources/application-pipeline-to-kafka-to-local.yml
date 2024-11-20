@@ -105,7 +105,7 @@ bithon:
             "[bootstrap.servers]": localhost:9092
             "[fetch.min.bytes]": 1048576
       processors:
-        - # drop spans
+          # drop spans
         - type: drop
           expr: clazz endsWith 'UriNormalizer'
           # drop successful and quick(<1ms) health check requests

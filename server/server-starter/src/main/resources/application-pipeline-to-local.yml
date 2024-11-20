@@ -22,7 +22,7 @@ bithon:
         - type: otlp-trace-grpc
         - type: otlp-trace-http
       processors:
-        - # drop spans
+          # drop spans
         - type: drop
           expr: clazz endsWith 'UriNormalizer'
           # drop successful and quick(<1ms) health check requests
