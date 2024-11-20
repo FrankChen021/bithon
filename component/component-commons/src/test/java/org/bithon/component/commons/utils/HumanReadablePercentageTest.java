@@ -27,51 +27,51 @@ public class HumanReadablePercentageTest {
 
     @Test
     public void testNull() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse(null));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of(null));
     }
 
     @Test
     public void testEmpty() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse(""));
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse(" "));
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("\n"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of(""));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of(" "));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("\n"));
     }
 
     @Test
     public void testNoDigitLeadCharacters() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse(" a"));
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("\n."));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of(" a"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("\n."));
     }
 
     @Test
     public void testInvalidUnit() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("5M "));
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("6a\t"));
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("7z\t"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("5M "));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("6a\t"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("7z\t"));
     }
 
     @Test
     public void testLengthNotMet() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("5"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("5"));
     }
 
     @Test
     public void testMalformedNumber() {
-        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.parse("6a%"));
+        Assert.assertThrows(Preconditions.InvalidValueException.class, () -> HumanReadablePercentage.of("6a%"));
     }
 
     @Test
     public void test() {
-        Assert.assertEquals(0, HumanReadablePercentage.parse("0%").getFraction(), 0.00000000001);
-        Assert.assertEquals(0.05, HumanReadablePercentage.parse("5 %").getFraction(), 0.00000000001);
-        Assert.assertEquals(0.5, HumanReadablePercentage.parse("50%").getFraction(), 0.00000000001);
-        Assert.assertEquals(5, HumanReadablePercentage.parse("500%").getFraction(), 0.00000000001);
-        Assert.assertEquals(50, HumanReadablePercentage.parse("5000%").getFraction(), 0.00000000001);
+        Assert.assertEquals(0, HumanReadablePercentage.of("0%").getFraction(), 0.00000000001);
+        Assert.assertEquals(0.05, HumanReadablePercentage.of("5 %").getFraction(), 0.00000000001);
+        Assert.assertEquals(0.5, HumanReadablePercentage.of("50%").getFraction(), 0.00000000001);
+        Assert.assertEquals(5, HumanReadablePercentage.of("500%").getFraction(), 0.00000000001);
+        Assert.assertEquals(50, HumanReadablePercentage.of("5000%").getFraction(), 0.00000000001);
     }
 
     @Test
     public void testNegative() {
-        Assert.assertEquals(0, HumanReadablePercentage.parse("-0 %").getFraction(), 0.00000000001);
-        Assert.assertEquals(-0.05, HumanReadablePercentage.parse("-5 %").getFraction(), 0.00000000001);
+        Assert.assertEquals(0, HumanReadablePercentage.of("-0 %").getFraction(), 0.00000000001);
+        Assert.assertEquals(-0.05, HumanReadablePercentage.of("-5 %").getFraction(), 0.00000000001);
     }
 }

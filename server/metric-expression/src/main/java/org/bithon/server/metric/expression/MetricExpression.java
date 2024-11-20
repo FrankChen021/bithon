@@ -72,8 +72,12 @@ public class MetricExpression implements IExpression {
     private PredicateEnum predicate;
     private LiteralExpression expected;
 
+    /**
+     * The offset time duration of the expected value.
+     * MUST be a negative value
+     */
     @Nullable
-    private HumanReadableDuration expectedWindow = null;
+    private HumanReadableDuration offset = null;
 
     /**
      * Runtime properties
@@ -127,9 +131,9 @@ public class MetricExpression implements IExpression {
             sb.append(predicate);
             sb.append(' ');
             sb.append(expected);
-            if (expectedWindow != null) {
+            if (offset != null) {
                 sb.append('[');
-                sb.append(expectedWindow);
+                sb.append(offset);
                 sb.append(']');
             }
         }

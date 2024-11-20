@@ -253,13 +253,16 @@ public class MetricExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ExpectedWindow() {
-        MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-7m]");
-        Assert.assertNotNull(expression.getExpectedWindow());
-        Assert.assertEquals(-7, expression.getExpectedWindow().getDuration().toMinutes());
+    public void test_OffsetExpression() {
+        MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1%[-7m]");
+        Assert.assertNotNull(expression.getOffset());
+        Assert.assertEquals(-7, expression.getOffset().getDuration().toMinutes());
 
+        // Only percentage is supported now
         Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[0m]"));
-        Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[1m]"));
+
+        Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1%[0m]"));
+        Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1%[1m]"));
 
         Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] is null[-5m]"));
     }
@@ -268,22 +271,22 @@ public class MetricExpressionASTBuilderTest {
     public void test_ExpressionSerialization() {
         // No filter
         {
-            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu)[5m] > 1[-7m]");
-            Assert.assertEquals("avg(jvm-metrics.cpu)[5m] > 1[-7m]",
+            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu)[5m] > 10%[-7m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu)[5m] > 10%[-7m]",
                                 expression.serializeToText(null));
         }
 
         // One filter
         {
-            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 1[-5m]");
-            Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\"})[5m] > 1[-5m]",
+            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 10%[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\"})[5m] > 10%[-5m]",
                                 expression.serializeToText(null));
         }
 
         // Two filters
         {
-            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 1[-5m]");
-            Assert.assertEquals("avg(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 1[-5m]",
+            MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName like 'a%', instanceName like '192.%'})[5m] > 10%[-5m]");
+            Assert.assertEquals("avg(jvm-metrics.cpu{appName like \"a%\", instanceName like \"192.%\"})[5m] > 10%[-5m]",
                                 expression.serializeToText(null));
         }
 
@@ -304,7 +307,7 @@ public class MetricExpressionASTBuilderTest {
 
     @Test
     public void test_MultipleSelector() {
-        MetricExpression alertExpression = MetricExpressionASTBuilder.parse("avg(http-metrics.responseTime{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1[-7m]");
+        MetricExpression alertExpression = MetricExpressionASTBuilder.parse("avg(http-metrics.responseTime{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1%[-7m]");
         IExpression whereExpression = alertExpression.getLabelSelectorExpression();
         Assert.assertEquals("(appName = 'a' AND instance = 'localhost' AND url = 'http://localhost/test')", whereExpression.serializeToText(null));
     }

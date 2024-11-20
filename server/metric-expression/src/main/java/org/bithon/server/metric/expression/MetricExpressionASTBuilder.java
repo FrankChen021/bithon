@@ -154,28 +154,32 @@ public class MetricExpressionASTBuilder {
             MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
             if (predicateExpression != null) {
                 MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-                LiteralExpression expected = (LiteralExpression) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+                LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-                HumanReadableDuration expectedWindow = null;
-                MetricExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
-                if (expectedWindowCtx != null) {
-                    expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
-                    if (!expectedWindow.isNegative()) {
-                        throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
+                HumanReadableDuration offset = null;
+                MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
+                if (offsetParseContext != null) {
+                    offset = offsetParseContext.accept(new DurationExpressionBuilder());
+                    if (!offset.isNegative()) {
+                        throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
                     }
 
-                    if (expectedWindow.isZero()) {
-                        throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
+                    if (offset.isZero()) {
+                        throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
+                    }
+
+                    if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
+                        throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
                     }
                 }
 
                 PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
                                                        expected,
-                                                       expectedWindow);
+                                                       offset);
 
                 expression.setPredicate(predicate);
                 expression.setExpected(expected);
-                expression.setExpectedWindow(expectedWindow);
+                expression.setOffset(offset);
             }
 
             return expression;

@@ -399,7 +399,7 @@ public class ExpressionASTBuilder {
                 case ExpressionLexer.READABLE_SIZE_LITERAL ->
                     LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
                 case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
-                    LiteralExpression.of(HumanReadablePercentage.parse(literal.getText()));
+                    LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };

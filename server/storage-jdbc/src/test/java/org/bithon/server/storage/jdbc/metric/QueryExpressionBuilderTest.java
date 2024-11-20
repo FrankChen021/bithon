@@ -870,7 +870,7 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
                                                                                                   new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableDurationLiteral(HumanReadableDuration.parse("1h"))),
-                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadablePercentageLiteral(HumanReadablePercentage.parse("50%")))
+                                                                                                  new ComparisonExpression.LT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadablePercentageLiteral(HumanReadablePercentage.of("50%")))
                                                                 ))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder().name("appName").order(Order.asc).build())
