@@ -116,9 +116,12 @@ public class AlertEvaluator implements DisposableBean {
                 context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
 
                 if (newStatus == AlertStatus.ALERTING) {
+                    // Fire and save alert record
                     fireAlert(alertRule, context);
+                } else {
+                    // Update alert status only
+                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
                 }
-                this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
             } else {
                 context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
             }
