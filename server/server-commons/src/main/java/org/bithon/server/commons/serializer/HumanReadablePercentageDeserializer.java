@@ -19,7 +19,9 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.io.IOException;
 
@@ -30,7 +32,18 @@ import java.io.IOException;
 public class HumanReadablePercentageDeserializer extends JsonDeserializer<HumanReadablePercentage> {
     @Override
     public HumanReadablePercentage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        return HumanReadablePercentage.parse(p.getValueAsString());
+        JsonNode node = p.getCodec().readTree(p);
+        if (node.isObject()) {
+            String type = node.get("type").asText();
+            Preconditions.checkIfTrue("percentage".equals(type), "Expecting type to be 'percentage' but got '%s'", type);
+            return HumanReadablePercentage.of(node.get("value").asText());
+        } else {
+            // Simple string
+            if (node.isValueNode()) {
+                return HumanReadablePercentage.of(node.asText());
+            }
+            throw new IllegalArgumentException("Expecting a value node but got " + node.getNodeType());
+        }
     }
 
     @Override

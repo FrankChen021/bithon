@@ -58,7 +58,7 @@ public class ObjectMapperConfigurer {
     static class HumanReadablePercentageDeserializer extends JsonDeserializer<HumanReadablePercentage> {
         @Override
         public HumanReadablePercentage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-            return HumanReadablePercentage.parse(p.getText());
+            return HumanReadablePercentage.of(p.getText());
         }
     }
 }

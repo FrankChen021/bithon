@@ -52,7 +52,7 @@ public class TestConfigurationManager {
         public TestConfig(int a, int b, String p) {
             this.a = a;
             this.b = b;
-            this.percentage = HumanReadablePercentage.parse(p);
+            this.percentage = HumanReadablePercentage.of(p);
         }
 
         public int getA() {
@@ -414,9 +414,9 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             Assert.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
-            Assert.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.parse("8%"),
-                                         HumanReadablePercentage.parse("9%"),
-                                         HumanReadablePercentage.parse("10%")},
+            Assert.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.of("8%"),
+                                         HumanReadablePercentage.of("9%"),
+                                         HumanReadablePercentage.of("10%")},
                                      manager.getConfig("test.p", HumanReadablePercentage[].class, true));
         }
     }
