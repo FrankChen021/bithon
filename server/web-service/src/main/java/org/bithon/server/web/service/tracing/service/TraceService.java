@@ -102,9 +102,6 @@ public class TraceService {
             TraceSpanBo bo = new TraceSpanBo();
             BeanUtils.copyProperties(span, bo);
 
-            // Calculate gap
-            bo.gap = i == 0 ? 0 : span.startTime - spans.get(i - 1).endTime;
-
             // Calculate unqualified class name
             if (bo.clazz != null) {
                 int idx = bo.clazz.lastIndexOf('.');

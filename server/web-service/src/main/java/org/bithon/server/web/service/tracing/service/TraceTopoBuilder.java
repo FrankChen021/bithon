@@ -259,7 +259,8 @@ public class TraceTopoBuilder {
         //noinspection unchecked
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
 
-            // Update the depth;
+            // Update the depth and gap
+            childSpan.gap = childSpan.startTime - parentSpan.endTime;
             childSpan.depth = parentSpan.depth + 1;
 
             if (upstreamApplication.getAppName().equals(childSpan.getAppName())
