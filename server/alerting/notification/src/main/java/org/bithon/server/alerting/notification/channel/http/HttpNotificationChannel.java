@@ -207,14 +207,22 @@ public class HttpNotificationChannel implements INotificationChannel {
     }
 
     private String getURL(NotificationMessage message) {
-        String url = notificationProperties.getManagerURL();
-        if (StringUtils.isBlank(url)) {
-            return "";
+        String host = notificationProperties.getManagerURL();
+        if (StringUtils.isBlank(host)) {
+            host = notificationProperties.getManagerHost();
+        }
+        if (host == null) {
+            host = "http://localhost:9897";
         }
 
-        return url
-               + (url.endsWith("/") ? "" : "/")
-               + "web/alerting/record/detail?id="
-               + message.getAlertRecordId();
+        String detailURL = notificationProperties.getDetailPath();
+        if (StringUtils.isBlank(detailURL)) {
+            detailURL = "web/alerting/record/detail?recordId={id}";
+        }
+        detailURL = detailURL.replace("{id}", message.getAlertRecordId());
+
+        return host
+               + (host.endsWith("/") ? "" : "/")
+               + detailURL;
     }
 }
