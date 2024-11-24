@@ -69,7 +69,14 @@ public class MetricJdbcReader implements IDataSourceReader {
         jdbcDataSource.setDriverClassName((String) Preconditions.checkNotNull(props.get("driverClassName"), "Missing driverClassName property for %s", name));
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
         jdbcDataSource.setUsername((String) Preconditions.checkNotNull(props.get("username"), "Missing userName property for %s", name));
-        jdbcDataSource.setPassword((String) Preconditions.checkNotNull(props.get("password"), "Missing password property for %s", name));
+
+        String password = (String) props.get("password");
+        if (!StringUtils.isEmpty(password)) {
+            // For local or test environment database deployment,
+            // password is not mandatory
+            jdbcDataSource.setPassword(password);
+        }
+
         // Make sure the name is unique to avoid exception thrown when closing the data source
         jdbcDataSource.setName(name + "-" + SEQUENCE.getAndIncrement());
         jdbcDataSource.setTestWhileIdle(false);

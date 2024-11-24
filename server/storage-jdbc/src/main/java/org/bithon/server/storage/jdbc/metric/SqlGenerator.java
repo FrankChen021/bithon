@@ -156,7 +156,11 @@ public class SqlGenerator implements IASTNodeVisitor {
     @Override
     public void visit(TableIdentifier table) {
         sql.append(' ');
-        sql.append(sqlDialect.quoteIdentifier(table.getName()));
+        if (table.getIdentifier().isQualified()) {
+            sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getQualifier()));
+            sql.append('.');
+        }
+        sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getIdentifier()));
     }
 
     @Override

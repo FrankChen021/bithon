@@ -92,18 +92,21 @@ public class QueryConverter {
                         selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.ofLong(field.getField()))), field.getName()));
                     } else {
                         // Treat the input as a column name
-                        Preconditions.checkNotNull(schema.getColumnByName(field.getField()), "Field [%s] does not exist in the schema.", field.getField());
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, new IdentifierExpression(field.getField()))), field.getName()));
+                        IColumn column = schema.getColumnByName(field.getField());
+                        Preconditions.checkNotNull(column, "Column [%s] does not exist in the schema.", field.getField());
+
+                        selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
                     }
                 } else {
-                    String col = field.getField() == null ? field.getName() : field.getField();
-                    Preconditions.checkNotNull(schema.getColumnByName(col), "Field [%s] does not exist in the schema.", col);
-                    selectorList.add(new Selector(new Expression(new FunctionExpression(function, new IdentifierExpression(col))), field.getName()));
-                }
+                    String columnName = field.getField() == null ? field.getName() : field.getField();
+                    IColumn column = schema.getColumnByName(columnName);
+                    Preconditions.checkNotNull(column, "Column [%s] does not exist in the schema.", columnName);
 
+                    selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
+                }
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
-                Preconditions.checkNotNull(columnSpec, "Field [%s] does not exist in the schema.", field.getField());
+                Preconditions.checkNotNull(columnSpec, "Column [%s] does not exist in the schema.", field.getField());
 
                 Selector selector = columnSpec.toSelector();
                 if (columnSpec.getAlias().equals(field.getName())) {

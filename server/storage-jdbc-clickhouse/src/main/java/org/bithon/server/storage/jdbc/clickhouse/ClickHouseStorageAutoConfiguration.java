@@ -27,6 +27,7 @@ import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.MetadataStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.SchemaStorage;
 import org.bithon.server.storage.jdbc.clickhouse.metric.MetricStorage;
+import org.bithon.server.storage.jdbc.clickhouse.schema.AggregateFunctionColumn;
 import org.bithon.server.storage.jdbc.clickhouse.setting.SettingStorage;
 import org.bithon.server.storage.jdbc.clickhouse.trace.TraceStorage;
 import org.bithon.server.storage.jdbc.clickhouse.web.DashboardStorage;
@@ -76,6 +77,8 @@ public class ClickHouseStorageAutoConfiguration {
                 context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "clickhouse"));
                 // For backward compatibility
                 context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "external"));
+
+                context.registerSubtypes(new NamedType(AggregateFunctionColumn.class, "aggregateFunction"));
             }
         };
     }
