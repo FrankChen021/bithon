@@ -35,6 +35,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
+import org.bithon.server.metric.expression.SimpleMetricExpression;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 
 import java.util.LinkedHashMap;
@@ -144,7 +145,8 @@ public class AlertRule {
 
         public String extract(IExpression astExpression) {
             astExpression.accept(((IAlertInDepthExpressionVisitor) expression -> {
-                IExpression whereExpression = expression.getMetricExpression().getLabelSelectorExpression();
+
+                IExpression whereExpression = ((SimpleMetricExpression) expression.getMetricQLExpression()).getLabelSelectorExpression();
                 if (whereExpression == null) {
                     return;
                 }

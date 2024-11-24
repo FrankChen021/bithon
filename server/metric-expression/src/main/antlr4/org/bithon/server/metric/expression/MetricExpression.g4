@@ -9,7 +9,15 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
-  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?
+  : metricExpression metricPredicatorExpression metricExpectedExpression                            #metricPredicateExpression
+  |  aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? (COMMA offsetExpression)? RIGHT_PARENTHESIS durationExpression? groupByExpression? #simpleMetricExpression
+  | 'delta' LEFT_PARENTHESIS metricExpression RIGHT_PARENTHESIS                                 #deltaExpression
+  | 'relativeChange' LEFT_PARENTHESIS metricExpression DOT DURATION_LITERAL RIGHT_PARENTHESIS   #relativeChangeExpression
+  | 'absouteChange' LEFT_PARENTHESIS metricExpression DOT DURATION_LITERAL RIGHT_PARENTHESIS    #absoluteChangeExpression
+  ;
+
+offsetExpression
+  : DURATION_LITERAL
   ;
 
 aggregatorExpression
@@ -43,16 +51,16 @@ durationExpression
   ;
 
 labelSelectorExpression
-  : IDENTIFIER labelPredicateExpression literalExpression #comparisonExpression
-  | IDENTIFIER NOT? IN literalListExpression #inExpression
+  : IDENTIFIER labelPredicatorExpression literalExpression  #labelSimpleComparisonExpression
+  | IDENTIFIER NOT? IN literalListExpression                #labelInExpression
   ;
 
-labelPredicateExpression
+labelPredicatorExpression
   : LT|LTE|GT|GTE|NE|EQ
   | NOT? (CONTAINS|STARTSWITH|ENDSWITH|LIKE)
   ;
 
-metricPredicateExpression
+metricPredicatorExpression
   : LT|LTE|GT|GTE|NE|EQ
   | IS
  ;

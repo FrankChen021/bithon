@@ -60,7 +60,7 @@ public class MetricExpressionASTBuilder {
         }
     }
 
-    public static MetricExpression parse(String expression) {
+    public static MetricQLExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
         lexer.addErrorListener(SyntaxErrorListener.of(expression));
@@ -84,13 +84,55 @@ public class MetricExpressionASTBuilder {
         return build(ctx);
     }
 
-    public static MetricExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
+    public static MetricQLExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    private static class BuilderImpl extends MetricExpressionBaseVisitor<MetricExpression> {
+    private static class BuilderImpl extends MetricExpressionBaseVisitor<MetricQLExpression> {
+
         @Override
-        public MetricExpression visitMetricExpression(MetricExpressionParser.MetricExpressionContext ctx) {
+        public MetricQLExpression visitMetricPredicateExpression(MetricExpressionParser.MetricPredicateExpressionContext ctx) {
+            MetricQLExpression metricExpression = ctx.metricExpression().accept(this);
+
+            //
+            // Metric Predicate
+            //
+            MetricExpressionParser.MetricPredicatorExpressionContext predicator = ctx.metricPredicatorExpression();
+
+            MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
+            LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+
+            HumanReadableDuration offset = null;
+            MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
+            if (offsetParseContext != null) {
+                offset = offsetParseContext.accept(new DurationExpressionBuilder());
+                if (!offset.isNegative()) {
+                    throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
+                }
+
+                if (offset.isZero()) {
+                    throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
+                }
+
+                if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
+                    throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
+                }
+            }
+
+            PredicateEnum predicate = getPredicate(predicator.getChild(TerminalNode.class, 0).getSymbol().getType(),
+                                                   expected,
+                                                   offset);
+
+            MetricPredicateExpression metricQLExpression = new MetricPredicateExpression();
+            metricQLExpression.setMetricExpression(metricExpression);
+            metricQLExpression.setPredicate(predicate);
+            metricQLExpression.setExpected(expected);
+
+            return metricQLExpression;
+        }
+
+        @Override
+        public MetricQLExpression visitSimpleMetricExpression(MetricExpressionParser.SimpleMetricExpressionContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
@@ -100,7 +142,7 @@ public class MetricExpressionASTBuilder {
             try {
                 aggregator = AggregatorEnum.valueOf(aggregatorText);
             } catch (RuntimeException ignored) {
-                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
+                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the metricQLExpression is not supported", aggregatorText));
             }
 
             HumanReadableDuration duration = null;
@@ -108,10 +150,10 @@ public class MetricExpressionASTBuilder {
             if (windowExpressionCtx != null) {
                 duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
                 if (duration.isNegative()) {
-                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration metricQLExpression '%s' must be greater than zero", windowExpressionCtx.getText()));
                 }
                 if (duration.isZero()) {
-                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration metricQLExpression '%s' must be greater than zero", windowExpressionCtx.getText()));
                 }
             }
 
@@ -139,54 +181,20 @@ public class MetricExpressionASTBuilder {
                                            .collect(Collectors.toSet());
             }
 
-            MetricExpression expression = new MetricExpression();
-            expression.setFrom(from);
-            expression.setLabelSelectorExpression(whereExpression);
+            SimpleMetricExpression metricQLExpression = new SimpleMetricExpression();
+            metricQLExpression.setFrom(from);
+            metricQLExpression.setLabelSelectorExpression(whereExpression);
 
             // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
-            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
-            expression.setGroupBy(groupBy);
-            expression.setWindow(duration);
+            metricQLExpression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
+            metricQLExpression.setGroupBy(groupBy);
+            metricQLExpression.setWindow(duration);
 
-            //
-            // Metric Predicate
-            //
-            MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
-            if (predicateExpression != null) {
-                MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-                LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
-
-                HumanReadableDuration offset = null;
-                MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
-                if (offsetParseContext != null) {
-                    offset = offsetParseContext.accept(new DurationExpressionBuilder());
-                    if (!offset.isNegative()) {
-                        throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
-                    }
-
-                    if (offset.isZero()) {
-                        throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
-                    }
-
-                    if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
-                        throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
-                    }
-                }
-
-                PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
-                                                       expected,
-                                                       offset);
-
-                expression.setPredicate(predicate);
-                expression.setExpected(expected);
-                expression.setOffset(offset);
-            }
-
-            return expression;
+            return metricQLExpression;
         }
 
         private static PredicateEnum getPredicate(int predicateToken,
-                                                  LiteralExpression expected,
+                                                  LiteralExpression<?> expected,
                                                   HumanReadableDuration expectedWindow) {
             switch (predicateToken) {
                 case MetricExpressionParser.LT:
@@ -237,13 +245,13 @@ public class MetricExpressionASTBuilder {
     private static class LabelSelectorExpressionBuilder extends MetricExpressionBaseVisitor<IExpression> {
 
         @Override
-        public IExpression visitComparisonExpression(MetricExpressionParser.ComparisonExpressionContext ctx) {
+        public IExpression visitLabelSimpleComparisonExpression(MetricExpressionParser.LabelSimpleComparisonExpressionContext ctx) {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
             IExpression expected = ctx.literalExpression().accept(new LiteralExpressionBuilder());
 
             TerminalNode predicate;
             boolean isNotExpression = false;
-            MetricExpressionParser.LabelPredicateExpressionContext predicateContext = ctx.labelPredicateExpression();
+            MetricExpressionParser.LabelPredicatorExpressionContext predicateContext = ctx.labelPredicatorExpression();
             if (predicateContext.getChildCount() == 2) {
                 isNotExpression = true;
                 predicate = predicateContext.getChild(TerminalNode.class, 1);
@@ -303,7 +311,7 @@ public class MetricExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitInExpression(MetricExpressionParser.InExpressionContext ctx) {
+        public IExpression visitLabelInExpression(MetricExpressionParser.LabelInExpressionContext ctx) {
             IdentifierExpression identifier = new IdentifierExpression(ctx.IDENTIFIER().getSymbol().getText());
             ExpressionList expected = (ExpressionList) ctx.literalListExpression().accept(new LiteralExpressionBuilder());
             if (ctx.getChildCount() == 4) {

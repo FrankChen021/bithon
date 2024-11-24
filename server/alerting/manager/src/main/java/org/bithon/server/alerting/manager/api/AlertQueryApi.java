@@ -131,7 +131,7 @@ public class AlertQueryApi {
             // Flatten expressions
             List<AlertExpression> alertExpressions = new ArrayList<>();
             alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
-                expression.getMetricExpression().validate(schemas);
+                expression.getMetricQLExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
 
@@ -195,7 +195,7 @@ public class AlertQueryApi {
             // Flatten expressions
             List<AlertExpression> alertExpressions = new ArrayList<>();
             alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
-                expression.getMetricExpression().validate(schemas);
+                expression.getMetricQLExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
             return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));

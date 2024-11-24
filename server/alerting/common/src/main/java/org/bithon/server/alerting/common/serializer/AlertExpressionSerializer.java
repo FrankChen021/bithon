@@ -47,23 +47,23 @@ public class AlertExpressionSerializer extends JsonSerializer<AlertExpression> {
             gen.writeStringField("expressionText", expression.serializeToText());
 
             // Breakdown elements in the expression
-            gen.writeStringField("from", expression.getMetricExpression().getFrom());
-            gen.writeObjectField("select", expression.getMetricExpression().getMetric());
-            gen.writeStringField("where", expression.getMetricExpression().getWhereText());
-            serializers.defaultSerializeField("window", expression.getMetricExpression().getWindow(), gen);
+            gen.writeStringField("from", expression.getMetricQLExpression().getFrom());
+            gen.writeObjectField("select", expression.getMetricQLExpression().getMetric());
+            gen.writeStringField("where", expression.getMetricQLExpression().getWhereText());
+            serializers.defaultSerializeField("window", expression.getMetricQLExpression().getWindow(), gen);
 
-            if (expression.getMetricExpression().getGroupBy() != null) {
+            if (expression.getMetricQLExpression().getGroupBy() != null) {
                 gen.writeArrayFieldStart("groupBy");
-                for (String group : expression.getMetricExpression().getGroupBy()) {
+                for (String group : expression.getMetricQLExpression().getGroupBy()) {
                     gen.writeString(group);
                 }
                 gen.writeEndArray();
             }
-            gen.writeStringField("alertPredicate", expression.getMetricExpression().getPredicate().toString());
-            gen.writeObjectField("alertExpected", expression.getMetricExpression().getExpected().getValue());
+            gen.writeStringField("alertPredicate", expression.getMetricQLExpression().getPredicate().toString());
+            gen.writeObjectField("alertExpected", expression.getMetricQLExpression().getExpected().getValue());
 
-            if (expression.getMetricExpression().getOffset() != null) {
-                serializers.defaultSerializeField("offset", expression.getMetricExpression().getWindow(), gen);
+            if (expression.getMetricQLExpression().getOffset() != null) {
+                serializers.defaultSerializeField("offset", expression.getMetricQLExpression().getWindow(), gen);
             }
         }
         gen.writeEndObject();

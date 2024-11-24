@@ -118,7 +118,7 @@ public class AlertCommandService {
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
-            alertExpression.getMetricExpression().validate(schemas);
+            alertExpression.getMetricQLExpression().validate(schemas);
         }
 
         for (String channel : alertRule.getNotifications()) {

@@ -40,23 +40,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * <p>
- * Absolute comparison
- * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
- * <p>
- * Relative comparison with an absolute value
- * avg by (a) (data-source.metric{dim1 = 'z', dim2=''}[1m|h]) > 5[-60m]
- * <p>
- * Relative comparison with a percentage
- * avg by (a) (data-source.metric{dim1 = 'a', dim2=''}[1m|h]) > 5%[-1d]
- * avg by (a) (data-source.metric{dim1 = 'b', dim2=''}[1m|h]) > 5%['2023-01-01']
- * <p>
- *
- * @author frankchen
- * @date 2020-08-21 14:56:50
+ * @author frank.chen021@outlook.com
+ * @date 2024/11/24 22:43
  */
 @Data
-public class MetricExpression implements IExpression {
+public class SimpleMetricExpression implements MetricQLExpression {
 
     private String from;
     private QueryField metric;
@@ -65,12 +53,6 @@ public class MetricExpression implements IExpression {
 
     @Nullable
     private Set<String> groupBy;
-
-    /**
-     * Post filter
-     */
-    private PredicateEnum predicate;
-    private LiteralExpression expected;
 
     /**
      * The offset time duration of the expected value.
@@ -127,15 +109,15 @@ public class MetricExpression implements IExpression {
         }
 
         if (includePredication) {
-            sb.append(' ');
-            sb.append(predicate);
-            sb.append(' ');
-            sb.append(expected);
-            if (offset != null) {
-                sb.append('[');
-                sb.append(offset);
-                sb.append(']');
-            }
+            //sb.append(' ');
+            //sb.append(predicate);
+            //sb.append(' ');
+            //sb.append(expected);
+            //if (offset != null) {
+            //    sb.append('[');
+            //    sb.append(offset);
+            //    sb.append(']');
+            //}
         }
         return sb.toString();
     }
@@ -191,13 +173,13 @@ public class MetricExpression implements IExpression {
 
     @Override
     public IDataType getDataType() {
-        return IDataType.BOOLEAN;
+        return IDataType.DOUBLE;
     }
 
     @Override
     public String getType() {
         // No need
-        return null;
+        return "simpleMetric";
     }
 
     @Override

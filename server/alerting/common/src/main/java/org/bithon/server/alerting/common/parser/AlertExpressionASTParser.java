@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.EqualPredicate;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterOrEqualPredicate;
@@ -40,11 +41,13 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPr
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
-import org.bithon.server.metric.expression.MetricExpression;
 import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
+import org.bithon.server.metric.expression.MetricPredicateExpression;
+import org.bithon.server.metric.expression.MetricQLExpression;
+import org.bithon.server.metric.expression.SimpleMetricExpression;
 
 import java.util.List;
 
@@ -86,20 +89,19 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
-            MetricExpression metricExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
-            if (metricExpression.getPredicate() == null) {
-                // the general metric expression allows null predicate, but for alerting, it's a compulsory field
-                throw new InvalidExpressionException("Missing predicate expression");
-            }
+            MetricQLExpression metricQLExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            Preconditions.checkIfTrue(metricQLExpression instanceof MetricPredicateExpression, "Given expression is not metric predicate expression");
+
+            SimpleMetricExpression metricExpression = (SimpleMetricExpression) ((MetricPredicateExpression) metricQLExpression).getMetricExpression();
             if (metricExpression.getWindow() == null) {
                 // the alert expression now requires a 1-minute window
                 metricExpression.setWindow(HumanReadableDuration.DURATION_1_MINUTE);
             }
 
             AlertExpression alertExpression = new AlertExpression();
-            alertExpression.setMetricExpression(metricExpression);
+            alertExpression.setMetricQLExpression(metricQLExpression);
             alertExpression.setId(String.valueOf(index++));
-            alertExpression.setMetricEvaluator(createMetricEvaluator(metricExpression));
+            alertExpression.setMetricEvaluator(createMetricEvaluator((MetricPredicateExpression) metricQLExpression));
             return alertExpression;
         }
 
@@ -122,12 +124,12 @@ public class AlertExpressionASTParser {
         }
     }
 
-    private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
-        LiteralExpression expected = metricExpression.getExpected();
-        HumanReadableDuration offset = metricExpression.getOffset();
+    private static IMetricEvaluator createMetricEvaluator(MetricPredicateExpression metricQLExpression) {
+        LiteralExpression expected = metricQLExpression.getExpected();
+        HumanReadableDuration offset = null; //metricQLExpression.getOffset();
 
         IMetricEvaluator metricEvaluator;
-        switch (metricExpression.getPredicate()) {
+        switch (metricQLExpression.getPredicate()) {
             case LT:
                 if (offset == null) {
                     metricEvaluator = new LessThanPredicate(expected.getValue());

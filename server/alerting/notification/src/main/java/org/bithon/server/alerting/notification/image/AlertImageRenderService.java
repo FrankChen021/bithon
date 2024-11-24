@@ -128,17 +128,17 @@ public class AlertImageRenderService implements ApplicationContextAware {
         // DO NOT inject the DataSourceApi in ctor
         // See: https://github.com/FrankChen021/bithon/issues/838
         IDataSourceApi dataSourceApi = this.applicationContext.getBean(IDataSourceApi.class);
-        ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
+        ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricQLExpression().getFrom());
+        IColumn metricSpec = schema.getColumnByName(expression.getMetricQLExpression().getMetric().getName());
 
         QueryRequest request = QueryRequest.builder()
                                            .interval(IntervalRequest.builder()
                                                                                   .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
                                                                                   .endISO8601(end.toISO8601())
                                                                                   .build())
-                                           .dataSource(expression.getMetricExpression().getFrom())
-                                           .filterExpression(expression.getMetricExpression().getWhereText())
-                                           .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
+                                           .dataSource(expression.getMetricQLExpression().getFrom())
+                                           .filterExpression(expression.getMetricQLExpression().getWhereText())
+                                           .fields(Collections.singletonList(expression.getMetricQLExpression().getMetric()))
                                            .build();
         QueryResponse response = dataSourceApi.timeseriesV3(request);
 

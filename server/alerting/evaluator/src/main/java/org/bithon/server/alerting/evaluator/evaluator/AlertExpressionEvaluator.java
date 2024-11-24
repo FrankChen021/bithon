@@ -67,14 +67,14 @@ public class AlertExpressionEvaluator {
         context.setEvaluatingExpression(expression);
 
         TimeSpan end = context.getIntervalEnd();
-        TimeSpan start = end.before(expression.getMetricExpression().getWindow());
+        TimeSpan start = end.before(expression.getMetricQLExpression().getWindow());
         IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
-                                                                                           expression.getMetricExpression().getFrom(),
-                                                                                           expression.getMetricExpression().getMetric(),
+                                                                                           expression.getMetricQLExpression().getFrom(),
+                                                                                           expression.getMetricQLExpression().getMetric(),
                                                                                            start,
                                                                                            context.getIntervalEnd(),
-                                                                                           expression.getMetricExpression().getWhereText(),
-                                                                                           expression.getMetricExpression().getGroupBy(),
+                                                                                           expression.getMetricQLExpression().getWhereText(),
+                                                                                           expression.getMetricQLExpression().getGroupBy(),
                                                                                            context);
         if (output == null || !output.isMatches()) {
             context.setEvaluationResult(expression.getId(), false, null);

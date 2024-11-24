@@ -23,7 +23,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.metric.expression.MetricExpression;
+import org.bithon.server.metric.expression.MetricQLExpression;
 
 import java.util.function.Function;
 
@@ -53,7 +53,7 @@ import java.util.function.Function;
 public class AlertExpression implements IExpression {
 
     private String id;
-    private MetricExpression metricExpression;
+    private MetricQLExpression metricQLExpression;
     private IMetricEvaluator metricEvaluator;
 
     @Override
@@ -98,6 +98,6 @@ public class AlertExpression implements IExpression {
     }
 
     public String serializeToText(boolean includePredication) {
-        return metricExpression.serializeToText(includePredication);
+        return metricQLExpression.serializeToText();
     }
 }
