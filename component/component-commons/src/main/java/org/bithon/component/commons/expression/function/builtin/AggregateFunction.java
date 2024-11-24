@@ -85,7 +85,11 @@ public abstract class AggregateFunction extends AbstractFunction {
         public static final IFunction INSTANCE = new Sum();
 
         public Sum() {
-            super("sum");
+            this("sum");
+        }
+
+        protected Sum(String name) {
+            super(name);
         }
 
         @Override
@@ -104,7 +108,11 @@ public abstract class AggregateFunction extends AbstractFunction {
         public static final Count INSTANCE = new Count();
 
         private Count() {
-            super("count");
+            this("count");
+        }
+
+        protected Count(String name) {
+            super(name);
         }
 
         /**

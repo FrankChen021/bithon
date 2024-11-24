@@ -19,7 +19,11 @@ package org.bithon.server.storage.datasource.column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.validation.IIdentifier;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
@@ -75,6 +79,15 @@ public interface IColumn extends IIdentifier {
 
     default NumberAggregator createAggregator() {
         throw new UnsupportedOperationException(StringUtils.format("createAggregator is not supported on type of " + this.getClass().getSimpleName()));
+    }
+
+    /**
+     * Different column type may have different aggregator names.
+     * For example, In ClickHouse, sumMerge is used for AggregatingMergeTree,
+     * so this interface provides an opportunity for subclasses to override the default aggregator name
+     */
+    default IExpression createAggregateFunctionExpression(IFunction function) {
+        return new FunctionExpression(function, new IdentifierExpression(getName()));
     }
 
     @JsonIgnore
