@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ public class StringColumn extends AbstractColumn {
         super(name, alias);
     }
 
+    @JsonIgnore
     @Override
     public IDataType getDataType() {
         return IDataType.STRING;

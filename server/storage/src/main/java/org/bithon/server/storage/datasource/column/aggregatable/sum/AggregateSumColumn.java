@@ -34,7 +34,6 @@ public abstract class AggregateSumColumn implements IAggregatableColumn {
     @Getter
     private final String alias;
 
-
     protected final FunctionExpression aggregateFunctionExpression;
 
     public AggregateSumColumn(String name,

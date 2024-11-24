@@ -90,7 +90,6 @@ public interface IColumn extends IIdentifier {
         return new FunctionExpression(function, new IdentifierExpression(getName()));
     }
 
-    @JsonIgnore
     IDataType getDataType();
 
     @JsonIgnore

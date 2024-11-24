@@ -20,13 +20,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.hc.core5.http.HttpStatus;
 import org.bithon.component.commons.Experimental;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
@@ -61,7 +64,7 @@ public class AggregateFunctionColumn implements IColumn {
                                    @JsonProperty("aggregator") String aggregator,
                                    @JsonProperty("dataType") IDataType dataType) {
         this.name = name;
-        this.alias = alias;
+        this.alias = StringUtils.isEmpty(alias) ? name : alias;
         this.dataType = dataType;
         this.aggregator = aggregator;
         this.functionExpression = FunctionExpression.create("sum".equals(aggregator) ? SumMergeFunction.INSTANCE : CountMergeFunction.INSTANCE, name);
@@ -75,11 +78,24 @@ public class AggregateFunctionColumn implements IColumn {
     @Override
     public IExpression createAggregateFunctionExpression(IFunction function) {
         if (function instanceof AggregateFunction.Sum) {
-            return new FunctionExpression(SumMergeFunction.INSTANCE, new IdentifierExpression(name));
+            if ("sum".equals(this.aggregator)) {
+                // use sum on a AggregateFunction(sum, type) column,
+                // turn it into sumMerge function
+                return new FunctionExpression(SumMergeFunction.INSTANCE, new IdentifierExpression(name));
+            } else {
+                throw new HttpMappableException(HttpStatus.SC_BAD_REQUEST, "Invalid aggregator [%s] on column [AggregateFunction(%s,%s)]", function.getName(), this.aggregator, this.dataType);
+            }
         } else if (function instanceof AggregateFunction.Count) {
-            return new FunctionExpression(CountMergeFunction.INSTANCE, new IdentifierExpression(name));
+            if ("count".equals(this.aggregator)) {
+                // use count on a AggregateFunction(count, type) column,
+                // turn it into countMerge function
+                return new FunctionExpression(CountMergeFunction.INSTANCE, new IdentifierExpression(name));
+            } else {
+                // otherwise, treat it as a normal count operation
+                return new FunctionExpression(function, new IdentifierExpression(name));
+            }
         } else {
-            return new FunctionExpression(CountMergeFunction.INSTANCE, new IdentifierExpression(name));
+            return new FunctionExpression(function, new IdentifierExpression(name));
         }
     }
 
