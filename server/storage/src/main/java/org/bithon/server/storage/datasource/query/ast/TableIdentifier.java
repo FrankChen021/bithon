@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IdentifierExpression;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,15 +26,15 @@ import lombok.Getter;
 public class TableIdentifier implements IASTNode {
 
     @Getter
-    private final String name;
+    private final IdentifierExpression identifier;
 
-    public TableIdentifier(String name) {
-        this.name = name;
+    public TableIdentifier(String identifier) {
+        this.identifier = new IdentifierExpression(identifier);
     }
 
     @Override
     public String toString() {
-        return name;
+        return identifier.toString();
     }
 
 
