@@ -59,12 +59,12 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public String getThresholdText() {
-        return StringUtils.format("%s%%(%.2f)", threshold.toString(), base.doubleValue());
+        return threshold.toString();
     }
 
     @Override
     public String getCurrentText() {
-        return StringUtils.format("%.2f], Base [%.2f", now.doubleValue(), base.doubleValue());
+        return StringUtils.format("[%.2f], base [%.2f]", now.doubleValue(), base.doubleValue());
     }
 
     @Override

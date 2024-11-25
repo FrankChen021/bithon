@@ -28,11 +28,16 @@ public class RelativeGTPredicate extends AbstractRelativeThresholdPredicate {
 
     public RelativeGTPredicate(Number threshold,
                                HumanReadableDuration offset) {
-        super(threshold, offset, true);
+        super(threshold, offset);
     }
 
     @Override
     protected boolean matches(double delta, double threshold) {
         return delta > threshold;
+    }
+
+    @Override
+    public String toString() {
+        return "> " + threshold.toString();
     }
 }
