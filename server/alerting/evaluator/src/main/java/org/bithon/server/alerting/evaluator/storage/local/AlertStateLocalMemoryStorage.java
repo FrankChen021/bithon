@@ -47,7 +47,7 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     public AlertStateLocalMemoryStorage(@JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
         alertRepository.addListener(new IAlertChangeListener() {
             @Override
-            public void onCreated(AlertRule rule) {
+            public void onLoaded(AlertRule rule) {
                 matchCounters.remove(rule.getId());
                 silenced.remove(rule.getId());
                 evaluationTime.remove(rule.getId());

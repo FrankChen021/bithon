@@ -93,7 +93,7 @@ public class AlertEvaluator implements DisposableBean {
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {
                 @Override
-                public void onCreated(AlertRule rule) {
+                public void onLoaded(AlertRule rule) {
                     evaluationLogWriter.write(EvaluationLogEvent.builder()
                                                                 .timestamp(new Timestamp(System.currentTimeMillis()))
                                                                 .alertId(rule.getId())

@@ -47,7 +47,7 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
         if (alertRepository != null) {
             alertRepository.addListener(new IAlertChangeListener() {
                 @Override
-                public void onCreated(AlertRule rule) {
+                public void onLoaded(AlertRule rule) {
                 }
 
                 @Override
