@@ -64,7 +64,7 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public String getCurrentText() {
-        return StringUtils.format("[%.2f], base [%.2f]", now.doubleValue(), base.doubleValue());
+        return StringUtils.format("%.2f], base [%.2f", now.doubleValue(), base.doubleValue());
     }
 
     @Override
