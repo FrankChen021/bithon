@@ -110,7 +110,7 @@ DURATION_LITERAL: INTEGER_LITERAL [smhd];
 SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
 INTEGER_LITERAL: '-'?([1-9][0-9]*|[0]);
 DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
-PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
+PERCENTAGE_LITERAL:  '-'?[0-9]+('.'[0-9]+)*'%';
 
 // Allow using single quote or double quote
 STRING_LITERAL

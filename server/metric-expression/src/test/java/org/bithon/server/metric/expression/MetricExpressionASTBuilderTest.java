@@ -344,4 +344,11 @@ public class MetricExpressionASTBuilderTest {
                                                       .serializeToText());
 
     }
+
+    @Test
+    public void test_NegativePercentage() {
+        Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]",
+                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]")
+                                                      .serializeToText());
+    }
 }
