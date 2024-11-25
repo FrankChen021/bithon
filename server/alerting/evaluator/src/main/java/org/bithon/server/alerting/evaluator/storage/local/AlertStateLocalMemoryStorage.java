@@ -47,10 +47,10 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     public AlertStateLocalMemoryStorage(@JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
         alertRepository.addListener(new IAlertChangeListener() {
             @Override
-            public void onCreated(AlertRule alert) {
-                matchCounters.remove(alert.getId());
-                silenced.remove(alert.getId());
-                evaluationTime.remove(alert.getId());
+            public void onCreated(AlertRule rule) {
+                matchCounters.remove(rule.getId());
+                silenced.remove(rule.getId());
+                evaluationTime.remove(rule.getId());
             }
 
             @Override
@@ -61,10 +61,10 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
             }
 
             @Override
-            public void onRemoved(AlertRule alert) {
-                matchCounters.remove(alert.getId());
-                silenced.remove(alert.getId());
-                evaluationTime.remove(alert.getId());
+            public void onRemoved(AlertRule rule) {
+                matchCounters.remove(rule.getId());
+                silenced.remove(rule.getId());
+                evaluationTime.remove(rule.getId());
             }
         });
     }

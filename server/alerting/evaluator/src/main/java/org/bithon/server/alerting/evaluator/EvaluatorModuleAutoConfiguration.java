@@ -24,6 +24,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.BaselineMetricCacheManager;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
@@ -80,7 +81,8 @@ public class EvaluatorModuleAutoConfiguration {
     }
 
     @Bean
-    public AlertEvaluator alertEvaluator(IAlertStateStorage stateStorage,
+    public AlertEvaluator alertEvaluator(AlertRepository repository,
+                                         IAlertStateStorage stateStorage,
                                          IEvaluationLogStorage logStorage,
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
@@ -91,7 +93,8 @@ public class EvaluatorModuleAutoConfiguration {
         EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         logWriter.start();
 
-        return new AlertEvaluator(stateStorage,
+        return new AlertEvaluator(repository,
+                                  stateStorage,
                                   logWriter,
                                   recordStorage,
                                   dataSourceApi,

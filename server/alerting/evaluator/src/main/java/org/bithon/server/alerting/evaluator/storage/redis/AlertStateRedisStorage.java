@@ -47,7 +47,7 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
         if (alertRepository != null) {
             alertRepository.addListener(new IAlertChangeListener() {
                 @Override
-                public void onCreated(AlertRule alert) {
+                public void onCreated(AlertRule rule) {
                 }
 
                 @Override
@@ -65,13 +65,13 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
                 }
 
                 @Override
-                public void onRemoved(AlertRule alert) {
+                public void onRemoved(AlertRule rule) {
                     try {
-                        redisClient.delete(getAlertKey(alert.getId(), "silence"));
+                        redisClient.delete(getAlertKey(rule.getId(), "silence"));
                     } catch (Exception ignored) {
                     }
                     try {
-                        redisClient.delete(getAlertKey(alert.getId(), "*"));
+                        redisClient.delete(getAlertKey(rule.getId(), "*"));
                     } catch (Exception ignored) {
                     }
                 }

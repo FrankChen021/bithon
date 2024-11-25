@@ -29,6 +29,8 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
+import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -41,6 +43,7 @@ import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -67,7 +70,8 @@ public class AlertEvaluator implements DisposableBean {
     private final IDataSourceApi dataSourceApi;
     private final INotificationApi notificationApi;
 
-    public AlertEvaluator(IAlertStateStorage stateStorage,
+    public AlertEvaluator(AlertRepository repository,
+                          IAlertStateStorage stateStorage,
                           IEvaluationLogWriter evaluationLogWriter,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
@@ -85,6 +89,43 @@ public class AlertEvaluator implements DisposableBean {
         // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.notificationApi = createNotificationApi(applicationContext);
+
+        if (repository != null) {
+            repository.addListener(new IAlertChangeListener() {
+                @Override
+                public void onCreated(AlertRule rule) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(rule.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Loaded rule [%s]: [%s]", rule.getName(), rule.getExpr()))
+                                                                .build());
+                }
+
+                @Override
+                public void onUpdated(AlertRule original, AlertRule updated) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(updated.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Updated rule [%s]: [%s]", updated.getName(), updated.getExpr()))
+                                                                .build());
+                }
+
+                @Override
+                public void onRemoved(AlertRule rule) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(rule.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Deleted rule [%s]: [%s]", rule.getName(), rule.getExpr()))
+                                                                .build());
+                }
+            });
+        }
     }
 
     public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {

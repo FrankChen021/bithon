@@ -23,9 +23,9 @@ import org.bithon.server.alerting.common.model.AlertRule;
  * @date 2024/2/11 16:15
  */
 public interface IAlertChangeListener {
-    void onCreated(AlertRule alert);
+    void onCreated(AlertRule rule);
 
     void onUpdated(AlertRule original, AlertRule updated);
 
-    void onRemoved(AlertRule alert);
+    void onRemoved(AlertRule rule);
 }
