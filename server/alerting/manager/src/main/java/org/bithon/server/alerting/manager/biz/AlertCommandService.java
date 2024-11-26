@@ -306,7 +306,8 @@ public class AlertCommandService {
             }
         };
 
-        AlertEvaluator evaluator = new AlertEvaluator(new AlertStateLocalMemoryStorage(),
+        AlertEvaluator evaluator = new AlertEvaluator(null,
+                                                      new AlertStateLocalMemoryStorage(),
                                                       logStorage.createWriter(),
                                                       recordStorage,
                                                       this.dataSourceApi,

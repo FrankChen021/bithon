@@ -28,11 +28,16 @@ public class RelativeLTEPredicate extends AbstractRelativeThresholdPredicate {
 
     public RelativeLTEPredicate(Number threshold,
                                 HumanReadableDuration offset) {
-        super(threshold, offset, false);
+        super(threshold, offset);
     }
 
     @Override
     protected boolean matches(double delta, double threshold) {
         return delta <= threshold;
+    }
+
+    @Override
+    public String toString() {
+        return "<= " + threshold.toString();
     }
 }

@@ -78,7 +78,7 @@ public class AlertRepository {
                 if (newRule != null) {
                     AlertRule oldRule = this.loadedAlerts.put(newRule.getId(), newRule);
                     if (oldRule == null) {
-                        this.onCreated(newRule);
+                        this.onLoaded(newRule);
                     } else {
                         this.onUpdated(oldRule, newRule);
                     }
@@ -108,11 +108,11 @@ public class AlertRepository {
         this.changeListeners.add(listener);
     }
 
-    private void onCreated(AlertRule alertRule) {
+    private void onLoaded(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
             try {
-                listener.onCreated(alertRule);
+                listener.onLoaded(alertRule);
             } catch (Exception e) {
                 log.info("Exception when notify onCreated", e);
             }

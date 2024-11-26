@@ -40,12 +40,12 @@ public class QueryResponse {
      */
     private Integer total;
 
-    /**
-     * The request limit parameter
-     */
     private Limit limit;
-
     private long startTimestamp;
+
+    /**
+     * Input end timestamp
+     */
     private long endTimestamp;
 
     /**

@@ -22,7 +22,6 @@ import org.bithon.server.commons.time.TimeSpan;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +81,8 @@ public class TimeSeriesQueryResult {
         if (dataPoints.isEmpty()) {
             // fill empty data points
             for (String metric : metrics) {
-                List<String> tags = Collections.singletonList(metric);
-
+                List<String> tags = new ArrayList<>();
+                tags.add(metric);
                 map.computeIfAbsent(tags, v -> new TimeSeriesMetric(tags, bucketCount));
             }
         } else {

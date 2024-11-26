@@ -492,7 +492,7 @@ public class AlertRuleEvaluatorTest {
                                         .build());
         EasyMock.replay(dataSourceProvider);
 
-        String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 50%%[-1m]", metric);
+        String expr = StringUtils.format("sum(test-metrics.%s)[1m] < -50%%[-1m]", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()

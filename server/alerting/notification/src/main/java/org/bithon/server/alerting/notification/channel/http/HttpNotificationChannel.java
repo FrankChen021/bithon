@@ -135,9 +135,10 @@ public class HttpNotificationChannel implements INotificationChannel {
         String defaultMessage;
         if (message.getExpressions().size() == 1) {
             ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-            defaultMessage = StringUtils.format("expected: %s, current: %s",
+            defaultMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
                                                 result.getOutputs().getThreshold(),
-                                                result.getOutputs().getCurrent());
+                                                result.getOutputs().getCurrent(),
+                                                result.getOutputs().getDelta());
         } else {
             defaultMessage = message.getConditionEvaluation()
                                     .entrySet()
@@ -150,10 +151,11 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                                      .orElse(null);
 
                                         ExpressionEvaluationResult result = entry.getValue();
-                                        return StringUtils.format("expr: %s, expected: %s, current: %s",
+                                        return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
                                                                   evaluatedExpression.serializeToText(),
                                                                   result.getOutputs().getThreshold(),
-                                                                  result.getOutputs().getCurrent());
+                                                                  result.getOutputs().getCurrent(),
+                                                                  result.getOutputs().getDelta());
                                     })
                                     .collect(Collectors.joining("\n"));
         }
@@ -212,17 +214,24 @@ public class HttpNotificationChannel implements INotificationChannel {
             host = notificationProperties.getManagerHost();
         }
         if (host == null) {
-            host = "http://localhost:9897";
+            host = "http://localhost:9897/";
+        }
+        if (!host.endsWith("/")) {
+            host += "/";
         }
 
-        String detailURL = notificationProperties.getDetailPath();
-        if (StringUtils.isBlank(detailURL)) {
-            detailURL = "web/alerting/record/detail?recordId={id}";
+        String path = notificationProperties.getDetailPath();
+        if (StringUtils.isBlank(path)) {
+            path = "web/alerting/record/detail?recordId={id}";
+        } else {
+            // Make sure the path does not start with '/'
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
         }
-        detailURL = detailURL.replace("{id}", message.getAlertRecordId());
+        path = path.replace("{ruleId}", message.getAlertRule().getId());
+        path = path.replace("{id}", message.getAlertRecordId());
 
-        return host
-               + (host.endsWith("/") ? "" : "/")
-               + detailURL;
+        return host + path;
     }
 }
