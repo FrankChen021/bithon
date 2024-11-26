@@ -17,7 +17,6 @@
 package org.bithon.component.brpc.channel;
 
 import org.bithon.component.brpc.ServiceRegistry;
-import org.bithon.component.brpc.invocation.IServiceInvocationExecutor;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
@@ -26,71 +25,64 @@ import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.shaded.io.netty.channel.ChannelHandler;
 import org.bithon.shaded.io.netty.channel.ChannelHandlerContext;
-import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
+import org.bithon.shaded.io.netty.channel.SimpleChannelInboundHandler;
 import org.bithon.shaded.io.netty.handler.codec.DecoderException;
 
 import java.io.IOException;
+import java.util.concurrent.Executor;
 
 /**
  * @author frankchen
  */
 @ChannelHandler.Sharable
-class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
+class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMessage> {
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
-    private final IServiceInvocationExecutor executor;
+    private final Executor executor;
     private final ServiceRegistry serviceRegistry;
     private final InvocationManager invocationManager;
-    private boolean channelDebugEnabled;
-
-    /**
-     * Instantiate an instance which calls the service in worker threads
-     */
-    ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
-                                 InvocationManager invocationManager) {
-        this(serviceRegistry, ServiceInvocationRunnable::run, invocationManager);
-    }
 
     /**
      * Instantiate an instance which calls the service in specified executor.
      */
     public ServiceMessageChannelHandler(ServiceRegistry serviceRegistry,
-                                        IServiceInvocationExecutor executor,
+                                        Executor executor,
                                         InvocationManager invocationManager) {
-        this.serviceRegistry = serviceRegistry;
-        this.executor = executor;
-        this.invocationManager = invocationManager;
+        this.serviceRegistry = Preconditions.checkArgumentNotNull("serviceRegistry", serviceRegistry);
+        this.invocationManager = Preconditions.checkArgumentNotNull("invocationManager", invocationManager);
+        this.executor = executor == null ? Runnable::run : executor;
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (!(msg instanceof ServiceMessage)) {
-            return;
-        }
-
-        ServiceMessage message = (ServiceMessage) msg;
-        switch (message.getMessageType()) {
+    protected void channelRead0(ChannelHandlerContext ctx, ServiceMessage msg) {
+        switch (msg.getMessageType()) {
             case ServiceMessageType.CLIENT_REQUEST_ONEWAY:
             case ServiceMessageType.CLIENT_REQUEST:
             case ServiceMessageType.CLIENT_REQUEST_V2:
-                ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
-                if (channelDebugEnabled) {
-                    LOG.info("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
+                ServiceRequestMessageIn request = (ServiceRequestMessageIn) msg;
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving request, txId={}, service={}#{}", request.getTransactionId(), request.getServiceName(), request.getMethodName());
                 }
 
-                executor.execute(new ServiceInvocationRunnable(serviceRegistry, ctx.channel(), (ServiceRequestMessageIn) message));
+                ServiceInvocationRunnable.execute(serviceRegistry,
+                                                  ctx.channel(), (ServiceRequestMessageIn) msg,
+                                                  this.executor);
                 break;
+
             case ServiceMessageType.SERVER_RESPONSE:
-                if (channelDebugEnabled) {
-                    LOG.info("Receiving response, txId={}", message.getTransactionId());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving response, txId={}", msg.getTransactionId());
                 }
-                invocationManager.onResponse((ServiceResponseMessageIn) message);
+
+                invocationManager.handleResponse((ServiceResponseMessageIn) msg);
                 break;
+
             default:
-                LOG.warn("Receiving unknown message: {}", message.getMessageType());
+                LOG.warn("Receiving unknown message: {}", msg.getMessageType());
                 break;
         }
     }
@@ -105,6 +97,7 @@ class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
             }
             return;
         }
+
         if (cause instanceof IOException) {
             // do not log stack trace for known exceptions
             LOG.error("Exception({}) occurred on channel({} --> {}) when processing message: {}",
@@ -130,13 +123,5 @@ class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
             ctx.flush();
         }
         ctx.fireChannelWritabilityChanged();
-    }
-
-    public boolean isChannelDebugEnabled() {
-        return channelDebugEnabled;
-    }
-
-    public void setChannelDebugEnabled(boolean channelDebugEnabled) {
-        this.channelDebugEnabled = channelDebugEnabled;
     }
 }

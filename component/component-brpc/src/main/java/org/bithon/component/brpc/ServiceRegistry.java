@@ -73,7 +73,7 @@ public class ServiceRegistry implements IServiceRegistry {
             Map<String, ServiceInvoker> registryPerService = registry.computeIfAbsent(registryItem.getServiceName(),
                                                                                       v -> new ConcurrentHashMap<>(7));
             ServiceInvoker existingRegistry = registryPerService.putIfAbsent(registryItem.getMethodName(),
-                                                                             new ServiceInvoker(serviceImpl, method, registryItem.isOneway()));
+                                                                             new ServiceInvoker(registryItem, serviceImpl, method));
             if (existingRegistry != null) {
                 throw new DuplicateServiceException(interfaceType,
                                                     method,
@@ -95,15 +95,16 @@ public class ServiceRegistry implements IServiceRegistry {
     }
 
     public static class ServiceInvoker {
-        private final Method method;
+        private final ServiceRegistryItem metadata;
+
         private final Object serviceImpl;
-        private final boolean isOneway;
+        private final Method method;
         private final Type[] parameterTypes;
 
-        public ServiceInvoker(Object serviceImpl, Method method, boolean isOneway) {
-            this.method = method;
+        public ServiceInvoker(ServiceRegistryItem metadata, Object serviceImpl, Method method) {
+            this.metadata = metadata;
             this.serviceImpl = serviceImpl;
-            this.isOneway = isOneway;
+            this.method = method;
             this.parameterTypes = method.getGenericParameterTypes();
         }
 
@@ -111,8 +112,8 @@ public class ServiceRegistry implements IServiceRegistry {
             return method.invoke(serviceImpl, args);
         }
 
-        public boolean isOneway() {
-            return isOneway;
+        public ServiceRegistryItem getMetadata() {
+            return metadata;
         }
 
         public Type[] getParameterTypes() {
