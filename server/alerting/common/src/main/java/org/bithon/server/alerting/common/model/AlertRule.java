@@ -83,7 +83,7 @@ public class AlertRule {
      * silence period in minute
      */
     @JsonProperty
-    private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
+    private HumanReadableDuration silence = HumanReadableDuration.DURATION_30_MINUTE;
 
     @JsonProperty
     private List<String> notifications;

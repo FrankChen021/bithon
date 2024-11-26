@@ -67,7 +67,7 @@ public class CreateAlertRuleRequest {
 
     @JsonProperty("silence")
     @HumanReadableDurationConstraint(min = "1m", max = "60m")
-    private HumanReadableDuration silence = HumanReadableDuration.DURATION_3_MINUTE;
+    private HumanReadableDuration silence = HumanReadableDuration.DURATION_30_MINUTE;
 
     @NotEmpty
     private String expr;
