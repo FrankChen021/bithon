@@ -306,12 +306,13 @@ public class AlertEvaluator implements DisposableBean {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long start = context.getEvaluatedExpressions()
-                            .values()
-                            .stream()
-                            .map((output) -> output.getStart().getMilliseconds())
-                            .min(Comparator.comparingLong((v) -> v))
-                            .get();
+        long startOfThisEvaluation = context.getEvaluatedExpressions()
+                                            .values()
+                                            .stream()
+                                            .map((output) -> output.getStart().getMilliseconds())
+                                            .min(Comparator.comparingLong((v) -> v))
+                                            .get();
+        long start = startOfThisEvaluation - context.getAlertRule().getForTimes() * context.getAlertRule().getEvery().getDuration().toMillis();
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(start)
                                                                                  .end(context.getIntervalEnd().getMilliseconds())
