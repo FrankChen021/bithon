@@ -21,6 +21,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bithon.component.commons.Experimental;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.commons.time.TimeSpan;
@@ -37,10 +38,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +59,7 @@ public class MetricQueryApi {
 
     public MetricQueryApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
-        this.executor = ForkJoinPool.commonPool();
+        this.executor = Executors.newCachedThreadPool(new NamedThreadFactory("metric-query"));
     }
 
     @Data
@@ -148,9 +151,9 @@ public class MetricQueryApi {
         for (long start = baseResponse.getStartTimestamp(); start <= baseResponse.getEndTimestamp(); start += baseResponse.getInterval()) {
             int index = (int) ((start - baseResponse.getStartTimestamp()) / baseResponse.getInterval());
 
-            double diff = curr.getValues()[index] - base.getValues()[index];
+            BigDecimal diff = BigDecimal.valueOf(curr.getValues()[index] - base.getValues()[index]);
             if (usePercentage) {
-                delta.set(index, base.getValues()[index] == 0 ? 0 : diff / base.getValues()[index]);
+                delta.set(index, base.getValues()[index] == 0 ? 0 : diff.divide(BigDecimal.valueOf(base.getValues()[index]), 4, RoundingMode.HALF_UP).doubleValue());
             } else {
                 delta.set(index, diff);
             }
@@ -160,7 +163,7 @@ public class MetricQueryApi {
                             .interval(currentResponse.getInterval())
                             .startTimestamp(currentResponse.getStartTimestamp())
                             .endTimestamp(currentResponse.getEndTimestamp())
-                            .data(List.of(base, curr, delta))
+                            .data(List.of(delta, base, curr))
                             .build();
     }
 }
