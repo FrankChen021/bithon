@@ -82,8 +82,8 @@ public class TimeSeriesQueryResult {
         if (dataPoints.isEmpty()) {
             // fill empty data points
             for (String metric : metrics) {
-                List<String> tags = Collections.singletonList(metric);
-
+                List<String> tags = new ArrayList<>();
+                tags.add(metric);
                 map.computeIfAbsent(tags, v -> new TimeSeriesMetric(tags, bucketCount));
             }
         } else {
