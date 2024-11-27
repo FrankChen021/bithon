@@ -49,6 +49,8 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -57,6 +59,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -223,6 +226,11 @@ public class AlertChannelApi {
 
     @Data
     public static class GetChannelListRequest {
+        @Nullable
+        private String name;
+        private OrderBy orderBy = new OrderBy();
+        private Limit limit = new Limit(100, null);
+
         /**
          * The format of the returned props
          * Can be either one of yaml/json

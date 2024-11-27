@@ -45,7 +45,6 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SortField;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
@@ -253,14 +252,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public int getAlertListSize(String appName, String alertName) {
+    public int getAlertListSize(String appName, String ruleName) {
         Condition condition = Tables.BITHON_ALERT_OBJECT.DELETED.eq(0);
 
         if (StringUtils.hasText(appName)) {
             condition = condition.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
-        if (StringUtils.hasText(alertName)) {
-            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
+        if (StringUtils.hasText(ruleName)) {
+            // TODO: ESCAPE alert name
+            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase("%" + ruleName + "%"));
         }
 
         return this.fetchCount(this.quotedObjectTableSelectName, condition);
@@ -268,7 +268,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public List<ListAlertDTO> getAlertList(String appName,
-                                           String alertName,
+                                           String ruleName,
                                            OrderBy orderBy,
                                            Limit limit) {
         SelectConditionStep<?> selectSql = dslContext.select(Tables.BITHON_ALERT_OBJECT.ALERT_ID,
@@ -289,26 +289,29 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         if (StringUtils.hasText(appName)) {
             selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
-        if (StringUtils.hasText(alertName)) {
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
+        if (StringUtils.hasText(ruleName)) {
+            //TODO: ESCAPE alert name
+            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase("%" + ruleName + "%"));
         }
 
-        SortField<?> orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT.desc();
-        Field<?>[] orderByFields = new Field[]{
-            Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
-            Tables.BITHON_ALERT_STATE.LAST_ALERT_AT
-        };
-        for (Field<?> field : orderByFields) {
-            if (field.getName().equals(orderBy.getName())) {
-                if (Order.desc.equals(orderBy.getOrder())) {
-                    orderByField = field.desc();
-                } else {
-                    orderByField = field.asc();
-                }
-            }
+        Field<?> orderByField;
+        if ("name".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_OBJECT.ALERT_NAME;
+        } else if ("enabled".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_OBJECT.DISABLED;
+        } else if ("lastAlertAt".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_STATE.LAST_ALERT_AT;
+        } else if ("alertStatus".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_STATE.ALERT_STATUS;
+        } else if ("createdAt".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_OBJECT.CREATED_AT;
+        } else if ("updatedAt".equals(orderBy.getName())) {
+            orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT;
+        } else {
+            orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT;
         }
 
-        return dslContext.fetch(getAlertListSql(selectSql.orderBy(orderByField)
+        return dslContext.fetch(getAlertListSql(selectSql.orderBy(Order.desc.equals(orderBy.getOrder()) ? orderByField.desc() : orderByField.asc())
                                                          .offset(limit.getOffset())
                                                          .limit(limit.getLimit())))
                          .map((record) -> {
