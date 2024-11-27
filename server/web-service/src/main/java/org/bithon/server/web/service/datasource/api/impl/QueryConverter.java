@@ -96,7 +96,12 @@ public class QueryConverter {
                         IColumn column = schema.getColumnByName(field.getField());
                         Preconditions.checkNotNull(column, "Column [%s] does not exist in the schema.", field.getField());
 
-                        selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
+                        if (column instanceof ExpressionColumn) {
+                            // Count on a built-in expression column
+                            selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
+                        } else {
+                            selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
+                        }
                     }
                 } else {
                     String columnName = field.getField() == null ? field.getName() : field.getField();
