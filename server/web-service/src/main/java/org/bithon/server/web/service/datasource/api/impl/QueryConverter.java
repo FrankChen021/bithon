@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -172,8 +173,16 @@ public class QueryConverter {
         Query.QueryBuilder builder = Query.builder();
 
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
+        int insertedIndex = -1;
         for (QueryField field : query.getFields()) {
+            if (LiteralExpression.AsteriskLiteral.INSTANCE.getValue().equals(field.getField())) {
+                // select all fields
+                insertedIndex = selectorList.size();
+                continue;
+            }
+
             if (field.getExpression() != null) {
+                // This is a client side passed post simple expression, NOT aggregation expression
                 // TODO: check if there's any aggregation function in the expression
                 selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
 
@@ -182,7 +191,7 @@ public class QueryConverter {
 
             if (field.getAggregator() != null) {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "Aggregator [%s] on field [%s] is not allowed in select query",
+                                                "Aggregator [%s] on field [%s] is not supported in a list query",
                                                 field.getAggregator(),
                                                 field.getName());
             }
@@ -202,6 +211,16 @@ public class QueryConverter {
             selectorList.add(selector);
         }
 
+        // Replace the input '*' with all columns in the schema
+        if (insertedIndex != -1) {
+            Set<String> selectedColumns = selectorList.stream().map((Selector::getOutputName)).collect(Collectors.toSet());
+            for (IColumn column : schema.getColumns()) {
+                if (!selectedColumns.contains(column.getName())) {
+                    selectorList.add(insertedIndex, new Selector(column.getName()));
+                }
+            }
+        }
+
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
@@ -217,9 +236,7 @@ public class QueryConverter {
                       .interval(Interval.of(start, end, null, new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
-                      .resultFormat(query.getResultFormat() == null
-                                        ? Query.ResultFormat.Object
-                                        : query.getResultFormat())
+                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
                       .build();
     }
 
@@ -245,7 +262,9 @@ public class QueryConverter {
                                     .anyMatch((filter) -> filter.getName().equals(orderBy.getName()))
                              || (request.getGroupBy() != null && request.getGroupBy().contains(orderBy.getName()));
 
-            Preconditions.checkIfTrue(exists, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
+            boolean hasAll = request.getFields().stream().anyMatch((field) -> "*".equals(field.getField()));
+
+            Preconditions.checkIfTrue(exists || hasAll, "OrderBy field [%s] can not be found in the query fields.", orderBy.getName());
         }
     }
 }
