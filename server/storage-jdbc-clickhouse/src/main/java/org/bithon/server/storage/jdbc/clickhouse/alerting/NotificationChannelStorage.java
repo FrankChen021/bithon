@@ -27,6 +27,7 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 
 import java.sql.Timestamp;
@@ -42,8 +43,9 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
     @JsonCreator
     public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
                                       @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        super(storageProvider.getDslContext(), storageConfig);
+        super(storageProvider.getDslContext(), sqlDialectManager, storageConfig);
         this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
@@ -62,6 +64,10 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
                          .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                          .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                          .execute() > 0;
+    }
+
+    public String getChanelTableSelectFrom() {
+        return Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName() + " FINAL ";
     }
 
     @Override

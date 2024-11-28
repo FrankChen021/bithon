@@ -49,6 +49,8 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -223,6 +225,10 @@ public class AlertChannelApi {
 
     @Data
     public static class GetChannelListRequest {
+        private String name;
+        private OrderBy orderBy;
+        private Limit limit;
+
         /**
          * The format of the returned props
          * Can be either one of yaml/json
@@ -242,7 +248,15 @@ public class AlertChannelApi {
     public GetChannelListResponse getChannelList(@Validated @RequestBody GetChannelListRequest request) {
         JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
 
-        List<Map<String, Object>> channels = this.channelStorage.getChannels(0)
+        IAlertNotificationChannelStorage.GetChannelRequest req = IAlertNotificationChannelStorage.GetChannelRequest.builder()
+                                                                                                                   .name(request.getName())
+                                                                                                                   .since(0)
+                                                                                                                   .orderBy(request.getOrderBy())
+                                                                                                                   .limit(request.getLimit())
+                                                                                                                   .build();
+
+        int total = this.channelStorage.getChannelsSize(req);
+        List<Map<String, Object>> channels = this.channelStorage.getChannels(req)
                                                                 .stream()
                                                                 .map((obj) -> {
                                                                     // Use LinkedHashMap to keep order
@@ -254,7 +268,7 @@ public class AlertChannelApi {
                                                                     return map;
                                                                 })
                                                                 .collect(Collectors.toList());
-        return new GetChannelListResponse(channels.size(), channels);
+        return new GetChannelListResponse(total, channels);
     }
 
     @Getter
@@ -302,7 +316,9 @@ public class AlertChannelApi {
 
     @PostMapping("/api/alerting/channel/names")
     public GetChannelNamesResponse getChannelNames() {
-        List<String> channels = this.channelStorage.getChannels(0)
+        List<String> channels = this.channelStorage.getChannels(IAlertNotificationChannelStorage.GetChannelRequest.builder()
+                                                                                                                  .since(0)
+                                                                                                                  .build())
                                                    .stream()
                                                    .map(NotificationChannelObject::getName)
                                                    .collect(Collectors.toList());

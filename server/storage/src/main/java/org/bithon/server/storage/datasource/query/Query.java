@@ -51,6 +51,9 @@ public class Query {
 
     private final ResultFormat resultFormat;
 
+    /**
+     * Was used, but not used now. May be used in future.
+     */
     public enum ResultFormat {
         /**
          * Object is output as an array

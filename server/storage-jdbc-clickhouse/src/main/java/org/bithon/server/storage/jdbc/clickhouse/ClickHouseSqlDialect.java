@@ -112,6 +112,6 @@ public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression.accept(new ClickHouseExpressionOptimizer());
+        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer());
     }
 }

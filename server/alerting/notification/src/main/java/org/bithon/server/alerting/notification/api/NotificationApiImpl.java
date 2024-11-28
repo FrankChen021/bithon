@@ -61,7 +61,7 @@ public class NotificationApiImpl implements INotificationApi {
         // TODO: Change to incremental loading
         log.info("Loading notification channels...");
         Map<String, INotificationChannel> newChannels = new HashMap<>();
-        channelStorage.getChannels(0)
+        channelStorage.getChannels(IAlertNotificationChannelStorage.GetChannelRequest.builder().since(0).build())
                       .forEach((channelStorageObject) -> {
                           try {
                               toChannel(channelStorageObject);

@@ -26,6 +26,7 @@ import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.manager.api.parameter.CreateAlertRuleRequest;
 import org.bithon.server.alerting.manager.api.parameter.GenericAlertByIdRequest;
+import org.bithon.server.alerting.manager.api.parameter.UpdateAlertRuleRequest;
 import org.bithon.server.alerting.manager.biz.AlertCommandService;
 import org.bithon.server.alerting.manager.biz.BizException;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
@@ -66,10 +67,11 @@ public class AlertCommandApi {
     }
 
     @PostMapping("/api/alerting/alert/update")
-    public ApiResponse<?> updateAlertRule(@Valid @RequestBody CreateAlertRuleRequest request) {
+    public ApiResponse<?> updateAlertRule(@Valid @RequestBody UpdateAlertRuleRequest request) {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
             AlertRule rule = Validator.validate(request).toAlert();
+            rule.setEnabled(request.isEnabled());
             commandService.updateRule(rule);
             return ApiResponse.success();
         } catch (BizException e) {

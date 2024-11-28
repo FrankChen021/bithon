@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +51,7 @@ public class EventTableSchema implements ISchema {
 
     private final String name;
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
-    private final Map<String, IColumn> columnMap = new HashMap<>();
+    private final Map<String, IColumn> columnMap = new LinkedHashMap<>();
     private final IDataStoreSpec dataStoreSpec;
 
     public EventTableSchema(String name, IEventStorage storage, List<IColumn> columns) {

@@ -97,7 +97,7 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+        return expression == null ? null : expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
             /**
              * MYSQL does not support Map, the JSON formatted string is stored in the column.
              * So we turn the MapAccessExpression into a LIKE expression
