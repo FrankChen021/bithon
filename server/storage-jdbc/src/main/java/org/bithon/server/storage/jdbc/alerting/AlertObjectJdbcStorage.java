@@ -305,8 +305,6 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
             orderByField = Tables.BITHON_ALERT_STATE.ALERT_STATUS;
         } else if ("createdAt".equals(orderBy.getName())) {
             orderByField = Tables.BITHON_ALERT_OBJECT.CREATED_AT;
-        } else if ("updatedAt".equals(orderBy.getName())) {
-            orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT;
         } else {
             orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT;
         }
