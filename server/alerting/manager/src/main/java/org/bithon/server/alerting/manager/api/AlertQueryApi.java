@@ -182,7 +182,7 @@ public class AlertQueryApi {
     }
 
     @PostMapping("/api/alerting/alert/get")
-    public ApiResponse<GetAlertRuleResponse> getAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
+    public ApiResponse<GetAlertRuleResponse> getRuleById(@Valid @RequestBody GenericAlertByIdRequest request) {
         AlertStorageObject ruleObject = alertStorage.getAlertById(request.getAlertId());
 
         // Parse expression first
@@ -204,9 +204,7 @@ public class AlertQueryApi {
     }
 
     @PostMapping("/api/alerting/alert/list")
-    public GetAlertListResponse getAlerts(@Valid @RequestBody GetAlertListRequest request) {
-        request.getOrderBy().setName(StringUtils.camelToSnake(request.getOrderBy().getName()));
-
+    public GetAlertListResponse getRuleList(@Valid @RequestBody GetAlertListRequest request) {
         List<ListAlertDTO> alertList = alertStorage.getAlertList(request.getAppName(),
                                                                  request.getAlertName(),
                                                                  request.getOrderBy(),
