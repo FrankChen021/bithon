@@ -56,7 +56,7 @@ public class AgentSettingLoader implements SmartLifecycle {
 
     public AgentSettingLoader(ISettingStorage storage,
                               ObjectMapper objectMapper) {
-        this.scheduledExecutorService = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("setting-loader"));
+        this.scheduledExecutorService = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.daemonThreadFactory("setting-loader"));
         this.reader = storage.createReader();
         this.jsonFormatter = objectMapper;
         this.yamlFormatter = new ObjectMapper(new YAMLFactory());

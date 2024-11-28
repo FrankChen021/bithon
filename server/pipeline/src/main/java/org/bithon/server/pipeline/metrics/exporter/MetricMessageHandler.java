@@ -94,7 +94,7 @@ public class MetricMessageHandler implements IMetricMessageHandler {
                                                                                           1,
                                                                                           TimeUnit.MINUTES,
                                                                                           new LinkedBlockingQueue<>(1024),
-                                                                                          NamedThreadFactory.of(dataSourceName + "-handler"),
+                                                                                          NamedThreadFactory.nonDaemonThreadFactory(dataSourceName + "-handler"),
                                                                                           new ThreadPoolExecutor.DiscardOldestPolicy()));
     }
 

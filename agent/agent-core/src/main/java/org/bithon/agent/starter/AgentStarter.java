@@ -107,6 +107,7 @@ public class AgentStarter {
             // the last started life cycle object will be stopped in first
             for (int i = services.size() - 1; i >= 0; i--) {
                 try {
+                    LOG.info("Stopping service {}", services.get(i).getClass().getName());
                     services.get(i).stop();
                 } catch (Exception ignored) {
                 }

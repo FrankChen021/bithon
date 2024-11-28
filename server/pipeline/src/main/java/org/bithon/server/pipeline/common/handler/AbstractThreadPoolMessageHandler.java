@@ -46,7 +46,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           keepAliveTime.getSeconds(),
                                           TimeUnit.SECONDS,
                                           new LinkedBlockingQueue<>(queueSize),
-                                          NamedThreadFactory.of(name),
+                                          NamedThreadFactory.nonDaemonThreadFactory(name),
                                           handler);
     }
 

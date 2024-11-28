@@ -171,7 +171,7 @@ public class SchemaManager implements SmartLifecycle {
         incrementalLoadSchemas();
 
         // start periodic loader
-        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.nonDaemonThreadFactory("schema-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
                                                // no delay to execute the first task
                                                1,

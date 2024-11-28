@@ -101,7 +101,7 @@ public class MetricCollectorManager {
         // And ThreadPoolInterceptor then would call getInstance of this class which would return NULL
         // because the constructing process of this class has not completed
         this.scheduler = new ScheduledThreadPoolExecutor(2,
-                                                         NamedThreadFactory.of("bithon-metric-collector"),
+                                                         NamedThreadFactory.daemonThreadFactory("bithon-metric-collector"),
                                                          new ThreadPoolExecutor.CallerRunsPolicy());
         this.scheduler.scheduleWithFixedDelay(this::collectAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
     }
@@ -180,6 +180,21 @@ public class MetricCollectorManager {
                     LOG.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
                 }
             });
+        }
+    }
+
+    public void shutdown() {
+        LOG.info("Shutdown metric collector...");
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(15, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException ie) {
+            // If the current thread is interrupted while waiting, forcefully shutdown
+            scheduler.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
         }
     }
 }
