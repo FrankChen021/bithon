@@ -25,6 +25,8 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
+import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -43,18 +45,24 @@ import java.util.List;
 public class NotificationChannelJdbcStorage implements IAlertNotificationChannelStorage {
 
     protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
+    private final ISqlDialect sqlDialect;
     protected DSLContext dslContext;
 
     @JsonCreator
     public NotificationChannelJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration,
+                                          @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
                                           @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this(storageConfiguration.getDslContext(),
+             sqlDialectManager,
              storageConfig);
     }
 
-    protected NotificationChannelJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    protected NotificationChannelJdbcStorage(DSLContext dslContext,
+                                             SqlDialectManager sqlDialectManager,
+                                             AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.storageConfig = storageConfig;
+        this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
     }
 
     @Override
@@ -107,7 +115,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
         if (!StringUtils.isEmpty(request.getName())) {
             //noinspection unchecked,rawtypes
-            select = ((SelectConditionStep) select).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.likeIgnoreCase(request.getName()));
+            select = ((SelectConditionStep) select).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.likeIgnoreCase("%" + request.getName() + "%"));
         }
 
         if (request.getSince() > 0) {
@@ -115,9 +123,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
             select = ((SelectConditionStep) select).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT.ge(new Timestamp(request.getSince()).toLocalDateTime()));
         }
 
-
         if (request.getOrderBy() != null && request.getLimit() != null) {
-
             Field<?> orderBy;
             if ("createdAt".equals(request.getOrderBy().getName())) {
                 orderBy = Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT;
@@ -134,7 +140,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
                 sortField = orderBy.desc();
             }
             return select.orderBy(sortField)
-                         .limit(request.getLimit().getLimit(), request.getLimit().getOffset())
+                         .limit(request.getLimit().getOffset(), request.getLimit().getLimit())
                          .fetch()
                          .map(this::toChannelObject);
         } else {
@@ -166,7 +172,7 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     }
 
     protected String getChanelTableSelectFrom() {
-        return Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName();
+        return this.sqlDialect.quoteIdentifier(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName());
     }
 
     protected NotificationChannelObject toChannelObject(org.jooq.Record record) {
@@ -174,8 +180,20 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
         channel.setName(record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME));
         channel.setType(record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE));
         channel.setPayload(record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD));
-        channel.setCreatedAt(Timestamp.valueOf(record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT)));
-        channel.setUpdatedAt(Timestamp.valueOf(record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT)));
+
+        Object createdAt = record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT);
+        if (createdAt instanceof Timestamp) {
+            channel.setCreatedAt((Timestamp) createdAt);
+        } else {
+            channel.setCreatedAt(Timestamp.valueOf(createdAt.toString()));
+        }
+
+        Object updatedAt = record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT);
+        if (updatedAt instanceof Timestamp) {
+            channel.setUpdatedAt((Timestamp) updatedAt);
+        } else {
+            channel.setUpdatedAt(Timestamp.valueOf(updatedAt.toString()));
+        }
         return channel;
     }
 
