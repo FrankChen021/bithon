@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
@@ -113,9 +114,9 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
         SelectConditionStep<org.jooq.Record> select = dslContext.selectFrom(getChanelTableSelectFrom())
                                                                 .where("1 = 1");
 
-        if (!StringUtils.isEmpty(request.getName())) {
+        if (StringUtils.hasText(request.getName())) {
             //noinspection unchecked,rawtypes
-            select = ((SelectConditionStep) select).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.likeIgnoreCase("%" + request.getName() + "%"));
+            select = ((SelectConditionStep) select).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(request.getName())));
         }
 
         if (request.getSince() > 0) {

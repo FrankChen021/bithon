@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
@@ -259,8 +260,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
             condition = condition.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
         if (StringUtils.hasText(ruleName)) {
-            // TODO: ESCAPE alert name
-            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase("%" + ruleName + "%"));
+            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(ruleName)));
         }
 
         return this.fetchCount(this.quotedObjectTableSelectName, condition);
@@ -290,8 +290,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
             selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
         if (StringUtils.hasText(ruleName)) {
-            //TODO: ESCAPE alert name
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase("%" + ruleName + "%"));
+            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(ruleName)));
         }
 
         Field<?> orderByField;

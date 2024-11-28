@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.storage.datasource.ISchema;
 
 /**
@@ -107,11 +108,9 @@ public class Expression2Sql extends ExpressionSerializer {
         }
 
         String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
-        pattern = StringUtils.escape(pattern, '\\', '%');
-        pattern = StringUtils.escape(pattern, '\\', '_');
 
         serializeBinary(new ConditionalExpression.Like(expression.getLhs(),
-                                                       LiteralExpression.ofString("%" + pattern + "%")));
+                                                       LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
 
         return false;
     }
