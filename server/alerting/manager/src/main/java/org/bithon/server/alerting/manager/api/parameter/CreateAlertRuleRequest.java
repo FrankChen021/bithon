@@ -21,7 +21,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
@@ -33,7 +34,8 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2020/12/31
  */
-@Data
+@Getter
+@Setter
 public class CreateAlertRuleRequest {
 
     /**

@@ -16,13 +16,15 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 27/11/24 11:14 am
  */
-@Data
+@Getter
+@Setter
 public class UpdateAlertRuleRequest extends CreateAlertRuleRequest {
     private boolean enabled = true;
 }
