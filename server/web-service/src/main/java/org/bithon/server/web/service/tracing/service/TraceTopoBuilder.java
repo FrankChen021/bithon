@@ -239,6 +239,7 @@ public class TraceTopoBuilder {
      * Span: SERVER ---> PRODUCER ---> CONSUMER
      * Topo: SERVER ---> PRODUCER ---> CONSUMER
      */
+    @SuppressWarnings("unchecked")
     private boolean buildLink(TraceSpanBo upstreamApplication, TraceSpanBo parentSpan, List<?> childSpans) {
         // Determine if a tree path has a termination node.
         // Termination node is a node ends with 'CLIENT' or 'PRODUCER' span
@@ -256,12 +257,13 @@ public class TraceTopoBuilder {
         //
         boolean hasTermination = false;
 
-        //noinspection unchecked
+        TraceSpanBo prevSpan = parentSpan;
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
-
             // Update the depth and gap
-            childSpan.gap = childSpan.startTime - parentSpan.endTime;
+            childSpan.gap = childSpan.startTime - prevSpan.startTime;
             childSpan.depth = parentSpan.depth + 1;
+
+            prevSpan = childSpan;
 
             if (upstreamApplication.getAppName().equals(childSpan.getAppName())
                 && Objects.equals(upstreamApplication.getInstanceName(), childSpan.getInstanceName())
