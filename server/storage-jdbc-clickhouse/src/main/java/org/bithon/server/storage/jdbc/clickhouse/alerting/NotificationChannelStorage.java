@@ -64,6 +64,10 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
                          .execute() > 0;
     }
 
+    public String getChanelTableSelectFrom() {
+        return Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName() + " FINAL ";
+    }
+
     @Override
     public void initialize() {
         if (!this.storageConfig.isCreateTable()) {
