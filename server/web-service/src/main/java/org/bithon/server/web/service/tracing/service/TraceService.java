@@ -40,9 +40,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -94,31 +94,54 @@ public class TraceService {
         return traceReader.getTraceByTraceId(txId, start, end);
     }
 
-    public List<TraceSpan> asTree(List<TraceSpan> spans) {
-        Map<String, TraceSpanBo> boMap = spans.stream().collect(Collectors.toMap(span -> span.spanId, val -> {
+    public List<TraceSpanBo> transformSpanList(List<TraceSpan> spans, boolean returnTree) {
+        List<TraceSpanBo> spanList = new ArrayList<>();
+        Map<String, TraceSpanBo> spanMap = new HashMap<>();
+        for (int i = 0; i < spans.size(); i++) {
+            TraceSpan span = spans.get(i);
             TraceSpanBo bo = new TraceSpanBo();
-            BeanUtils.copyProperties(val, bo);
-            return bo;
-        }));
+            BeanUtils.copyProperties(span, bo);
 
-        List<TraceSpan> rootSpans = new ArrayList<>();
-        for (TraceSpan span : spans) {
-            TraceSpanBo bo = boMap.get(span.spanId);
-            if (StringUtils.isEmpty(span.parentSpanId)) {
-                rootSpans.add(bo);
+            // Calculate unqualified class name
+            if (bo.clazz != null) {
+                int idx = bo.clazz.lastIndexOf('.');
+                if (idx > 0) {
+                    bo.unQualifiedClassName = bo.clazz.substring(idx + 1);
+                } else {
+                    bo.unQualifiedClassName = bo.clazz;
+                }
             } else {
-                TraceSpanBo parentSpan = boMap.get(span.parentSpanId);
+                bo.unQualifiedClassName = "";
+            }
+
+            spanList.add(bo);
+            spanMap.put(span.spanId, bo);
+        }
+
+        List<TraceSpanBo> rootSpans = new ArrayList<>();
+        for (int i = 0, size = spanList.size(); i < size; i++) {
+            TraceSpanBo span = spanList.get(i);
+            span.index = i;
+
+            if (StringUtils.isEmpty(span.parentSpanId)) {
+                rootSpans.add(span);
+            } else {
+                TraceSpanBo parentSpan = spanMap.get(span.parentSpanId);
                 if (parentSpan == null) {
                     // For example, two applications: A --> B
                     // if span logs of A are not stored in Bithon,
                     // the root span of B has parentSpanId, but apparently the parent span can't be found
-                    rootSpans.add(bo);
+                    rootSpans.add(span);
                 } else {
-                    parentSpan.children.add(bo);
+                    if (returnTree) {
+                        parentSpan.children.add(span);
+                    } else {
+                        parentSpan.childRefs.add(i);
+                    }
                 }
             }
         }
-        return rootSpans;
+        return returnTree ? rootSpans : spanList;
     }
 
     public int getTraceListSize(String filterExpression,
