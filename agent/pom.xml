@@ -131,6 +131,7 @@
                     <signaturesFiles>
                         <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
                         <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
+                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-agent.txt</signaturesFile>
                     </signaturesFiles>
                     <excludes>
                         <exclude>**/SomeAvroDatum.class</exclude>

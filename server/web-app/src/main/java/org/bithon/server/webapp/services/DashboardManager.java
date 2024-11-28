@@ -79,7 +79,7 @@ public class DashboardManager implements SmartLifecycle {
     public void start() {
         log.info("Starting dashboard incremental loader...");
 
-        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("dashboard-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.nonDaemonThreadFactory("dashboard-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
                                                // no delay to execute the first task
                                                0,

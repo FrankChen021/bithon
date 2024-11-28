@@ -74,7 +74,7 @@ public class TraceHttpCollector {
                                                1L,
                                                TimeUnit.MINUTES,
                                                new LinkedBlockingQueue<>(8),
-                                               NamedThreadFactory.of("trace-http-processor"),
+                                               NamedThreadFactory.nonDaemonThreadFactory("trace-http-processor"),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
 
         this.spanJavaType = objectMapper.getTypeFactory().constructType(TraceSpan.class);

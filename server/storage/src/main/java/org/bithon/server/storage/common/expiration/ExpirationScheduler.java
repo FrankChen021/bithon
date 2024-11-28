@@ -54,7 +54,7 @@ public class ExpirationScheduler implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting storage cleaner...");
-        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("storage-cleaner"));
+        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.nonDaemonThreadFactory("storage-cleaner"));
         this.executor.scheduleAtFixedRate(this::expireAllStorages,
                                           1,
                                           1,

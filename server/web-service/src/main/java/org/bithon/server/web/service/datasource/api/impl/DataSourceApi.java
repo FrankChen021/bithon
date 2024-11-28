@@ -100,7 +100,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                     180L,
                                                     TimeUnit.SECONDS,
                                                     new SynchronousQueue<>(),
-                                                    NamedThreadFactory.of("datasource-async"));
+                                                    NamedThreadFactory.nonDaemonThreadFactory("datasource-async"));
         this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 

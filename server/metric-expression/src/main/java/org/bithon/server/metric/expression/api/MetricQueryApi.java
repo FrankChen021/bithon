@@ -59,7 +59,7 @@ public class MetricQueryApi {
 
     public MetricQueryApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
-        this.executor = Executors.newCachedThreadPool(new NamedThreadFactory("metric-query"));
+        this.executor = Executors.newCachedThreadPool(NamedThreadFactory.nonDaemonThreadFactory("metric-query"));
     }
 
     @Data
