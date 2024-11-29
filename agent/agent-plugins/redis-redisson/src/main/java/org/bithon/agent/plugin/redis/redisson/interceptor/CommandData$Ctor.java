@@ -22,6 +22,7 @@ import org.bithon.component.commons.utils.ReflectionUtils;
 import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommand;
 import org.redisson.client.protocol.decoder.MultiDecoder;
+import org.redisson.command.BatchPromise;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -38,15 +39,29 @@ public class CommandData$Ctor extends AfterInterceptor {
     public void after(AopContext aopContext) {
         CompletableFuture<?> promise = aopContext.getArgAs(0);
         if (promise instanceof CommandCompletionPromise) {
+            // target method is called recursively
             return;
         }
+        if (promise instanceof BatchCommandCompletionPromise) {
+            // target method is called recursively
+            return;
+        }
+
         RedisCommand<?> redisCommand = aopContext.getArgAs(3);
         if (redisCommand == null) {
             return;
         }
 
+        CompletableFuture wrapped;
+        if (promise instanceof BatchPromise) {
+            //noinspection rawtypes
+            wrapped = new BatchCommandCompletionPromise((BatchPromise) promise, aopContext.getTargetAs());
+        } else {
+            wrapped = new CommandCompletionPromise<>(promise, aopContext.getTargetAs());
+        }
+
         try {
-            ReflectionUtils.setFieldValue(aopContext.getTarget(), "promise", new CommandCompletionPromise<>(promise, aopContext.getTargetAs()));
+            ReflectionUtils.setFieldValue(aopContext.getTarget(), "promise", wrapped);
         } catch (NoSuchFieldException | IllegalAccessException ignored) {
         }
     }
