@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -29,14 +30,19 @@ import org.junit.Test;
  */
 public class HumanReadableNumberSerializerTest {
 
-    @Test
-    public void test_Deserialization() throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
+    private ObjectMapper om;
+
+    @Before
+    public void setUp() {
+        om = new ObjectMapper();
         SimpleModule m = new SimpleModule();
         m.addDeserializer(HumanReadableNumber.class, new HumanReadableSizeDeserializer());
         m.addSerializer(HumanReadableNumber.class, new HumanReadableSizeSerializer());
         om.registerModule(m);
+    }
 
+    @Test
+    public void test_SerializationAndDeserialization() throws JsonProcessingException {
         Assert.assertEquals("5G", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5G")), HumanReadableNumber.class)
                                     .toString());
 
@@ -45,5 +51,12 @@ public class HumanReadableNumberSerializerTest {
 
         Assert.assertEquals("5GiB", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5GiB")), HumanReadableNumber.class)
                                       .toString());
+    }
+
+    @Test
+    public void test_DeserializeFromSimpleString() throws JsonProcessingException {
+        // Deserialization from simple string
+        Assert.assertEquals("5GiB", om.readValue("\"5GiB\"", HumanReadableNumber.class).toString());
+
     }
 }

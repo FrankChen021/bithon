@@ -28,11 +28,18 @@ import java.io.IOException;
  * @date 2024/3/3 20:12
  */
 public class HumanReadableSizeSerializer extends JsonSerializer<HumanReadableNumber> {
+
+    public static final String TYPE_NAME = "readable_number";
+
     @Override
     public void serialize(HumanReadableNumber value,
                           JsonGenerator gen,
                           SerializerProvider serializers) throws IOException {
-        gen.writeString(value.toString());
+        gen.writeStartObject();
+        gen.writeStringField("text", value.toString());
+        gen.writeNumberField("value", value.doubleValue());
+        gen.writeStringField("type", TYPE_NAME);
+        gen.writeEndObject();
     }
 
     @Override

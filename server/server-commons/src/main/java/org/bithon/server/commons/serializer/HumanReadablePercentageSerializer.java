@@ -33,7 +33,8 @@ public class HumanReadablePercentageSerializer extends JsonSerializer<HumanReada
                           JsonGenerator gen,
                           SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("value", value.toString());
+        gen.writeStringField("text", value.toString());
+        gen.writeNumberField("value", value.getFraction());
         gen.writeStringField("type", "percentage");
         gen.writeEndObject();
     }
