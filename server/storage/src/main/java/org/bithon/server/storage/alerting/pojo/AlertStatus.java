@@ -22,9 +22,9 @@ package org.bithon.server.storage.alerting.pojo;
  */
 public enum AlertStatus {
     /**
-     * The initial status of an alert
+     * The initial status of an alert, ready for evaluation
      */
-    NORMAL(0) {
+    READY(0) {
         @Override
         public boolean canTransitTo(AlertStatus newStatus) {
             return (newStatus == PENDING || newStatus == ALERTING);

@@ -150,7 +150,7 @@ public class AlertEvaluator implements DisposableBean {
                 return;
             }
 
-            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.NORMAL : context.getPrevState().getStatus();
+            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatus();
 
             // Evaluate the alert rule
             AlertStatus newStatus = evaluate(context, context.getPrevState());
