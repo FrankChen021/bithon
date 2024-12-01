@@ -77,6 +77,10 @@ public enum AlertStatus {
         this.statusCode = statusCode;
     }
 
+    /**
+     * check if the status can transit to the new status.
+     * the old status and the new status SHOULD NOT be the same.
+     */
     public abstract boolean canTransitTo(AlertStatus newStatus);
 
     public static AlertStatus fromCode(int statusCode) {

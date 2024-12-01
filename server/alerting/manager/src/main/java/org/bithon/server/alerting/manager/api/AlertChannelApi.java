@@ -47,6 +47,7 @@ import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.datasource.query.Limit;
@@ -151,6 +152,7 @@ public class AlertChannelApi {
                                                 EvaluationResult.MATCHED,
                                                 new OutputMessage("1", "2", "1")
                                             )))
+                                            .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()
                                                                 .id("fake")
                                                                 .name("Notification Channel Test")
