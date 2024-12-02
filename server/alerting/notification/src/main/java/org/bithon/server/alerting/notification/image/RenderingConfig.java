@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "bithon.alerting.notification.rendering")
 public class RenderingConfig {
 
-    private String serviceEndpoint;
+    private String serviceEndpoint = "http://localhost:3000/api/public/chart/render";
     private boolean enabled = false;
     private int width = 800;
     private int height = 600;
