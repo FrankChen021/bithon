@@ -186,14 +186,14 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
         if (createdAt instanceof Timestamp) {
             channel.setCreatedAt((Timestamp) createdAt);
         } else {
-            channel.setCreatedAt(Timestamp.valueOf(createdAt.toString()));
+            channel.setCreatedAt(Timestamp.valueOf((LocalDateTime) createdAt));
         }
 
         Object updatedAt = record.get(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT);
         if (updatedAt instanceof Timestamp) {
             channel.setUpdatedAt((Timestamp) updatedAt);
         } else {
-            channel.setUpdatedAt(Timestamp.valueOf(updatedAt.toString()));
+            channel.setUpdatedAt(Timestamp.valueOf((LocalDateTime) updatedAt));
         }
         return channel;
     }

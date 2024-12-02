@@ -45,6 +45,7 @@ import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -132,39 +133,49 @@ public class HttpNotificationChannel implements INotificationChannel {
     }
 
     private void send(NotificationMessage message, Duration timeout) throws IOException {
-        String defaultMessage;
-        if (message.getExpressions().size() == 1) {
-            ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-            defaultMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
-                                                result.getOutputs().getThreshold(),
-                                                result.getOutputs().getCurrent(),
-                                                result.getOutputs().getDelta());
-        } else {
-            defaultMessage = message.getConditionEvaluation()
-                                    .entrySet()
-                                    .stream()
-                                    .map((entry) -> {
-                                        AlertExpression evaluatedExpression = message.getExpressions()
-                                                                                     .stream()
-                                                                                     .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                     .findFirst()
-                                                                                     .orElse(null);
+        String messageBody = this.props.body.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
+                                            .replace("{alert.name}", message.getAlertRule().getName())
+                                            .replace("{alert.expr}", message.getAlertRule().getExpr())
+                                            .replace("{alert.url}", getURL(message))
+                                            .replace("{alert.status}", message.getStatus().name());
 
-                                        ExpressionEvaluationResult result = entry.getValue();
-                                        return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
-                                                                  evaluatedExpression.serializeToText(),
-                                                                  result.getOutputs().getThreshold(),
-                                                                  result.getOutputs().getCurrent(),
-                                                                  result.getOutputs().getDelta());
-                                    })
-                                    .collect(Collectors.joining("\n"));
+        if (message.getStatus() == AlertStatus.ALERTING) {
+            String evaluationMessage;
+
+            if (message.getExpressions().size() == 1) {
+                ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+                evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
+                                                       result.getOutputs().getThreshold(),
+                                                       result.getOutputs().getCurrent(),
+                                                       result.getOutputs().getDelta());
+            } else {
+                evaluationMessage = message.getConditionEvaluation()
+                                           .entrySet()
+                                           .stream()
+                                           .map((entry) -> {
+                                               AlertExpression evaluatedExpression = message.getExpressions()
+                                                                                            .stream()
+                                                                                            .filter((expr) -> expr.getId().equals(entry.getKey()))
+                                                                                            .findFirst()
+                                                                                            .orElse(null);
+
+                                               ExpressionEvaluationResult result = entry.getValue();
+                                               return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
+                                                                         evaluatedExpression.serializeToText(),
+                                                                         result.getOutputs().getThreshold(),
+                                                                         result.getOutputs().getCurrent(),
+                                                                         result.getOutputs().getDelta());
+                                           })
+                                           .collect(Collectors.joining("\n"));
+            }
+            messageBody = messageBody.replace("{alert.message}", evaluationMessage);
+
+            long durationMinutes = message.getAlertRule().getEvery().getDuration().toMinutes() * message.getAlertRule().getForTimes();
+            messageBody = messageBody.replace("{alert.duration}", "Lasting for " + durationMinutes + " minutes");
         }
-        String body = this.props.body.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
-                                     .replace("{alert.name}", message.getAlertRule().getName())
-                                     .replace("{alert.expr}", message.getAlertRule().getExpr())
-                                     .replace("{alert.url}", getURL(message))
-                                     .replace("{alert.message}", defaultMessage);
-        AbstractHttpEntity bodyEntity = serializeRequestBody(body);
+
+        // Serialize the message first, this allows subclasses to override the serialization
+        AbstractHttpEntity bodyEntity = serializeRequestBody(messageBody);
 
         RequestConfig requestConfig = RequestConfig.custom()
                                                    .setSocketTimeout((int) timeout.toMillis())

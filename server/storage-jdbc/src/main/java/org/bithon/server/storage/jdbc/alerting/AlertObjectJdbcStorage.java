@@ -336,7 +336,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
 
                              Integer status = record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS);
-                             obj.setAlertStatus(status == null ? AlertStatus.PENDING : AlertStatus.fromCode(status));
+                             obj.setAlertStatus(status == null ? AlertStatus.READY : AlertStatus.fromCode(status));
                              return obj;
                          });
     }

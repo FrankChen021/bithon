@@ -36,7 +36,7 @@ public class HumanReadablePercentageDeserializer extends JsonDeserializer<HumanR
         if (node.isObject()) {
             String type = node.get("type").asText();
             Preconditions.checkIfTrue("percentage".equals(type), "Expecting type to be 'percentage' but got '%s'", type);
-            return HumanReadablePercentage.of(node.get("value").asText());
+            return HumanReadablePercentage.of(node.get("text").asText());
         } else {
             // Simple string
             if (node.isValueNode()) {

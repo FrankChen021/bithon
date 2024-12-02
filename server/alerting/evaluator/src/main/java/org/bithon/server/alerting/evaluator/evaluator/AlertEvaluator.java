@@ -150,7 +150,9 @@ public class AlertEvaluator implements DisposableBean {
                 return;
             }
 
-            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.NORMAL : context.getPrevState().getStatus();
+            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatus();
+
+            // Evaluate the alert rule
             AlertStatus newStatus = evaluate(context, context.getPrevState());
 
             if (prevStatus.canTransitTo(newStatus)) {
@@ -159,6 +161,11 @@ public class AlertEvaluator implements DisposableBean {
                 if (newStatus == AlertStatus.ALERTING) {
                     // Fire and save alert record
                     fireAlert(alertRule, context);
+                } else if (newStatus == AlertStatus.RESOLVED) {
+                    // Update alert status and resolve alert
+                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+
+                    this.resolveAlert(alertRule, context);
                 } else {
                     // Update alert status only
                     this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
@@ -221,13 +228,27 @@ public class AlertEvaluator implements DisposableBean {
                             expectedMatchCount);
 
                 HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
-                if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
+
+                String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+
+                // Calc the silence period by adding some margin
+                // Let's say current timestamp is 10:01:02.123, and the silence period is 1 minute,
+                // The silence period is [now(), 10:02:00.000(assuming the evaluation execution finishes within 1 minute) + 1 minute]
+                TimeSpan now = TimeSpan.now();
+                TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
+                Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
+                if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
                     Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s) to %s. Last alert at: %s",
+                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
                                 silenceDuration,
-                                TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"),
-                                prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss"));
+                                lastAlertingAt,
+                                TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
                     return AlertStatus.SUPPRESSING;
+                } else {
+                    context.log(AlertEvaluator.class,
+                                "Alerting，silence period(%s) is over. Last alert at: %s",
+                                silenceDuration,
+                                lastAlertingAt);
                 }
 
                 return AlertStatus.ALERTING;
@@ -257,6 +278,7 @@ public class AlertEvaluator implements DisposableBean {
         // Prepare notification
         NotificationMessage notification = new NotificationMessage();
         notification.setAlertRule(alertRule);
+        notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
         notification.setConditionEvaluation(new HashMap<>());
         context.getEvaluationResults().forEach((expressionId, result) -> {
@@ -283,7 +305,7 @@ public class AlertEvaluator implements DisposableBean {
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
             for (String channelName : alertRule.getNotifications()) {
-                context.log(AlertEvaluator.class, "Sending notification to channel [%s]", channelName);
+                context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
                     notificationApi.notify(channelName, notification);
@@ -293,6 +315,49 @@ public class AlertEvaluator implements DisposableBean {
             }
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "Exception when sending notification");
+        }
+    }
+
+    /**
+     * Fire alert and update its status
+     */
+    private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
+        // Prepare notification
+        NotificationMessage notification = new NotificationMessage();
+        notification.setStatus(AlertStatus.RESOLVED);
+        notification.setAlertRule(alertRule);
+        notification.setExpressions(alertRule.getFlattenExpressions().values());
+        notification.setConditionEvaluation(new HashMap<>());
+        context.getEvaluationResults().forEach((expressionId, result) -> {
+            AlertExpression expression = context.getAlertExpressions().get(expressionId);
+
+            IEvaluationOutput outputs = context.getRuleEvaluationOutput(expressionId);
+            notification.getConditionEvaluation()
+                        .put(expression.getId(),
+                             new ExpressionEvaluationResult(result,
+                                                            outputs == null ? null : OutputMessage.builder()
+                                                                                                  .current(outputs.getCurrentText())
+                                                                                                  .delta(outputs.getDeltaText())
+                                                                                                  .threshold(outputs.getThresholdText())
+                                                                                                  .build()));
+        });
+
+        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
+        try {
+            // notification
+            notification.setLastAlertAt(alertAt.getTime());
+            notification.setAlertRecordId(context.getPrevState().getLastRecordId());
+            for (String channelName : alertRule.getNotifications()) {
+                context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
+
+                try {
+                    notificationApi.notify(channelName, notification);
+                } catch (Exception e) {
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                }
+            }
+        } catch (Exception e) {
+            context.logException(AlertEvaluator.class, e, "Exception when sending RESOLVED notification");
         }
     }
 
@@ -315,10 +380,12 @@ public class AlertEvaluator implements DisposableBean {
 
         // Calculate the first time the rule is tested as TRUE
         // Since the current interval is TRUE, there were (n - 1) intervals before this interval
-        long start = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
+        long startInclusive = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
+        long endInclusive = context.getIntervalEnd().getMilliseconds() - context.getAlertRule().getEvery().getDuration().toMillis();
+
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
-                                                                                 .start(start)
-                                                                                 .end(context.getIntervalEnd().getMilliseconds())
+                                                                                 .start(startInclusive)
+                                                                                 .end(endInclusive)
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
                                                                                  .build()));
