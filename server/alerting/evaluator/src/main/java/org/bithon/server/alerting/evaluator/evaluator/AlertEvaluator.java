@@ -380,10 +380,12 @@ public class AlertEvaluator implements DisposableBean {
 
         // Calculate the first time the rule is tested as TRUE
         // Since the current interval is TRUE, there were (n - 1) intervals before this interval
-        long start = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
+        long startInclusive = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
+        long endInclusive = context.getIntervalEnd().getMilliseconds() - context.getAlertRule().getEvery().getDuration().toMillis();
+
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
-                                                                                 .start(start)
-                                                                                 .end(context.getIntervalEnd().getMilliseconds())
+                                                                                 .start(startInclusive)
+                                                                                 .end(endInclusive)
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
                                                                                  .build()));

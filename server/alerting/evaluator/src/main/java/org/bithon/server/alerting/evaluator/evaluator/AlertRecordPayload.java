@@ -31,10 +31,10 @@ import java.util.Map;
 @Data
 @Builder
 public class AlertRecordPayload {
-    // Evaluation start
+    // Evaluation start, inclusive
     private long start;
 
-    // Evaluation end
+    // Evaluation end, inclusive
     private long end;
 
     private Collection<AlertExpression> expressions;
