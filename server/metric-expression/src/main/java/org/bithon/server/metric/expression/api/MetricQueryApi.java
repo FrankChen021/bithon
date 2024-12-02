@@ -27,11 +27,13 @@ import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.MetricExpression;
 import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +55,7 @@ import java.util.concurrent.TimeUnit;
  */
 @CrossOrigin
 @RestController
+@Conditional(WebServiceModuleEnabler.class)
 public class MetricQueryApi {
     private final IDataSourceApi dataSourceApi;
     private final ExecutorService executor;
