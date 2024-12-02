@@ -11,7 +11,7 @@
   <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
 
   <properties>
-    <lettuce.version>5.1.2.RELEASE</lettuce.version>
+    <lettuce.version>6.5.1.RELEASE</lettuce.version>
   </properties>
 
   <dependencies>
