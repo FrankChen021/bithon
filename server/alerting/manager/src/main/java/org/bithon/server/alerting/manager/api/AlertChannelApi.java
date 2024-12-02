@@ -333,6 +333,7 @@ public class AlertChannelApi {
     @PostMapping("/api/alerting/channel/blackhole")
     public void blackHole(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        log.info("Received notification: {}", body);
         response.getWriter().write(body);
         response.setStatus(HttpStatus.OK.value());
     }
