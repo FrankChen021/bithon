@@ -99,7 +99,7 @@ public class AlertEvaluator implements DisposableBean {
                                                                 .alertId(rule.getId())
                                                                 .clazz(AlertEvaluator.class.getName())
                                                                 .level("INFO")
-                                                                .message(StringUtils.format("Loaded rule [%s]: [Enabled: %s] [Expr: %s]",
+                                                                .message(StringUtils.format("Loaded rule: [%s], Enabled: %s, Expr: %s",
                                                                                             rule.getName(),
                                                                                             Boolean.toString(rule.isEnabled()),
                                                                                             rule.getExpr()))
@@ -113,7 +113,7 @@ public class AlertEvaluator implements DisposableBean {
                                                                 .alertId(updated.getId())
                                                                 .clazz(AlertEvaluator.class.getName())
                                                                 .level("INFO")
-                                                                .message(StringUtils.format("Updated rule [%s]: [Enabled: %s] [Expr: %s]",
+                                                                .message(StringUtils.format("Updated rule [%s], Enabled: %s, Expr: %s",
                                                                                             updated.getName(),
                                                                                             Boolean.toString(updated.isEnabled()),
                                                                                             updated.getExpr()))
@@ -127,7 +127,7 @@ public class AlertEvaluator implements DisposableBean {
                                                                 .alertId(rule.getId())
                                                                 .clazz(AlertEvaluator.class.getName())
                                                                 .level("INFO")
-                                                                .message(StringUtils.format("Deleted rule [%s]: [%s]", rule.getName(), rule.getExpr()))
+                                                                .message(StringUtils.format("Deleted rule [%s], Expr: %s", rule.getName(), rule.getExpr()))
                                                                 .build());
                 }
             });
