@@ -134,6 +134,9 @@ public class AlertEvaluator implements DisposableBean {
         }
     }
 
+    /**
+     * @param prevState can be null
+     */
     public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,

@@ -333,9 +333,7 @@ public class AlertCommandService {
 
         TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
 
-        AlertStateObject stateObject = new AlertStateObject();
-        stateObject.setStatus(AlertStatus.READY);
-        evaluator.evaluate(now, rule, stateObject);
+        evaluator.evaluate(now, rule, null);
 
         return logStorage.getLogs();
     }

@@ -139,32 +139,34 @@ public class HttpNotificationChannel implements INotificationChannel {
                                             .replace("{alert.url}", getURL(message))
                                             .replace("{alert.status}", message.getStatus().name());
 
-        String evaluationMessage;
-        if (message.getExpressions().size() == 1) {
-            ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-            evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
-                                                   result.getOutputs().getThreshold(),
-                                                   result.getOutputs().getCurrent(),
-                                                   result.getOutputs().getDelta());
-        } else {
-            evaluationMessage = message.getConditionEvaluation()
-                                       .entrySet()
-                                       .stream()
-                                       .map((entry) -> {
-                                           AlertExpression evaluatedExpression = message.getExpressions()
-                                                                                        .stream()
-                                                                                        .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                        .findFirst()
-                                                                                        .orElse(null);
+        String evaluationMessage = "";
+        if (message.getStatus() == AlertStatus.ALERTING) {
+            if (message.getExpressions().size() == 1) {
+                ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+                evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
+                                                       result.getOutputs().getThreshold(),
+                                                       result.getOutputs().getCurrent(),
+                                                       result.getOutputs().getDelta());
+            } else {
+                evaluationMessage = message.getConditionEvaluation()
+                                           .entrySet()
+                                           .stream()
+                                           .map((entry) -> {
+                                               AlertExpression evaluatedExpression = message.getExpressions()
+                                                                                            .stream()
+                                                                                            .filter((expr) -> expr.getId().equals(entry.getKey()))
+                                                                                            .findFirst()
+                                                                                            .orElse(null);
 
-                                           ExpressionEvaluationResult result = entry.getValue();
-                                           return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
-                                                                     evaluatedExpression.serializeToText(),
-                                                                     result.getOutputs().getThreshold(),
-                                                                     result.getOutputs().getCurrent(),
-                                                                     result.getOutputs().getDelta());
-                                       })
-                                       .collect(Collectors.joining("\n"));
+                                               ExpressionEvaluationResult result = entry.getValue();
+                                               return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
+                                                                         evaluatedExpression.serializeToText(),
+                                                                         result.getOutputs().getThreshold(),
+                                                                         result.getOutputs().getCurrent(),
+                                                                         result.getOutputs().getDelta());
+                                           })
+                                           .collect(Collectors.joining("\n"));
+            }
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 
