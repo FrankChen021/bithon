@@ -81,12 +81,12 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         );
     }
 
-    public AlertObjectJdbcStorage(DSLContext dslContext,
-                                  ISqlDialect sqlDialect,
-                                  String objectTableSelectName,
-                                  String stateTableSelectName,
-                                  ObjectMapper objectMapper,
-                                  AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    protected AlertObjectJdbcStorage(DSLContext dslContext,
+                                     ISqlDialect sqlDialect,
+                                     String objectTableSelectName,
+                                     String stateTableSelectName,
+                                     ObjectMapper objectMapper,
+                                     AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.quotedObjectTableSelectName = objectTableSelectName;
