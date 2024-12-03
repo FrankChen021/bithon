@@ -29,6 +29,7 @@ import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.sql.Timestamp;
 
@@ -44,8 +45,9 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     @JsonCreator
     public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
                                       @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        super(storageProvider.getDslContext(), sqlDialectManager, storageConfig);
+                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
+        super(storageProvider.getDslContext(), sqlDialectManager, storageConfig, serverProperties);
         this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
