@@ -99,7 +99,10 @@ public class AlertEvaluator implements DisposableBean {
                                                                 .alertId(rule.getId())
                                                                 .clazz(AlertEvaluator.class.getName())
                                                                 .level("INFO")
-                                                                .message(StringUtils.format("Loaded rule [%s]: [%s]", rule.getName(), rule.getExpr()))
+                                                                .message(StringUtils.format("Loaded rule [%s]: [Enabled: %s] [Expr: %s]",
+                                                                                            rule.getName(),
+                                                                                            Boolean.toString(rule.isEnabled()),
+                                                                                            rule.getExpr()))
                                                                 .build());
                 }
 
@@ -110,7 +113,10 @@ public class AlertEvaluator implements DisposableBean {
                                                                 .alertId(updated.getId())
                                                                 .clazz(AlertEvaluator.class.getName())
                                                                 .level("INFO")
-                                                                .message(StringUtils.format("Updated rule [%s]: [%s]", updated.getName(), updated.getExpr()))
+                                                                .message(StringUtils.format("Updated rule [%s]: [Enabled: %s] [Expr: %s]",
+                                                                                            updated.getName(),
+                                                                                            Boolean.toString(updated.isEnabled()),
+                                                                                            updated.getExpr()))
                                                                 .build());
                 }
 
@@ -161,7 +167,7 @@ public class AlertEvaluator implements DisposableBean {
                 if (newStatus == AlertStatus.ALERTING) {
                     // Fire and save alert record
                     fireAlert(alertRule, context);
-                } else if (newStatus == AlertStatus.RESOLVED) {
+                } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
                     // Update alert status and resolve alert
                     this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
 
