@@ -71,17 +71,30 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
     @Override
     public void createChannel(String type, String name, String props) {
         LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
-        dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, now).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, now).execute();
+        dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, type)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, name)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, now)
+                  .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, now)
+                  .execute();
     }
 
     @Override
     public boolean updateChannel(NotificationChannelObject old, String props) {
-        return dslContext.update(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props).set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime()).where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(old.getName())).and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE.eq(old.getType())).execute() > 0;
+        return dslContext.update(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(old.getName()))
+                         .and(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE.eq(old.getType()))
+                         .execute() > 0;
     }
 
     @Override
     public void deleteChannel(String name) {
-        dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL).where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name)).execute();
+        dslContext.deleteFrom(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                  .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
+                  .execute();
     }
 
     @Override
@@ -91,7 +104,9 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
 
     @Override
     public NotificationChannelObject getChannel(String name) {
-        return dslContext.selectFrom(getChanelTableSelectFrom()).where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name)).fetchOne(this::toChannelObject);
+        return dslContext.selectFrom(getChanelTableSelectFrom())
+                         .where(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name))
+                         .fetchOne(this::toChannelObject);
     }
 
     @Override
@@ -124,9 +139,13 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
             } else {
                 sortField = orderBy.desc();
             }
-            return select.orderBy(sortField).limit(request.getLimit().getOffset(), request.getLimit().getLimit()).fetch().map(this::toChannelObject);
+            return select.orderBy(sortField)
+                         .limit(request.getLimit().getOffset(), request.getLimit().getLimit())
+                         .fetch()
+                         .map(this::toChannelObject);
         } else {
-            return select.fetch().map(this::toChannelObject);
+            return select.fetch()
+                         .map(this::toChannelObject);
         }
     }
 
@@ -146,7 +165,10 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
             }
         }
 
-        return dslContext.selectCount().from(getChanelTableSelectFrom()).where(condition).fetchOne(0, int.class);
+        return dslContext.selectCount()
+                         .from(getChanelTableSelectFrom())
+                         .where(condition)
+                         .fetchOne(0, int.class);
     }
 
     protected String getChanelTableSelectFrom() {
@@ -180,7 +202,10 @@ public class NotificationChannelJdbcStorage implements IAlertNotificationChannel
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
-        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL).columns(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.fields()).indexes(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getIndexes()).execute();
+        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                       .columns(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.fields())
+                       .indexes(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getIndexes())
+                       .execute();
 
         if (this.dslContext.fetchCount(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL) == 0) {
             // We only initial the test channel if it's empty
