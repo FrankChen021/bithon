@@ -286,6 +286,7 @@ public class AlertEvaluator implements DisposableBean {
     private void fireAlert(AlertRule alertRule, EvaluationContext context) {
         // Prepare notification
         NotificationMessage notification = new NotificationMessage();
+        notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions().values());

@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.notification.image;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -32,11 +33,8 @@ import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsol
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.metric.expression.api.MetricQueryApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -46,7 +44,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -86,36 +83,56 @@ public class AlertImageRenderService implements ApplicationContextAware {
      * @return URL
      */
     public Future<String> render(ImageMode imageMode,
-                                 String alert,
+                                 String alertName,
                                  AlertExpression expression,
-                                 int windowLength,
                                  TimeSpan start,
                                  TimeSpan end) {
         return this.executor.submit(() -> {
             try {
-                return render(expression, windowLength, start, end);
+                return render(expression, start, end);
             } catch (Exception e) {
-                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alert, expression.getId()), e);
+                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alertName, expression.getId()), e);
                 return null;
             }
         });
     }
 
     private String render(AlertExpression expression,
-                          int windowLength,
                           TimeSpan start,
-                          TimeSpan end) throws IOException {
+                          TimeSpan end) throws Exception {
         if (!(expression.getMetricEvaluator() instanceof AbstractAbsoluteThresholdPredicate)) {
             // only support an absolute threshold
             return null;
         }
 
+        // Get the data for visualization
         // DO NOT inject the DataSourceApi in ctor
         // See: https://github.com/FrankChen021/bithon/issues/838
-        IDataSourceApi dataSourceApi = this.applicationContext.getBean(IDataSourceApi.class);
-        ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
+        MetricQueryApi metricQueryApi = this.applicationContext.getBean(MetricQueryApi.class);
+        QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
+                                                                                            .expression(expression.getMetricExpression().serializeToText(false))
+                                                                                            .interval(IntervalRequest.builder()
+                                                                                                                     .startISO8601(start.toISO8601())
+                                                                                                                     .endISO8601(end.toISO8601())
+                                                                                                                     .build())
+                                                                                            .build());
 
+        // Render image
+        callRemoteService(RenderImageRequest.builder()
+                                            .expressions(new RenderExpression[]{
+                                                RenderExpression.builder()
+                                                                .height(400)
+                                                                .width(1000)
+                                                                .expression(expression)
+                                                                .data(response)
+                                                                .markers(new MarkerSpec[]{
+                                                                    MarkerSpec.builder().start(start.getEpochSecond()).end(end.getEpochSecond()).build()
+                                                                })
+                                                    .build()
+                                            })
+                                            .build());
+
+        /*
         QueryRequest request = QueryRequest.builder()
                                            .interval(IntervalRequest.builder()
                                                                     .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
@@ -125,7 +142,10 @@ public class AlertImageRenderService implements ApplicationContextAware {
                                            .filterExpression(expression.getMetricExpression().getWhereText())
                                            .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
                                            .build();
+
         QueryResponse response = dataSourceApi.timeseriesV4(request);
+         */
+
         return "";
     }
 
@@ -134,11 +154,15 @@ public class AlertImageRenderService implements ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
+    @Data
+    @Builder
     static class MarkerSpec {
         long start;
         long end;
     }
 
+    @Data
+    @Builder
     static class RenderExpression {
         private int height;
         private int width;
@@ -148,6 +172,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
     }
 
     @Data
+    @Builder
     static class RenderImageRequest {
         private RenderExpression[] expressions;
     }

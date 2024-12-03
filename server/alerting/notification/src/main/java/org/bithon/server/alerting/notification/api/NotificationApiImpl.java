@@ -19,11 +19,15 @@ package org.bithon.server.alerting.notification.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
 import org.bithon.server.alerting.notification.image.AlertImageRenderService;
+import org.bithon.server.alerting.notification.image.ImageMode;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.springframework.context.annotation.Conditional;
@@ -33,6 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -75,19 +83,29 @@ public class NotificationApiImpl implements INotificationApi {
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
-            /*
             message.setImages(new HashMap<>());
-            message.getConditionEvaluation().forEach((id, result) -> {
-                if (result.getResult() == EvaluationResult.MATCHED) {
-                    message.getImages().put(id, this.imageService.renderAndSaveAsync(message.getNotifications().getImageMode(),
-                                                                                     message.getAlert().getName(),
-                                                                                     condition,
-                                                                                     alert.getMatchTimes(),
-                                                                                     context.getIntervalEnd()
-                                                                                            .before(condition.getMetric().getWindow(), TimeUnit.MINUTES),
-                                                                                     context.getIntervalEnd()))
-                }
-            });*/
+
+            Map<String, AlertExpression> expressions = message.getExpressions()
+                                                              .stream()
+                                                              .collect(Collectors.toMap(AlertExpression::getId, expr -> expr));
+
+            message.getConditionEvaluation()
+                   .forEach((id, result) -> {
+                       if (result.getResult() == EvaluationResult.MATCHED) {
+                           TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
+
+                           AlertExpression expr = expressions.get(id);
+                           Future<String> image = this.imageService.render(ImageMode.BASE64,
+                                                                           message.getAlertRule().getName(),
+                                                                           expr,
+                                                                           endSpan.before(expr.getMetricExpression().getWindow()).before(1, TimeUnit.HOURS),
+                                                                           endSpan);
+                           try {
+                               message.getImages().put(id, image.get());
+                           } catch (InterruptedException | ExecutionException ignored) {
+                           }
+                       }
+                   });
         }
 
         INotificationChannel channel = channels.get(name);
