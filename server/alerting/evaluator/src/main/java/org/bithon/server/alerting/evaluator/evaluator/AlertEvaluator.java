@@ -26,6 +26,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -56,6 +57,9 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -68,7 +72,7 @@ public class AlertEvaluator implements DisposableBean {
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final INotificationApi notificationApi;
+    private final INotificationApi notificationAsyncApi;
 
     public AlertEvaluator(AlertRepository repository,
                           IAlertStateStorage stateStorage,
@@ -88,7 +92,7 @@ public class AlertEvaluator implements DisposableBean {
         // It's a copy of existing ObjectMapper
         // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
-        this.notificationApi = createNotificationApi(applicationContext);
+        this.notificationAsyncApi = createNotificationAsyncApi(applicationContext);
 
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {
@@ -189,7 +193,9 @@ public class AlertEvaluator implements DisposableBean {
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
-    private INotificationApi createNotificationApi(ApplicationContext context) {
+    private INotificationApi createNotificationAsyncApi(ApplicationContext context) {
+        INotificationApi impl;
+
         // The notification service is configured by auto-discovery
         String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
         if ("discovery".equalsIgnoreCase(service)) {
@@ -197,20 +203,44 @@ public class AlertEvaluator implements DisposableBean {
             // we still call the notification module via HTTP instead of direct API method calls in process
             // So that it simulates the 'remote call' via discovered service
             DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
-            return invoker.createUnicastApi(INotificationApi.class);
-        }
-
-        // The service is configured as a remote service at fixed address
-        // Create a feign client to call it
-        if (service.startsWith("http:") || service.startsWith("https:")) {
-            return Feign.builder()
+            impl = invoker.createUnicastApi(INotificationApi.class);
+        } else if (service.startsWith("http:") || service.startsWith("https:")) {
+            // The service is configured as a remote service at fixed address
+            // Create a feign client to call it
+            impl = Feign.builder()
                         .contract(context.getBean(Contract.class))
                         .encoder(context.getBean(Encoder.class))
                         .decoder(context.getBean(Decoder.class))
                         .target(INotificationApi.class, service);
+        } else {
+            throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
         }
 
-        throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
+        return new INotificationApi() {
+            // Cached thread pool
+            private final ThreadPoolExecutor notificationThreadPool = new ThreadPoolExecutor(1,
+                                                                                             10,
+                                                                                             3,
+                                                                                             TimeUnit.MINUTES,
+                                                                                             new SynchronousQueue<>(),
+                                                                                             new ThreadPoolExecutor.CallerRunsPolicy());
+
+            @Override
+            public void notify(String name, NotificationMessage message) {
+                notificationThreadPool.execute(() -> {
+                    try {
+                        impl.notify(name, message);
+                    } catch (Exception e) {
+                        new EvaluationLogger(evaluationLogWriter).error(message.getAlertRule().getId(),
+                                                                        message.getAlertRule().getName(),
+                                                                        AlertEvaluator.class,
+                                                                        e,
+                                                                        "Failed to send notification to channel [%s]",
+                                                                        name);
+                    }
+                });
+            }
+        };
     }
 
     private AlertStatus evaluate(EvaluationContext context, AlertStateObject prevState) {
@@ -318,7 +348,7 @@ public class AlertEvaluator implements DisposableBean {
                 context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
-                    notificationApi.notify(channelName, notification);
+                    notificationAsyncApi.notify(channelName, notification);
                 } catch (Exception e) {
                     context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
@@ -361,7 +391,7 @@ public class AlertEvaluator implements DisposableBean {
                 context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {
-                    notificationApi.notify(channelName, notification);
+                    notificationAsyncApi.notify(channelName, notification);
                 } catch (Exception e) {
                     context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
