@@ -148,7 +148,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
         // See: https://github.com/FrankChen021/bithon/issues/838
         MetricQueryApi metricQueryApi = this.applicationContext.getBean(MetricQueryApi.class);
         QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
-                                                                                            .expression(expression.getMetricExpression().serializeToText(false))
+                                                                                            .expression(expression.getMetricExpression().serializeToText(true))
                                                                                             .interval(IntervalRequest.builder()
                                                                                                                      .startISO8601(visualInterval.getStartTime().toISO8601())
                                                                                                                      .endISO8601(visualInterval.getEndTime().toISO8601())
