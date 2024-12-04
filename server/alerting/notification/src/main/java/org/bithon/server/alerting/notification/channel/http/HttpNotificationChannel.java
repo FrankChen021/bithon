@@ -174,9 +174,10 @@ public class HttpNotificationChannel implements INotificationChannel {
         long durationMinutes = message.getAlertRule().getEvery().getDuration().toMinutes() * message.getAlertRule().getForTimes();
         messageBody = messageBody.replace("{alert.duration}", message.getStatus() == AlertStatus.ALERTING ? "Lasting for " + durationMinutes + " minutes" : "");
 
-        // Serialize the message first, this allows subclasses to override the serialization
-        AbstractHttpEntity bodyEntity = serializeRequestBody(messageBody);
+        sendHttp(timeout, serializeRequestBody(messageBody));
+    }
 
+    protected void sendHttp(Duration timeout, AbstractHttpEntity bodyEntity) throws IOException {
         RequestConfig requestConfig = RequestConfig.custom()
                                                    .setSocketTimeout((int) timeout.toMillis())
                                                    .setConnectTimeout(1000)
