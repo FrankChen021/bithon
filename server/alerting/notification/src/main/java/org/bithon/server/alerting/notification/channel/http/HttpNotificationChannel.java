@@ -139,9 +139,8 @@ public class HttpNotificationChannel implements INotificationChannel {
                                             .replace("{alert.url}", getURL(message))
                                             .replace("{alert.status}", message.getStatus().name());
 
+        String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
-            String evaluationMessage;
-
             if (message.getExpressions().size() == 1) {
                 ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
                 evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
@@ -168,11 +167,12 @@ public class HttpNotificationChannel implements INotificationChannel {
                                            })
                                            .collect(Collectors.joining("\n"));
             }
-            messageBody = messageBody.replace("{alert.message}", evaluationMessage);
-
-            long durationMinutes = message.getAlertRule().getEvery().getDuration().toMinutes() * message.getAlertRule().getForTimes();
-            messageBody = messageBody.replace("{alert.duration}", "Lasting for " + durationMinutes + " minutes");
         }
+        messageBody = messageBody.replace("{alert.message}", evaluationMessage);
+
+        // duration text
+        long durationMinutes = message.getAlertRule().getEvery().getDuration().toMinutes() * message.getAlertRule().getForTimes();
+        messageBody = messageBody.replace("{alert.duration}", message.getStatus() == AlertStatus.ALERTING ? "Lasting for " + durationMinutes + " minutes" : "");
 
         // Serialize the message first, this allows subclasses to override the serialization
         AbstractHttpEntity bodyEntity = serializeRequestBody(messageBody);

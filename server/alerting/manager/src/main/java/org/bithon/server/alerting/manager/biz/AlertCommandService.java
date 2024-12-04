@@ -18,6 +18,7 @@ package org.bithon.server.alerting.manager.biz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
@@ -70,6 +71,21 @@ import java.util.UUID;
 @Service
 @Conditional(ManagerModuleEnabler.class)
 public class AlertCommandService {
+
+    @Getter
+    @Setter
+    static class ChangeLogPayload extends AlertStorageObjectPayload {
+        private boolean enabled;
+
+        public ChangeLogPayload(AlertStorageObject obj) {
+            this.setEvery(obj.getPayload().getEvery());
+            this.setExpr(obj.getPayload().getExpr());
+            this.setSilence(obj.getPayload().getSilence());
+            this.setNotifications(obj.getPayload().getNotifications());
+            this.setForTimes(obj.getPayload().getForTimes());
+            this.enabled = !obj.isDisabled();
+        }
+    }
 
     final IAlertObjectStorage alertObjectStorage;
     final IMetadataApi metadataApi;
@@ -127,20 +143,20 @@ public class AlertCommandService {
             }
         }
 
-        AlertStorageObject alertObject = new AlertStorageObject();
-        alertObject.setId(alertRule.getId());
-        alertObject.setName(alertRule.getName());
-        alertObject.setAppName(alertRule.getAppName());
-        alertObject.setNamespace("");
-        alertObject.setDisabled(!alertRule.isEnabled());
-        alertObject.setPayload(AlertStorageObjectPayload.builder()
-                                                        .every(alertRule.getEvery())
-                                                        .expr(alertRule.getExpr())
-                                                        .forTimes(alertRule.getForTimes())
-                                                        .notifications(alertRule.getNotifications())
-                                                        .silence(alertRule.getSilence())
-                                                        .build());
-        return alertObject;
+        AlertStorageObject alertStorageObject = new AlertStorageObject();
+        alertStorageObject.setId(alertRule.getId());
+        alertStorageObject.setName(alertRule.getName());
+        alertStorageObject.setAppName(alertRule.getAppName());
+        alertStorageObject.setNamespace("");
+        alertStorageObject.setDisabled(!alertRule.isEnabled());
+        alertStorageObject.setPayload(AlertStorageObjectPayload.builder()
+                                                               .every(alertRule.getEvery())
+                                                               .expr(alertRule.getExpr())
+                                                               .forTimes(alertRule.getForTimes())
+                                                               .notifications(alertRule.getNotifications())
+                                                               .silence(alertRule.getSilence())
+                                                               .build());
+        return alertStorageObject;
     }
 
     public String createRule(AlertRule alertRule, CommandArgs args) throws BizException {
@@ -156,58 +172,58 @@ public class AlertCommandService {
             throw new BizException("Alert rule with the name [%s] already exists.", alertRule.getName());
         }
 
-        AlertStorageObject alertObject = toAlertStorageObject(alertRule);
-        if (!StringUtils.hasText(alertObject.getId())) {
-            alertObject.setId(UUID.randomUUID().toString().replace("-", ""));
+        AlertStorageObject alertStorageObject = toAlertStorageObject(alertRule);
+        if (!StringUtils.hasText(alertStorageObject.getId())) {
+            alertStorageObject.setId(UUID.randomUUID().toString().replace("-", ""));
         }
 
         return this.alertObjectStorage.executeTransaction(() -> {
             final String operator = userProvider.getCurrentUser().getUserName();
 
-            this.alertObjectStorage.createAlert(alertObject, operator);
+            this.alertObjectStorage.createAlert(alertStorageObject, operator);
 
-            this.alertObjectStorage.addChangelog(alertObject.getId(),
+            this.alertObjectStorage.addChangelog(alertStorageObject.getId(),
                                                  ObjectAction.CREATE,
                                                  operator, "{}",
-                                                 objectMapper.writeValueAsString(alertObject.getPayload()));
+                                                 objectMapper.writeValueAsString(alertStorageObject.getPayload()));
 
-            return alertObject.getId();
+            return alertStorageObject.getId();
         });
     }
 
     public void updateRule(AlertRule newAlertRule) throws BizException {
-        AlertStorageObject oldObject = this.alertObjectStorage.getAlertById(newAlertRule.getId());
-        if (oldObject == null) {
+        AlertStorageObject oldRule = this.alertObjectStorage.getAlertById(newAlertRule.getId());
+        if (oldRule == null) {
             throw new BizException("Alert rule [%s] not exist.", newAlertRule.getName());
         }
 
-        AlertStorageObject newObject = toAlertStorageObject(newAlertRule);
+        AlertStorageObject newRule = toAlertStorageObject(newAlertRule);
 
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.updateAlert(oldObject, newObject, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.updateAlert(oldRule, newRule, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
 
             this.alertObjectStorage.addChangelog(newAlertRule.getId(),
                                                  ObjectAction.UPDATE,
                                                  userProvider.getCurrentUser().getUserName(),
-                                                 objectMapper.writeValueAsString(oldObject.getPayload()),
-                                                 objectMapper.writeValueAsString(newObject.getPayload()));
+                                                 objectMapper.writeValueAsString(new ChangeLogPayload(oldRule)),
+                                                 objectMapper.writeValueAsString(new ChangeLogPayload(newRule)));
             return true;
         });
     }
 
-    public void enableRule(String alertId) throws BizException {
-        AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
-        if (alertObject == null) {
-            throw new BizException("Alert rule [%s] not exist.", alertId);
+    public void enableRule(String ruleId) throws BizException {
+        AlertStorageObject rule = this.alertObjectStorage.getAlertById(ruleId);
+        if (rule == null) {
+            throw new BizException("Alert rule [%s] not exist.", ruleId);
         }
 
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.enableAlert(alertId, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.enableAlert(ruleId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
-            this.alertObjectStorage.addChangelog(alertId,
+            this.alertObjectStorage.addChangelog(ruleId,
                                                  ObjectAction.ENABLE,
                                                  userProvider.getCurrentUser().getUserName(),
                                                  "{}",
@@ -216,16 +232,16 @@ public class AlertCommandService {
         });
     }
 
-    public void disableRule(String alertId) throws BizException {
-        AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
-        if (alertObject == null) {
-            throw new BizException("Alert rule [%s] not exist.", alertId);
+    public void disableRule(String ruleId) throws BizException {
+        AlertStorageObject rule = this.alertObjectStorage.getAlertById(ruleId);
+        if (rule == null) {
+            throw new BizException("Alert rule [%s] not exist.", ruleId);
         }
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.disableAlert(alertId, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.disableAlert(ruleId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
-            this.alertObjectStorage.addChangelog(alertId,
+            this.alertObjectStorage.addChangelog(ruleId,
                                                  ObjectAction.DISABLE,
                                                  userProvider.getCurrentUser().getUserName(),
                                                  "{}",
@@ -235,8 +251,8 @@ public class AlertCommandService {
     }
 
     public void deleteRule(String alertId) throws BizException {
-        AlertStorageObject alertObject = this.alertObjectStorage.getAlertById(alertId);
-        if (alertObject == null) {
+        AlertStorageObject rule = this.alertObjectStorage.getAlertById(alertId);
+        if (rule == null) {
             throw new BizException("Alert rule[%s] not exist.", alertId);
         }
 
@@ -247,7 +263,7 @@ public class AlertCommandService {
             this.alertObjectStorage.addChangelog(alertId,
                                                  ObjectAction.DELETE,
                                                  userProvider.getCurrentUser().getUserName(),
-                                                 objectMapper.writeValueAsString(alertObject.getPayload()),
+                                                 objectMapper.writeValueAsString(new ChangeLogPayload(rule)),
                                                  "{}");
             return true;
         });
@@ -317,9 +333,7 @@ public class AlertCommandService {
 
         TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
 
-        AlertStateObject stateObject = new AlertStateObject();
-        stateObject.setStatus(AlertStatus.READY);
-        evaluator.evaluate(now, rule, stateObject);
+        evaluator.evaluate(now, rule, null);
 
         return logStorage.getLogs();
     }
