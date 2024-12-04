@@ -80,8 +80,6 @@ public class NotificationApiImpl implements INotificationApi {
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
-            message.setImages(new HashMap<>());
-
             List<AlertExpression> expressionList = message.getConditionEvaluation()
                                                           .entrySet().stream()
                                                           .filter((entry) -> entry.getValue().getResult() == EvaluationResult.MATCHED)
@@ -94,13 +92,11 @@ public class NotificationApiImpl implements INotificationApi {
 
             TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
 
-            String[] image = this.imageService.render(ImageMode.BASE64,
-                                                      message.getAlertRule().getName(),
-                                                      expressionList,
-                                                      endSpan);
-            for (int i = 0; i < expressionList.size(); i++) {
-                message.getImages().put(expressionList.get(i).getId(), image[i]);
-            }
+            Map<String, String> images = this.imageService.render(ImageMode.BASE64,
+                                                                  message.getAlertRule(),
+                                                                  expressionList,
+                                                                  endSpan);
+            message.setImages(images);
         }
 
         INotificationChannel channel = channels.get(name);

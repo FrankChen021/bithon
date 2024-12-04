@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
 import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.commons.serializer.ExpressionDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
@@ -91,7 +92,8 @@ public class ObjectMapperConfigurer {
                       .deserializers(new ExpressionDeserializer(),
                                      new HumanReadablePercentageDeserializer(),
                                      new HumanReadableDurationDeserializer(),
-                                     new HumanReadableSizeDeserializer()
+                                     new HumanReadableSizeDeserializer(),
+                                     new AlertExpressionDeserializer()
                       )
                       .build()
                       .registerModule(new SimpleModule().setDeserializerModifier(new BeanDeserializerModifier() {

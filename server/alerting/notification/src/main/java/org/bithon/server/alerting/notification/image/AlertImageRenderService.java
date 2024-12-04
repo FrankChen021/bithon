@@ -31,9 +31,11 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.api.MetricQueryApi;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.springframework.beans.BeansException;
@@ -45,7 +47,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -89,15 +94,15 @@ public class AlertImageRenderService implements ApplicationContextAware {
     /**
      * render expressions in base64 image format
      */
-    public String[] render(ImageMode imageMode,
-                           String ruleName,
-                           List<AlertExpression> expressions,
-                           TimeSpan endExclusive) {
-        String[] images = new String[expressions.size()];
-
+    public Map<String, String> render(ImageMode imageMode,
+                                      AlertRule rule,
+                                      List<AlertExpression> expressions,
+                                      TimeSpan endExclusive) {
         if (CollectionUtils.isEmpty(expressions)) {
-            return images;
+            return Collections.emptyMap();
         }
+
+        Map<String, String> images = new LinkedHashMap<>();
 
         CountDownLatch latch = new CountDownLatch(expressions.size());
         for (int i = 0, expressionsLength = expressions.size(); i < expressionsLength; i++) {
@@ -106,10 +111,19 @@ public class AlertImageRenderService implements ApplicationContextAware {
             this.executor.submit(() -> {
                 try {
                     TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
+
+                    TimeSpan alertingStart = evaluationStart.before(rule.getEvery().getDuration().getSeconds() * (rule.getForTimes() - 1), TimeUnit.SECONDS);
+
+                    // TODO: change to configuration
                     TimeSpan start = evaluationStart.before(Duration.ofHours(1));
-                    images[index] = render(expression, start, endExclusive);
+
+                    String image = render(expression,
+                                          Interval.of(start, endExclusive),
+                                          Interval.of(alertingStart, evaluationStart));
+
+                    images.put(expression.getId(), image);
                 } catch (Exception e) {
-                    log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", ruleName, expression.getId()), e);
+                    log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getId()), e);
                 } finally {
                     latch.countDown();
                 }
@@ -126,8 +140,8 @@ public class AlertImageRenderService implements ApplicationContextAware {
     }
 
     private String render(AlertExpression expression,
-                          TimeSpan start,
-                          TimeSpan end) throws Exception {
+                          Interval visualInterval,
+                          Interval evaluationInterval) throws Exception {
         // Get the data for visualization first
         //
         // DO NOT inject the DataSourceApi in ctor
@@ -136,21 +150,21 @@ public class AlertImageRenderService implements ApplicationContextAware {
         QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
                                                                                             .expression(expression.getMetricExpression().serializeToText(false))
                                                                                             .interval(IntervalRequest.builder()
-                                                                                                                     .startISO8601(start.toISO8601())
-                                                                                                                     .endISO8601(end.toISO8601())
+                                                                                                                     .startISO8601(visualInterval.getStartTime().toISO8601())
+                                                                                                                     .endISO8601(visualInterval.getEndTime().toISO8601())
                                                                                                                      .build())
                                                                                             .build());
 
         // Render image
         return invokeRenderApi(RenderImageRequest.builder()
-                                                 .height(400)
-                                                 .width(1000)
+                                                 .height(renderingConfig.getHeight())
+                                                 .width(renderingConfig.getWidth())
                                                  .expression(expression)
                                                  .data(response)
                                                  .markers(new MarkerSpec[]{
                                                      MarkerSpec.builder()
-                                                               .start(start.getMilliseconds())
-                                                               .end(end.getMilliseconds())
+                                                               .start(evaluationInterval.getStartTime().getMilliseconds())
+                                                               .end(evaluationInterval.getEndTime().getMilliseconds())
                                                          .build()
                                                  })
                                                  .build());
