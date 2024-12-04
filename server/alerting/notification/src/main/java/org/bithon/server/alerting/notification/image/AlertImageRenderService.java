@@ -27,11 +27,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.api.MetricQueryApi;
@@ -51,9 +52,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,21 +64,16 @@ import java.util.concurrent.TimeUnit;
 @Conditional(NotificationModuleEnabler.class)
 public class AlertImageRenderService implements ApplicationContextAware {
 
-    private final ThreadPoolExecutor executor;
     private final RenderingConfig renderingConfig;
     private final ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
 
     public AlertImageRenderService(RenderingConfig renderingConfig, ObjectMapper objectMapper) {
+        Validator.validate(renderingConfig);
+        Preconditions.checkNotNull(renderingConfig.isEnabled() && StringUtils.hasText(renderingConfig.getServiceEndpoint()), "serviceEndpoint MUST NOT be empty");
+
         this.renderingConfig = renderingConfig;
         this.objectMapper = objectMapper;
-        this.executor = new ThreadPoolExecutor(10,
-                                               50,
-                                               5,
-                                               TimeUnit.MINUTES,
-                                               new LinkedBlockingQueue<>(100),
-                                               NamedThreadFactory.nonDaemonThreadFactory("image-render-%d"));
-        this.executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @Override
@@ -104,37 +98,30 @@ public class AlertImageRenderService implements ApplicationContextAware {
 
         Map<String, String> images = new LinkedHashMap<>();
 
-        CountDownLatch latch = new CountDownLatch(expressions.size());
-        for (int i = 0, expressionsLength = expressions.size(); i < expressionsLength; i++) {
-            final int index = i;
-            AlertExpression expression = expressions.get(i);
-            this.executor.submit(() -> {
-                try {
-                    TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
+        List<CompletableFuture<Void>> renderTasks = expressions.stream()
+                                                               .map((expression) ->
+                                                                        CompletableFuture.runAsync(() -> {
+                                                                            try {
+                                                                                // Start of current evaluation
+                                                                                TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
 
-                    TimeSpan alertingStart = evaluationStart.before(rule.getEvery().getDuration().getSeconds() * (rule.getForTimes() - 1), TimeUnit.SECONDS);
+                                                                                // Start of first triggering timestamp
+                                                                                TimeSpan alertingStart = evaluationStart.before(rule.getEvery().getDuration().getSeconds() * (rule.getForTimes() - 1), TimeUnit.SECONDS);
 
-                    // TODO: change to configuration
-                    TimeSpan start = evaluationStart.before(Duration.ofHours(1));
+                                                                                TimeSpan visualizationStart = evaluationStart.before(Duration.ofHours(renderingConfig.getDataRange()));
 
-                    String image = render(expression,
-                                          Interval.of(start, endExclusive),
-                                          Interval.of(alertingStart, evaluationStart));
+                                                                                String image = render(expression,
+                                                                                                      Interval.of(visualizationStart, endExclusive),
+                                                                                                      Interval.of(alertingStart, evaluationStart));
 
-                    images.put(expression.getId(), image);
-                } catch (Exception e) {
-                    log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getId()), e);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
+                                                                                images.put(expression.getId(), image);
+                                                                            } catch (Exception e) {
+                                                                                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getId()), e);
+                                                                            }
+                                                                        })).toList();
 
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        // Wait for all tasks to complete
+        CompletableFuture.allOf(renderTasks.toArray(new CompletableFuture[0])).join();
 
         return images;
     }

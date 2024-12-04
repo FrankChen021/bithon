@@ -16,6 +16,8 @@
 
 package org.bithon.server.alerting.notification.image;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +30,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "bithon.alerting.notification.rendering")
 public class RenderingConfig {
-
-    private String serviceEndpoint = "http://localhost:3000/api/public/chart/render";
     private boolean enabled = false;
+
+    /**
+     * The render API
+     */
+    private String serviceEndpoint = "http://localhost:3000/api/public/chart/render";
+
+    /**
+     * Hour of data range before the alerting time.
+     */
+    @Min(1)
+    @Max(24)
+    private int dataRange = 1;
+
+    /**
+     * Size of image
+     */
+    @Min(600)
+    @Max(2000)
     private int width = 800;
-    private int height = 600;
+
+    @Min(200)
+    @Max(600)
+    private int height = 300;
 }
