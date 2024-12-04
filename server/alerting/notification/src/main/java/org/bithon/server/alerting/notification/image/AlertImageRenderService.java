@@ -28,8 +28,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
@@ -44,7 +44,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Future;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -75,37 +77,59 @@ public class AlertImageRenderService implements ApplicationContextAware {
         this.executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
     public boolean isEnabled() {
         return renderingConfig.isEnabled();
     }
 
     /**
-     * @return URL
+     * render expressions in base64 image format
      */
-    public Future<String> render(ImageMode imageMode,
-                                 String alertName,
-                                 AlertExpression expression,
-                                 TimeSpan start,
-                                 TimeSpan end) {
-        return this.executor.submit(() -> {
-            try {
-                return render(expression, start, end);
-            } catch (Exception e) {
-                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alertName, expression.getId()), e);
-                return null;
-            }
-        });
+    public String[] render(ImageMode imageMode,
+                           String ruleName,
+                           List<AlertExpression> expressions,
+                           TimeSpan endExclusive) {
+        String[] images = new String[expressions.size()];
+
+        if (CollectionUtils.isEmpty(expressions)) {
+            return images;
+        }
+
+        CountDownLatch latch = new CountDownLatch(expressions.size());
+        for (int i = 0, expressionsLength = expressions.size(); i < expressionsLength; i++) {
+            final int index = i;
+            AlertExpression expression = expressions.get(i);
+            this.executor.submit(() -> {
+                try {
+                    TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
+                    TimeSpan start = evaluationStart.before(Duration.ofHours(1));
+                    images[index] = render(expression, start, endExclusive);
+                } catch (Exception e) {
+                    log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", ruleName, expression.getId()), e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return images;
     }
 
     private String render(AlertExpression expression,
                           TimeSpan start,
                           TimeSpan end) throws Exception {
-        if (!(expression.getMetricEvaluator() instanceof AbstractAbsoluteThresholdPredicate)) {
-            // only support an absolute threshold
-            return null;
-        }
-
-        // Get the data for visualization
+        // Get the data for visualization first
+        //
         // DO NOT inject the DataSourceApi in ctor
         // See: https://github.com/FrankChen021/bithon/issues/838
         MetricQueryApi metricQueryApi = this.applicationContext.getBean(MetricQueryApi.class);
@@ -118,41 +142,20 @@ public class AlertImageRenderService implements ApplicationContextAware {
                                                                                             .build());
 
         // Render image
-        callRemoteService(RenderImageRequest.builder()
-                                            .expressions(new RenderExpression[]{
-                                                RenderExpression.builder()
-                                                                .height(400)
-                                                                .width(1000)
-                                                                .expression(expression)
-                                                                .data(response)
-                                                                .markers(new MarkerSpec[]{
-                                                                    MarkerSpec.builder().start(start.getEpochSecond()).end(end.getEpochSecond()).build()
-                                                                })
-                                                    .build()
-                                            })
-                                            .build());
-
-        /*
-        QueryRequest request = QueryRequest.builder()
-                                           .interval(IntervalRequest.builder()
-                                                                    .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
-                                                                    .endISO8601(end.toISO8601())
-                                                                    .build())
-                                           .dataSource(expression.getMetricExpression().getFrom())
-                                           .filterExpression(expression.getMetricExpression().getWhereText())
-                                           .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
-                                           .build();
-
-        QueryResponse response = dataSourceApi.timeseriesV4(request);
-         */
-
-        return "";
+        return invokeRenderApi(RenderImageRequest.builder()
+                                                 .height(400)
+                                                 .width(1000)
+                                                 .expression(expression)
+                                                 .data(response)
+                                                 .markers(new MarkerSpec[]{
+                                                     MarkerSpec.builder()
+                                                               .start(start.getMilliseconds())
+                                                               .end(end.getMilliseconds())
+                                                         .build()
+                                                 })
+                                                 .build());
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 
     @Data
     @Builder
@@ -163,7 +166,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
 
     @Data
     @Builder
-    static class RenderExpression {
+    static class RenderImageRequest {
         private int height;
         private int width;
         private AlertExpression expression;
@@ -172,17 +175,11 @@ public class AlertImageRenderService implements ApplicationContextAware {
     }
 
     @Data
-    @Builder
-    static class RenderImageRequest {
-        private RenderExpression[] expressions;
-    }
-
-    @Data
     static class RenderImageResponse {
-        private String images[];
+        private String image;
     }
 
-    private void callRemoteService(RenderImageRequest request) throws IOException {
+    private String invokeRenderApi(RenderImageRequest request) throws IOException {
         RequestConfig requestConfig = RequestConfig.custom()
                                                    .setSocketTimeout(30_000)
                                                    .setConnectTimeout(1000)
@@ -202,7 +199,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
                                                               response.getStatusLine().getStatusCode(),
                                                               IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8)));
             }
-            RenderImageResponse renderResponse = this.objectMapper.readValue(response.getEntity().getContent(), RenderImageResponse.class);
+            return this.objectMapper.readValue(response.getEntity().getContent(), RenderImageResponse.class).image;
         }
     }
 

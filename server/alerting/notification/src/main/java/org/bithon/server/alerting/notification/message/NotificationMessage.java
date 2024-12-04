@@ -43,6 +43,9 @@ public class NotificationMessage {
     private Long lastAlertAt;
     private AlertStatus status;
 
+    /**
+     * Exclusive
+     */
     private long endTimestamp;
 
     /**

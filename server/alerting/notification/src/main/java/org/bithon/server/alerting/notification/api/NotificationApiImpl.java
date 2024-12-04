@@ -36,11 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -85,27 +82,25 @@ public class NotificationApiImpl implements INotificationApi {
         if (imageService.isEnabled()) {
             message.setImages(new HashMap<>());
 
-            Map<String, AlertExpression> expressions = message.getExpressions()
-                                                              .stream()
-                                                              .collect(Collectors.toMap(AlertExpression::getId, expr -> expr));
+            List<AlertExpression> expressionList = message.getConditionEvaluation()
+                                                          .entrySet().stream()
+                                                          .filter((entry) -> entry.getValue().getResult() == EvaluationResult.MATCHED)
+                                                          .map((entry) -> message.getExpressions()
+                                                                                 .stream()
+                                                                                 .filter((expr) -> expr.getId().equals(entry.getKey()))
+                                                                                 .findFirst()
+                                                                                 .orElse(null))
+                                                          .toList();
 
-            message.getConditionEvaluation()
-                   .forEach((id, result) -> {
-                       if (result.getResult() == EvaluationResult.MATCHED) {
-                           TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
+            TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
 
-                           AlertExpression expr = expressions.get(id);
-                           Future<String> image = this.imageService.render(ImageMode.BASE64,
-                                                                           message.getAlertRule().getName(),
-                                                                           expr,
-                                                                           endSpan.before(expr.getMetricExpression().getWindow()).before(1, TimeUnit.HOURS),
-                                                                           endSpan);
-                           try {
-                               message.getImages().put(id, image.get());
-                           } catch (InterruptedException | ExecutionException ignored) {
-                           }
-                       }
-                   });
+            String[] image = this.imageService.render(ImageMode.BASE64,
+                                                      message.getAlertRule().getName(),
+                                                      expressionList,
+                                                      endSpan);
+            for (int i = 0; i < expressionList.size(); i++) {
+                message.getImages().put(expressionList.get(i).getId(), image[i]);
+            }
         }
 
         INotificationChannel channel = channels.get(name);
