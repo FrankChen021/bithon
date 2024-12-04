@@ -152,6 +152,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
                                                                                             .interval(IntervalRequest.builder()
                                                                                                                      .startISO8601(visualInterval.getStartTime().toISO8601())
                                                                                                                      .endISO8601(visualInterval.getEndTime().toISO8601())
+                                                                                                                     .step((int) expression.getMetricExpression().getWindow().getDuration().getSeconds())
                                                                                                                      .build())
                                                                                             .build());
 
