@@ -22,6 +22,7 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
@@ -223,7 +224,9 @@ public class AlertEvaluator implements DisposableBean {
                                                                                              3,
                                                                                              TimeUnit.MINUTES,
                                                                                              new SynchronousQueue<>(),
+                                                                                             NamedThreadFactory.nonDaemonThreadFactory("notification"),
                                                                                              new ThreadPoolExecutor.CallerRunsPolicy());
+
 
             @Override
             public void notify(String name, NotificationMessage message) {
