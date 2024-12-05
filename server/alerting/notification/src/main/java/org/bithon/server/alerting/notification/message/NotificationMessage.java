@@ -42,4 +42,16 @@ public class NotificationMessage {
     private AlertRule alertRule;
     private Long lastAlertAt;
     private AlertStatus status;
+
+    /**
+     * Exclusive
+     */
+    private long endTimestamp;
+
+    /**
+     * Images in Base64 encoding
+     * key: the alert expression id
+     * val: the Base64 encoded image
+     */
+    private Map<String, String> images;
 }

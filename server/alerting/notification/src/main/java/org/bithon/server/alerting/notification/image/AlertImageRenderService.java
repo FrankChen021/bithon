@@ -16,51 +16,43 @@
 
 package org.bithon.server.alerting.notification.image;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import feign.Contract;
-import feign.Feign;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.metric.expression.api.MetricQueryApi;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
-import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.springframework.beans.BeansException;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.Collections;
-import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,118 +64,16 @@ import java.util.concurrent.TimeUnit;
 @Conditional(NotificationModuleEnabler.class)
 public class AlertImageRenderService implements ApplicationContextAware {
 
-    private final ThreadPoolExecutor executor;
     private final RenderingConfig renderingConfig;
     private final ObjectMapper objectMapper;
-    private final IEChartsConverterApi eChartsConverterApi;
     private ApplicationContext applicationContext;
 
-    public AlertImageRenderService(RenderingConfig renderingConfig,
-                                   IEChartsConverterApi converterApi,
-                                   ObjectMapper objectMapper) {
+    public AlertImageRenderService(RenderingConfig renderingConfig, ObjectMapper objectMapper) {
+        Validator.validate(renderingConfig);
+        Preconditions.checkNotNull(renderingConfig.isEnabled() && StringUtils.hasText(renderingConfig.getServiceEndpoint()), "serviceEndpoint MUST NOT be empty");
+
         this.renderingConfig = renderingConfig;
-        this.eChartsConverterApi = converterApi;
         this.objectMapper = objectMapper;
-        this.executor = new ThreadPoolExecutor(10,
-                                               50,
-                                               5,
-                                               TimeUnit.MINUTES,
-                                               new LinkedBlockingQueue<>(100),
-                                               new ThreadFactoryBuilder().setDaemon(true).setNameFormat("image-render-%d").build());
-        this.executor.setRejectedExecutionHandler((r, executor1) -> log.error("Image Render Task has been rejected"));
-    }
-
-    public boolean isEnabled() {
-        return renderingConfig.isEnabled();
-    }
-
-    /**
-     * @return URL
-     */
-    public Future<String> renderAndSaveAsync(ImageMode imageMode,
-                                             String alert,
-                                             AlertExpression expression,
-                                             int windowLength,
-                                             TimeSpan start,
-                                             TimeSpan end) {
-        return this.executor.submit(() -> {
-            try {
-                return renderAndSave(expression, windowLength, start, end);
-            } catch (Exception e) {
-                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", alert, expression.getId()), e);
-                return null;
-            }
-        });
-    }
-
-    public String renderAndSave(AlertExpression expression,
-                                int windowLength,
-                                TimeSpan start,
-                                TimeSpan end) throws IOException {
-        if (!(expression.getMetricEvaluator() instanceof AbstractAbsoluteThresholdPredicate)) {
-            // only support an absolute threshold
-            return null;
-        }
-
-        // DO NOT inject the DataSourceApi in ctor
-        // See: https://github.com/FrankChen021/bithon/issues/838
-        IDataSourceApi dataSourceApi = this.applicationContext.getBean(IDataSourceApi.class);
-        ISchema schema = dataSourceApi.getSchemaByName(expression.getMetricExpression().getFrom());
-        IColumn metricSpec = schema.getColumnByName(expression.getMetricExpression().getMetric().getName());
-
-        QueryRequest request = QueryRequest.builder()
-                                           .interval(IntervalRequest.builder()
-                                                                                  .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
-                                                                                  .endISO8601(end.toISO8601())
-                                                                                  .build())
-                                           .dataSource(expression.getMetricExpression().getFrom())
-                                           .filterExpression(expression.getMetricExpression().getWhereText())
-                                           .fields(Collections.singletonList(expression.getMetricExpression().getMetric()))
-                                           .build();
-        QueryResponse response = dataSourceApi.timeseriesV3(request);
-
-        TimeSeriesQueryResult data = (TimeSeriesQueryResult) response.getData();
-        Number threshold = metricSpec.getDataType().scaleTo((Number) ((AbstractAbsoluteThresholdPredicate) expression.getMetricEvaluator()).getExpected(), 2);
-
-        TimeSeriesMetric metricValues = data.getMetrics().iterator().next();
-
-        // scale the double values to precision of 2, and find the max value
-        Number max = threshold;
-        List<Number> values = new ArrayList<>(data.getCount());
-        for (int i = 0, len = data.getCount(); i < len; i++) {
-            Number value = metricSpec.getDataType().scaleTo(metricValues.get(i), 2);
-            if (metricSpec.getDataType().isGreaterThan(value, max)) {
-                max = value;
-            }
-            values.add(value);
-        }
-
-        try (InputStream is = this.getClass().getResourceAsStream("/templates/static-threshold-echarts-option.js")) {
-            String template = IOUtils.toString(is, StandardCharsets.UTF_8);
-            template = template.replaceAll("%xAxisLabelData%",
-                                           objectMapper.writeValueAsString(getTimestampLabels(data, "HH:mm")));
-            template = template.replaceAll("%yLabel%", metricSpec.getName() + "(%unit%)");
-            template = template.replaceAll("%yMax%", max.toString());
-            template = template.replaceAll("%seriesName%", metricSpec.getName());
-            template = template.replaceAll("%SeriesData%", objectMapper.writeValueAsString(values));
-
-            //mark line
-            template = template.replaceAll("%threshold%", threshold.toString());
-            template = template.replaceAll("%startPoint%", end.before(windowLength, TimeUnit.MINUTES).format("HH:mm"));
-            template = template.replaceAll("%endPoint%", end.before(1, TimeUnit.MINUTES).format("HH:mm"));
-            JsonNode eChartOption = objectMapper.readTree(template);
-
-            IEChartsConverterApi.Response apiResponse = this.eChartsConverterApi.convertAndSave(IEChartsConverterApi.Request.builder()
-                                                                                                                            .height(this.renderingConfig.getHeight())
-                                                                                                                            .width(this.renderingConfig.getWidth())
-                                                                                                                            .eChartOption(eChartOption).build());
-
-            return apiResponse.getUrl();
-        }
-    }
-
-    private String getTimestampLabels(TimeSeriesQueryResult data, String format) {
-        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(data.getStartTimestamp()));
     }
 
     @Override
@@ -191,21 +81,127 @@ public class AlertImageRenderService implements ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
-    @Configuration
-    @EnableFeignClients
-    @Import(FeignClientsConfiguration.class)
-    public static class RpcAutoConfiguration {
-        @Bean
-        public IEChartsConverterApi echartsConverterApi(Contract contract,
-                                                        Encoder encoder,
-                                                        Decoder decoder,
-                                                        RenderingConfig renderingConfig) {
-            return renderingConfig.isEnabled() ? Feign.builder()
-                                                      .contract(contract)
-                                                      .encoder(encoder)
-                                                      .decoder(decoder)
-                                                      .target(IEChartsConverterApi.class, renderingConfig.getServiceEndpoint())
-                : request -> null;
+    public boolean isEnabled() {
+        return renderingConfig.isEnabled();
+    }
+
+    /**
+     * render expressions in base64 image format
+     */
+    public Map<String, String> render(ImageMode imageMode,
+                                      AlertRule rule,
+                                      List<AlertExpression> expressions,
+                                      TimeSpan endExclusive) {
+        if (CollectionUtils.isEmpty(expressions)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> images = new LinkedHashMap<>();
+
+        List<CompletableFuture<Void>> renderTasks = expressions.stream()
+                                                               .map((expression) ->
+                                                                        CompletableFuture.runAsync(() -> {
+                                                                            try {
+                                                                                // Start of current evaluation
+                                                                                TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
+
+                                                                                // Start of first triggering timestamp
+                                                                                TimeSpan alertingStart = evaluationStart.before(rule.getEvery().getDuration().getSeconds() * (rule.getForTimes() - 1), TimeUnit.SECONDS);
+
+                                                                                TimeSpan visualizationStart = evaluationStart.before(Duration.ofHours(renderingConfig.getDataRange()));
+
+                                                                                String image = render(expression,
+                                                                                                      Interval.of(visualizationStart, endExclusive),
+                                                                                                      Interval.of(alertingStart, evaluationStart));
+
+                                                                                images.put(expression.getId(), image);
+                                                                            } catch (Exception e) {
+                                                                                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getId()), e);
+                                                                            }
+                                                                        })).toList();
+
+        // Wait for all tasks to complete
+        CompletableFuture.allOf(renderTasks.toArray(new CompletableFuture[0])).join();
+
+        return images;
+    }
+
+    private String render(AlertExpression expression,
+                          Interval visualInterval,
+                          Interval evaluationInterval) throws Exception {
+        // Get the data for visualization first
+        //
+        // DO NOT inject the DataSourceApi in ctor
+        // See: https://github.com/FrankChen021/bithon/issues/838
+        MetricQueryApi metricQueryApi = this.applicationContext.getBean(MetricQueryApi.class);
+        QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
+                                                                                            .expression(expression.getMetricExpression().serializeToText(true))
+                                                                                            .interval(IntervalRequest.builder()
+                                                                                                                     .startISO8601(visualInterval.getStartTime().toISO8601())
+                                                                                                                     .endISO8601(visualInterval.getEndTime().toISO8601())
+                                                                                                                     .step((int) expression.getMetricExpression().getWindow().getDuration().getSeconds())
+                                                                                                                     .build())
+                                                                                            .build());
+
+        // Render image
+        return invokeRenderApi(RenderImageRequest.builder()
+                                                 .height(renderingConfig.getHeight())
+                                                 .width(renderingConfig.getWidth())
+                                                 .expression(expression)
+                                                 .data(response)
+                                                 .markers(new MarkerSpec[]{
+                                                     MarkerSpec.builder()
+                                                               .start(evaluationInterval.getStartTime().getMilliseconds())
+                                                               .end(evaluationInterval.getEndTime().getMilliseconds())
+                                                         .build()
+                                                 })
+                                                 .build());
+    }
+
+
+    @Data
+    @Builder
+    static class MarkerSpec {
+        long start;
+        long end;
+    }
+
+    @Data
+    @Builder
+    static class RenderImageRequest {
+        private int height;
+        private int width;
+        private AlertExpression expression;
+        private QueryResponse data;
+        private MarkerSpec[] markers;
+    }
+
+    @Data
+    static class RenderImageResponse {
+        private String image;
+    }
+
+    private String invokeRenderApi(RenderImageRequest request) throws IOException {
+        RequestConfig requestConfig = RequestConfig.custom()
+                                                   .setSocketTimeout(30_000)
+                                                   .setConnectTimeout(1000)
+                                                   .build();
+        try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
+            HttpPost httpRequest = new HttpPost(this.renderingConfig.getServiceEndpoint());
+
+            httpRequest.setHeader("Content-Type", "application/json");
+
+            // Body
+            httpRequest.setEntity(new StringEntity(objectMapper.writeValueAsString(request), StandardCharsets.UTF_8));
+
+            HttpResponse response = client.execute(httpRequest);
+            if (response.getStatusLine().getStatusCode() >= 400) {
+                throw new RuntimeException(StringUtils.format("Failed to send message to [%s]: Received status: %d, response: %s",
+                                                              this.renderingConfig.getServiceEndpoint(),
+                                                              response.getStatusLine().getStatusCode(),
+                                                              IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8)));
+            }
+            return this.objectMapper.readValue(response.getEntity().getContent(), RenderImageResponse.class).image;
         }
     }
 

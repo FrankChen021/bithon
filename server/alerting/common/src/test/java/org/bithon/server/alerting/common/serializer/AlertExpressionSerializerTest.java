@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
+import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
 import org.junit.Assert;
@@ -84,5 +85,21 @@ public class AlertExpressionSerializerTest {
         Assert.assertEquals("1", tree.get("id").asText());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1", tree.get("expressionText").asText());
         Assert.assertEquals("(appName = 'a' AND instance = 'b')", tree.get("where").asText());
+    }
+
+    @Test
+    public void test_Deserialization() throws JsonProcessingException {
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName='a', instance='b'})[5m] > 1");
+
+        ObjectMapper objectMapper = new Jackson2ObjectMapperBuilder()
+            .serializers(new AlertExpressionSerializer(), new HumanReadableDurationSerializer())
+            .deserializers(new AlertExpressionDeserializer(), new HumanReadableDurationDeserializer())
+            .indentOutput(true)
+            .build();
+
+        String val = objectMapper.writeValueAsString(expression);
+        AlertExpression deserialized = objectMapper.readValue(val, AlertExpression.class);
+        Assert.assertEquals(expression.getId(), deserialized.getId());
+        Assert.assertEquals(expression.getMetricExpression().getFrom(), deserialized.getMetricExpression().getFrom());
     }
 }
