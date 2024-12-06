@@ -81,13 +81,12 @@
           "type": "groupBy",
           "dataSource": "kafka-network-metrics",
           "fields": [
-            "cluster",
-            "type",
             {"name": "count","expression": "count()"},
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"
           ],
+          "groupBy": ["cluster", "type"],
           "orderBy": {
             "name": "avgResponseTime",
             "order": "desc"

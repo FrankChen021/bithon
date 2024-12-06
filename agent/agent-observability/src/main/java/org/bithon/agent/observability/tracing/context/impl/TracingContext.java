@@ -45,7 +45,7 @@ public class TracingContext implements ITraceContext {
 
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();
-    private final Clock clock = new Clock();
+    private final Clock clock;
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
@@ -55,8 +55,15 @@ public class TracingContext implements ITraceContext {
 
     public TracingContext(String traceId,
                           ISpanIdGenerator spanIdGenerator) {
+        this(traceId, spanIdGenerator, new Clock());
+    }
+
+    private TracingContext(String traceId,
+                           ISpanIdGenerator spanIdGenerator,
+                           Clock clock) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
+        this.clock = clock;
     }
 
     @Override
@@ -218,7 +225,11 @@ public class TracingContext implements ITraceContext {
 
     @Override
     public ITraceContext copy() {
-        return new TracingContext(this.traceId, this.spanIdGenerator).reporter(this.reporter);
+        return new TracingContext(this.traceId,
+                                  this.spanIdGenerator,
+                                  // For all copied trace context that has the same traceId,
+                                  // use the same clock to ensure the microsecond calculation is based on the same time base
+                                  this.clock).reporter(this.reporter);
     }
 
     @Override
