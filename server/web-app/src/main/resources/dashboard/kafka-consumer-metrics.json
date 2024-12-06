@@ -69,13 +69,15 @@
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
           "fields": [
-            "cluster",
-            "topic",
-            "groupId",
-            "partition",
             {"name" : "count", "expression": "count()"},
             "consumedRecordsRate",
             "consumedRecords"
+          ],
+          "groupBy": [
+            "cluster",
+            "topic",
+            "groupId",
+            "partition"
           ],
           "orderBy": {
             "name": "consumedRecordsRate",
@@ -142,13 +144,15 @@
           "type": "groupBy",
           "dataSource": "kafka-consumer-metrics",
           "fields": [
-            "cluster",
-            "topic",
-            "groupId",
-            "partition",
             {"name": "count", "expression": "count()"},
             "consumedBytesRate",
             "consumedBytes"
+          ],
+          "groupBy": [
+            "cluster",
+            "topic",
+            "groupId",
+            "partition"
           ],
           "orderBy": {
             "name": "consumedBytesRate",

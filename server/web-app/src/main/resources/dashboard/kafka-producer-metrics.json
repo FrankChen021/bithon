@@ -43,8 +43,9 @@
           "type": "groupBy",
           "dataSource": "kafka-producer-metrics",
           "fields": [
-            "cluster","topic","clientId","recordCount","errorRecordCount"
+            "recordCount","errorRecordCount"
           ],
+          "groupBy": ["cluster","topic","clientId"],
           "orderBy": {
             "name": "recordCount",
             "order": "desc"
