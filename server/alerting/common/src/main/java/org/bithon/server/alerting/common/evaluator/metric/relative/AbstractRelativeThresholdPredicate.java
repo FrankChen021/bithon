@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.RelativeComparisonEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -66,7 +66,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -86,58 +86,69 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                                                                    .build());
 
         //noinspection unchecked
-        List<Map<String, Object>> currWindow = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(currWindow)) {
-            return null;
-        }
-        Number currValue = (Number) currWindow.get(0).get(metric.getName());
-        if (currValue == null) {
-            return null;
-        }
-        BigDecimal currWindowValue = NumberUtils.scaleTo(currValue.doubleValue(), 2);
-
-        response = dataSourceApi.groupBy(QueryRequest.builder()
-                                                     .dataSource(dataSource)
-                                                     .interval(IntervalRequest.builder()
-                                                                              .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                              .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                              .build())
-                                                     .filterExpression(filterExpression)
-                                                     .fields(Collections.singletonList(metric))
-                                                     .groupBy(groupBy)
-                                                     .build());
-
-        //noinspection unchecked
-        List<Map<String, Object>> base = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(base)) {
-            return null;
-        }
-        Number val = (Number) base.get(0).get(metric.getName());
-        if (val == null) {
-            // No data in given time window, treat it as zero
-            val = 0;
-        }
-        BigDecimal baseValue = NumberUtils.scaleTo(val.doubleValue(), 2);
-
-        double delta;
-        if (threshold instanceof HumanReadablePercentage) {
-            delta = ZERO.equals(baseValue)
-                ? currWindowValue.subtract(baseValue).doubleValue()
-                : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
-        } else {
-            delta = currWindowValue.subtract(baseValue).doubleValue();
+        List<Map<String, Object>> seriesList = (List<Map<String, Object>>) response.getData();
+        if (CollectionUtils.isEmpty(seriesList)) {
+            return EvaluationOutputs.EMPTY;
         }
 
-        RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput();
-        output.setDelta(delta);
-        output.setNow(currWindowValue);
-        output.setBase(baseValue);
-        output.setThreshold(threshold);
-        output.setMatches(matches(delta, threshold.doubleValue()));
-        output.setStart(start);
-        output.setEnd(end);
-        output.setMetric(this);
-        return output;
+        EvaluationOutputs outputs = new EvaluationOutputs();
+
+        for (Map<String, Object> series : seriesList) {
+            Number currValue = (Number) series.get(metric.getName());
+            if (currValue == null) {
+                continue;
+            }
+
+            // TODO: MOVE out of for-loop
+            response = dataSourceApi.groupBy(QueryRequest.builder()
+                                                         .dataSource(dataSource)
+                                                         .interval(IntervalRequest.builder()
+                                                                                  .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                                  .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                                  .build())
+                                                         .filterExpression(filterExpression)
+                                                         .fields(Collections.singletonList(metric))
+                                                         .groupBy(groupBy)
+                                                         .build());
+
+            //noinspection unchecked
+            List<Map<String, Object>> base = (List<Map<String, Object>>) response.getData();
+            if (CollectionUtils.isEmpty(base)) {
+                return null;
+            }
+
+            // TODO: find by group-by keys
+            Number val = (Number) base.get(0).get(metric.getName());
+            if (val == null) {
+                // No data in given time window, treat it as zero
+                val = 0;
+            }
+
+            BigDecimal currWindowValue = NumberUtils.scaleTo(currValue.doubleValue(), 2);
+            BigDecimal baseValue = NumberUtils.scaleTo(val.doubleValue(), 2);
+            double delta;
+            if (threshold instanceof HumanReadablePercentage) {
+                delta = ZERO.equals(baseValue)
+                    ? currWindowValue.subtract(baseValue).doubleValue()
+                    : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
+            } else {
+                delta = currWindowValue.subtract(baseValue).doubleValue();
+            }
+
+            RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput();
+            output.setDelta(delta);
+            output.setNow(currWindowValue);
+            output.setBase(baseValue);
+            output.setThreshold(threshold);
+            output.setMatches(matches(delta, threshold.doubleValue()));
+            output.setStart(start);
+            output.setEnd(end);
+            output.setMetric(this);
+
+            outputs.add(output);
+        }
+
+        return outputs;
     }
 
     protected abstract boolean matches(double delta, double threshold);

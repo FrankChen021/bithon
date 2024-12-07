@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.common.evaluator.metric;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public interface IMetricEvaluator {
 
-    IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                String dataSource,
                                QueryField metric,
                                TimeSpan start,

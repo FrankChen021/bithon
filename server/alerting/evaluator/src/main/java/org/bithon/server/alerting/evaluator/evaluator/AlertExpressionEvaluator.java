@@ -22,10 +22,13 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -68,20 +71,20 @@ public class AlertExpressionEvaluator {
 
         TimeSpan end = context.getIntervalEnd();
         TimeSpan start = end.before(expression.getMetricExpression().getWindow());
-        IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
-                                                                                           expression.getMetricExpression().getFrom(),
-                                                                                           expression.getMetricExpression().getMetric(),
-                                                                                           start,
-                                                                                           context.getIntervalEnd(),
-                                                                                           expression.getMetricExpression().getWhereText(),
-                                                                                           expression.getMetricExpression().getGroupBy(),
-                                                                                           context);
-        if (output == null || !output.isMatches()) {
+        EvaluationOutputs outputs = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
+                                                                                            expression.getMetricExpression().getFrom(),
+                                                                                            expression.getMetricExpression().getMetric(),
+                                                                                            start,
+                                                                                            context.getIntervalEnd(),
+                                                                                            expression.getMetricExpression().getWhereText(),
+                                                                                            expression.getMetricExpression().getGroupBy(),
+                                                                                            context);
+        if (outputs.isEmpty() || !outputs.isMatched()) {
             context.setEvaluationResult(expression.getId(), false, null);
             return false;
         }
 
-        context.setEvaluationResult(expression.getId(), true, output);
+        context.setEvaluationResult(expression.getId(), true, outputs);
 
         return true;
     }
