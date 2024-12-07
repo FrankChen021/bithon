@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.common.evaluator.metric;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -30,14 +31,14 @@ import java.util.Set;
  */
 public class MetricEvaluatorWithLogger implements IMetricEvaluator {
 
-    private final IMetricEvaluator delegate;
+    private final IMetricEvaluator delegateEvaluator;
 
     public MetricEvaluatorWithLogger(IMetricEvaluator delegate) {
-        this.delegate = delegate;
+        this.delegateEvaluator = delegate;
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -46,35 +47,43 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                       Set<String> groupBy,
                                       EvaluationContext context) {
         try {
-            context.log(delegate.getClass(),
+            context.log(delegateEvaluator.getClass(),
                         "Evaluating %s in interval [%s, %s)",
                         context.getEvaluatingExpression().serializeToText(false),
                         start.format("HH:mm"),
                         end.format("HH:mm"));
 
-            IEvaluationOutput output = delegate.evaluate(dataSourceApi,
-                                                         dataSource,
-                                                         metric,
-                                                         start,
-                                                         end,
-                                                         filterExpression,
-                                                         groupBy,
-                                                         context);
+            EvaluationOutputs outputs = delegateEvaluator.evaluate(dataSourceApi,
+                                                                   dataSource,
+                                                                   metric,
+                                                                   start,
+                                                                   end,
+                                                                   filterExpression,
+                                                                   groupBy,
+                                                                   context);
+            if (outputs.isEmpty()) {
+                context.log(delegateEvaluator.getClass(),
+                            "Expected: [%s], Current: [null], Delta: [null], Result: [NOT Matched]",
+                            delegateEvaluator.toString());
+                return outputs;
+            }
 
-            context.log(delegate.getClass(),
-                        "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
-                        delegate.toString(),
-                        output == null ? "null" : output.getCurrentText(),
-                        output == null ? "null" : output.getDeltaText(),
-                        (output != null && output.isMatches()) ? "Matched" : "NOT Matched");
+            for (IEvaluationOutput output : outputs) {
+                context.log(delegateEvaluator.getClass(),
+                            "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
+                            delegateEvaluator.toString(),
+                            output.getCurrentText(),
+                            output.getDeltaText(),
+                            output.isMatched() ? "Matched" : "NOT Matched");
+            }
 
-            return output;
+            return outputs;
         } catch (Exception e) {
             context.logException(MetricEvaluatorWithLogger.class,
                                  e,
                                  "Exception during evaluation: %s",
                                  context.getEvaluatingExpression().getId(),
-                                 delegate.toString(),
+                                 delegateEvaluator.toString(),
                                  e.getMessage());
             return null;
         }

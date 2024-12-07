@@ -47,20 +47,20 @@ public class NullValuePredicate implements IMetricEvaluator {
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
-                                      String dataSource,
-                                      QueryField metric,
-                                      TimeSpan start,
-                                      TimeSpan end,
-                                      String filterExpression,
-                                      Set<String> groupBy,
-                                      EvaluationContext context) throws IOException {
+    public List<IEvaluationOutput> evaluate(IDataSourceApi dataSourceApi,
+                                            String dataSource,
+                                            QueryField metric,
+                                            TimeSpan start,
+                                            TimeSpan end,
+                                            String filterExpression,
+                                            Set<String> groupBy,
+                                            EvaluationContext context) throws IOException {
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
+                                                                                            .startISO8601(start.toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
                                                                    .filterExpression(filterExpression)
                                                                    .fields(Collections.singletonList(metric))
                                                                    .groupBy(groupBy)
@@ -78,12 +78,12 @@ public class NullValuePredicate implements IMetricEvaluator {
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return new AbsoluteComparisonEvaluationOutput(start,
-                                                      end,
-                                                      nowValue == null ? null : valueType.format(nowValue),
-                                                      "null",
-                                                      nowValue == null ? null : nowValue.toString(),
-                                                      matches);
+        return List.of(new AbsoluteComparisonEvaluationOutput(start,
+                                                              end,
+                                                              nowValue == null ? null : valueType.format(nowValue),
+                                                              "null",
+                                                              nowValue == null ? null : nowValue.toString(),
+                                                              matches));
     }
 
     @Override

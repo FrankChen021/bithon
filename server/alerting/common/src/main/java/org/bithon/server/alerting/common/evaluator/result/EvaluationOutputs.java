@@ -16,32 +16,30 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
-import org.bithon.server.commons.time.TimeSpan;
-
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020-08-25 15:48:07
+ * @date 2024/12/7 22:59
  */
-public interface IEvaluationOutput {
+public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
+    public final static EvaluationOutputs EMPTY = new EvaluationOutputs();
 
-    /**
-     * start time of the current evaluation period
-     */
-    TimeSpan getStart();
-    TimeSpan getEnd();
+    private boolean isMatched;
 
-    boolean isMatched();
+    public boolean isMatched() {
+        return isMatched;
+    }
 
-    /**
-     * If the evaluation is based on label (group-by semantics)
-     * @return
-     */
-    List<String> getLabelNames();
-    List<String> getLabelValues();
+    @Override
+    public boolean add(IEvaluationOutput output) {
+        isMatched = isMatched || output.isMatched();
+        return super.add(output);
+    }
 
-    String getThresholdText();
-    String getCurrentText();
-    String getDeltaText();
+    @Override
+    public void add(int index, IEvaluationOutput output) {
+        isMatched = isMatched || output.isMatched();
+        super.add(index, output);
+    }
 }
