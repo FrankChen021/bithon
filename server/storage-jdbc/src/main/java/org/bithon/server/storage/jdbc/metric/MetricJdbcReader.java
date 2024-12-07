@@ -45,6 +45,7 @@ import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,14 +137,6 @@ public class MetricJdbcReader implements IDataSourceReader {
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
-    private String getOrderBySQL(OrderBy orderBy) {
-        if (orderBy == null) {
-            return "";
-        }
-
-        return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
-    }
-
     @Override
     public List<?> select(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
@@ -191,7 +184,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         if (resultFormat == Query.ResultFormat.Object) {
             return records.stream().map(record -> {
-                Map<String, Object> mapObject = new HashMap<>(record.fields().length);
+                Map<String, Object> mapObject = new LinkedHashMap<>(record.fields().length);
                 for (Field<?> field : record.fields()) {
                     mapObject.put(field.getName(), record.get(field));
                 }
