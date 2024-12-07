@@ -12,7 +12,40 @@
         alerting-evaluator -. Notification(Kafka) .-> Kafka
 ```
 
-## Alert Rule
+## Alert Status
+
+- READY
+- PENDING
+- ALERTING
+- SUPPRESSING
+- RESOLVED
+
+```mermaid
+    graph
+        READY -. 1 TRUE(for >1) .-> PENDING
+        READY -. 2 TRUE(for == 1) .-> ALERTING
+        PENDING -. 3 TRUE .-> ALERTING
+        ALERTING -. 4 TRUE .-> SUPPRESSING
+        SUPPRESSING -. 5 FALSE .-> RESOLVED
+        PENDING -. 6 FALSE .-> RESOLVED
+        ALERTING -. 7 FALSE .-> RESOLVED
+        RESOLVED -. 8 TRUE .-> PENDING
+        RESOLVED -. 9 TRUE(for == 1) .-> ALERTING
+```
+
+## Alert Status under the 'by' semantics
+
+- Each series has its own status
+    - READY | RESOLVED --> PENDING: ANNY series is PENDING
+    - READY | RESOLVED --> ALERTING: ANY series is ALERTING
+    - PENDING --> ALERTING: ANY series is ALERTING
+    - ALERTING --> SUPPRESSING: ALL series are SUPPRESSING
+    - SUPPRESSING --> RESOLVED: ALL series are RESOLVED
+    - ALERTING --> RESOLVED: ALL series are RESOLVED
+    - PENDING --> RESOLVED: ALL series are RESOLVED
+
+
+## Alert Rule Model
 
 ### Template
 
@@ -46,3 +79,5 @@ percentage: number '%'
 
 There are some Scratch Files under the [manager module](manager) directory. 
 You can directly run these scratch files in Intellij to see how the APIs work.
+
+
