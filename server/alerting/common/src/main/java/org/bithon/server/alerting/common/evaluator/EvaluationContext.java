@@ -19,8 +19,8 @@ package org.bithon.server.alerting.common.evaluator;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
@@ -42,7 +42,7 @@ public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
     private final EvaluationLogger evaluationLogger;
     private final AlertRule alertRule;
-    private final Map<String, IEvaluationOutput> evaluatedExpressions = new HashMap<>();
+    private final Map<String, EvaluationOutputs> evaluatedExpressions = new HashMap<>();
 
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
@@ -73,17 +73,17 @@ public class EvaluationContext implements IEvaluationContext {
         this.alertExpressions.putAll(alertRule.getFlattenExpressions());
     }
 
-    public IEvaluationOutput getRuleEvaluationOutput(String ruleId) {
+    public EvaluationOutputs getRuleEvaluationOutputs(String ruleId) {
         return evaluatedExpressions.get(ruleId);
     }
 
     public void setEvaluationResult(String ruleId,
                                     boolean matches,
-                                    IEvaluationOutput output) {
+                                    EvaluationOutputs outputs) {
 
         this.evaluationResults.put(ruleId, matches ? EvaluationResult.MATCHED : EvaluationResult.UNMATCHED);
-        if (output != null) {
-            evaluatedExpressions.put(ruleId, output);
+        if (outputs != null) {
+            evaluatedExpressions.put(ruleId, outputs);
         }
     }
 

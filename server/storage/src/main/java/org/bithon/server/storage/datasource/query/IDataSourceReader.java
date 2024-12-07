@@ -32,6 +32,7 @@ public interface IDataSourceReader extends AutoCloseable {
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
+     * The returned list is a list of map, for each map object, the key of the map is the column name
      */
     List<?> groupBy(Query query);
 

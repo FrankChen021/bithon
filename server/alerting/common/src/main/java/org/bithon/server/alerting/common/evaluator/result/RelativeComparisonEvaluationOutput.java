@@ -23,6 +23,7 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.commons.time.TimeSpan;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,14 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private IMetricEvaluator metric;
     private TimeSpan start;
     private TimeSpan end;
+
+    public List<String> getLabelNames() {
+        return Collections.emptyList();
+    }
+
+    public List<String> getLabelValues() {
+        return Collections.emptyList();
+    }
 
     /**
      * Used for plotting if the image rendering service is enabled

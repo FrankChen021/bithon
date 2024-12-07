@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.BaselineMetricCacheManager;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -73,11 +72,6 @@ public class EvaluatorModuleAutoConfiguration {
         } catch (InvalidTypeIdException e) {
             throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
         }
-    }
-
-    @Bean
-    public BaselineMetricCacheManager cacheManager(IDataSourceApi dataSourceApi) {
-        return new BaselineMetricCacheManager(dataSourceApi);
     }
 
     @Bean

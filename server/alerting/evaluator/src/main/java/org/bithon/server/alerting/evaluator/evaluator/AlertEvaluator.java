@@ -28,7 +28,7 @@ import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -327,7 +327,7 @@ public class AlertEvaluator implements DisposableBean {
         context.getEvaluationResults().forEach((expressionId, result) -> {
             AlertExpression expression = context.getAlertExpressions().get(expressionId);
 
-            IEvaluationOutput outputs = context.getRuleEvaluationOutput(expressionId);
+            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
             notification.getConditionEvaluation()
                         .put(expression.getId(),
                              new ExpressionEvaluationResult(result,
@@ -374,7 +374,7 @@ public class AlertEvaluator implements DisposableBean {
         context.getEvaluationResults().forEach((expressionId, result) -> {
             AlertExpression expression = context.getAlertExpressions().get(expressionId);
 
-            IEvaluationOutput outputs = context.getRuleEvaluationOutput(expressionId);
+            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
             notification.getConditionEvaluation()
                         .put(expression.getId(),
                              new ExpressionEvaluationResult(result,

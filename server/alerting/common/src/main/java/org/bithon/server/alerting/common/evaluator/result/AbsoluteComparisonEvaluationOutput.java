@@ -19,6 +19,8 @@ package org.bithon.server.alerting.common.evaluator.result;
 import lombok.Getter;
 import org.bithon.server.commons.time.TimeSpan;
 
+import java.util.List;
+
 /**
  * @author frankchen
  * @date 2020-08-27 18:35:19
@@ -58,6 +60,16 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
         this.now = now;
         this.threshold = threshold;
         this.delta = delta;
+    }
+
+    @Override
+    public List<String> getLabelNames() {
+        return List.of();
+    }
+
+    @Override
+    public List<String> getLabelValues() {
+        return List.of();
     }
 
     @Override

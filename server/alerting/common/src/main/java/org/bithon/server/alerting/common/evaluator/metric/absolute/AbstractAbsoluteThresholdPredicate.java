@@ -26,6 +26,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -87,7 +88,7 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -106,15 +107,9 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                                                    .groupBy(groupBy)
                                                                    .build());
         //noinspection unchecked
-        List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(now)) {
-            return null;
-        }
-
-        // TODO: iterate the result set if groupBy has been set
-        Number nowValue = (Number) now.get(0).get(metric.getName());
-        if (nowValue == null) {
-            return null;
+        List<Map<String, Object>> seriesList = (List<Map<String, Object>>) response.getData();
+        if (CollectionUtils.isEmpty(seriesList)) {
+            return EvaluationOutputs.EMPTY;
         }
 
         IDataType valueType;
@@ -126,12 +121,25 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                      .getColumnByName(metric.getName())
                                      .getDataType();
         }
-        return new AbsoluteComparisonEvaluationOutput(start,
-                                                      end,
-                                                      valueType.format(nowValue),
-                                                      expected.toString(),
-                                                      valueType.format(valueType.diff(nowValue, expectedValue)),
-                                                      matches(valueType, expectedValue, nowValue));
+
+        EvaluationOutputs outputs = new EvaluationOutputs();
+        for (Map<String, Object> series : seriesList) { // Iterate through all series
+            Number currentValue = (Number) series.get(metric.getName());
+            if (currentValue == null) {
+                continue;
+            }
+
+            IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput(start,
+                                                                              end,
+                                                                              valueType.format(currentValue),
+                                                                              expected.toString(),
+                                                                              valueType.format(valueType.diff(currentValue, expectedValue)),
+                                                                              matches(valueType, expectedValue, currentValue));
+
+            outputs.add(output);
+        }
+
+        return outputs;
     }
 
     protected abstract boolean matches(IDataType valueType, Number threshold, Number now);
