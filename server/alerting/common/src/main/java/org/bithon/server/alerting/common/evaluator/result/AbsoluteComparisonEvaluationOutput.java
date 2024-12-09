@@ -28,7 +28,7 @@ import java.util.List;
 public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Getter
-    private final boolean isMatches;
+    private final boolean isMatched;
 
     /**
      * The value at the moment when the metric is retrieved
@@ -56,7 +56,7 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
                                               boolean isMatches) {
         this.start = start;
         this.end = end;
-        this.isMatches = isMatches;
+        this.isMatched = isMatches;
         this.now = now;
         this.threshold = threshold;
         this.delta = delta;

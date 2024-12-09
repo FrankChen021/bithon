@@ -36,13 +36,13 @@
 ## Alert Status under the 'by' semantics
 
 - Each series has its own status
-    - READY | RESOLVED --> PENDING: ANNY series is PENDING
-    - READY | RESOLVED --> ALERTING: ANY series is ALERTING
-    - PENDING --> ALERTING: ANY series is ALERTING
-    - ALERTING --> SUPPRESSING: ALL series are SUPPRESSING
-    - SUPPRESSING --> RESOLVED: ALL series are RESOLVED
-    - ALERTING --> RESOLVED: ALL series are RESOLVED
-    - PENDING --> RESOLVED: ALL series are RESOLVED
+    - READY | RESOLVED --> PENDING: **ANY** series is PENDING
+    - READY | RESOLVED --> ALERTING: **ANY** series is ALERTING
+    - PENDING --> ALERTING: **ANY** series is ALERTING
+    - ALERTING --> SUPPRESSING: **ALL** series are SUPPRESSING
+    - SUPPRESSING --> RESOLVED: **ALL** series are RESOLVED
+    - ALERTING --> RESOLVED: **ALL** series are RESOLVED
+    - PENDING --> RESOLVED: **ALL** series are RESOLVED
 
 
 ## Alert Rule Model
