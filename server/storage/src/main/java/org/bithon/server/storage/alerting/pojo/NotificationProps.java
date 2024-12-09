@@ -53,7 +53,6 @@ public class NotificationProps {
      * there's no need to render them as images.
      * <p>
      * Can be empty.
-     * Defined as 'not' semantics for backward compatibility.
      */
-    private Set<String> notRenderExpressions;
+    private Set<String> renderExpressions;
 }

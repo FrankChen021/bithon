@@ -111,7 +111,7 @@ public class CreateAlertRuleRequest {
         alertRule.setEvery(this.every);
         alertRule.setNotificationProps(NotificationProps.builder()
                                                         .channels(this.notificationProps.channels)
-                                                        .notRenderExpressions(this.notificationProps.notRenderExpressions)
+                                                        .renderExpressions(this.notificationProps.notRenderExpressions)
                                                         .silence(this.notificationProps.silence)
                                                         .message(this.notificationProps.message)
                                                         .build());
