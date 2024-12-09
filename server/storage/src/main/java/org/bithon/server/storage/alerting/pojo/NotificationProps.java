@@ -16,47 +16,44 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * NOTE: The serialization order is manually controlled so that people understand an alert in a natural way
- *
  * @author frank.chen021@outlook.com
- * @date 2024/2/11 19:51
+ * @date 9/12/24 5:27 pm
  */
-@Data
+@Getter
+@Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonPropertyOrder({"expr", "for", "every", "silence", "notifications", "notificationProps"})
-public class AlertStorageObjectPayload {
-    @JsonProperty
-    private String expr;
-
-    @JsonProperty("for")
-    private int forTimes;
-
-    @JsonProperty
-    private HumanReadableDuration every = HumanReadableDuration.DURATION_1_MINUTE;
+public class NotificationProps {
 
     /**
      * silence period in minute
      */
-    @JsonProperty
     private HumanReadableDuration silence;
 
-    @Deprecated
-    @JsonProperty
-    private List<String> notifications;
+    @NotEmpty
+    private List<String> channels;
 
-    @JsonProperty
-    private NotificationProps notificationProps;
+    /**
+     * Can be empty. If empty, the template defined on the channel will be used
+     */
+    private String message;
+
+    /**
+     * Which expression will be rendered as image.
+     * Some ALERT rule might use composite alert expressions, some of which might be seen as 'pre-conditions',
+     * there's no need to render them as images.
+     * <p>
+     * Can be empty.
+     * Defined as 'not' semantics for backward compatibility.
+     */
+    private Set<String> notRenderExpressions;
 }

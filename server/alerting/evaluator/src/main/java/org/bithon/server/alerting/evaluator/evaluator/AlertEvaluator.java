@@ -269,7 +269,7 @@ public class AlertEvaluator implements DisposableBean {
                             successiveCount,
                             expectedMatchCount);
 
-                HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
+                HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
 
                 String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
 
@@ -347,7 +347,7 @@ public class AlertEvaluator implements DisposableBean {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
-            for (String channelName : alertRule.getNotifications()) {
+            for (String channelName : alertRule.getNotificationProps().getChannels()) {
                 context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
@@ -390,7 +390,7 @@ public class AlertEvaluator implements DisposableBean {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(context.getPrevState().getLastRecordId());
-            for (String channelName : alertRule.getNotifications()) {
+            for (String channelName : alertRule.getNotificationProps().getChannels()) {
                 context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {

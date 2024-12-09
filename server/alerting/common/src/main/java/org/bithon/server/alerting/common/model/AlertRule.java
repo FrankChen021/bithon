@@ -36,9 +36,9 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.NotificationProps;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,14 +79,8 @@ public class AlertRule {
     @JsonProperty("for")
     private int forTimes = 3;
 
-    /**
-     * silence period in minute
-     */
     @JsonProperty
-    private HumanReadableDuration silence = HumanReadableDuration.DURATION_30_MINUTE;
-
-    @JsonProperty
-    private List<String> notifications;
+    private NotificationProps notificationProps;
 
     @JsonIgnore
     private boolean enabled = true;
@@ -133,9 +127,13 @@ public class AlertRule {
         rule.setName(alertObject.getName());
         rule.setEvery(alertObject.getPayload().getEvery());
         rule.setExpr(alertObject.getPayload().getExpr());
-        rule.setSilence(alertObject.getPayload().getSilence());
         rule.setForTimes(alertObject.getPayload().getForTimes());
-        rule.setNotifications(alertObject.getPayload().getNotifications());
+        if (alertObject.getPayload().getNotifications() != null) {
+            rule.setNotificationProps(NotificationProps.builder()
+                                                       .silence(alertObject.getPayload().getSilence())
+                                                       .channels(alertObject.getPayload().getNotifications())
+                                                       .build());
+        }
         return rule;
     }
 

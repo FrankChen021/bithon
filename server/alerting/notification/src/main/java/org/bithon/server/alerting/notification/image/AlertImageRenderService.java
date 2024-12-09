@@ -49,10 +49,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -96,9 +98,10 @@ public class AlertImageRenderService implements ApplicationContextAware {
             return Collections.emptyMap();
         }
 
-        Map<String, String> images = new LinkedHashMap<>();
+        Map<String, String> images = new ConcurrentHashMap<>();
 
         List<CompletableFuture<Void>> renderTasks = expressions.stream()
+                                                               .filter((expression) -> shouldRenderExpression(rule.getNotificationProps().getNotRenderExpressions(), expression.getId()))
                                                                .map((expression) ->
                                                                         CompletableFuture.runAsync(() -> {
                                                                             try {
@@ -123,7 +126,11 @@ public class AlertImageRenderService implements ApplicationContextAware {
         // Wait for all tasks to complete
         CompletableFuture.allOf(renderTasks.toArray(new CompletableFuture[0])).join();
 
-        return images;
+        return new TreeMap<>(images);
+    }
+
+    private boolean shouldRenderExpression(Set<String> notRenderedExpression, String expressionId) {
+        return notRenderedExpression == null || !notRenderedExpression.contains(expressionId);
     }
 
     private String render(AlertExpression expression,

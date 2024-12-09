@@ -137,7 +137,7 @@ public class AlertCommandService {
             alertExpression.getMetricExpression().validate(schemas);
         }
 
-        for (String channel : alertRule.getNotifications()) {
+        for (String channel : alertRule.getNotificationProps().getChannels()) {
             if (!this.notificationChannelStorage.exists(channel)) {
                 throw new BizException("Notification channel [%s] does not exist", channel);
             }
@@ -153,8 +153,7 @@ public class AlertCommandService {
                                                                .every(alertRule.getEvery())
                                                                .expr(alertRule.getExpr())
                                                                .forTimes(alertRule.getForTimes())
-                                                               .notifications(alertRule.getNotifications())
-                                                               .silence(alertRule.getSilence())
+                                                               .notificationProps(alertRule.getNotificationProps())
                                                                .build());
         return alertStorageObject;
     }

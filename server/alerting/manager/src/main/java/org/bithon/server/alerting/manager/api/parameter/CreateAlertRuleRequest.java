@@ -27,8 +27,10 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.manager.biz.CommandArgs;
 import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
+import org.bithon.server.storage.alerting.pojo.NotificationProps;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -67,26 +69,52 @@ public class CreateAlertRuleRequest {
     @Max(60)
     private int forTimes = 3;
 
-    @JsonProperty("silence")
-    @HumanReadableDurationConstraint(min = "1m", max = "60m")
-    private HumanReadableDuration silence = HumanReadableDuration.DURATION_30_MINUTE;
-
     @NotEmpty
     private String expr;
 
+    public class NotificationCreateProps {
+
+        /**
+         * silence period in minute
+         */
+        @HumanReadableDurationConstraint(min = "1m", max = "24h")
+        private HumanReadableDuration silence;
+
+        @NotEmpty
+        private List<String> channels;
+
+        /**
+         * Can be empty. If empty, the template defined on the channel will be used
+         */
+        private String message;
+
+        /**
+         * Which expression will be rendered as image.
+         * Some ALERT rule might use composite alert expressions, some of which might be seen as 'pre-conditions',
+         * there's no need to render them as images.
+         * <p>
+         * Can be empty.
+         * Defined as 'not' semantics for backward compatibility.
+         */
+        private Set<String> notRenderExpressions;
+    }
+
     @Valid
-    @NotEmpty
-    private List<String> notifications;
+    private NotificationCreateProps notificationProps;
 
     public AlertRule toAlert() {
         AlertRule alertRule = new AlertRule();
         alertRule.setId(this.id);
         alertRule.setExpr(this.expr.trim());
         alertRule.setName(this.name.trim());
-        alertRule.setNotifications(this.notifications);
         alertRule.setForTimes(this.forTimes);
         alertRule.setEvery(this.every);
-        alertRule.setSilence(silence);
+        alertRule.setNotificationProps(NotificationProps.builder()
+                                                        .channels(this.notificationProps.channels)
+                                                        .notRenderExpressions(this.notificationProps.notRenderExpressions)
+                                                        .silence(this.notificationProps.silence)
+                                                        .message(this.notificationProps.message)
+                                                        .build());
         alertRule.setEnabled(true);
         return alertRule;
     }
