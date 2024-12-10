@@ -101,7 +101,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
         Map<String, String> images = new ConcurrentHashMap<>();
 
         List<CompletableFuture<Void>> renderTasks = expressions.stream()
-                                                               .filter((expression) -> shouldRenderExpression(rule.getNotificationProps().getRenderExpressions(), expression.getId()))
+                                                               .filter((expression) -> shouldRenderExpression(rule, expression.getId()))
                                                                .map((expression) ->
                                                                         CompletableFuture.runAsync(() -> {
                                                                             try {
@@ -129,8 +129,13 @@ public class AlertImageRenderService implements ApplicationContextAware {
         return new TreeMap<>(images);
     }
 
-    private boolean shouldRenderExpression(Set<String> renderExpressions, String expressionId) {
-        return renderExpressions != null && renderExpressions.contains(expressionId);
+    private boolean shouldRenderExpression(AlertRule rule, String expressionId) {
+        Set<String> renderExpressions = rule.getNotificationProps().getRenderExpressions();
+        boolean shouldRender = renderExpressions != null && renderExpressions.contains(expressionId);
+
+        log.debug("Rendering expression [{}] for alert [{}]: {}", expressionId, rule.getName(), shouldRender);
+
+        return shouldRender;
     }
 
     private String render(AlertExpression expression,
