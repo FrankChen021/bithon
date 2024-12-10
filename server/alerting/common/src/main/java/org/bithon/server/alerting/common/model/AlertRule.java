@@ -128,11 +128,14 @@ public class AlertRule {
         rule.setEvery(alertObject.getPayload().getEvery());
         rule.setExpr(alertObject.getPayload().getExpr());
         rule.setForTimes(alertObject.getPayload().getForTimes());
-        if (alertObject.getPayload().getNotifications() != null) {
+        if (alertObject.getPayload().getNotifications() != null && alertObject.getPayload().getNotificationProps() == null) {
+            // backward compatibility
             rule.setNotificationProps(NotificationProps.builder()
                                                        .silence(alertObject.getPayload().getSilence())
                                                        .channels(alertObject.getPayload().getNotifications())
                                                        .build());
+        } else {
+            rule.setNotificationProps(alertObject.getPayload().getNotificationProps());
         }
         return rule;
     }

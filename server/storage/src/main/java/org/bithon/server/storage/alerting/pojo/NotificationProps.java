@@ -16,7 +16,9 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +34,12 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
 public class NotificationProps {
+
+    @JsonCreator
+    public NotificationProps() {
+    }
 
     /**
      * silence period in minute

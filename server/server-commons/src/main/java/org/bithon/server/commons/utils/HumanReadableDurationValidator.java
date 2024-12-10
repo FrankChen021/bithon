@@ -41,6 +41,9 @@ public class HumanReadableDurationValidator implements ConstraintValidator<Human
 
     @Override
     public boolean isValid(HumanReadableDuration value, ConstraintValidatorContext context) {
+        if (value == null || value.getDuration() == null) {
+            return false;
+        }
         long seconds = value.getDuration().getSeconds();
         if (seconds < this.min) {
             return false;

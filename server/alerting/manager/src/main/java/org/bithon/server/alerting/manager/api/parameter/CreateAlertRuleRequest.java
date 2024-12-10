@@ -72,7 +72,9 @@ public class CreateAlertRuleRequest {
     @NotEmpty
     private String expr;
 
-    public class NotificationCreateProps {
+    @Getter
+    @Setter
+    public static class NotificationCreateProps {
 
         /**
          * silence period in minute
@@ -96,7 +98,7 @@ public class CreateAlertRuleRequest {
          * Can be empty.
          * Defined as 'not' semantics for backward compatibility.
          */
-        private Set<String> notRenderExpressions;
+        private Set<String> renderExpressions;
     }
 
     @Valid
@@ -111,7 +113,7 @@ public class CreateAlertRuleRequest {
         alertRule.setEvery(this.every);
         alertRule.setNotificationProps(NotificationProps.builder()
                                                         .channels(this.notificationProps.channels)
-                                                        .renderExpressions(this.notificationProps.notRenderExpressions)
+                                                        .renderExpressions(this.notificationProps.renderExpressions)
                                                         .silence(this.notificationProps.silence)
                                                         .message(this.notificationProps.message)
                                                         .build());
