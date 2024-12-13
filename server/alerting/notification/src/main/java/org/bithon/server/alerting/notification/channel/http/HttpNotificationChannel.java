@@ -133,11 +133,15 @@ public class HttpNotificationChannel implements INotificationChannel {
     }
 
     private void send(NotificationMessage message, Duration timeout) throws IOException {
-        String messageBody = this.props.body.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
-                                            .replace("{alert.name}", message.getAlertRule().getName())
-                                            .replace("{alert.expr}", message.getAlertRule().getExpr())
-                                            .replace("{alert.url}", getURL(message))
-                                            .replace("{alert.status}", message.getStatus().name());
+        String messageBody = StringUtils.hasText(message.getAlertRule().getNotificationProps().getMessage()) ?
+            message.getAlertRule().getNotificationProps().getMessage()
+            : this.props.body;
+
+        messageBody = messageBody.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
+                                 .replace("{alert.name}", message.getAlertRule().getName())
+                                 .replace("{alert.expr}", message.getAlertRule().getExpr())
+                                 .replace("{alert.url}", getURL(message))
+                                 .replace("{alert.status}", message.getStatus().name());
 
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {

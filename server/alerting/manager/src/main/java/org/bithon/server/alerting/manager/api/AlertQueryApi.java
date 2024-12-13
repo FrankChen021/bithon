@@ -55,6 +55,7 @@ import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.NotificationProps;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.metrics.Interval;
@@ -70,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -198,6 +200,16 @@ public class AlertQueryApi {
                 expression.getMetricExpression().validate(schemas);
                 alertExpressions.add(expression);
             });
+
+            // Backward compatibility
+            if (ruleObject.getPayload().getNotifications() != null && ruleObject.getPayload().getNotificationProps() == null) {
+                ruleObject.getPayload().setNotificationProps(NotificationProps.builder()
+                                                                              .renderExpressions(new TreeSet<>(alertExpressions.stream().map(AlertExpression::getId).toList()))
+                                                                              .silence(ruleObject.getPayload().getSilence())
+                                                                              .channels(ruleObject.getPayload().getNotifications())
+                                                                              .build());
+            }
+
             return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));
         }
         return ApiResponse.fail("Alert rule not found");

@@ -52,7 +52,8 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
 
                 @Override
                 public void onUpdated(AlertRule original, AlertRule updated) {
-                    if (original.getSilence().equals(updated.getSilence())) {
+                    if (original.getNotificationProps().getSilence().equals(updated.getNotificationProps().getSilence())) {
+                        // The silence period has been changed
                         try {
                             redisClient.delete(getAlertKey(original.getId(), "silence"));
                         } catch (Exception ignored) {

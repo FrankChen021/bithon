@@ -49,6 +49,7 @@ import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
@@ -182,7 +183,11 @@ public class AlertChannelApi {
         // Check if it's used
         List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
-            if (alert.getPayload().getNotifications().contains(request.getName())) {
+            AlertStorageObjectPayload payload = alert.getPayload();
+            if (payload.getNotifications() != null && alert.getPayload().getNotifications().contains(request.getName())) {
+                return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getName()));
+            }
+            if (payload.getNotificationProps() != null && payload.getNotificationProps().getChannels().contains(request.getName())) {
                 return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getName()));
             }
         }
