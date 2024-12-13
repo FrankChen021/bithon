@@ -136,7 +136,10 @@ class AlertEditComponent {
             expr: expression,
             every: every + $('#everyUnit').val(),
             for: forValue,
-            notifications: notification.map((n) => n.text)
+            notificationProps: {
+                silence: "1m",
+                channels: notification.map((n) => n.text)
+            }
         };
     }
 
@@ -147,7 +150,7 @@ class AlertEditComponent {
         $('#every').val(alert.payload.every.substring(0, alert.payload.every.length - 1));
         $('#everyUnit').val(alert.payload.every.substring(alert.payload.every.length - 1));
 
-        $('#notifications').val(alert.payload.notifications).trigger('change');
+        $('#notifications').val(alert.payload.notificationProps.channels).trigger('change');
 
         this.expressionDashboard.renderExpression(alert.payload.expr);
     }
