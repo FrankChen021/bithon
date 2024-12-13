@@ -10,8 +10,10 @@ name: "Alert1"
 expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
 for: 1
 every: 1m
-notifications:
-  - console-1
+notificationProps:
+  silence: 1m
+  channels:
+    - console-1
 
 
 ### Update an alert
@@ -26,9 +28,11 @@ Content-Type: application/json
   "every": "1m",
   "for": "1m",
   "expression": "avg(jvm-metrics.processCpuLoad)[1m] > 0.1 AND max(jvm-metrics.heapUsed) > 100",
-  "notifications": [
-    "console"
-  ]
+  "notificationProps": {
+    "silence": "1m",
+    "channels": [
+        "console"
+  ]}
 }
 
 ### Get an alert
@@ -75,5 +79,6 @@ name: "Alert1"
 expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
 for: 1
 every: 1m
-notifications:
-  - console-1
+notificationProps:
+  channels:
+    - console-1
