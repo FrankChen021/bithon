@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -111,19 +112,39 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitLogicalAlertExpression(MetricExpressionParser.LogicalAlertExpressionContext ctx) {
             List<MetricExpressionParser.AlertExpressionContext> contextList = ctx.alertExpression();
-            MetricExpressionParser.AlertExpressionContext left = contextList.get(0);
-            MetricExpressionParser.AlertExpressionContext right = contextList.get(1);
+
+            IExpression left = contextList.get(0).accept(this);
+            IExpression right = contextList.get(1).accept(this);
+
+            if (left instanceof AlertExpression leftAlertExpression
+                && right instanceof AlertExpression rightAlertExpression) {
+
+                // For two non-empty GROUP-BY, the two sets MUST be the same
+                if (CollectionUtils.isNotEmpty(leftAlertExpression.getMetricExpression().getGroupBy())
+                    && CollectionUtils.isNotEmpty(rightAlertExpression.getMetricExpression().getGroupBy())) {
+
+                    if (!leftAlertExpression.getMetricExpression()
+                                            .getGroupBy()
+                                            .equals(rightAlertExpression.getMetricExpression().getGroupBy())) {
+
+                        throw new InvalidExpressionException("The BY expression of the two expression [%s] , [%s] are NOT the same.",
+                                                             left.serializeToText(),
+                                                             right.serializeToText());
+                    }
+                }
+            }
+
             TerminalNode op = ctx.getChild(TerminalNode.class, 0);
             if (op.getSymbol().getType() == MetricExpressionParser.AND) {
-                return new LogicalExpression.AND(left.accept(this), right.accept(this));
+                return new LogicalExpression.AND(left, right);
             } else {
-                return new LogicalExpression.OR(left.accept(this), right.accept(this));
+                return new LogicalExpression.OR(left, right);
             }
         }
     }
 
     private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
-        LiteralExpression expected = metricExpression.getExpected();
+        LiteralExpression<?> expected = metricExpression.getExpected();
         HumanReadableDuration offset = metricExpression.getOffset();
 
         IMetricEvaluator metricEvaluator;
