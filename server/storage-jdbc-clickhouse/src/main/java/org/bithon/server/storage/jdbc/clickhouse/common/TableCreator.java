@@ -275,9 +275,9 @@ public class TableCreator {
             }
 
             if (isCodecSupported) {
-                if ("Metric".equals(field.getComment())) {
+                if (Number.class.isAssignableFrom(dataType.getType())) {
                     sb.append(" CODEC(T64, ZSTD)");
-                } else if ("Dimension".equals(field.getComment())) {
+                } else if (String.class.equals(dataType.getType())) {
                     sb.append(" CODEC(ZSTD(1))");
                 }
             }
