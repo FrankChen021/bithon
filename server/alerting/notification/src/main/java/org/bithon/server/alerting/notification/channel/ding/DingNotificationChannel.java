@@ -87,13 +87,14 @@ public class DingNotificationChannel implements INotificationChannel {
             text.append(expression.getId());
             text.append(expression.serializeToText());
 
-            OutputMessage output = result.getOutputs();
-            text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
-                                           expression.getMetricExpression().getMetric().getAggregator(),
-                                           expression.getMetricExpression().getFrom(),
-                                           expression.getMetricExpression().getMetric().getName(),
-                                           output.getCurrent(),
-                                           output.getDelta()));
+            for (OutputMessage output : result.getOutputs()) {
+                text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
+                                               expression.getMetricExpression().getMetric().getAggregator(),
+                                               expression.getMetricExpression().getFrom(),
+                                               expression.getMetricExpression().getMetric().getName(),
+                                               output.getCurrent(),
+                                               output.getDelta()));
+            }
 
             section.add(new QuotedTextLine(text.toString()));
             /*

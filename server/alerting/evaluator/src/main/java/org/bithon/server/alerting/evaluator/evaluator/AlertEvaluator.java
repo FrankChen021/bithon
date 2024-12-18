@@ -56,6 +56,7 @@ import org.springframework.core.env.Environment;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
@@ -355,7 +356,7 @@ public class AlertEvaluator implements DisposableBean {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
-            for (String channelName : alertRule.) {
+            for (String channelName : alertRule.getNotificationProps().getChannels()) {
                 context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
@@ -386,11 +387,13 @@ public class AlertEvaluator implements DisposableBean {
             notification.getConditionEvaluation()
                         .put(expression.getId(),
                              new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : OutputMessage.builder()
-                                                                                                  .current(outputs.getCurrentText())
-                                                                                                  .delta(outputs.getDeltaText())
-                                                                                                  .threshold(outputs.getThresholdText())
-                                                                                                  .build()));
+                                                            outputs == null ? null : outputs.stream()
+                                                                                            .map((output) -> OutputMessage.builder()
+                                                                                                                          .current(output.getCurrentText())
+                                                                                                                          .delta(output.getDeltaText())
+                                                                                                                          .threshold(output.getThresholdText())
+                                                                                                                          .build())
+                                                                                            .toList()));
         });
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
@@ -425,6 +428,7 @@ public class AlertEvaluator implements DisposableBean {
         long startOfThisEvaluation = context.getEvaluatedExpressions()
                                             .values()
                                             .stream()
+                                            .flatMap(Collection::stream)
                                             .map((output) -> output.getStart().getMilliseconds())
                                             .min(Comparator.comparingLong((v) -> v))
                                             .get();

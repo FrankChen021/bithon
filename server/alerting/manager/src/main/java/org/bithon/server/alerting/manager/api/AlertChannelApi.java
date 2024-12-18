@@ -154,7 +154,7 @@ public class AlertChannelApi {
                                             .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationResult.MATCHED,
-                                                new OutputMessage("1", "2", "1")
+                                                List.of(new OutputMessage("1", "2", "1"))
                                             )))
                                             .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()
