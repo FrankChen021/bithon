@@ -23,6 +23,7 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
@@ -45,7 +46,12 @@ public class AlertExpressionEvaluator {
             @Override
             public Boolean visit(LogicalExpression expression) {
                 if (expression instanceof LogicalExpression.AND) {
-                    return expression.getOperands().stream().allMatch(e -> e.accept(this));
+                    for (IExpression operand : expression.getOperands()) {
+                        // TODO: JOIN the Output
+                        if (!operand.accept(this)) {
+                            return false;
+                        }
+                    }
                 } else if (expression instanceof LogicalExpression.OR) {
                     return expression.getOperands().stream().anyMatch(e -> e.accept(this));
                 } else {
@@ -55,7 +61,14 @@ public class AlertExpressionEvaluator {
 
             @Override
             public Boolean visit(AlertExpression expression) {
-                return evaluate(expression, context);
+                boolean isTrue = evaluate(expression, context);
+                if (isTrue) {
+                    EvaluationOutputs outputs = context.getEvaluationOutputs().get(expression.getId());
+                    for (IEvaluationOutput output : outputs) {
+                        context.getGroups().add(output.getLabelValues());
+                    }
+                }
+                return isTrue;
             }
         });
     }
@@ -82,7 +95,6 @@ public class AlertExpressionEvaluator {
         }
 
         outputs.removeIf((output) -> !output.isMatched());
-
         context.setEvaluationResult(expression.getId(), true, outputs);
 
         return true;

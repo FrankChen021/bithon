@@ -19,7 +19,7 @@ package org.bithon.server.alerting.notification.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
@@ -82,7 +82,7 @@ public class NotificationApiImpl implements INotificationApi {
         if (imageService.isEnabled()) {
             List<AlertExpression> expressionList = message.getConditionEvaluation()
                                                           .entrySet().stream()
-                                                          .filter((entry) -> entry.getValue().getResult() == EvaluationResult.MATCHED)
+                                                          .filter((entry) -> entry.getValue().getResult() == EvaluationStatus.MATCHED)
                                                           .map((entry) -> message.getExpressions()
                                                                                  .stream()
                                                                                  .filter((expr) -> expr.getId().equals(entry.getKey()))
