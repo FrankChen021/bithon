@@ -19,7 +19,7 @@ package org.bithon.server.alerting.notification.message;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 
 import java.util.List;
 
@@ -29,11 +29,11 @@ import java.util.List;
  */
 @Data
 public class ExpressionEvaluationResult {
-    private EvaluationResult result;
+    private EvaluationStatus result;
     private List<OutputMessage> outputs;
 
     @JsonCreator
-    public ExpressionEvaluationResult(@JsonProperty("result") EvaluationResult result,
+    public ExpressionEvaluationResult(@JsonProperty("result") EvaluationStatus result,
                                       @JsonProperty("outputs") List<OutputMessage> outputs) {
         this.result = result;
         this.outputs = outputs;

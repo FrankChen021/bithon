@@ -24,7 +24,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
@@ -79,7 +79,7 @@ public class DingNotificationChannel implements INotificationChannel {
 
         for (AlertExpression expression : message.getExpressions()) {
             ExpressionEvaluationResult result = message.getConditionEvaluation().get(expression.getId());
-            if (result == null || result.getResult() != EvaluationResult.MATCHED || result.getOutputs() != null) {
+            if (result == null || result.getResult() != EvaluationStatus.MATCHED || result.getOutputs() != null) {
                 continue;
             }
 

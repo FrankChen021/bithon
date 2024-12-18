@@ -29,7 +29,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -265,13 +264,9 @@ public class AlertEvaluator implements DisposableBean {
 
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
-
+        // TODO: Change the return into List<Long>
         long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
-                                                           context.getEvaluatedExpressions()
-                                                                  .get(alertRule.getId())
-                                                                  .stream()
-                                                                  .map(IEvaluationOutput::getLabelValues)
-                                                                  .toList(),
+                                                           context.getGroups(),
                                                            alertRule.getEvery()
                                                                     .getDuration()
                                                                     // Add 30 seconds for margin
@@ -333,7 +328,7 @@ public class AlertEvaluator implements DisposableBean {
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
         notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationResults().forEach((expressionId, result) -> {
+        context.getEvaluationStatus().forEach((expressionId, result) -> {
             AlertExpression expression = context.getAlertExpressions().get(expressionId);
 
             EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
@@ -380,7 +375,7 @@ public class AlertEvaluator implements DisposableBean {
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
         notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationResults().forEach((expressionId, result) -> {
+        context.getEvaluationStatus().forEach((expressionId, result) -> {
             AlertExpression expression = context.getAlertExpressions().get(expressionId);
 
             EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
@@ -425,7 +420,7 @@ public class AlertEvaluator implements DisposableBean {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long startOfThisEvaluation = context.getEvaluatedExpressions()
+        long startOfThisEvaluation = context.getEvaluationOutputs()
                                             .values()
                                             .stream()
                                             .flatMap(Collection::stream)
