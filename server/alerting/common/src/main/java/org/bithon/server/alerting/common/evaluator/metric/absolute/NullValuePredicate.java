@@ -22,7 +22,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -47,14 +47,14 @@ public class NullValuePredicate implements IMetricEvaluator {
     }
 
     @Override
-    public List<IEvaluationOutput> evaluate(IDataSourceApi dataSourceApi,
-                                            String dataSource,
-                                            QueryField metric,
-                                            TimeSpan start,
-                                            TimeSpan end,
-                                            String filterExpression,
-                                            Set<String> groupBy,
-                                            EvaluationContext context) throws IOException {
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
+                                      String dataSource,
+                                      QueryField metric,
+                                      TimeSpan start,
+                                      TimeSpan end,
+                                      String filterExpression,
+                                      Set<String> groupBy,
+                                      EvaluationContext context) throws IOException {
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
@@ -78,12 +78,12 @@ public class NullValuePredicate implements IMetricEvaluator {
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return List.of(new AbsoluteComparisonEvaluationOutput(start,
-                                                              end,
-                                                              nowValue == null ? null : valueType.format(nowValue),
-                                                              "null",
-                                                              nowValue == null ? null : nowValue.toString(),
-                                                              matches));
+        return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(start,
+                                                                            end,
+                                                                            nowValue == null ? null : valueType.format(nowValue),
+                                                                            "null",
+                                                                            nowValue == null ? null : nowValue.toString(),
+                                                                            matches));
     }
 
     @Override
