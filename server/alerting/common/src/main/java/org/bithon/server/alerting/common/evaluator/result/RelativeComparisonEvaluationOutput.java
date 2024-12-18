@@ -34,7 +34,7 @@ import java.util.Map;
 @Data
 public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
-    private boolean matches;
+    private boolean matched;
     private BigDecimal base;
     private BigDecimal now;
     private double delta;

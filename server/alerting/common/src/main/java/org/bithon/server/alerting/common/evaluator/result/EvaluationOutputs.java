@@ -27,6 +27,13 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
 
     private boolean isMatched;
 
+    public EvaluationOutputs() {
+    }
+
+    public EvaluationOutputs(IEvaluationOutput output) {
+        this.add(output);
+    }
+
     public boolean isMatched() {
         return isMatched;
     }

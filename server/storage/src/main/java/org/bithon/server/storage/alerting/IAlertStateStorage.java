@@ -19,6 +19,7 @@ package org.bithon.server.storage.alerting;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,7 +33,7 @@ public interface IAlertStateStorage {
     /**
      * @param duration The duration of an alert rule
      */
-    long incrMatchCount(String alertId, Duration duration);
+    long incrMatchCount(String alertId, List<List<String>> series, Duration duration);
 
     /**
      * Check if there's an alert sending out in the past {@param silencePeriod} minutes.

@@ -29,6 +29,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -251,59 +252,7 @@ public class AlertEvaluator implements DisposableBean {
         context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
         AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
-        if (expressionEvaluator.evaluate(context)) {
-            context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
-
-            long expectedMatchCount = alertRule.getExpectedMatchCount();
-            long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
-                                                               alertRule.getEvery()
-                                                                        .getDuration()
-                                                                        // Add 30 seconds for margin
-                                                                        .plus(Duration.ofSeconds(30)));
-            if (successiveCount >= expectedMatchCount) {
-                stateStorage.resetMatchCount(alertRule.getId());
-
-                context.log(AlertEvaluator.class,
-                            "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
-                            alertRule.getName(),
-                            successiveCount,
-                            expectedMatchCount);
-
-                HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
-
-                String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
-
-                // Calc the silence period by adding some margin
-                // Let's say current timestamp is 10:01:02.123, and the silence period is 1 minute,
-                // The silence period is [now(), 10:02:00.000(assuming the evaluation execution finishes within 1 minute) + 1 minute]
-                TimeSpan now = TimeSpan.now();
-                TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
-                Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
-                if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
-                    Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
-                                silenceDuration,
-                                lastAlertingAt,
-                                TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
-                    return AlertStatus.SUPPRESSING;
-                } else {
-                    context.log(AlertEvaluator.class,
-                                "Alerting，silence period(%s) is over. Last alert at: %s",
-                                silenceDuration,
-                                lastAlertingAt);
-                }
-
-                return AlertStatus.ALERTING;
-            } else {
-                context.log(AlertEvaluator.class,
-                            "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
-                            alertRule.getName(),
-                            successiveCount,
-                            expectedMatchCount);
-
-                return AlertStatus.PENDING;
-            }
-        } else {
+        if (!expressionEvaluator.evaluate(context)) {
             context.log(AlertEvaluator.class,
                         "Rule [%s] evaluated as FALSE",
                         alertRule.getName());
@@ -311,7 +260,66 @@ public class AlertEvaluator implements DisposableBean {
             stateStorage.resetMatchCount(alertRule.getId());
             return AlertStatus.RESOLVED;
         }
+        context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
+
+        long expectedMatchCount = alertRule.getExpectedMatchCount();
+
+
+        long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
+                                                           context.getEvaluatedExpressions()
+                                                                  .get(alertRule.getId())
+                                                                  .stream()
+                                                                  .map(IEvaluationOutput::getLabelValues)
+                                                                  .toList(),
+                                                           alertRule.getEvery()
+                                                                    .getDuration()
+                                                                    // Add 30 seconds for margin
+                                                                    .plus(Duration.ofSeconds(30)));
+        if (successiveCount >= expectedMatchCount) {
+            stateStorage.resetMatchCount(alertRule.getId());
+
+            context.log(AlertEvaluator.class,
+                        "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
+                        alertRule.getName(),
+                        successiveCount,
+                        expectedMatchCount);
+
+            HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
+
+            String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+
+            // Calc the silence period by adding some margin
+            // Let's say current timestamp is 10:01:02.123, and the silence period is 1 minute,
+            // The silence period is [now(), 10:02:00.000(assuming the evaluation execution finishes within 1 minute) + 1 minute]
+            TimeSpan now = TimeSpan.now();
+            TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
+            Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
+            if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
+                Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
+                context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
+                            silenceDuration,
+                            lastAlertingAt,
+                            TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
+                return AlertStatus.SUPPRESSING;
+            } else {
+                context.log(AlertEvaluator.class,
+                            "Alerting，silence period(%s) is over. Last alert at: %s",
+                            silenceDuration,
+                            lastAlertingAt);
+            }
+
+            return AlertStatus.ALERTING;
+        } else {
+            context.log(AlertEvaluator.class,
+                        "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
+                        alertRule.getName(),
+                        successiveCount,
+                        expectedMatchCount);
+
+            return AlertStatus.PENDING;
+        }
     }
+
 
     /**
      * Fire alert and update its status
@@ -331,11 +339,11 @@ public class AlertEvaluator implements DisposableBean {
             notification.getConditionEvaluation()
                         .put(expression.getId(),
                              new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : OutputMessage.builder()
-                                                                                                  .current(outputs.getCurrentText())
-                                                                                                  .delta(outputs.getDeltaText())
-                                                                                                  .threshold(outputs.getThresholdText())
-                                                                                                  .build()));
+                                                            outputs == null ? null : outputs.stream().map((output) -> OutputMessage.builder()
+                                                                                                                                   .current(output.getCurrentText())
+                                                                                                                                   .delta(output.getDeltaText())
+                                                                                                                                   .threshold(output.getThresholdText())
+                                                                                                                                   .build()).toList()));
         });
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
@@ -347,7 +355,7 @@ public class AlertEvaluator implements DisposableBean {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
-            for (String channelName : alertRule.getNotificationProps().getChannels()) {
+            for (String channelName : alertRule.) {
                 context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {

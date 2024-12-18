@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 
+import java.util.List;
+
 /**
  * @author Frank Chen
  * @date 19/3/22 8:00 PM
@@ -28,11 +30,11 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 @Data
 public class ExpressionEvaluationResult {
     private EvaluationResult result;
-    private OutputMessage outputs;
+    private List<OutputMessage> outputs;
 
     @JsonCreator
     public ExpressionEvaluationResult(@JsonProperty("result") EvaluationResult result,
-                                      @JsonProperty("outputs") OutputMessage outputs) {
+                                      @JsonProperty("outputs") List<OutputMessage> outputs) {
         this.result = result;
         this.outputs = outputs;
     }

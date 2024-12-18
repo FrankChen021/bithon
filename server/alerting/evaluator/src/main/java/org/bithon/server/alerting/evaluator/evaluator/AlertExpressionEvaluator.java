@@ -23,12 +23,9 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -83,6 +80,8 @@ public class AlertExpressionEvaluator {
             context.setEvaluationResult(expression.getId(), false, null);
             return false;
         }
+
+        outputs.removeIf((output) -> !output.isMatched());
 
         context.setEvaluationResult(expression.getId(), true, outputs);
 

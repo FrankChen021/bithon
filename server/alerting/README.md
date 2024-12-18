@@ -36,14 +36,44 @@
 ## Alert Status under the 'by' semantics
 
 - Each series has its own status
-    - READY | RESOLVED --> PENDING: ANNY series is PENDING
-    - READY | RESOLVED --> ALERTING: ANY series is ALERTING
-    - PENDING --> ALERTING: ANY series is ALERTING
-    - ALERTING --> SUPPRESSING: ALL series are SUPPRESSING
-    - SUPPRESSING --> RESOLVED: ALL series are RESOLVED
-    - ALERTING --> RESOLVED: ALL series are RESOLVED
-    - PENDING --> RESOLVED: ALL series are RESOLVED
+    - READY | RESOLVED --> PENDING: **ANY** series is PENDING
+    - READY | RESOLVED --> ALERTING: **ANY** series is ALERTING
+    - PENDING --> ALERTING: **ANY** series is ALERTING
+    - ALERTING --> SUPPRESSING: **ALL** series are SUPPRESSING
+    - SUPPRESSING --> RESOLVED: **ALL** series are RESOLVED
+    - ALERTING --> RESOLVED: **ALL** series are RESOLVED
+    - PENDING --> RESOLVED: **ALL** series are RESOLVED
 
+### Rules
+
+```sql
+-- ALLOWED
+sum(datasource.metric_a) > 1
+AND
+sum(datasource.metric_b) > 1
+```
+
+```sql
+-- ALLOWED, since the BY labels are the same
+sum(datasource.metric_a) by (dim1, dim2) > 1
+AND
+sum(datasource.metric_b) by (dim1, dim2) > 1
+```
+
+```sql
+-- ALLOWED, since the BY labels are the same
+sum(datasource.metric_a) by (dim1, dim2) > 1
+AND
+sum(datasource.metric_b) > 1
+```
+
+```sql
+-- NOT Allowed, since the BY labels are different
+-- 
+sum(datasource.metric_a) by (dim1, dim2) > 1
+AND | OR
+sum(datasource.metric_b) by (dim2, dim3) > 1
+```
 
 ## Alert Rule Model
 
@@ -81,3 +111,25 @@ There are some Scratch Files under the [manager module](manager) directory.
 You can directly run these scratch files in Intellij to see how the APIs work.
 
 
+###
+
+AlertExpressionEvaluator
+
+output:
+
+```json
+{
+  "outputs": [
+    {
+      "label": {
+        "name": [],
+        "values": [],
+        "text" : "serialized-label"
+      },
+      "expected": 0.1,
+      "actual": 0.1,
+      "delta": 0.0
+    }
+  ]
+}
+```
