@@ -23,7 +23,7 @@ import java.util.ArrayList;
  * @date 2024/12/7 22:59
  */
 public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
-    public final static EvaluationOutputs EMPTY = new EvaluationOutputs();
+    public static final EvaluationOutputs EMPTY = new EvaluationOutputs();
 
     private boolean isMatched;
 

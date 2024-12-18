@@ -28,6 +28,7 @@ import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -86,7 +87,7 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
     }
 
     @Override
-    public long incrMatchCount(String alertId, Duration duration) {
+    public long incrMatchCount(String alertId, List<List<String>> series, Duration duration) {
         String key = getAlertKey(alertId);
         long v = redisClient.increment(key);
         redisClient.expire(key, duration);
