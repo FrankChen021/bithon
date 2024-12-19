@@ -17,6 +17,7 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -146,6 +147,25 @@ public class TraceSpan implements IInputRow {
 
     public void setTag(String name, String value) {
         this.tags.put(name, value);
+    }
+
+    /**
+     * This is ONLY used for serialization
+     * so that the FE uses the same field name as the name defined in the data source layer.
+     * Historically, the name is NOT correct, it's in microsecond, NOT milliseconds as suggested by the name
+     */
+    @JsonProperty("costTimeMs")
+    public long getCostTimeMs() {
+        return costTime;
+    }
+
+    /**
+     * This is ONLY used for serialization
+     * so that the FE uses the same field name as the name defined in the data source layer
+     */
+    @JsonProperty("startTimeUs")
+    public long getStartTimeUs() {
+        return startTime;
     }
 
     @Override
