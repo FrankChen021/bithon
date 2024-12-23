@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
@@ -51,6 +52,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
+import org.bithon.server.storage.alerting.pojo.NotificationProps;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.springframework.context.annotation.Conditional;
@@ -70,6 +72,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -158,6 +161,11 @@ public class AlertChannelApi {
                                                                 .id("fake")
                                                                 .name("Notification Channel Test")
                                                                 .expr("avg(processCpuLoad) > 1")
+                                                                .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                                                .notificationProps(NotificationProps.builder()
+                                                                                                    .channels(Collections.singletonList(request.getName()))
+                                                                                                    .silence(HumanReadableDuration.of(10, TimeUnit.MINUTES))
+                                                                                                    .build())
                                                                 .build())
                                             .build(),
                          Duration.ofSeconds(request.getTimeout()));

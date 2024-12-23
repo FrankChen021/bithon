@@ -58,6 +58,7 @@ import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -152,8 +153,11 @@ public class TraceJdbcReader implements ITraceReader {
         } else if ("startTime".equals(orderBy.getName())) {
             orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         } else {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
+                               .filter((f) -> f.getName().equals(orderBy.getName()))
+                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
         }
+
         SelectSeekStep1<?, ?> orderedListQuery;
         if (Order.desc.equals(orderBy.getOrder())) {
             orderedListQuery = listQuery.orderBy(orderField.desc());
