@@ -16,20 +16,17 @@
 
 package org.bithon.server.pipeline.metrics.topo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.meta.EndPointType;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/28 12:36
+ * @date 2024/12/23 20:43
  */
-@Slf4j
-public class MongoDbMetricTopoTransformer implements ITopoTransformer {
-
+public class KafkaConsumerMetricTopoTransformer implements ITopoTransformer {
     @Override
     public String getSourceType() {
-        return "mongodb-metrics";
+        return "kafka-consumer-metrics";
     }
 
     @Override
@@ -37,9 +34,9 @@ public class MongoDbMetricTopoTransformer implements ITopoTransformer {
         return EndPointMeasurementBuilder.builder()
                                          .timestamp(message.getColAsLong("timestamp"))
                                          .srcEndpointType(EndPointType.MESSAGE_SYSTEM_KAFKA)
-                                         .srcEndpoint(message.getColAsString("appName"))
+                                         .srcEndpoint(message.getColAsString("cluster"))
                                          .dstEndpointType(EndPointType.APPLICATION)
-                                         .dstEndpoint(message.getColAsString("server"))
+                                         .dstEndpoint(message.getColAsString("appName"))
                                          // metric
                                          .interval(message.getColAsLong("interval", 0))
                                          .errorCount(message.getColAsLong("exceptionCount", 0))
