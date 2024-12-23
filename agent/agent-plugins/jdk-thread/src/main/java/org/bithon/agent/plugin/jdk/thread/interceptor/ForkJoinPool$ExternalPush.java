@@ -16,13 +16,21 @@
 
 package org.bithon.agent.plugin.jdk.thread.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * {@link ForkJoinPool#externalPush(ForkJoinTask)} is an internal method that is called by {@link ForkJoinPool#execute(Runnable)} or {@link ForkJoinPool#submit(Runnable)}.
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
@@ -34,5 +42,21 @@ public class ForkJoinPool$ExternalPush extends AfterInterceptor {
 
         //TODO: record task exception of ForkJoinPool
         ThreadPoolMetricRegistry.getInstance().addTotal(pool);
+
+        // Propagate tracing context
+        ForkJoinTask<?> task = aopContext.getArgAs(0);
+        if (task != null) {
+            ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
+            if (span != null) {
+                aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                       .tag(Tags.Thread.CLASS, ThreadPoolExecutor.class.getName())
+                                       .tag(Tags.Thread.POOL, ((IBithonObject) aopContext.getTarget()).getInjectedObject())
+                                       .start());
+            }
+
+            // Wrap the users' runnable
+            ITraceSpan taskRootSpan = TraceContextFactory.newAsyncSpan("async-task");
+            ((IBithonObject) task).setInjectedObject(taskRootSpan);
+        }
     }
 }

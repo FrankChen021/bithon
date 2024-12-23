@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.jdk.thread;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -69,6 +70,11 @@ public class ThreadPlugin implements IPlugin {
 
                 .onMethod("externalPush")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask")
+                .onMethod(Matchers.name("doExec").and(Matchers.argumentSize(0)))
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$DoExec")
                 .build()
         );
     }
