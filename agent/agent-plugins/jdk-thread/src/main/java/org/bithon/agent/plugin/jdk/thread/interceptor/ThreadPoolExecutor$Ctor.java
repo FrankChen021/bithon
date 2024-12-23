@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.jdk.thread.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -62,6 +63,9 @@ public class ThreadPoolExecutor$Ctor extends AroundInterceptor {
                                    executor.getClass().getName(),
                                    poolName,
                                    ThreadPoolExecutorMetrics::new);
+
+            // Keep the pool name so that it can be used in ThreadPoolExecutor$Execute to be recorded in spans
+            ((IBithonObject) aopContext.getTarget()).setInjectedObject(poolName);
         } catch (AgentException e) {
             LoggerFactory.getLogger(ThreadPoolExecutor$Ctor.class).warn(e.getMessage());
         }
