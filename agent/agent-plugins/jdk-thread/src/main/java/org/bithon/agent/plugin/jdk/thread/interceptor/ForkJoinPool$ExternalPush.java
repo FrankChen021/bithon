@@ -44,10 +44,13 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
             return InterceptionDecision.CONTINUE;
         }
 
+        IBithonObject forkJoinPool = aopContext.getTargetAs();
+
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                               .tag(Tags.Thread.CLASS, aopContext.getTargetClass().getName())
-                               .tag(Tags.Thread.POOL, "fork-join-worker")
-                               .tag(Tags.Thread.PARALLELISM, String.valueOf(((ForkJoinPool) aopContext.getTarget()).getParallelism()))
+                               .tag(Tags.Thread.POOL_CLASS, aopContext.getTargetClass().getName())
+                               // The name is injected in the ctor interceptors
+                               .tag(Tags.Thread.POOL_NAME, forkJoinPool.getInjectedObject())
+                               .tag(Tags.Thread.POOL_PARALLELISM, String.valueOf(((ForkJoinPool) aopContext.getTarget()).getParallelism()))
                                .start());
 
         return InterceptionDecision.CONTINUE;

@@ -45,8 +45,8 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
         ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                   .tag(Tags.Thread.CLASS, ThreadPoolExecutor.class.getName())
-                                   .tag(Tags.Thread.POOL, ((IBithonObject) aopContext.getTarget()).getInjectedObject())
+                                   .tag(Tags.Thread.POOL_CLASS, ThreadPoolExecutor.class.getName())
+                                   .tag(Tags.Thread.POOL_NAME, ((IBithonObject) aopContext.getTarget()).getInjectedObject())
                                    .start());
         }
 

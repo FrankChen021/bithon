@@ -180,9 +180,9 @@ public class Tags {
         public static final String NAME = "thread.name";
 
         // Non standard
-        public static final String CLASS = "thread.class";
-        public static final String POOL = "thread.pool.name";
-        public static final String PARALLELISM = "thread.pool.parallelism";
+        public static final String POOL_CLASS = "thread.pool.class";
+        public static final String POOL_NAME = "thread.pool.name";
+        public static final String POOL_PARALLELISM = "thread.pool.parallelism";
     }
 
     /**

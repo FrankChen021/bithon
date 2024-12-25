@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdk.thread;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +58,7 @@ public class ThreadPlugin implements IPlugin {
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
+                // JDK 8
                 .onConstructor()
                 .andArgs("int",
                          "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
@@ -64,6 +66,18 @@ public class ThreadPlugin implements IPlugin {
                          "int",
                          "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
+
+                // JDK 11 Common Pool
+                .onConstructor()
+                .andVisibility(Visibility.PRIVATE)
+                .andArgs("byte")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool11$PrivateCtor")
+
+                // JDK 11
+                .onConstructor()
+                .andArgsSize(10)
+                .andArgs(9, "java.util.concurrent.TimeUnit")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool11$Ctor")
 
                 .onMethod("tryTerminate")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
