@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.component.commons.tracing.Tags;
@@ -42,6 +42,10 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
         if (asyncTaskContext != null
             // The Span is injected by ForkJoinPool$ExternalPush
             && asyncTaskContext.rootSpan != null) {
+
+            //
+            aopContext.setSpan(asyncTaskContext.rootSpan);
+
             TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
             asyncTaskContext.rootSpan.start();
         }
@@ -49,24 +53,37 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
         return InterceptionDecision.CONTINUE;
     }
 
+    /**
+     * The doExec might be called
+     * from {@link java.util.concurrent.ForkJoinTask#invoke()} which might NOT be invoked from ForkJoinPool
+     * <p>
+     * So, we have to keep the span,
+     * initialized in externalPush in the aopContext instead of using TraceContextHolder.detach()
+     */
     @Override
     public void after(AopContext aopContext) {
-        ITraceContext ctx = TraceContextHolder.detach();
-        if (ctx != null) {
-            ctx.currentSpan()
-               .tag(Tags.Thread.NAME, Thread.currentThread().getName())
-               .tag(Tags.Thread.ID, Thread.currentThread().getId())
-               .finish();
-            ctx.finish();
+        ITraceSpan span = aopContext.getSpan();
+        if (span != null) {
+            span.tag(Tags.Thread.NAME, Thread.currentThread().getName())
+                .tag(Tags.Thread.ID, Thread.currentThread().getId())
+                .finish();
+            span.context().finish();
+
+            TraceContextHolder.detach();
         }
 
         IBithonObject forkJoinTask = (IBithonObject) aopContext.getTarget();
         ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) forkJoinTask.getInjectedObject();
-        ThreadPoolMetricRegistry.getInstance().addRunCount(asyncTaskContext.pool,
-                                                           aopContext.getExecutionTime() / 1000,
-                                                           aopContext.hasException());
+        if (asyncTaskContext.pool != null) {
+            // When the pool is null, it means the task is not executed in ForkJoinPool,
+            // might be directly called by the invoke in caller's thread
 
-        asyncTaskContext.pool = null;
-        asyncTaskContext.rootSpan = null;
+            ThreadPoolMetricRegistry.getInstance().addRunCount(asyncTaskContext.pool,
+                                                               aopContext.getExecutionTime() / 1000,
+                                                               aopContext.hasException());
+
+            asyncTaskContext.pool = null;
+            asyncTaskContext.rootSpan = null;
+        }
     }
 }
