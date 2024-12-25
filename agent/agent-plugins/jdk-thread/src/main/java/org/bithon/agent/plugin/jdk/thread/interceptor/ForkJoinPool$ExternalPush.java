@@ -58,11 +58,7 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        // Propagate tracing context
         ITraceSpan span = aopContext.getSpan();
-        if (span == null) {
-            return;
-        }
 
         try {
             ForkJoinTask<?> task = aopContext.getArgAs(0);
@@ -85,13 +81,16 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
             // Set up tracing context for this task.
             // The tracing context will be restored in the ForkJoinTask$DoExec
             ForkJoinTaskContext taskContextImpl = (ForkJoinTaskContext) taskContext;
+            // Set the pool object for the metrics
             taskContextImpl.pool = aopContext.getTargetAs();
-            taskContextImpl.rootSpan = TraceContextFactory.newAsyncSpan("async-task");
-            if (taskContextImpl.rootSpan != null) {
-                taskContextImpl.rootSpan.method(taskContextImpl.className, taskContextImpl.method);
+            if (span != null) {
+                taskContextImpl.rootSpan = TraceContextFactory.newAsyncSpan("async-task")
+                                                              .method(taskContextImpl.className, taskContextImpl.method);
             }
         } finally {
-            span.finish();
+            if (span != null) {
+                span.finish();
+            }
         }
     }
 }
