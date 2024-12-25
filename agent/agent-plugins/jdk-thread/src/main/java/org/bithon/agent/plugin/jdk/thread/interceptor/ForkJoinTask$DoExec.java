@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 
 /**
@@ -35,13 +34,15 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
         IBithonObject bithonObject = (IBithonObject) aopContext.getTarget();
-        ITraceSpan taskRootSpan = (ITraceSpan) bithonObject.getInjectedObject();
-        if (taskRootSpan == null) {
+
+        // The Span is injected by ForkJoinPool$ExternalPush
+        ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) bithonObject.getInjectedObject();
+        if (asyncTaskContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceContextHolder.attach(taskRootSpan.context());
-        taskRootSpan.start();
+        TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
+        asyncTaskContext.rootSpan.start();
 
         return super.before(aopContext);
     }

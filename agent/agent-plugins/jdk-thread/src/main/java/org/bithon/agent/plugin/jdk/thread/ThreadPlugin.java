@@ -72,6 +72,36 @@ public class ThreadPlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
                 .build(),
 
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedCallable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedCallable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedInterruptibleCallable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedInterruptibleCallable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedRunnable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedRunnable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkjoinTask$AdaptedRunnableAction")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedRunnableAction$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$RunnableExecuteAction")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskRunnableExecuteAction$Ctor")
+                .build(),
+
             forClass("java.util.concurrent.ForkJoinTask")
                 .onMethod(Matchers.name("doExec").and(Matchers.argumentSize(0)))
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$DoExec")

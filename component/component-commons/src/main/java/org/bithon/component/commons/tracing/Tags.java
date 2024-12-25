@@ -182,6 +182,7 @@ public class Tags {
         // Non standard
         public static final String CLASS = "thread.class";
         public static final String POOL = "thread.pool.name";
+        public static final String PARALLELISM = "thread.pool.parallelism";
     }
 
     /**

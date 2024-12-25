@@ -18,15 +18,16 @@ package org.bithon.agent.plugin.jdk.thread.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * {@link ForkJoinPool#externalPush(ForkJoinTask)} is an internal method that is called by {@link ForkJoinPool#execute(Runnable)} or {@link ForkJoinPool#submit(Runnable)}.
@@ -34,7 +35,24 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$ExternalPush extends AfterInterceptor {
+public class ForkJoinPool$ExternalPush extends AroundInterceptor {
+
+
+    @Override
+    public InterceptionDecision before(AopContext aopContext) {
+        ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
+        if (span == null) {
+            return InterceptionDecision.CONTINUE;
+        }
+
+        aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                               .tag(Tags.Thread.CLASS, aopContext.getTargetClass().getName())
+                               .tag(Tags.Thread.POOL, "fork-join-pool")
+                               .tag(Tags.Thread.PARALLELISM, String.valueOf(((ForkJoinPool) aopContext.getTarget()).getParallelism()))
+                               .start());
+
+        return InterceptionDecision.CONTINUE;
+    }
 
     @Override
     public void after(AopContext aopContext) {
@@ -44,19 +62,38 @@ public class ForkJoinPool$ExternalPush extends AfterInterceptor {
         ThreadPoolMetricRegistry.getInstance().addTotal(pool);
 
         // Propagate tracing context
-        ForkJoinTask<?> task = aopContext.getArgAs(0);
-        if (task != null) {
-            ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
-            if (span != null) {
-                aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                                       .tag(Tags.Thread.CLASS, ThreadPoolExecutor.class.getName())
-                                       .tag(Tags.Thread.POOL, ((IBithonObject) aopContext.getTarget()).getInjectedObject())
-                                       .start());
+        ITraceSpan span = aopContext.getSpan();
+        if (span == null) {
+            return;
+        }
+
+        try {
+            ForkJoinTask<?> task = aopContext.getArgAs(0);
+            if (!(task instanceof IBithonObject)) {
+                // If it happens, it might be because this agent is used in a newer version of JDK,
+                // which has different implementations of ForkJoinTask
+                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
+                             .warn("ForkJoinTask is not an instance of IBithonObject: {}", task == null ? "null" : task.getClass().getName());
+                return;
             }
 
-            // Wrap the users' runnable
-            ITraceSpan taskRootSpan = TraceContextFactory.newAsyncSpan("async-task");
-            ((IBithonObject) task).setInjectedObject(taskRootSpan);
+            // Injected by ForkJoinTaskAdaptedRunnable$Ctor or ForkJoinTaskRunnableExecutionAction$Ctor ...
+            Object taskContext = ((IBithonObject) task).getInjectedObject();
+            if (!(taskContext instanceof ForkJoinTaskContext)) {
+                LoggerFactory.getLogger(ForkJoinPool$ExternalPush.class)
+                             .warn("The inject object is not an instance of ForkJoinTaskContext: {}", taskContext == null ? "null" : taskContext.getClass().getName());
+                return;
+            }
+
+            // Set up tracing context for this task.
+            // The tracing context will be restored in the ForkJoinTask$DoExec
+            ForkJoinTaskContext taskContextImpl = (ForkJoinTaskContext) taskContext;
+            taskContextImpl.rootSpan = TraceContextFactory.newAsyncSpan("async-task");
+            if (taskContextImpl.rootSpan != null) {
+                taskContextImpl.rootSpan.method(taskContextImpl.className, taskContextImpl.method);
+            }
+        } finally {
+            span.finish();
         }
     }
 }

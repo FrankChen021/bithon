@@ -179,7 +179,7 @@ public class JarClassLoader extends ClassLoader {
 
             return jarFile.getInputStream(entry);
         }
-        throw new AgentException("Can't find clazz [%s].", name);
+        throw new AgentException("Can't find class [%s].", name);
     }
 
     public byte[] getClassByteCode(String name) throws IOException {
