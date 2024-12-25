@@ -37,9 +37,11 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
     public InterceptionDecision before(AopContext aopContext) {
         IBithonObject forkJoinTask = (IBithonObject) aopContext.getTarget();
 
-        // The Span is injected by ForkJoinPool$ExternalPush
+        // task context is injected in the ForkJoinTask ctor
         ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) forkJoinTask.getInjectedObject();
-        if (asyncTaskContext != null && asyncTaskContext.rootSpan != null) {
+        if (asyncTaskContext != null
+            // The Span is injected by ForkJoinPool$ExternalPush
+            && asyncTaskContext.rootSpan != null) {
             TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
             asyncTaskContext.rootSpan.start();
         }

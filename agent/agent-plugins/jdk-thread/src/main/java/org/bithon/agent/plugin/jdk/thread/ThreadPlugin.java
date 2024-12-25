@@ -117,6 +117,9 @@ public class ThreadPlugin implements IPlugin {
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinTask")
+                .onConstructor().andArgsSize(0).andVisibility(Visibility.PUBLIC)
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$Ctor")
+
                 .onMethod(Matchers.name("doExec").and(Matchers.argumentSize(0)))
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$DoExec")
                 .build()
