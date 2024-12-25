@@ -22,7 +22,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -47,7 +46,7 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
 
         aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
                                .tag(Tags.Thread.CLASS, aopContext.getTargetClass().getName())
-                               .tag(Tags.Thread.POOL, "fork-join-pool")
+                               .tag(Tags.Thread.POOL, "fork-join-worker")
                                .tag(Tags.Thread.PARALLELISM, String.valueOf(((ForkJoinPool) aopContext.getTarget()).getParallelism()))
                                .start());
 
@@ -56,11 +55,6 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ForkJoinPool pool = aopContext.getTargetAs();
-
-        //TODO: record task exception of ForkJoinPool
-        ThreadPoolMetricRegistry.getInstance().addTotal(pool);
-
         // Propagate tracing context
         ITraceSpan span = aopContext.getSpan();
         if (span == null) {
@@ -88,6 +82,7 @@ public class ForkJoinPool$ExternalPush extends AroundInterceptor {
             // Set up tracing context for this task.
             // The tracing context will be restored in the ForkJoinTask$DoExec
             ForkJoinTaskContext taskContextImpl = (ForkJoinTaskContext) taskContext;
+            taskContextImpl.pool = aopContext.getTargetAs();
             taskContextImpl.rootSpan = TraceContextFactory.newAsyncSpan("async-task");
             if (taskContextImpl.rootSpan != null) {
                 taskContextImpl.rootSpan.method(taskContextImpl.className, taskContextImpl.method);

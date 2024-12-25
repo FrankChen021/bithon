@@ -94,7 +94,7 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
     }
 
     /**
-     * @param duration millisecond
+     * @param duration microseconds
      */
     public void addRunCount(AbstractExecutorService executor,
                             long duration,
@@ -110,10 +110,6 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
             metrics.duration.update(duration);
             metrics.totalTaskCount.incr();
         });
-    }
-
-    public void addTotal(AbstractExecutorService pool) {
-        this.getMetrics(pool).ifPresent((metrics) -> metrics.totalTaskCount.incr());
     }
 
     public void addAbort(ThreadPoolExecutor pool) {

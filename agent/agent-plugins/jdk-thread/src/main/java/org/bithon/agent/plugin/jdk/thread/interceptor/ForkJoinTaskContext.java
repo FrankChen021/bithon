@@ -18,6 +18,8 @@ package org.bithon.agent.plugin.jdk.thread.interceptor;
 
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 
+import java.util.concurrent.ForkJoinPool;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/12/24 17:01
@@ -26,6 +28,7 @@ public class ForkJoinTaskContext {
     String className;
     String method;
     ITraceSpan rootSpan;
+    ForkJoinPool pool;
 
     public ForkJoinTaskContext(String className, String method) {
         this.className = className;
