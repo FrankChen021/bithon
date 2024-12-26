@@ -58,26 +58,7 @@ public class ThreadPlugin implements IPlugin {
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
-                // JDK 8
-                .onConstructor()
-                .andArgs("int",
-                         "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
-                         "java.lang.Thread$UncaughtExceptionHandler",
-                         "int",
-                         "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
-
-                // JDK 11 Common Pool
-                .onConstructor()
-                .andVisibility(Visibility.PRIVATE)
-                .andArgs("byte")
-                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool11$PrivateCtor")
-
-                // JDK 11
-                .onConstructor()
-                .andArgsSize(10)
-                .andArgs(9, "java.util.concurrent.TimeUnit")
-                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool11$Ctor")
+                // Interceptors on ctor are defined in jdk8-thread and jdk9-thread plugins
 
                 .onMethod("tryTerminate")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")

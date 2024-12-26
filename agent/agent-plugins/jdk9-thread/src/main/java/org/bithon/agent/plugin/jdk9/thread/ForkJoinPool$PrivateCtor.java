@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdk.thread.interceptor;
+package org.bithon.agent.plugin.jdk9.thread;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -25,16 +25,14 @@ import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
 import java.util.concurrent.ForkJoinPool;
 
 /**
- * {@link ForkJoinPool}
+ * {@link ForkJoinPool#ForkJoinPool(byte)}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool$Ctor extends AfterInterceptor {
+public class ForkJoinPool$PrivateCtor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
-        String poolName = aopContext.getArgAs(4);
-
         ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
         if (registry != null) {
             ForkJoinPool pool = aopContext.getTargetAs();
@@ -45,11 +43,11 @@ public class ForkJoinPool$Ctor extends AfterInterceptor {
                                    // it's not able to get it without adding --add-exports directive after JDK 9
                                    // So, we have to use a hard-coded value here.
                                    // This causes two different ForkJoinPool records the metrics in one metric set
-                                   poolName,
+                                   "ForkJoinPool.commonPool-worker",
                                    ForkJoinPoolMetrics::new);
         }
 
-        IBithonObject forkJoinPool = (IBithonObject) aopContext.getTarget();
-        forkJoinPool.setInjectedObject(poolName);
+        IBithonObject forkJoinPool = aopContext.getTargetAs();
+        forkJoinPool.setInjectedObject("ForkJoinPool.commonPool-worker");
     }
 }

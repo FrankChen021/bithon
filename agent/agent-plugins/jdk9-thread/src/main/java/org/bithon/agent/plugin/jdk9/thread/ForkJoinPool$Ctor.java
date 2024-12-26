@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdk.thread.interceptor;
+package org.bithon.agent.plugin.jdk9.thread;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -32,7 +32,7 @@ import java.util.function.Predicate;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:15 下午
  */
-public class ForkJoinPool11$Ctor extends AfterInterceptor {
+public class ForkJoinPool$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         IBithonObject forkJoinPool = (IBithonObject) aopContext.getTarget();
