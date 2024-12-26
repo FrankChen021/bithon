@@ -94,13 +94,14 @@ public class TopoApi {
                                  .build();
 
         try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
+            //noinspection unchecked
             List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery);
 
             int x = 300;
             int y = 300;
             int nodeHeight = 50;
             Topo topo = new Topo();
-            EndpointBo thisApplication = new EndpointBo("application",
+            EndpointBo thisApplication = new EndpointBo(EndPointType.APPLICATION.name(),
                                                         request.getApplication(),
                                                         x,
                                                         y + callees.size() / 2L * nodeHeight);
@@ -143,6 +144,7 @@ public class TopoApi {
                                                                                                    LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                      .interval(Interval.of(start, end))
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
+            //noinspection unchecked
             List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery);
 
             y = 300;
