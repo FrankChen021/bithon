@@ -45,6 +45,7 @@ import org.bithon.server.storage.datasource.query.ast.Selector;
     @JsonSubTypes.Type(name = "string", value = StringColumn.class),
     @JsonSubTypes.Type(name = "datetime", value = DateTimeColumn.class),
     @JsonSubTypes.Type(name = "object", value = ObjectColumn.class),
+    @JsonSubTypes.Type(name = "boolean", value = BooleanColumn.class),
     @JsonSubTypes.Type(name = IColumn.LONG_SUM, value = AggregateLongSumColumn.class),
     @JsonSubTypes.Type(name = IColumn.LONG_LAST, value = AggregateLongLastColumn.class),
     @JsonSubTypes.Type(name = IColumn.LONG_MIN, value = AggregateLongMinColumn.class),
