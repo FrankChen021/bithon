@@ -13,11 +13,6 @@
   <dependencies>
     <dependency>
       <groupId>${project.parent.groupId}</groupId>
-      <artifactId>agent-observability</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>${project.parent.groupId}</groupId>
       <artifactId>agent-plugin-jdk-thread</artifactId>
       <version>${project.version}</version>
     </dependency>
