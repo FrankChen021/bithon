@@ -30,6 +30,8 @@
     <module>quartz2</module>
     <module>jersey</module>
     <module>jdk-thread</module>
+    <module>jdk8-thread</module>
+    <module>jdk9-thread</module>
     <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>
     <module>apache-httpcomponents4</module>
@@ -144,6 +146,16 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdk-thread</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdk8-thread</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdk9-thread</artifactId>
       <version>${project.version}</version>
     </dependency>
 
