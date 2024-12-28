@@ -45,7 +45,7 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
-        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Min.NAME, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Min.INSTANCE, name);
     }
 
     @JsonIgnore

@@ -33,9 +33,9 @@ public class ApacheDruidPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            forClass("org.apache.druid.sql.SqlLifecycle")
-                .onMethod("initialize")
-                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
+            forClass("org.apache.druid.sql.http.SqlResource")
+                .onMethod("doPost")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlResource$DoPost")
                 .build(),
 
             forClass("org.apache.druid.server.QueryLifecycle")

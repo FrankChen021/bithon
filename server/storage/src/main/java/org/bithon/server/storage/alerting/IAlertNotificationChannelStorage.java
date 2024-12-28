@@ -17,7 +17,11 @@
 package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Builder;
+import lombok.Data;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 
 import java.util.List;
 
@@ -28,7 +32,17 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IAlertNotificationChannelStorage {
 
-    List<NotificationChannelObject> getChannels(long since);
+    @Data
+    @Builder
+    class GetChannelRequest {
+        private String name;
+        private long since;
+        private OrderBy orderBy;
+        private Limit limit;
+    }
+
+    List<NotificationChannelObject> getChannels(GetChannelRequest request);
+    int getChannelsSize(GetChannelRequest request);
 
     void initialize();
 
@@ -39,4 +53,9 @@ public interface IAlertNotificationChannelStorage {
     boolean exists(String name);
 
     NotificationChannelObject getChannel(String name);
+
+    /**
+     * Update channel by name
+     */
+    boolean updateChannel(NotificationChannelObject old, String props);
 }

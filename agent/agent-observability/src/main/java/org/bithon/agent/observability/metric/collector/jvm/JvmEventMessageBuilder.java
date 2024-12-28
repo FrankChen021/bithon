@@ -22,12 +22,14 @@ import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.component.commons.time.DateTime;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -54,9 +56,13 @@ public class JvmEventMessageBuilder {
         }
         args.put("runtime.classPath", sort(Arrays.asList(JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator))));
         args.put("runtime.libraryPath", sort(Arrays.asList(JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator))));
-        args.put("runtime.arguments", sort(new ArrayList<>(JmxBeans.RUNTIME_BEAN.getInputArguments())));
+        args.put("runtime.arguments", JmxBeans.RUNTIME_BEAN.getInputArguments()
+                                                           .stream()
+                                                           .map(Sanitizer::sanitizeText)
+                                                           .sorted()
+                                                           .collect(Collectors.toList()));
 
-        Map<String, String> systemProperties = new TreeMap<>(JmxBeans.RUNTIME_BEAN.getSystemProperties());
+        Map<String, String> systemProperties = Sanitizer.sanitizeProperties(JmxBeans.RUNTIME_BEAN.getSystemProperties());
         systemProperties.remove("java.class.path");
         systemProperties.remove("java.library.path");
         String bootClassPath = systemProperties.remove("sun.boot.class.path");
@@ -77,6 +83,7 @@ public class JvmEventMessageBuilder {
         args.put("runtime.java.vm.name", JmxBeans.RUNTIME_BEAN.getVmName());
         args.put("runtime.java.vm.vendor", JmxBeans.RUNTIME_BEAN.getVmVendor());
         args.put("runtime.java.vm.version", JmxBeans.RUNTIME_BEAN.getVmVersion());
+
         args.put("runtime.startTime", DateTime.toISO8601(JmxBeans.RUNTIME_BEAN.getStartTime()));
 
         args.put("mem.heap.initial", JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit());
@@ -98,5 +105,59 @@ public class JvmEventMessageBuilder {
     private static <T extends Comparable<? super T>> List<T> sort(List<T> list) {
         Collections.sort(list);
         return list;
+    }
+
+    static class Sanitizer {
+        // TODO: Move to configurations
+        static Pattern[] SECRET_NAME_PATTERNS = new Pattern[]{
+            Pattern.compile("password", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("secret", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("accessKey", Pattern.CASE_INSENSITIVE)
+        };
+
+        static Pattern[] SECRET_PATTERNS = new Pattern[]{
+            Pattern.compile("(password|secret|accessKey)\\s*=\\s*'([^']*)'", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(password|secret|accessKey)\\s*=(\\S*)", Pattern.CASE_INSENSITIVE)
+        };
+
+        static Map<String, String> sanitizeProperties(Map<String, String> map) {
+            TreeMap<String, String> returnedMap = new TreeMap<>();
+
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+
+                boolean isSecret = false;
+                for (Pattern pattern : SECRET_NAME_PATTERNS) {
+                    if (pattern.matcher(k).find()) {
+                        isSecret = true;
+                        break;
+                    }
+                }
+                if (isSecret) {
+                    returnedMap.put(k, "HIDDEN");
+                } else {
+                    // Some application puts password in the property value in the format of "password=xxxx"
+                    returnedMap.put(k, sanitizeText(v));
+                }
+            }
+
+            return returnedMap;
+        }
+
+        static String sanitizeText(String input) {
+            for (Pattern pattern : SECRET_PATTERNS) {
+                Matcher matcher = pattern.matcher(input);
+                if (matcher.find()) {
+                    StringBuffer result = new StringBuffer();
+                    do {
+                        matcher.appendReplacement(result, matcher.group(0).replace(matcher.group(2), "HIDDEN"));
+                    } while (matcher.find());
+                    matcher.appendTail(result);
+                    return result.toString();
+                }
+            }
+            return input;
+        }
     }
 }

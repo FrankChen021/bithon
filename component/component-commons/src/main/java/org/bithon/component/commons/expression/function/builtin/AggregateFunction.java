@@ -19,6 +19,7 @@ package org.bithon.component.commons.expression.function.builtin;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
+import org.bithon.component.commons.expression.function.IFunction;
 
 import java.util.List;
 
@@ -43,16 +44,16 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Min extends AggregateFunction {
-        public static final String NAME = "min";
+        public static final IFunction INSTANCE = new Min();
 
-        public Min() {
-            super(NAME);
+        private Min() {
+            super("min");
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
         }
 
         @Override
@@ -62,16 +63,16 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Max extends AggregateFunction {
-        public static final String NAME = "max";
+        public static final IFunction INSTANCE = new Max();
 
-        public Max() {
-            super(NAME);
+        private Max() {
+            super("max");
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3, IDataType.STRING);
         }
 
         @Override
@@ -81,16 +82,20 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Sum extends AggregateFunction {
-        public static final String NAME = "sum";
+        public static final IFunction INSTANCE = new Sum();
 
         public Sum() {
-            super(NAME);
+            this("sum");
+        }
+
+        protected Sum(String name) {
+            super(name);
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -100,10 +105,14 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Count extends AggregateFunction {
-        public static final String NAME = "count";
+        public static final Count INSTANCE = new Count();
 
-        public Count() {
-            super(NAME);
+        private Count() {
+            this("count");
+        }
+
+        protected Count(String name) {
+            super(name);
         }
 
         /**
@@ -111,7 +120,7 @@ public abstract class AggregateFunction extends AbstractFunction {
          */
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
+            validateTrue(args.isEmpty() || args.size() == 1, "Function [count] accepts 0 or 1 parameter, but got [%d]", args.size());
         }
 
         @Override
@@ -121,14 +130,16 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Avg extends AggregateFunction {
-        public Avg() {
+        public static final IFunction INSTANCE = new Avg();
+
+        private Avg() {
             super("avg");
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -138,16 +149,16 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class First extends AggregateFunction {
-        public static final String NAME = "first";
+        public static final IFunction INSTANCE = new First();
 
-        public First() {
-            super(NAME);
+        private First() {
+            super("first");
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override
@@ -157,16 +168,16 @@ public abstract class AggregateFunction extends AbstractFunction {
     }
 
     public static class Last extends AggregateFunction {
-        public static final String NAME = "last";
+        public static final IFunction INSTANCE = new Last();
 
-        public Last() {
-            super(NAME);
+        private Last() {
+            super("last");
         }
 
         @Override
         public void validateArgs(List<IExpression> args) {
-            Validator.validateParameterSize(1, args.size());
-            Validator.validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
+            validateParameterSize(1, args.size());
+            validateType(args.get(0).getDataType(), IDataType.DOUBLE, IDataType.LONG, IDataType.DATETIME_3);
         }
 
         @Override

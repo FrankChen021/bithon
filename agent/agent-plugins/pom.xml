@@ -36,6 +36,8 @@
     <module>apache-httpcomponents5</module>
     <module>httpclient-jetty</module>
     <module>httpclient-netty3</module>
+    <module>httpclient-reactor</module>
+    <module>openfeign</module>
     <module>redis-jedis-2.x</module>
     <module>redis-jedis-3.x</module>
     <module>redis-jedis-4.x</module>
@@ -47,9 +49,9 @@
     <module>logging-logback</module>
     <module>spring-bean</module>
     <module>spring-boot</module>
-    <module>spring-mvc</module>
     <module>spring-scheduling</module>
     <module>spring-webflux</module>
+    <module>spring-webmvc</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
     <module>webserver-jetty</module>
@@ -199,6 +201,11 @@
       <artifactId>agent-plugin-httpclient-netty3</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-reactor</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.bithon.agent</groupId>
@@ -245,6 +252,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Open Feign -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-openfeign</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Spring -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
@@ -258,7 +272,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-mvc</artifactId>
+      <artifactId>agent-plugin-spring-web</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

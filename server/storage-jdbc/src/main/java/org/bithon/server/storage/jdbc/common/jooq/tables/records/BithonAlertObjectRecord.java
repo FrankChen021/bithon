@@ -14,7 +14,7 @@ import org.jooq.impl.TableRecordImpl;
 
 
 /**
- * Alert
+ * Alert Rules
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {

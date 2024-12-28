@@ -36,7 +36,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonPropertyOrder({"expr", "for", "every", "silence", "notifications"})
+@JsonPropertyOrder({"expr", "for", "every", "silence", "notifications", "notificationProps"})
 public class AlertStorageObjectPayload {
     @JsonProperty
     private String expr;
@@ -53,6 +53,10 @@ public class AlertStorageObjectPayload {
     @JsonProperty
     private HumanReadableDuration silence;
 
+    @Deprecated
     @JsonProperty
     private List<String> notifications;
+
+    @JsonProperty
+    private NotificationProps notificationProps;
 }

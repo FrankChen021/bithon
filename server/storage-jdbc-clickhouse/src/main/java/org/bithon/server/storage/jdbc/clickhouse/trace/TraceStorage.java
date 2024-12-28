@@ -27,6 +27,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
@@ -39,7 +40,9 @@ import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.TraceTableSchema;
 import org.jooq.Table;
+import org.springframework.context.ApplicationContext;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -59,11 +62,13 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(configuration.getDslContext(),
               objectMapper,
               storageConfig,
-              sqlDialectManager);
+              sqlDialectManager,
+              applicationContext);
         this.clickHouseConfig = configuration.getClickHouseConfig();
     }
 
@@ -160,8 +165,8 @@ public class TraceStorage extends TraceJdbcStorage {
     public ITraceReader createReader() {
         return new TraceJdbcReader(this.dslContext,
                                    this.objectMapper,
-                                   this.traceSpanSchema,
-                                   this.traceTagIndexSchema,
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext)) {
 
@@ -172,7 +177,7 @@ public class TraceStorage extends TraceJdbcStorage {
             }
 
             @Override
-            protected String getSQL(String sql) {
+            protected String decorateSQL(String sql) {
                 return sql + " SETTINGS distributed_product_mode = 'global'";
             }
         };

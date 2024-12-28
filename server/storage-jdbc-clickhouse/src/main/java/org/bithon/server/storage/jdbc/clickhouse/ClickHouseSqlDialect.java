@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.clickhouse.common.optimizer.ClickHouseExpressionOptimizer;
@@ -78,12 +79,9 @@ public class ClickHouseSqlDialect implements ISqlDialect {
         return false;
     }
 
-    /**
-     * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
-     */
     @Override
-    public String formatTimestamp(TimeSpan timeSpan) {
-        return StringUtils.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
+    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+        return new FunctionExpression(TimeFunction.FromUnixTimestamp.INSTANCE, LiteralExpression.LongLiteral.ofLong(timeSpan.getMilliseconds() / 1000));
     }
 
     @Override
@@ -114,6 +112,6 @@ public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression.accept(new ClickHouseExpressionOptimizer());
+        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer());
     }
 }

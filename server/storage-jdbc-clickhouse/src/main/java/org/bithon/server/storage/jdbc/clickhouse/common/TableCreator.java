@@ -246,7 +246,7 @@ public class TableCreator {
         }
     }
 
-    private String getFieldDeclarationExpression(Table<?> table, boolean allowCodec) {
+    private String getFieldDeclarationExpression(Table<?> table, boolean isCodecSupported) {
 
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> field : table.fields()) {
@@ -274,8 +274,12 @@ public class TableCreator {
                 sb.append(StringUtils.format(" DEFAULT %s", defaultValueText));
             }
 
-            if (allowCodec && "Metric".equals(field.getComment())) {
-                sb.append(" CODEC(T64, ZSTD)");
+            if (isCodecSupported) {
+                if (Number.class.isAssignableFrom(dataType.getType())) {
+                    sb.append(" CODEC(T64, ZSTD)");
+                } else if (String.class.equals(dataType.getType())) {
+                    sb.append(" CODEC(ZSTD(1))");
+                }
             }
 
             sb.append(",\n");

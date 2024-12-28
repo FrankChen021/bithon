@@ -19,8 +19,11 @@ package org.bithon.server.web.service.tracing.api;
 import jakarta.validation.Valid;
 import org.bithon.component.commons.utils.Watch;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
@@ -57,20 +60,25 @@ public class TraceApi {
                                                                                               request.getStartTimeISO8601(),
                                                                                               request.getEndTimeISO8601()));
 
-        Watch<List<TraceSpan>> buildTree = new Watch<>(() -> traceService.asTree(getSpanList.getResult()));
+        Watch<List<TraceSpanBo>> transformResult = new Watch<>(() -> traceService.transformSpanList(getSpanList.getResult(), request.isAsTree()));
 
-        Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(buildTree.getResult()));
+        Watch<TraceTopo> buildTopo = new Watch<>(() -> new TraceTopoBuilder().build(transformResult.getResult()));
 
         Map<String, Long> profileEvents = new HashMap<>();
         profileEvents.put("getSpanList", getSpanList.getDuration());
-        profileEvents.put("buildTree", buildTree.getDuration());
+        profileEvents.put("transformation", transformResult.getDuration());
         profileEvents.put("buildTopo", buildTopo.getDuration());
 
-        return new GetTraceByIdResponse(request.isAsTree() ? buildTree.getResult() : getSpanList.getResult(),
+        return new GetTraceByIdResponse(transformResult.getResult(),
                                         buildTopo.getResult(),
                                         profileEvents);
     }
 
+    /**
+     * Deprecated,
+     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#timeseriesV4(QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/trace/getTraceDistribution")
     public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
         return traceService.getTraceDistribution(request.getExpression(),
@@ -79,6 +87,10 @@ public class TraceApi {
                                                  request.getBucketCount());
     }
 
+    /**
+     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#list(QueryRequest)} instead
+     */
+    @Deprecated
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
@@ -90,10 +102,8 @@ public class TraceApi {
             traceService.getTraceList(request.getExpression(),
                                       start,
                                       end,
-                                      request.getOrderBy(),
-                                      request.getOrder(),
-                                      request.getPageNumber(),
-                                      request.getPageSize())
+                                      new OrderBy(request.getOrderBy(), request.getOrder()),
+                                      new Limit(request.getPageSize(), request.getPageNumber() * request.getPageSize()))
         );
     }
 

@@ -50,12 +50,14 @@ public class DispatchTask {
         this.underlyingSender = underlyingSender;
         this.queue = config.getBatchSize() > 0 ? new BatchMessageQueue(queue, config.getBatchSize()) : queue;
         this.queueFullStrategy = config.getQueueFullStrategy();
-        new Thread(() -> {
+        Thread sendThread = new Thread(() -> {
             while (isRunning) {
                 dispatch(true);
             }
             isTaskEnd = true;
-        }, taskName + "-sender").start();
+        }, taskName + "-sender");
+        sendThread.setDaemon(true);
+        sendThread.start();
     }
 
     private void dispatch(boolean waitIfEmpty) {

@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.manager.biz;
 
 import com.google.common.collect.ImmutableSet;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Token;
@@ -48,16 +48,12 @@ import java.util.Set;
 public class AlertExpressionSuggester {
 
     @Data
-    @AllArgsConstructor
+    @Builder
     public static class SuggestionTag {
         private String tagText;
-
-        public static SuggestionTag of(String text) {
-            return new SuggestionTag(text);
-        }
+        private String group;
     }
 
-    private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
     private final Set<Integer> predicateOperators = ImmutableSet.of(
         MetricExpressionParser.LT,
@@ -74,8 +70,6 @@ public class AlertExpressionSuggester {
         MetricExpressionParser.ENDSWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
-        this.dataSourceApi = dataSourceApi;
-
         DefaultLexerAndParserFactory factory = new DefaultLexerAndParserFactory(
             MetricExpressionLexer.class,
             MetricExpressionParser.class
@@ -86,11 +80,11 @@ public class AlertExpressionSuggester {
 
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType == MetricExpressionParser.IDENTIFIER) {
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "max", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "min", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "max", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "min", SuggestionTag.builder().tagText("Aggregator").build()));
             }
             return false;
         });
@@ -119,7 +113,7 @@ public class AlertExpressionSuggester {
                     schema.getColumns()
                           .stream()
                           .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
+                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Dimension").build())));
                 }
             }
 
@@ -129,7 +123,12 @@ public class AlertExpressionSuggester {
         // Suggest data source names
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
             dataSourceApi.getSchemaNames()
-                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("DataSource"))));
+                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(),
+                                                                           SuggestionTag.builder()
+                                                                                        .tagText("Data Source")
+                                                                                        //TODO:
+                                                                                        .group(null)
+                                                                                        .build())));
             return false;
         });
 
@@ -147,7 +146,7 @@ public class AlertExpressionSuggester {
                       .stream()
                       .filter((col) -> !(col instanceof StringColumn)
                                        && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
-                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Metric"))));
+                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Metric").build())));
             }
 
             return false;
@@ -180,7 +179,7 @@ public class AlertExpressionSuggester {
                 schema.getColumns()
                       .stream()
                       .filter((col) -> (col instanceof StringColumn))
-                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
+                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Dimension").build())));
             }
 
             return false;
@@ -205,7 +204,7 @@ public class AlertExpressionSuggester {
                 }
                 String identifier = inputs.get(index).getText();
 
-                // Make sure the literal is in the filter expression by finding the filter expression start
+                // Find the start (the '{' character) of the label expression
                 while (index > 0 && inputs.get(index).getType() != MetricExpressionParser.LEFT_CURLY_BRACE) {
                     if (inputs.get(index).getType() == MetricExpressionParser.RIGHT_CURLY_BRACE) {
                         return false;
@@ -231,7 +230,7 @@ public class AlertExpressionSuggester {
                                                                                                               .endTimeISO8601(TimeSpan.now().ceil(Duration.ofHours(1)).toISO8601())
                                                                                                               .build());
                         for (Map<String, String> dim : dims) {
-                            suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + dim.get("value") + "'", SuggestionTag.of("Value")));
+                            suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + dim.get("value") + "'", SuggestionTag.builder().tagText("Value").build()));
                         }
                     } catch (IOException e) {
                         log.error("Error to get dimensions", e);

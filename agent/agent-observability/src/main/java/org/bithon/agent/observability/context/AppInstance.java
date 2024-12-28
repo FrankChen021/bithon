@@ -43,7 +43,7 @@ public class AppInstance {
     private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private int port;
     private String instanceName;
-    private final boolean useConfiguredName;
+    private final boolean useExternalInstanceName;
 
     private AppInstance(AppConfig appConfig) {
         this.name = appConfig.getName();
@@ -51,14 +51,14 @@ public class AppInstance {
         this.env = appConfig.getEnv();
         this.port = appConfig.getPort();
 
-        if (StringUtils.isEmpty(appConfig.getInstance())) {
+        if (StringUtils.isEmpty(appConfig.getInstance()) || appConfig.isNoUseExternalInstanceName()) {
             // Generate instance name automatically by using the current host ip address
             String instanceIp = NetworkUtils.getIpAddress().getHostAddress();
             this.instanceName = this.port > 0 ? instanceIp + ":" + this.port : instanceIp;
-            this.useConfiguredName = false;
+            this.useExternalInstanceName = false;
         } else {
             this.instanceName = appConfig.getInstance();
-            this.useConfiguredName = true;
+            this.useExternalInstanceName = true;
         }
     }
 
@@ -76,7 +76,7 @@ public class AppInstance {
 
     public void setPort(int port) {
         this.port = port;
-        if (!useConfiguredName) {
+        if (!useExternalInstanceName) {
             this.instanceName = NetworkUtils.getIpAddress().getHostAddress() + ":" + this.port;
         }
 

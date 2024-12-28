@@ -27,7 +27,8 @@ name: "the name of the alert"
 expr: "PromQL style expression, for example: avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
 for: "The duration before the alert should be fired. In the format of duration. Like 1m, 1h"
 every: "Optional, the interval of evaluation in minutes"
-notifications: [name list of notification channels]
+notificationProps:
+  channels: [name list of notification channels]
 ```
 
 ### Expression Syntax

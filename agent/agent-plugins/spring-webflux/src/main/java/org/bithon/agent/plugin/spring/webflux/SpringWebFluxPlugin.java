@@ -53,32 +53,6 @@ public class SpringWebFluxPlugin implements IPlugin {
                 // Its ctors vary in different versions, hook to all ctors
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
-                .build(),
-
-            forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .onMethod("send")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send")
-
-                .onMethod("responseConnection")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
-                .build(),
-
-            forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
-                .onMethod("onChannelInit")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
-                .build(),
-
-            forClass("reactor.netty.http.client.HttpClientOperations")
-                .onConstructor()
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
-                .build(),
-
-            forClass("reactor.core.publisher.Flux")
-                .onMethod("timeout")
-                .andRawArgs("org.reactivestreams.Publisher",
-                            "java.util.function.Function",
-                            "org.reactivestreams.Publisher")
-                .interceptedBy("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
                 .build()
         );
 

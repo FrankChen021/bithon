@@ -32,6 +32,6 @@ public class NotEqualPredicate extends AbstractAbsoluteThresholdPredicate {
 
     @Override
     protected boolean matches(IDataType valueType, Number threshold, Number now) {
-        return false;
+        return !valueType.isEqual(threshold, now);
     }
 }

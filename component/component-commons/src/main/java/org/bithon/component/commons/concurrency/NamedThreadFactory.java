@@ -29,11 +29,7 @@ public class NamedThreadFactory implements ThreadFactory {
     private final String namePrefix;
     private final boolean isDaemon;
 
-    public NamedThreadFactory(String namePrefix) {
-        this(namePrefix, false);
-    }
-
-    public NamedThreadFactory(String namePrefix, boolean isDaemon) {
+    private NamedThreadFactory(String namePrefix, boolean isDaemon) {
         final SecurityManager s = System.getSecurityManager();
         this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         this.namePrefix = namePrefix;
@@ -50,7 +46,15 @@ public class NamedThreadFactory implements ThreadFactory {
         return t;
     }
 
-    public static ThreadFactory of(String namePrefix) {
-        return new NamedThreadFactory(namePrefix);
+    /**
+     * Define two thread factories for creating daemon and non-daemon threads
+     * This helps us to use forbidden-apis-maven-plugin to detect improper usage of these factories
+     */
+    public static ThreadFactory nonDaemonThreadFactory(String namePrefix) {
+        return new NamedThreadFactory(namePrefix, false);
+    }
+
+    public static ThreadFactory daemonThreadFactory(String namePrefix) {
+        return new NamedThreadFactory(namePrefix, true);
     }
 }

@@ -34,12 +34,12 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
-import org.bithon.server.commons.antlr4.TokenUtils;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +60,7 @@ public class MetricExpressionASTBuilder {
         }
     }
 
-    public static IExpression parse(String expression) {
+    public static MetricExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
         lexer.addErrorListener(SyntaxErrorListener.of(expression));
@@ -130,13 +130,13 @@ public class MetricExpressionASTBuilder {
                 }
             }
 
-            List<String> groupBy = null;
+            Set<String> groupBy = null;
             MetricExpressionParser.GroupByExpressionContext groupByExpression = ctx.groupByExpression();
             if (groupByExpression != null) {
                 groupBy = groupByExpression.IDENTIFIER()
                                            .stream()
                                            .map((identifier) -> identifier.getSymbol().getText())
-                                           .collect(Collectors.toList());
+                                           .collect(Collectors.toSet());
             }
 
             MetricExpression expression = new MetricExpression();
@@ -154,28 +154,32 @@ public class MetricExpressionASTBuilder {
             MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
             if (predicateExpression != null) {
                 MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-                LiteralExpression expected = (LiteralExpression) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+                LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-                HumanReadableDuration expectedWindow = null;
-                MetricExpressionParser.DurationExpressionContext expectedWindowCtx = expectedExpression.durationExpression();
-                if (expectedWindowCtx != null) {
-                    expectedWindow = expectedWindowCtx.accept(new DurationExpressionBuilder());
-                    if (!expectedWindow.isNegative()) {
-                        throw new InvalidExpressionException("The value in the expected window expression '%s' must be a negative value.", expectedWindowCtx.getText());
+                HumanReadableDuration offset = null;
+                MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
+                if (offsetParseContext != null) {
+                    offset = offsetParseContext.accept(new DurationExpressionBuilder());
+                    if (!offset.isNegative()) {
+                        throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
                     }
 
-                    if (expectedWindow.isZero()) {
-                        throw new InvalidExpressionException("The value in the expected window expression '%s' can't be zero.", expectedWindowCtx.getText());
+                    if (offset.isZero()) {
+                        throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
+                    }
+
+                    if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
+                        throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
                     }
                 }
 
                 PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
                                                        expected,
-                                                       expectedWindow);
+                                                       offset);
 
                 expression.setPredicate(predicate);
                 expression.setExpected(expected);
-                expression.setExpectedWindow(expectedWindow);
+                expression.setOffset(offset);
             }
 
             return expression;
@@ -316,13 +320,26 @@ public class MetricExpressionASTBuilder {
         public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
             Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
             return switch (symbol.getType()) {
-                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
+                case MetricExpressionParser.DECIMAL_LITERAL ->
+                    LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
                 case MetricExpressionParser.INTEGER_LITERAL ->
                     LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
                 case MetricExpressionParser.PERCENTAGE_LITERAL ->
                     LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
-                case MetricExpressionParser.STRING_LITERAL ->
-                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(symbol));
+                case MetricExpressionParser.STRING_LITERAL -> {
+                    String input = symbol.getText();
+                    if (!input.isEmpty()) {
+                        char quote = input.charAt(0);
+                        input = input.substring(1, input.length() - 1);
+
+                        if (quote == '\'') {
+                            input = StringUtils.unEscape(input, '\\', '\'');
+                        } else {
+                            input = StringUtils.unEscape(input, '\\', '\"');
+                        }
+                    }
+                    yield LiteralExpression.ofString(input);
+                }
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
                 case MetricExpressionParser.SIZE_LITERAL ->
                     LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));

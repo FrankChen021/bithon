@@ -27,8 +27,10 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.metrics.Interval;
 import org.jooq.DSLContext;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
@@ -70,10 +72,15 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     @Override
     public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-        dslContext.update(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
+                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState == null ? new Timestamp(0).toLocalDateTime() : new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState == null ? "" : prevState.getLastRecordId())
                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .where(Tables.BITHON_ALERT_STATE.ALERT_ID.eq(id))
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+                  .onDuplicateKeyUpdate()
+                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
                   .execute();
     }
 
@@ -106,32 +113,37 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
                       .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
+                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.ALERTING.statusCode())
                       .onDuplicateKeyUpdate()
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.FIRING.statusCode())
+                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.ALERTING.statusCode())
                       .execute();
         });
     }
 
     @Override
-    public ListResult<AlertRecordObject> getAlertRecords(String alertId, int pageNumber, int pageSize) {
-        Select<?> sql = dslContext.select(Tables.BITHON_ALERT_RECORD.RECORD_ID,
-                                          Tables.BITHON_ALERT_RECORD.ALERT_ID,
-                                          Tables.BITHON_ALERT_RECORD.ALERT_NAME,
-                                          Tables.BITHON_ALERT_RECORD.APP_NAME,
-                                          Tables.BITHON_ALERT_RECORD.CREATED_AT).from(Tables.BITHON_ALERT_RECORD);
+    public ListResult<AlertRecordObject> getAlertRecords(String alertId, Interval interval, Limit limit) {
+        Select<?> sql = dslContext.selectFrom(Tables.BITHON_ALERT_RECORD);
         if (alertId != null) {
             sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.ALERT_ID.eq(alertId));
         }
 
-        return new ListResult<>(dslContext.selectCount().from(sql).fetchOne(0, int.class),
-                                ((SelectConditionStep<?>) sql).orderBy(Tables.BITHON_ALERT_RECORD.CREATED_AT.desc())
-                                                              .limit(pageSize)
-                                                              .offset(pageSize * pageNumber)
-                                                              .fetchInto(AlertRecordObject.class));
+        if (interval != null) {
+            sql = ((SelectWhereStep<?>) sql).where(Tables.BITHON_ALERT_RECORD.CREATED_AT.ge(interval.getStartTime().toTimestamp().toLocalDateTime()))
+                                            .and(Tables.BITHON_ALERT_RECORD.CREATED_AT.lt(interval.getEndTime().toTimestamp().toLocalDateTime()));
+        }
+
+        int total = dslContext.selectCount().from(sql).fetchOne(0, int.class);
+
+        if (limit != null) {
+            sql = ((SelectConditionStep<?>) sql).orderBy(Tables.BITHON_ALERT_RECORD.CREATED_AT.desc())
+                                                .limit(limit.getLimit())
+                                                .offset(limit.getOffset());
+        }
+
+        return new ListResult<>(total, sql.fetchInto(AlertRecordObject.class));
     }
 
     @Override

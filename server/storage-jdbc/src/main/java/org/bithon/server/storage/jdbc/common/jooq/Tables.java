@@ -50,7 +50,7 @@ public class Tables {
     public static final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 
     /**
-     * Alert
+     * Alert Rules
      */
     public static final BithonAlertObject BITHON_ALERT_OBJECT = BithonAlertObject.BITHON_ALERT_OBJECT;
 

@@ -24,8 +24,9 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
-import org.bithon.server.alerting.manager.api.parameter.CreateAlertRequest;
+import org.bithon.server.alerting.manager.api.parameter.CreateAlertRuleRequest;
 import org.bithon.server.alerting.manager.api.parameter.GenericAlertByIdRequest;
+import org.bithon.server.alerting.manager.api.parameter.UpdateAlertRuleRequest;
 import org.bithon.server.alerting.manager.biz.AlertCommandService;
 import org.bithon.server.alerting.manager.biz.BizException;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
@@ -56,21 +57,22 @@ public class AlertCommandApi {
     }
 
     @PostMapping("/api/alerting/alert/create")
-    public ApiResponse<String> createAlert(@Valid @RequestBody CreateAlertRequest request) {
+    public ApiResponse<String> createAlertRule(@Valid @RequestBody CreateAlertRuleRequest request) {
         try {
-            AlertRule rule = (AlertRule) Validator.validate(request.toAlert());
-            return ApiResponse.success(commandService.createAlert(rule, request.toCommandArgs()));
+            AlertRule rule = Validator.validate(request).toAlert();
+            return ApiResponse.success(commandService.createRule(rule, request.toCommandArgs()));
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
         }
     }
 
     @PostMapping("/api/alerting/alert/update")
-    public ApiResponse<?> updateAlert(@Valid @RequestBody CreateAlertRequest request) {
+    public ApiResponse<?> updateAlertRule(@Valid @RequestBody UpdateAlertRuleRequest request) {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
-            AlertRule rule = (AlertRule) Validator.validate(request.toAlert());
-            commandService.updateAlert(rule);
+            AlertRule rule = Validator.validate(request).toAlert();
+            rule.setEnabled(request.isEnabled());
+            commandService.updateRule(rule);
             return ApiResponse.success();
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
@@ -78,9 +80,9 @@ public class AlertCommandApi {
     }
 
     @PostMapping("/api/alerting/alert/enable")
-    public ApiResponse<?> enable(@Valid @RequestBody GenericAlertByIdRequest request) {
+    public ApiResponse<?> enableRule(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
-            commandService.enableAlert(request.getAlertId());
+            commandService.enableRule(request.getAlertId());
             return ApiResponse.success();
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
@@ -88,9 +90,9 @@ public class AlertCommandApi {
     }
 
     @PostMapping("/api/alerting/alert/disable")
-    public ApiResponse<Long> disable(@Valid @RequestBody GenericAlertByIdRequest request) {
+    public ApiResponse<Long> disableRule(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
-            commandService.disableAlert(request.getAlertId());
+            commandService.disableRule(request.getAlertId());
             return ApiResponse.success();
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
@@ -98,10 +100,24 @@ public class AlertCommandApi {
     }
 
     @PostMapping("/api/alerting/alert/delete")
-    public ApiResponse<?> deleteAlertById(@Valid @RequestBody GenericAlertByIdRequest request) {
+    public ApiResponse<?> deleteRule(@Valid @RequestBody GenericAlertByIdRequest request) {
         try {
-            commandService.deleteAlert(request.getAlertId());
+            commandService.deleteRule(request.getAlertId());
             return ApiResponse.success();
+        } catch (BizException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    /**
+     * @return evaluation log of this alert rule
+     */
+    @PostMapping("/api/alerting/alert/test")
+    public ApiResponse<?> testRule(@Valid @RequestBody CreateAlertRuleRequest request) {
+        try {
+            AlertRule rule = Validator.validate(request).toAlert();
+            rule.initialize();
+            return ApiResponse.success(commandService.testRule(rule));
         } catch (BizException e) {
             return ApiResponse.fail(e.getMessage());
         }

@@ -22,15 +22,17 @@ import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
+import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -39,17 +41,16 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.IEvaluationLogStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -57,25 +58,26 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 10:40 上午
  */
-@Slf4j
-@Service
-@Conditional(EvaluatorModuleEnabler.class)
-public class AlertEvaluator implements SmartLifecycle {
+public class AlertEvaluator implements DisposableBean {
 
     private final IAlertStateStorage stateStorage;
-    private final EvaluationLogBatchWriter evaluationLogWriter;
+    private final IEvaluationLogWriter evaluationLogWriter;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final INotificationApi notificationApi;
+    private final INotificationApi notificationAsyncApi;
 
-    public AlertEvaluator(IAlertStateStorage stateStorage,
-                          IEvaluationLogStorage logStorage,
+    public AlertEvaluator(AlertRepository repository,
+                          IAlertStateStorage stateStorage,
+                          IEvaluationLogWriter evaluationLogWriter,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
@@ -84,22 +86,68 @@ public class AlertEvaluator implements SmartLifecycle {
         this.stateStorage = stateStorage;
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
-        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
+        this.evaluationLogWriter = evaluationLogWriter;
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
 
         // Use Indent output for better debugging
         // It's a copy of existing ObjectMapper
         // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
-        this.notificationApi = createNotificationApi(applicationContext);
+        this.notificationAsyncApi = createNotificationAsyncApi(applicationContext);
+
+        if (repository != null) {
+            repository.addListener(new IAlertChangeListener() {
+                @Override
+                public void onLoaded(AlertRule rule) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(rule.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Loaded rule: [%s], Enabled: %s, Expr: %s",
+                                                                                            rule.getName(),
+                                                                                            Boolean.toString(rule.isEnabled()),
+                                                                                            rule.getExpr()))
+                                                                .build());
+                }
+
+                @Override
+                public void onUpdated(AlertRule original, AlertRule updated) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(updated.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Updated rule [%s], Enabled: %s, Expr: %s",
+                                                                                            updated.getName(),
+                                                                                            Boolean.toString(updated.isEnabled()),
+                                                                                            updated.getExpr()))
+                                                                .build());
+                }
+
+                @Override
+                public void onRemoved(AlertRule rule) {
+                    evaluationLogWriter.write(EvaluationLogEvent.builder()
+                                                                .timestamp(new Timestamp(System.currentTimeMillis()))
+                                                                .alertId(rule.getId())
+                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .level("INFO")
+                                                                .message(StringUtils.format("Deleted rule [%s], Expr: %s", rule.getName(), rule.getExpr()))
+                                                                .build());
+                }
+            });
+        }
     }
 
-    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevStatus) {
+    /**
+     * @param prevState can be null
+     */
+    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
                                                           dataSourceApi,
-                                                          prevStatus);
+                                                          prevState);
 
         Duration interval = alertRule.getEvery().getDuration();
         try {
@@ -116,19 +164,39 @@ public class AlertEvaluator implements SmartLifecycle {
                 return;
             }
 
-            if (evaluate(context)) {
-                fireAlert(alertRule, context);
+            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatus();
+
+            // Evaluate the alert rule
+            AlertStatus newStatus = evaluate(context, context.getPrevState());
+
+            if (prevStatus.canTransitTo(newStatus)) {
+                context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+
+                if (newStatus == AlertStatus.ALERTING) {
+                    // Fire and save alert record
+                    fireAlert(alertRule, context);
+                } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
+                    // Update alert status and resolve alert
+                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+
+                    this.resolveAlert(alertRule, context);
+                } else {
+                    // Update alert status only
+                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+                }
             } else {
-                resolveAlert(alertRule, context);
+                context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
             }
         } catch (Exception e) {
-            log.error(StringUtils.format("ERROR to evaluate alert %s", alertRule.getName()), e);
+            context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
 
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
-    private INotificationApi createNotificationApi(ApplicationContext context) {
+    private INotificationApi createNotificationAsyncApi(ApplicationContext context) {
+        INotificationApi impl;
+
         // The notification service is configured by auto-discovery
         String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
         if ("discovery".equalsIgnoreCase(service)) {
@@ -136,92 +204,124 @@ public class AlertEvaluator implements SmartLifecycle {
             // we still call the notification module via HTTP instead of direct API method calls in process
             // So that it simulates the 'remote call' via discovered service
             DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
-            return invoker.createUnicastApi(INotificationApi.class);
-        }
-
-        // The service is configured as a remote service at fixed address
-        // Create a feign client to call it
-        if (service.startsWith("http:") || service.startsWith("https:")) {
-            return Feign.builder()
+            impl = invoker.createUnicastApi(INotificationApi.class);
+        } else if (service.startsWith("http:") || service.startsWith("https:")) {
+            // The service is configured as a remote service at fixed address
+            // Create a feign client to call it
+            impl = Feign.builder()
                         .contract(context.getBean(Contract.class))
                         .encoder(context.getBean(Encoder.class))
                         .decoder(context.getBean(Decoder.class))
                         .target(INotificationApi.class, service);
+        } else {
+            throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
         }
 
-        throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
+        return new INotificationApi() {
+            // Cached thread pool
+            private final ThreadPoolExecutor notificationThreadPool = new ThreadPoolExecutor(1,
+                                                                                             10,
+                                                                                             3,
+                                                                                             TimeUnit.MINUTES,
+                                                                                             new SynchronousQueue<>(),
+                                                                                             NamedThreadFactory.nonDaemonThreadFactory("notification"),
+                                                                                             new ThreadPoolExecutor.CallerRunsPolicy());
+
+
+            @Override
+            public void notify(String name, NotificationMessage message) {
+                notificationThreadPool.execute(() -> {
+                    try {
+                        impl.notify(name, message);
+                    } catch (Exception e) {
+                        new EvaluationLogger(evaluationLogWriter).error(message.getAlertRule().getId(),
+                                                                        message.getAlertRule().getName(),
+                                                                        AlertEvaluator.class,
+                                                                        e,
+                                                                        "Failed to send notification to channel [%s]",
+                                                                        name);
+                    }
+                });
+            }
+        };
     }
 
-    private boolean evaluate(EvaluationContext context) {
+    private AlertStatus evaluate(EvaluationContext context, AlertStateObject prevState) {
         AlertRule alertRule = context.getAlertRule();
-        context.log(AlertEvaluator.class, "Evaluating alert [%s] %s ", alertRule.getName(), alertRule.getExpr());
+        context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
-        try {
-            AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator((AlertExpression) alertRule.getEvaluationExpression());
-            if (expressionEvaluator.evaluate(context)) {
-                context.log(AlertEvaluator.class, "alert [%s] tested successfully.", alertRule.getName());
+        AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
+        if (expressionEvaluator.evaluate(context)) {
+            context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
 
-                long expectedMatchCount = alertRule.getExpectedMatchCount();
-                long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
-                                                                   alertRule.getEvery()
-                                                                            .getDuration()
-                                                                            // Add 30 seconds for margin
-                                                                            .plus(Duration.ofSeconds(30)));
-                if (successiveCount >= expectedMatchCount) {
-                    stateStorage.resetMatchCount(alertRule.getId());
+            long expectedMatchCount = alertRule.getExpectedMatchCount();
+            long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
+                                                               alertRule.getEvery()
+                                                                        .getDuration()
+                                                                        // Add 30 seconds for margin
+                                                                        .plus(Duration.ofSeconds(30)));
+            if (successiveCount >= expectedMatchCount) {
+                stateStorage.resetMatchCount(alertRule.getId());
 
-                    context.log(AlertEvaluator.class,
-                                "Rule tested %d times successively，and reaches the expected count：%d",
-                                successiveCount,
-                                expectedMatchCount);
-                    return true;
+                context.log(AlertEvaluator.class,
+                            "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
+                            alertRule.getName(),
+                            successiveCount,
+                            expectedMatchCount);
+
+                HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
+
+                String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+
+                // Calc the silence period by adding some margin
+                // Let's say current timestamp is 10:01:02.123, and the silence period is 1 minute,
+                // The silence period is [now(), 10:02:00.000(assuming the evaluation execution finishes within 1 minute) + 1 minute]
+                TimeSpan now = TimeSpan.now();
+                TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
+                Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
+                if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
+                    Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
+                    context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
+                                silenceDuration,
+                                lastAlertingAt,
+                                TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
+                    return AlertStatus.SUPPRESSING;
                 } else {
                     context.log(AlertEvaluator.class,
-                                "Rule tested %d times successively，expected times：%d",
-                                successiveCount,
-                                expectedMatchCount);
-                    return false;
+                                "Alerting，silence period(%s) is over. Last alert at: %s",
+                                silenceDuration,
+                                lastAlertingAt);
                 }
+
+                return AlertStatus.ALERTING;
             } else {
-                stateStorage.resetMatchCount(alertRule.getId());
-                return false;
+                context.log(AlertEvaluator.class,
+                            "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
+                            alertRule.getName(),
+                            successiveCount,
+                            expectedMatchCount);
+
+                return AlertStatus.PENDING;
             }
-        } catch (Exception e) {
-            context.logException(AlertEvaluator.class,
-                                 e,
-                                 "Exception during evaluation of alert [%s]: %s",
-                                 alertRule.getName(),
-                                 e.getMessage());
-            return true;
+        } else {
+            context.log(AlertEvaluator.class,
+                        "Rule [%s] evaluated as FALSE",
+                        alertRule.getName());
+
+            stateStorage.resetMatchCount(alertRule.getId());
+            return AlertStatus.RESOLVED;
         }
     }
 
-    private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
-        if (context.getPrevState() == null || context.getPrevState().getStatus() != AlertStatus.FIRING) {
-            return;
-        }
-
-        context.log(AlertEvaluator.class, "Alert is resolved.");
-        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), AlertStatus.RESOLVED);
-    }
-
+    /**
+     * Fire alert and update its status
+     */
     private void fireAlert(AlertRule alertRule, EvaluationContext context) {
-        long now = System.currentTimeMillis();
-
-        HumanReadableDuration silenceDuration = context.getAlertRule().getSilence();
-        if (stateStorage.tryEnterSilence(alertRule.getId(), silenceDuration.getDuration())) {
-            Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
-            context.log(AlertEvaluator.class, "Alerting，but is under notification silence period(%s). Last alert at: %s",
-                        silenceDuration,
-                        TimeSpan.of(now - (silenceDuration.getDuration().toMillis() - silenceRemainTime.toMillis())).format("HH:mm:ss"));
-            return;
-        }
-
-        //
         // Prepare notification
-        //
         NotificationMessage notification = new NotificationMessage();
+        notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
         notification.setAlertRule(alertRule);
+        notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
         notification.setConditionEvaluation(new HashMap<>());
         context.getEvaluationResults().forEach((expressionId, result) -> {
@@ -241,22 +341,66 @@ public class AlertEvaluator implements SmartLifecycle {
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
-            context.log(AlertExpression.class, "Saving alert record");
+            context.log(AlertEvaluator.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
 
             // notification
-            context.log(AlertExpression.class, "Sending notification");
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
-            for (String name : alertRule.getNotifications()) {
+            for (String channelName : alertRule.getNotificationProps().getChannels()) {
+                context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
+
                 try {
-                    notificationApi.notify(name, notification);
+                    notificationAsyncApi.notify(channelName, notification);
                 } catch (Exception e) {
-                    log.error("Exception when notifying " + name, e);
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertExpression.class, e, "Exception when sending notification.");
+            context.logException(AlertEvaluator.class, e, "Exception when sending notification");
+        }
+    }
+
+    /**
+     * Fire alert and update its status
+     */
+    private void resolveAlert(AlertRule alertRule, EvaluationContext context) {
+        // Prepare notification
+        NotificationMessage notification = new NotificationMessage();
+        notification.setStatus(AlertStatus.RESOLVED);
+        notification.setAlertRule(alertRule);
+        notification.setExpressions(alertRule.getFlattenExpressions().values());
+        notification.setConditionEvaluation(new HashMap<>());
+        context.getEvaluationResults().forEach((expressionId, result) -> {
+            AlertExpression expression = context.getAlertExpressions().get(expressionId);
+
+            IEvaluationOutput outputs = context.getRuleEvaluationOutput(expressionId);
+            notification.getConditionEvaluation()
+                        .put(expression.getId(),
+                             new ExpressionEvaluationResult(result,
+                                                            outputs == null ? null : OutputMessage.builder()
+                                                                                                  .current(outputs.getCurrentText())
+                                                                                                  .delta(outputs.getDeltaText())
+                                                                                                  .threshold(outputs.getThresholdText())
+                                                                                                  .build()));
+        });
+
+        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
+        try {
+            // notification
+            notification.setLastAlertAt(alertAt.getTime());
+            notification.setAlertRecordId(context.getPrevState().getLastRecordId());
+            for (String channelName : alertRule.getNotificationProps().getChannels()) {
+                context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
+
+                try {
+                    notificationAsyncApi.notify(channelName, notification);
+                } catch (Exception e) {
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                }
+            }
+        } catch (Exception e) {
+            context.logException(AlertEvaluator.class, e, "Exception when sending RESOLVED notification");
         }
     }
 
@@ -270,15 +414,21 @@ public class AlertEvaluator implements SmartLifecycle {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long start = context.getEvaluatedExpressions()
-                            .values()
-                            .stream()
-                            .map((output) -> output.getStart().getMilliseconds())
-                            .min(Comparator.comparingLong((v) -> v))
-                            .get();
+        long startOfThisEvaluation = context.getEvaluatedExpressions()
+                                            .values()
+                                            .stream()
+                                            .map((output) -> output.getStart().getMilliseconds())
+                                            .min(Comparator.comparingLong((v) -> v))
+                                            .get();
+
+        // Calculate the first time the rule is tested as TRUE
+        // Since the current interval is TRUE, there were (n - 1) intervals before this interval
+        long startInclusive = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
+        long endInclusive = context.getIntervalEnd().getMilliseconds() - context.getAlertRule().getEvery().getDuration().toMillis();
+
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
-                                                                                 .start(start)
-                                                                                 .end(context.getIntervalEnd().getMilliseconds())
+                                                                                 .start(startInclusive)
+                                                                                 .end(endInclusive)
                                                                                  .expressions(context.getAlertExpressions().values())
                                                                                  .conditionEvaluation(notification.getConditionEvaluation())
                                                                                  .build()));
@@ -288,19 +438,7 @@ public class AlertEvaluator implements SmartLifecycle {
     }
 
     @Override
-    public void start() {
-        log.info("Start alert evaluator");
-        this.evaluationLogWriter.start();
-    }
-
-    @Override
-    public void stop() {
-        log.info("Shutdown alert evaluator");
-        this.evaluationLogWriter.stop();
-    }
-
-    @Override
-    public boolean isRunning() {
-        return this.evaluationLogWriter.isStarted();
+    public void destroy() throws Exception {
+        this.evaluationLogWriter.close();
     }
 }

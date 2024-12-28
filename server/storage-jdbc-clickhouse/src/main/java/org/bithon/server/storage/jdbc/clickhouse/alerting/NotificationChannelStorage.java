@@ -21,12 +21,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
+import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,8 +44,10 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
 
     @JsonCreator
     public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        super(storageProvider.getDslContext(), storageConfig);
+                                      @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
+        super(storageProvider.getDslContext(), sqlDialectManager, storageConfig, serverProperties);
         this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
@@ -48,6 +55,21 @@ public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     public void deleteChannel(String name) {
         new DataCleaner(clickHouseConfig, dslContext).deleteByCondition(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL,
                                                                         Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME.eq(name));
+    }
+
+    @Override
+    public boolean updateChannel(NotificationChannelObject old, String props) {
+        return dslContext.insertInto(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.TYPE, old.getType())
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.NAME, old.getName())
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.PAYLOAD, props)
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.CREATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .set(Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.UPDATED_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                         .execute() > 0;
+    }
+
+    public String getChanelTableSelectFrom() {
+        return Tables.BITHON_ALERT_NOTIFICATION_CHANNEL.getName() + " FINAL ";
     }
 
     @Override

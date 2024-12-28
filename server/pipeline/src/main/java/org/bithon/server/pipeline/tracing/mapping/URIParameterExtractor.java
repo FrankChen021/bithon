@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.UrlUtils;
@@ -42,6 +43,7 @@ public class URIParameterExtractor implements ITraceIdMappingExtractor {
      * key - The tag name whose value has the form of URL
      * val - The parameter name in the URL
      */
+    @Getter
     private final Map<String, Set<String>> args;
 
     /**

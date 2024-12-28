@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.h2;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.expression.function.builtin.AggregateFunctio
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
@@ -61,6 +63,11 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
+    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+        return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
+    }
+
+    @Override
     public String stringAggregator(String field) {
         return StringUtils.format("group_concat(\"%s\")", field);
     }
@@ -84,13 +91,13 @@ public class H2SqlDialect implements ISqlDialect {
 
     @Override
     public boolean useWindowFunctionAsAggregator(String aggregator) {
-        return AggregateFunction.First.NAME.equals(aggregator)
-               || AggregateFunction.Last.NAME.equals(aggregator);
+        return AggregateFunction.First.INSTANCE.getName().equals(aggregator)
+               || AggregateFunction.Last.INSTANCE.getName().equals(aggregator);
     }
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+        return expression == null ? null : expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
             /**
              * H2 does not support Map, the JSON formatted string is stored in the column.
              * So we turn the MapAccessExpression into a LIKE expression
@@ -101,10 +108,6 @@ public class H2SqlDialect implements ISqlDialect {
                     return MapAccessExpressionTransformer.transform(expression);
                 }
 
-                if (expression instanceof ConditionalExpression.Contains) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
-                }
                 if (expression instanceof ConditionalExpression.StartsWith) {
                     return new ConditionalExpression.Like(expression.getLhs(),
                                                           LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
@@ -122,7 +125,7 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide startsWith function, turns it into LIKE expression as: LIKE 'prefix%'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.ofString(((LiteralExpression) patternExpression).getValue() + "%");
+                        patternExpression = LiteralExpression.ofString(((LiteralExpression<?>) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.ofString("%")));
@@ -133,7 +136,7 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getValue());
+                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression<?>) patternExpression).getValue());
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
@@ -145,7 +148,7 @@ public class H2SqlDialect implements ISqlDialect {
                     // H2 does not provide hasToken function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
                     if (patternExpression instanceof LiteralExpression) {
-                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression) patternExpression).getValue() + "%");
+                        patternExpression = LiteralExpression.ofString("%" + ((LiteralExpression<?>) patternExpression).getValue() + "%");
                     } else {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
@@ -154,14 +157,19 @@ public class H2SqlDialect implements ISqlDialect {
                                                           patternExpression);
                 }
 
-                return expression;
+                return super.visit(expression);
+            }
+
+            @Override
+            public IExpression visit(ArithmeticExpression expression) {
+                return SafeDivisionTransformer.transform(expression);
             }
         });
     }
 
     @Override
     public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
-        return "'" + DateTime.toISO8601((Long) expression.getValue()) + "'";
+        return "'" + DateTime.toISO8601(expression.getValue()) + "'";
     }
 
     /**

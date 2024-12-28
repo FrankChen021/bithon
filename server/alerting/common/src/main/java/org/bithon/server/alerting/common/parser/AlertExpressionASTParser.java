@@ -54,6 +54,9 @@ import java.util.List;
  */
 public class AlertExpressionASTParser {
 
+    /**
+     * The return is either a MetricExpression or a LogicalExpression
+     */
     public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
@@ -121,16 +124,16 @@ public class AlertExpressionASTParser {
 
     private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
         LiteralExpression expected = metricExpression.getExpected();
-        HumanReadableDuration expectedWindow = metricExpression.getExpectedWindow();
+        HumanReadableDuration offset = metricExpression.getOffset();
 
         IMetricEvaluator metricEvaluator;
         switch (metricExpression.getPredicate()) {
             case LT:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new LessThanPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new LessThanPredicate(expected.getValue());
                     }
@@ -138,11 +141,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case LTE:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
                     }
@@ -150,11 +153,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case GT:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new GreaterThanPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     }
@@ -162,11 +165,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case GTE:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     }

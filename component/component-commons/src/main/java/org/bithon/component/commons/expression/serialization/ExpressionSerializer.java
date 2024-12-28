@@ -64,7 +64,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
     }
 
     @Override
-    public boolean visit(LiteralExpression expression) {
+    public boolean visit(LiteralExpression<?> expression) {
         Object value = expression.getValue();
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
@@ -103,8 +103,14 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
             && !expression.isQualified()) {
             quoteIdentifierIfNeeded(qualifier);
             sb.append('.');
+            quoteIdentifierIfNeeded(expression.getIdentifier());
+        } else {
+            if (expression.isQualified()) {
+                quoteIdentifierIfNeeded(expression.getQualifier());
+                sb.append('.');
+            }
+            quoteIdentifierIfNeeded(expression.getIdentifier());
         }
-        quoteIdentifierIfNeeded(expression.getIdentifier());
         return false;
     }
 
@@ -118,13 +124,13 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
 
     @Override
     public boolean visit(ConditionalExpression expression) {
-        visitBinary(expression);
+        serializeBinary(expression);
         return false;
     }
 
     @Override
     public boolean visit(ArithmeticExpression expression) {
-        visitBinary(expression);
+        serializeBinary(expression);
         return false;
     }
 
@@ -203,7 +209,11 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         return false;
     }
 
-    private boolean visitBinary(BinaryExpression expression) {
+    public void append(String str) {
+        sb.append(str);
+    }
+
+    protected boolean serializeBinary(BinaryExpression expression) {
         IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {
             sb.append('(');

@@ -48,7 +48,7 @@ public class ExpressionValidationTest {
 
     @Test
     public void test_IdentifierValidationInFunction() {
-        // The identifier a is defined in the schema
+        // The identifier 'a' is defined in the schema
         ExpressionASTBuilder.builder()
                             .schema(schema)
                             .functions(Functions.getInstance())
@@ -144,7 +144,7 @@ public class ExpressionValidationTest {
     }
 
     @Test
-    public void test_UncompleteLogicalExpression() {
+    public void test_UncompletedLogicalExpression() {
         Assert.assertThrows(ExpressionValidationException.class,
                             () ->
                                 ExpressionASTBuilder.builder()

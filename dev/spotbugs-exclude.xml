@@ -98,6 +98,10 @@
         <Class name="org.bithon.server.metric.DataSourceSchemaManager"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
     </Match>
+    <Match>
+        <Class name="org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect"/>
+        <Bug pattern="BC_IMPOSSIBLE_INSTANCEOF" />
+    </Match>
 
     <!-- agent-controller -->
     <Match>

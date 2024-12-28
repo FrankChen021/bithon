@@ -8,10 +8,12 @@ appName: "bithon-web-local"
 
 name: "Alert1"
 expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
-for: 1m
+for: 1
 every: 1m
-notifications:
-  - console-1
+notificationProps:
+  silence: 1m
+  channels:
+    - console-1
 
 
 ### Update an alert
@@ -26,9 +28,11 @@ Content-Type: application/json
   "every": "1m",
   "for": "1m",
   "expression": "avg(jvm-metrics.processCpuLoad)[1m] > 0.1 AND max(jvm-metrics.heapUsed) > 100",
-  "notifications": [
-    "console"
-  ]
+  "notificationProps": {
+    "silence": "1m",
+    "channels": [
+        "console"
+  ]}
 }
 
 ### Get an alert
@@ -62,3 +66,19 @@ Content-Type: application/json
 {
   "alertId": "f7f87ce1e0b444919b123849f4c7939e"
 }
+
+### Test an alert
+POST http://localhost:9897/api/alerting/alert/test
+Content-Type: application/yaml
+
+id: "f7f87ce1e0b444919b123849f4c7939f"
+checkApplication: "false"
+appName: "bithon-web-local"
+
+name: "Alert1"
+expr: "avg(jvm-metrics.processCpuLoad)[1m] > 0.1[-1h]"
+for: 1
+every: 1m
+notificationProps:
+  channels:
+    - console-1

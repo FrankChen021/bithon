@@ -190,5 +190,17 @@ public class Tags {
         public static final String SYSTEM = "rpc.system";
 
         public static final String REQUEST_META_PREFIX = "rpc.grpc.request.metadata.";
+
+        /**
+         * https://opentelemetry.io/docs/specs/semconv/rpc/rpc-metrics/#metric-rpcserverrequestsize
+         */
+        public static final String RPC_SERVER_REQ_SIZE = "rpc.server.request.size";
+        public static final String RPC_SERVER_RSP_SIZE = "rpc.server.response.size";
+
+        /**
+         * https://opentelemetry.io/docs/specs/semconv/rpc/rpc-metrics/#metric-rpcclientrequestsize
+         */
+        public static final String RPC_CLIENT_REQ_SIZE = "rpc.client.request.size";
+        public static final String RPC_CLIENT_RSP_SIZE = "rpc.client.response.size";
     }
 }

@@ -18,6 +18,7 @@ package org.bithon.server.alerting.manager.api.parameter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 
 import java.util.List;
 
@@ -29,5 +30,5 @@ import java.util.List;
 @AllArgsConstructor
 public class GetAlertRecordListResponse {
     private Integer total;
-    private List<ListRecordBo> rows;
+    private List<AlertRecordObject> rows;
 }

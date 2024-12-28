@@ -86,7 +86,7 @@ CREATE TABLE `bithon_trace_span`
     `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Micro Second',
     `tags`          TEXT COMMENT 'Kept for compatibility',
-    `attributes`          TEXT COMMENT '',
+    `attributes`    TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
     KEY `idx_ts_1_traceId` (`traceId`), -- NOTE: jOOQ generates indexes in the alphabetic order not the declaration order
@@ -181,7 +181,7 @@ CREATE TABLE `bithon_web_dashboard`
 (
     `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
     `name`         VARCHAR(64)  NOT NULL COMMENT 'Name',
-    `payload`      TEXT NOT NULL COMMENT 'Schema in JSON',
+    `payload`      MEDIUMTEXT NOT NULL COMMENT 'Schema in JSON',
     `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of payload field, currently SHA256 is applied',
     `deleted`   INT NOT NULL COMMENT '',
     UNIQUE `idx_web_dashboard_name` (`name`),

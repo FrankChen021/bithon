@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.util.Collection;
 import java.util.Map;
@@ -40,4 +41,17 @@ public class NotificationMessage {
     private Map<String, ExpressionEvaluationResult> conditionEvaluation;
     private AlertRule alertRule;
     private Long lastAlertAt;
+    private AlertStatus status;
+
+    /**
+     * Exclusive
+     */
+    private long endTimestamp;
+
+    /**
+     * Images in Base64 encoding
+     * key: the alert expression id
+     * val: the Base64 encoded image
+     */
+    private Map<String, String> images;
 }

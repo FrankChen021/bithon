@@ -21,6 +21,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
+import java.time.Duration;
+
 /**
  * Mainly for development
  *
@@ -32,11 +34,14 @@ public class ConsoleNotificationChannel implements INotificationChannel {
 
     @Override
     public void send(NotificationMessage message) {
-        StringBuilder sb = new StringBuilder(">>>>>>>>>>>ALERT<<<<<<<<<<<<<<<\n");
+        StringBuilder sb = new StringBuilder(StringUtils.format(">>>>>>>>>>>%s<<<<<<<<<<<<<<<\n", message.getStatus()));
         sb.append(StringUtils.format("Name: %s\n", message.getAlertRule().getName()));
-        message.getConditionEvaluation().forEach((sn, cnd) -> {
-            sb.append(StringUtils.format("Expression %s: %s", sn, cnd.getOutputs()));
-        });
+        message.getConditionEvaluation().forEach((sn, cnd) -> sb.append(StringUtils.format("Expression %s: %s", sn, cnd.getOutputs())));
         log.info(sb.toString());
+    }
+
+    @Override
+    public void test(NotificationMessage message, Duration timeout) {
+        send(message);
     }
 }

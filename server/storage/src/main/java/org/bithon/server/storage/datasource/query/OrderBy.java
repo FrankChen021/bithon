@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.query.ast.OrderByClause;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,4 +33,8 @@ import lombok.NoArgsConstructor;
 public class OrderBy {
     private String name;
     private Order order;
+
+    public OrderByClause toOrderByClause() {
+        return new OrderByClause(name, order);
+    }
 }

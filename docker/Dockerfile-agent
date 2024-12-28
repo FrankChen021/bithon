@@ -23,12 +23,10 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 COPY . /src
 WORKDIR /src/shaded
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -ntp clean install
+RUN mvn -ntp clean install
 
 WORKDIR /src
-RUN --mount=type=cache,target=/root/.m2 \
-      mvn -ntp -P!server clean install -DskipTests
+RUN mvn -ntp -P!server clean install -DskipTests
 
 FROM amd64/busybox:1.30.0-glibc as busybox
 FROM gcr.io/distroless/java:8

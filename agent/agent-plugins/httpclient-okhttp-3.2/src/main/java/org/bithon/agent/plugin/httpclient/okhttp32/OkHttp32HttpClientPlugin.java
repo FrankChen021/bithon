@@ -36,15 +36,23 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
+            forClass("okhttp3.internal.io.RealConnection")
+                .onMethod("connect")
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
+                .build(),
+
+            // 3.2
             forClass("okhttp3.RealCall")
                 .onMethod("getResponseWithInterceptorChain")
                 .andArgs("boolean")
                 .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 .build(),
 
-            forClass("okhttp3.internal.io.RealConnection")
-                .onMethod("connect")
-                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealConnection$Connect")
+            // 3.12
+            forClass("okhttp3.RealCall")
+                .onMethod("getResponseWithInterceptorChain")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 .build(),
 
             // 4.4+

@@ -24,6 +24,9 @@ import org.bithon.server.commons.time.TimeSpan;
  */
 public interface IEvaluationOutput {
 
+    /**
+     * start time of the current evaluation period
+     */
     TimeSpan getStart();
     TimeSpan getEnd();
 

@@ -39,6 +39,7 @@ import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,21 +53,16 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
     @Getter
     private final long offset;
 
-    private final Number threshold;
-
-    @Getter
-    private final boolean isUp;
+    protected final Number threshold;
 
     public AbstractRelativeThresholdPredicate(Number threshold,
-                                              HumanReadableDuration offset,
-                                              boolean isUp) {
+                                              HumanReadableDuration offset) {
         Preconditions.checkArgumentNotNull("offset", offset);
 
         // duration is a negative value, we turn it into a positive one
         this.offset = -offset.getDuration().getSeconds();
 
         this.threshold = Preconditions.checkArgumentNotNull("threshold", threshold);
-        this.isUp = isUp;
     }
 
     @Override
@@ -76,14 +72,15 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                                       TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy, EvaluationContext context) throws IOException {
+                                      Set<String> groupBy,
+                                      EvaluationContext context) throws IOException {
 
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
+                                                                                            .startISO8601(start.toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
                                                                    .filterExpression(filterExpression)
                                                                    .fields(Collections.singletonList(metric))
                                                                    .build());
@@ -102,9 +99,9 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         response = dataSourceApi.groupBy(QueryRequest.builder()
                                                      .dataSource(dataSource)
                                                      .interval(IntervalRequest.builder()
-                                                                                     .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                                     .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                                     .build())
+                                                                              .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                              .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                              .build())
                                                      .filterExpression(filterExpression)
                                                      .fields(Collections.singletonList(metric))
                                                      .groupBy(groupBy)
@@ -123,22 +120,12 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         BigDecimal baseValue = NumberUtils.scaleTo(val.doubleValue(), 2);
 
         double delta;
-        if (isUp) {
-            if (threshold instanceof HumanReadablePercentage) {
-                delta = ZERO.equals(baseValue)
-                    ? currWindowValue.subtract(baseValue).doubleValue()
-                    : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
-            } else {
-                delta = currWindowValue.subtract(baseValue).doubleValue();
-            }
+        if (threshold instanceof HumanReadablePercentage) {
+            delta = ZERO.equals(baseValue)
+                ? currWindowValue.subtract(baseValue).doubleValue()
+                : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
         } else {
-            if (threshold instanceof HumanReadablePercentage) {
-                delta = ZERO.equals(baseValue)
-                    ? currWindowValue.subtract(baseValue).doubleValue()
-                    : baseValue.subtract(currWindowValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
-            } else {
-                delta = currWindowValue.subtract(baseValue).doubleValue();
-            }
+            delta = currWindowValue.subtract(baseValue).doubleValue();
         }
 
         RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput();
@@ -154,9 +141,4 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
     }
 
     protected abstract boolean matches(double delta, double threshold);
-
-    @Override
-    public String toString() {
-        return (isUp ? ">" : "<") + " " + threshold.toString();
-    }
 }

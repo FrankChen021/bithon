@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.StringEntity;
@@ -44,9 +45,13 @@ import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -104,6 +109,13 @@ public class HttpNotificationChannel implements INotificationChannel {
         this.props = Preconditions.checkNotNull(props, "props property can not be null.");
         Preconditions.checkIfTrue(!StringUtils.isBlank(this.props.url), "The url property can not be empty");
 
+        try {
+            URL url = new URL(props.url.trim());
+            Preconditions.checkIfTrue(!StringUtils.isEmpty(url.getHost()), "Invalid URL: %s. Missing host", props.url);
+        } catch (MalformedURLException e) {
+            throw new Preconditions.InvalidValueException("Invalid URL: %s", props.url);
+        }
+
         this.props.url = props.url.trim();
         this.props.headers = props.headers == null ? Collections.emptyMap() : props.headers;
 
@@ -112,39 +124,69 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     @Override
     public void send(NotificationMessage message) throws IOException {
-        String defaultMessage;
-        if (message.getExpressions().size() == 1) {
-            ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-            defaultMessage = StringUtils.format("expected: %s, current: %s",
-                                                result.getOutputs().getThreshold(),
-                                                result.getOutputs().getCurrent());
-        } else {
-            defaultMessage = message.getConditionEvaluation()
-                                    .entrySet()
-                                    .stream()
-                                    .map((entry) -> {
-                                        AlertExpression evaluatedExpression = message.getExpressions()
-                                                                                     .stream()
-                                                                                     .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                     .findFirst()
-                                                                                     .orElse(null);
+        send(message, Duration.ofSeconds(30));
+    }
 
-                                        ExpressionEvaluationResult result = entry.getValue();
-                                        return StringUtils.format("expr: %s, expected: %s, current: %s",
-                                                                  evaluatedExpression.serializeToText(),
-                                                                  result.getOutputs().getThreshold(),
-                                                                  result.getOutputs().getCurrent());
-                                    })
-                                    .collect(Collectors.joining("\n"));
+    @Override
+    public void test(NotificationMessage message, Duration timeout) throws Exception {
+        send(message, timeout);
+    }
+
+    private void send(NotificationMessage message, Duration timeout) throws IOException {
+        String messageBody = StringUtils.hasText(message.getAlertRule().getNotificationProps().getMessage()) ?
+            message.getAlertRule().getNotificationProps().getMessage()
+            : this.props.body;
+
+        messageBody = messageBody.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
+                                 .replace("{alert.name}", message.getAlertRule().getName())
+                                 .replace("{alert.expr}", message.getAlertRule().getExpr())
+                                 .replace("{alert.url}", getURL(message))
+                                 .replace("{alert.status}", message.getStatus().name());
+
+        String evaluationMessage = "";
+        if (message.getStatus() == AlertStatus.ALERTING) {
+            if (message.getExpressions().size() == 1) {
+                ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+                evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
+                                                       result.getOutputs().getThreshold(),
+                                                       result.getOutputs().getCurrent(),
+                                                       result.getOutputs().getDelta());
+            } else {
+                evaluationMessage = message.getConditionEvaluation()
+                                           .entrySet()
+                                           .stream()
+                                           .map((entry) -> {
+                                               AlertExpression evaluatedExpression = message.getExpressions()
+                                                                                            .stream()
+                                                                                            .filter((expr) -> expr.getId().equals(entry.getKey()))
+                                                                                            .findFirst()
+                                                                                            .orElse(null);
+
+                                               ExpressionEvaluationResult result = entry.getValue();
+                                               return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
+                                                                         evaluatedExpression.serializeToText(),
+                                                                         result.getOutputs().getThreshold(),
+                                                                         result.getOutputs().getCurrent(),
+                                                                         result.getOutputs().getDelta());
+                                           })
+                                           .collect(Collectors.joining("\n"));
+            }
         }
-        String body = this.props.body.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
-                                     .replace("{alert.name}", message.getAlertRule().getName())
-                                     .replace("{alert.expr}", message.getAlertRule().getExpr())
-                                     .replace("{alert.url}", getURL(message))
-                                     .replace("{alert.message}", defaultMessage);
-        AbstractHttpEntity bodyEntity = serializeRequestBody(body);
+        messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 
-        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+        // duration text
+        long durationMinutes = message.getAlertRule().getEvery().getDuration().toMinutes() * message.getAlertRule().getForTimes();
+        messageBody = messageBody.replace("{alert.duration}", message.getStatus() == AlertStatus.ALERTING ? "Lasting for " + durationMinutes + " minutes" : "");
+
+        sendHttp(timeout, serializeRequestBody(messageBody));
+    }
+
+    protected void sendHttp(Duration timeout, AbstractHttpEntity bodyEntity) throws IOException {
+        RequestConfig requestConfig = RequestConfig.custom()
+                                                   .setSocketTimeout((int) timeout.toMillis())
+                                                   .setConnectTimeout(1000)
+                                                   .build();
+        try (CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             HttpPost request = new HttpPost(this.props.url);
 
             // Custom headers
@@ -178,19 +220,34 @@ public class HttpNotificationChannel implements INotificationChannel {
                '}';
     }
 
-    protected AbstractHttpEntity serializeRequestBody(String body) throws IOException {
+    protected AbstractHttpEntity serializeRequestBody(String body) {
         return new StringEntity(body, StandardCharsets.UTF_8);
     }
 
     private String getURL(NotificationMessage message) {
-        String url = notificationProperties.getManagerURL();
-        if (StringUtils.isBlank(url)) {
-            return "";
+        String host = notificationProperties.getManagerURL();
+        if (StringUtils.isBlank(host)) {
+            host = notificationProperties.getManagerHost();
+        }
+        if (host == null) {
+            host = "http://localhost:9897/";
+        }
+        if (!host.endsWith("/")) {
+            host += "/";
         }
 
-        return url
-               + (url.endsWith("/") ? "" : "/")
-               + "web/alerting/record/detail?id="
-               + message.getAlertRecordId();
+        String path = notificationProperties.getDetailPath();
+        if (StringUtils.isBlank(path)) {
+            path = "web/alerting/record/detail?recordId={id}";
+        } else {
+            // Make sure the path does not start with '/'
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+        }
+        path = path.replace("{ruleId}", message.getAlertRule().getId());
+        path = path.replace("{id}", message.getAlertRecordId());
+
+        return host + path;
     }
 }

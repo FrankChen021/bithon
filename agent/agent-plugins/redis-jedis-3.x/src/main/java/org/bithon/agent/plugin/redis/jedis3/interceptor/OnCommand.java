@@ -25,7 +25,6 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
@@ -50,7 +49,7 @@ public class OnCommand extends AroundInterceptor {
     public InterceptionDecision before(AopContext aopContext) throws Exception {
         Jedis jedis = aopContext.getTargetAs();
         String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
-        long db = jedis.getDB();
+        long db = jedis.getClient().getDB();
 
         String command = aopContext.getMethod().toUpperCase(Locale.ENGLISH);
 
@@ -59,17 +58,14 @@ public class OnCommand extends AroundInterceptor {
 
         if (!ignoreCommands.contains(command)) {
             ITraceSpan span = TraceContextFactory.newSpan("jedis");
-            if (span == null) {
-                return InterceptionDecision.SKIP_LEAVE;
+            if (span != null) {
+                aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), command)
+                                       .kind(SpanKind.CLIENT)
+                                       .tag(Tags.Net.PEER, hostAndPort)
+                                       .tag(Tags.Database.REDIS_DB_INDEX, db)
+                                       .tag(Tags.Database.SYSTEM, "redis")
+                                       .start());
             }
-
-            Client redisClient = aopContext.getTargetAs();
-            aopContext.setSpan(span.method(aopContext.getTargetClass().getName(), command)
-                                   .kind(SpanKind.CLIENT)
-                                   .tag(Tags.Net.PEER, redisClient.getHost() + ":" + redisClient.getPort())
-                                   .tag(Tags.Database.REDIS_DB_INDEX, db)
-                                   .tag(Tags.Database.SYSTEM, "redis")
-                                   .start());
         }
 
         return InterceptionDecision.CONTINUE;
@@ -82,9 +78,10 @@ public class OnCommand extends AroundInterceptor {
             span.tag(aopContext.getException()).finish();
         }
 
-        JedisContext ctx = InterceptorContext.remove("redis-command");
+        JedisContext ctx = InterceptorContext.getAs("redis-command");
         if (ctx != null) {
             ctx.getMetrics().addRequest(aopContext.getExecutionTime(), aopContext.hasException() ? 1 : 0);
         }
+        InterceptorContext.remove("redis-command");
     }
 }

@@ -17,10 +17,10 @@
 package org.bithon.server.web.service.datasource.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:19 下午
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
@@ -99,7 +100,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                     180L,
                                                     TimeUnit.SECONDS,
                                                     new SynchronousQueue<>(),
-                                                    NamedThreadFactory.of("datasource-async"));
+                                                    NamedThreadFactory.nonDaemonThreadFactory("datasource-async"));
         this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 
@@ -110,6 +111,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, false, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
+                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -124,6 +126,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
+                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -133,12 +136,9 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public QueryResponse list(QueryRequest request) throws IOException {
-        Preconditions.checkNotNull(request.getLimit(), "'limit' should not be NULL.");
-        Preconditions.checkIfTrue(CollectionUtils.isEmpty(request.getGroupBy()), "'groupBy' MUST be empty for list query.");
-
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, false, false);
+        Query query = QueryConverter.toSelectQuery(schema, request);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
 
@@ -149,7 +149,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<List<?>> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we create a new AST
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
@@ -158,6 +158,10 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
+                                    .meta(query.getSelectors()
+                                               .stream()
+                                               .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName()))
+                                               .toList())
                                     .total(total.get())
                                     .limit(query.getLimit())
                                     .data(list.get())
@@ -165,9 +169,11 @@ public class DataSourceApi implements IDataSourceApi {
                                     .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();
             } catch (ExecutionException e) {
+                String message = "Failed to execute the query: " + e.getCause().getMessage();
+                log.error(message, e.getCause());
                 throw new HttpMappableException(e.getCause(),
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                "Unexpected exception occurred");
+                                                message);
             } catch (InterruptedException e) {
                 throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
             }
@@ -181,6 +187,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, false, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
+                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))
@@ -195,6 +202,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, true, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
+                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))

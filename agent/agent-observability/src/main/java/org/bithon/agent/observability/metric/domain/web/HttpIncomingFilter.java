@@ -23,6 +23,7 @@ import org.bithon.agent.observability.utils.filter.StringSuffixMatcher;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -41,12 +42,23 @@ public class HttpIncomingFilter {
         @JsonProperty
         private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg,.map";
 
+        @JsonProperty
+        private String endpoints = "";
+
         public String getSuffixes() {
             return suffixes;
         }
 
         public void setSuffixes(String s) {
             suffixes = s;
+        }
+
+        public String getEndpoints() {
+            return endpoints;
+        }
+
+        public void setEndpoints(String endpoints) {
+            this.endpoints = endpoints;
         }
     }
 
@@ -61,6 +73,7 @@ public class HttpIncomingFilter {
     }
 
     private final Set<String> dotSuffix;
+    private final Set<String> endpoints;
     private final List<IMatcher> uriMatchers;
     private final UserAgentFilterConfiguration userAgentConfig;
 
@@ -69,6 +82,9 @@ public class HttpIncomingFilter {
         {
             UriFilterConfiguration uriFilterConfig = ConfigurationManager.getInstance()
                                                                          .getConfig(UriFilterConfiguration.class);
+
+            endpoints = new HashSet<>();
+            endpoints.addAll(Arrays.asList(uriFilterConfig.getEndpoints().split(",")));
 
             dotSuffix = new HashSet<>();
             for (String suffix : uriFilterConfig.getSuffixes().split(",")) {
@@ -87,6 +103,11 @@ public class HttpIncomingFilter {
 
     public boolean shouldBeExcluded(String uri, String userAgent) {
         if (uri != null) {
+            for (String endpoint : endpoints) {
+                if (endpoint.equals(uri)) {
+                    return true;
+                }
+            }
             if (!dotSuffix.isEmpty()) {
                 int dotIndex = uri.lastIndexOf(".");
                 if (dotIndex >= 0) {
@@ -102,6 +123,7 @@ public class HttpIncomingFilter {
                 }
             }
         }
+
 
         if (userAgent != null) {
             for (IMatcher matcher : userAgentConfig.getMatchers()) {

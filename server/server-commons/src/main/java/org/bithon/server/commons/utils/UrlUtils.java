@@ -45,11 +45,15 @@ public class UrlUtils {
         }
 
         final Map<String, String> parsed = new TreeMap<>();
-        StringUtils.extractKeyValueParis(url, queryParameterIndex + 1, "&", "=", (k, v) -> {
-            if (retainParameters == null || retainParameters.isEmpty() || retainParameters.contains(k)) {
-                parsed.put(k, v);
-            }
-        });
+        StringUtils.extractKeyValueParis(url,
+                                         queryParameterIndex + 1,
+                                         "&",
+                                         "=",
+                                         (k, v) -> {
+                                             if (!k.isEmpty() && (retainParameters == null || retainParameters.isEmpty() || retainParameters.contains(k))) {
+                                                 parsed.put(k, v);
+                                             }
+                                         });
         return parsed;
     }
 

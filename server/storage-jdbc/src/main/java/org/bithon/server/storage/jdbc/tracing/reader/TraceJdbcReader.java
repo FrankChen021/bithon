@@ -34,7 +34,9 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
+import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -44,6 +46,7 @@ import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
+import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -55,6 +58,7 @@ import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -110,10 +114,8 @@ public class TraceJdbcReader implements ITraceReader {
                                         List<IExpression> indexedTagFilter,
                                         Timestamp start,
                                         Timestamp end,
-                                        String orderBy,
-                                        Order order,
-                                        int pageNumber,
-                                        int pageSize) {
+                                        OrderBy orderBy,
+                                        Limit limit) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         Field<LocalDateTime> timestampField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.TIMESTAMP;
@@ -146,22 +148,27 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         Field<?> orderField;
-        if ("costTime".equals(orderBy)) {
+        if ("costTime".equals(orderBy.getName())) {
             orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.COSTTIMEMS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
-        } else if ("startTime".equals(orderBy)) {
+        } else if ("startTime".equals(orderBy.getName())) {
             orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
         } else {
-            orderField = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS;
+            orderField = Arrays.stream((isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY : Tables.BITHON_TRACE_SPAN).fields())
+                               .filter((f) -> f.getName().equals(orderBy.getName()))
+                               .findFirst().orElse(isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP : Tables.BITHON_TRACE_SPAN.COSTTIMEMS);
         }
+
         SelectSeekStep1<?, ?> orderedListQuery;
-        if (Order.desc.equals(order)) {
+        if (Order.desc.equals(orderBy.getOrder())) {
             orderedListQuery = listQuery.orderBy(orderField.desc());
         } else {
             orderedListQuery = listQuery.orderBy(orderField.asc());
         }
 
-        return dslContext.fetch(getSQL(orderedListQuery.offset(pageNumber * pageSize)
-                                                       .limit(pageSize)))
+        String sql = toSQL(orderedListQuery.offset(limit.getOffset())
+                                           .limit(limit.getLimit()));
+        log.info("Get trace list: {}", sql);
+        return dslContext.fetch(sql)
                          .map(this::toTraceSpan);
     }
 
@@ -170,7 +177,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                           List<IExpression> indexedTagFilter,
                                                           Timestamp start,
                                                           Timestamp end,
-                                                          int interval) {
+                                                          long interval) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         String timeBucket = sqlDialect.timeFloorExpression(new IdentifierExpression("timestamp"), interval);
@@ -216,7 +223,7 @@ public class TraceJdbcReader implements ITraceReader {
 
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
-        return dslContext.fetch(getSQL(sql))
+        return dslContext.fetch(decorateSQL(sql))
                          .intoMaps();
     }
 
@@ -257,15 +264,15 @@ public class TraceJdbcReader implements ITraceReader {
             }
         }
 
-        return ((Number) dslContext.fetchOne(getSQL(countQuery)).get(0)).intValue();
+        return ((Number) dslContext.fetchOne(toSQL(countQuery)).get(0)).intValue();
     }
 
     @SuppressWarnings("rawtypes")
-    private String getSQL(Select selectQuery) {
-        return getSQL(dslContext.renderInlined(selectQuery));
+    private String toSQL(Select selectQuery) {
+        return decorateSQL(dslContext.renderInlined(selectQuery));
     }
 
-    protected String getSQL(String sql) {
+    protected String decorateSQL(String sql) {
         return sql;
     }
 
@@ -354,7 +361,14 @@ public class TraceJdbcReader implements ITraceReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        return getDataSourceReader().timeseries(query);
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
+        return getTraceDistribution(splitter.getExpression(),
+                                    splitter.getIndexedTagFilters(),
+                                    query.getInterval().getStartTime().toTimestamp(),
+                                    query.getInterval().getEndTime().toTimestamp(),
+                                    query.getInterval().getStep().getSeconds());
     }
 
     @Override
@@ -363,13 +377,27 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> select(Query query) {
-        return getDataSourceReader().select(query);
+    public List<?> select(Query query) {
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
+        return getTraceList(splitter.getExpression(),
+                            splitter.getIndexedTagFilters(),
+                            query.getInterval().getStartTime().toTimestamp(),
+                            query.getInterval().getEndTime().toTimestamp(),
+                            query.getOrderBy(),
+                            query.getLimit());
     }
 
     @Override
     public int count(Query query) {
-        return getDataSourceReader().count(query);
+        TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
+        splitter.split(query.getFilter());
+
+        return getTraceListSize(splitter.getExpression(),
+                                splitter.getIndexedTagFilters(),
+                                query.getInterval().getStartTime().toTimestamp(),
+                                query.getInterval().getEndTime().toTimestamp());
     }
 
     @Override
@@ -401,7 +429,7 @@ public class TraceJdbcReader implements ITraceReader {
 
                 if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
                     if (right instanceof LiteralExpression) {
-                        String kindValue = (String) ((LiteralExpression) right).getValue();
+                        String kindValue = (String) ((LiteralExpression<?>) right).getValue();
                         isTrue = SpanKind.isRootSpan(kindValue);
                     }
                 }
@@ -427,12 +455,8 @@ public class TraceJdbcReader implements ITraceReader {
 
         @Override
         public boolean visit(LogicalExpression expression) {
-            if (expression instanceof LogicalExpression.NOT) {
-                // A little complicated to apply the optimization, ignore
-                return false;
-            }
-
-            return true;
+            // A little complicated to apply the optimization, ignore
+            return !(expression instanceof LogicalExpression.NOT);
         }
     }
 }

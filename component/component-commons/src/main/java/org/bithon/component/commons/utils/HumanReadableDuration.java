@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HumanReadableDuration extends Number {
     public static final HumanReadableDuration DURATION_1_MINUTE = HumanReadableDuration.of(1, TimeUnit.MINUTES);
-    public static final HumanReadableDuration DURATION_3_MINUTE = HumanReadableDuration.of(3, TimeUnit.MINUTES);
+    public static final HumanReadableDuration DURATION_30_MINUTE = HumanReadableDuration.of(30, TimeUnit.MINUTES);
 
     private final String text;
     private final Duration duration;

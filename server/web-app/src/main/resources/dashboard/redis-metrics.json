@@ -47,11 +47,10 @@
         "query": {
           "type": "groupBy",
           "fields": [
-            "uri",
-            "command",
             "qps",
             "totalCount"
           ],
+          "groupBy": ["uri", "command"],
           "orderBy": {
             "name": "totalCount",
             "order": "desc"

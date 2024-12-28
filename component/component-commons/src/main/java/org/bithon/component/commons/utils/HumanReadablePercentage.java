@@ -24,8 +24,12 @@ import java.util.Objects;
  */
 public class HumanReadablePercentage extends Number {
 
-    public static HumanReadablePercentage parse(String readableText) {
+    public static HumanReadablePercentage of(String readableText) {
         return new HumanReadablePercentage(readableText);
+    }
+
+    public static HumanReadablePercentage of(double fraction) {
+        return new HumanReadablePercentage(fraction);
     }
 
     private final double fraction;

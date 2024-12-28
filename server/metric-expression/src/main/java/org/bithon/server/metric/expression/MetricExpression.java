@@ -35,12 +35,11 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
- *
  * <p>
  * Absolute comparison
  * avg by (a) (data-source.metric{dim1 = 'x'}) > 0.5
@@ -65,7 +64,7 @@ public class MetricExpression implements IExpression {
     private HumanReadableDuration window;
 
     @Nullable
-    private List<String> groupBy;
+    private Set<String> groupBy;
 
     /**
      * Post filter
@@ -73,8 +72,12 @@ public class MetricExpression implements IExpression {
     private PredicateEnum predicate;
     private LiteralExpression expected;
 
+    /**
+     * The offset time duration of the expected value.
+     * MUST be a negative value
+     */
     @Nullable
-    private HumanReadableDuration expectedWindow = null;
+    private HumanReadableDuration offset = null;
 
     /**
      * Runtime properties
@@ -86,7 +89,7 @@ public class MetricExpression implements IExpression {
         this.labelSelectorExpression = labelSelectorExpression;
 
         // The where property holds the internal expression that will be passed to the query module
-        this.whereText = labelSelectorExpression == null ? null : labelSelectorExpression.serializeToText(null);
+        this.whereText = labelSelectorExpression == null ? null : new SqlStyleSerializer().serialize(labelSelectorExpression);
 
         // This variable holds the raw text
         this.labelSelectorText = labelSelectorExpression == null ? "" : "{" + new LabelSelectorExpressionSerializer().serialize(labelSelectorExpression) + "}";
@@ -128,13 +131,31 @@ public class MetricExpression implements IExpression {
             sb.append(predicate);
             sb.append(' ');
             sb.append(expected);
-            if (expectedWindow != null) {
+            if (offset != null) {
                 sb.append('[');
-                sb.append(expectedWindow);
+                sb.append(offset);
                 sb.append(']');
             }
         }
         return sb.toString();
+    }
+
+    static class SqlStyleSerializer extends ExpressionSerializer {
+        public SqlStyleSerializer() {
+            super(null);
+        }
+
+        @Override
+        public boolean visit(LiteralExpression<?> expression) {
+            if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
+                sb.append('\'');
+                sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '\''));
+                sb.append('\'');
+            } else {
+                sb.append(expression.getValue());
+            }
+            return false;
+        }
     }
 
     static class LabelSelectorExpressionSerializer extends ExpressionSerializer {
@@ -156,14 +177,13 @@ public class MetricExpression implements IExpression {
 
         // Use double quote to serialize the expression by default
         @Override
-        public boolean visit(LiteralExpression expression) {
-            Object value = expression.getValue();
-            if (expression instanceof LiteralExpression.StringLiteral) {
+        public boolean visit(LiteralExpression<?> expression) {
+            if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('"');
-                sb.append(value);
+                sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '"'));
                 sb.append('"');
             } else {
-                sb.append(value);
+                sb.append(expression.getValue());
             }
             return false;
         }

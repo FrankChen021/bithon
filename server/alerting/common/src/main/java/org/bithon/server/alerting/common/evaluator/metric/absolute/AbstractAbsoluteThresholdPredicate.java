@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -88,17 +89,18 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
     @Override
     public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
-                                      QueryField metric, TimeSpan start,
+                                      QueryField metric,
+                                      TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy,
+                                      Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
+                                                                                            .startISO8601(start.toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
                                                                    .filterExpression(filterExpression)
                                                                    .fields(Collections.singletonList(metric))
                                                                    .groupBy(groupBy)

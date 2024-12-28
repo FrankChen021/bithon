@@ -18,7 +18,7 @@ package org.bithon.server.commons.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.util.StringUtils;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -76,7 +76,7 @@ public class DbUtils {
                         hostAndPort = hostAndPort.substring(0, separator);
                     }
                     return new ConnectionString(hostAndPort,
-                                                path.isEmpty() ? "" : path.substring(1),
+                                                StringUtils.isEmpty(path) ? "" : path.substring(1),
                                                 "mysql");
                 }
 
@@ -90,7 +90,7 @@ public class DbUtils {
                         uri = new URI(connectionString.substring(uri.getScheme().length() + 1));
                     }
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
-                                                uri.getPath().substring(1),
+                                                StringUtils.isEmpty(uri.getPath()) ? "" : uri.getPath().substring(1),
                                                 "clickhouse");
                 default:
                     throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown schema of Connection String: [%s]",

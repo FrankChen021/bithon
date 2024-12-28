@@ -30,4 +30,5 @@ public class NotificationChannelObject {
     private String name;
     private String payload;
     private Timestamp createdAt;
+    private Timestamp updatedAt;
 }

@@ -8,7 +8,11 @@
         "type": "datasource",
         "name": "http-incoming-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
           "instanceName",
           "method",
           "uri",
@@ -51,11 +55,13 @@
         "query": {
           "dataSource": "http-incoming-metrics",
           "fields": [
-            "method",
-            "uri",
-            "statusCode",
             "qps",
             "totalCount"
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
           ],
           "orderBy": {
             "name": "totalCount",
@@ -81,7 +87,11 @@
           "format": "nanoFormatter"
         }
       ],
-      "columns": ["minResponseTime", "avgResponseTime", "maxResponseTime"],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "timeseries",
@@ -97,21 +107,32 @@
           "uri",
           "statusCode",
           "totalCount",
-          {"name": "minResponseTime", "format": "nanoFormatter"},
-          {"name":"avgResponseTime",  "format": "nanoFormatter"},
-          {"name": "maxResponseTime", "format": "nanoFormatter"}
+          {
+            "name": "minResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "avgResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "maxResponseTime",
+            "format": "nanoFormatter"
+          }
         ],
         "query": {
           "dataSource": "http-incoming-metrics",
           "type": "groupBy",
           "fields": [
-            "method",
-            "uri",
-            "statusCode",
             "totalCount",
             "minResponseTime",
             "avgResponseTime",
             "maxResponseTime"
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
           ],
           "orderBy": {
             "name": "avgResponseTime",
@@ -159,10 +180,12 @@
         "query": {
           "type": "groupBy",
           "fields": [
+            "totalCount"
+          ],
+          "groupBy": [
             "method",
             "uri",
-            "statusCode",
-            "totalCount"
+            "statusCode"
           ],
           "orderBy": {
             "name": "totalCount",
@@ -220,18 +243,26 @@
           "uri",
           "statusCode",
           "totalCount",
-          {"name":"requestByteRate","format": "byte_rate"},
-          {"name":"responseByteRate","format": "byte_rate"}
+          {
+            "name": "requestByteRate",
+            "format": "byte_rate"
+          },
+          {
+            "name": "responseByteRate",
+            "format": "byte_rate"
+          }
         ],
         "query": {
           "type": "groupBy",
           "fields": [
-            "method",
-            "uri",
-            "statusCode",
             "totalCount",
             "requestByteRate",
             "responseByteRate"
+          ],
+          "groupBy": [
+            "method",
+            "uri",
+            "statusCode"
           ],
           "orderBy": {
             "name": "requestByteRate",

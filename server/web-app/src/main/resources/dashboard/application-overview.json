@@ -61,8 +61,6 @@
         "dataSource": "jvm-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
-          "instanceName",
           "processors",
           "instanceStartTime",
           "instanceUpTime",
@@ -72,6 +70,10 @@
           },
           "heapMax",
           "processCpuLoad"
+        ],
+        "groupBy": [
+          "appName",
+          "instanceName"
         ],
         "orderBy": {
           "name": "instanceUpTime",
@@ -85,7 +87,7 @@
       }
     },
     {
-      "title": "Top 10 Incoming HTTP Requests",
+      "title": "Top 10 QPS Incoming HTTP Requests",
       "width": 4,
       "type": "table",
       "columns": [
@@ -98,6 +100,38 @@
         {
           "name": "totalCount",
           "format": "compact_number"
+        }
+      ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "groupBy",
+        "fields": [
+          "uri",
+          "qps",
+          "totalCount"
+        ],
+        "limit": "10",
+        "groupBy": ["appName", "uri"],
+        "orderBy": {
+          "name": "totalCount",
+          "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Top 10 Error Incoming HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        {
+          "name": "uri",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
         },
         {
           "name": "errorCount",
@@ -106,6 +140,42 @@
         {
           "name": "errorRate",
           "format": "percentage"
+        }
+      ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "groupBy",
+        "fields": [
+          "uri",
+          "errorCount",
+          {
+            "name": "errorRate",
+            "expression": "round(sum(errorCount)*100.0/sum(totalCount), 2)"
+          }
+        ],
+        "groupBy": ["appName", "uri"],
+        "limit": "10",
+        "orderBy": {
+          "name": "errorCount",
+          "order": "desc"
+        },
+        "filter": "errorCount > 0",
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Top 10 Slowest Incoming HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        {
+          "name": "uri",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
         },
         {
           "name": "avgResponseTime",
@@ -116,20 +186,13 @@
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
           "uri",
-          "qps",
-          "totalCount",
-          "errorCount",
-          {
-            "name": "errorRate",
-            "expression": "round(sum(errorCount)*100.0/sum(totalCount), 2)"
-          },
           "avgResponseTime"
         ],
+        "groupBy": ["appName","uri"],
         "limit": "10",
         "orderBy": {
-          "name": "totalCount",
+          "name": "avgResponseTime",
           "order": "desc"
         },
         "precondition": {
@@ -172,8 +235,6 @@
         "dataSource": "http-outgoing-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
-          "path",
           "qps",
           "requestCount",
           {
@@ -186,6 +247,7 @@
           },
           "avgResponseTime"
         ],
+        "groupBy": ["appName", "path"],
         "limit": "10",
         "orderBy": {
           "name": "requestCount",
@@ -217,11 +279,11 @@
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
-          "appName",
           "exceptionClass",
           "eventCount"
         ],
         "limit": 10,
+        "groupBy": ["appName", "exceptionClass"],
         "orderBy": {
           "name": "eventCount",
           "order": "desc"

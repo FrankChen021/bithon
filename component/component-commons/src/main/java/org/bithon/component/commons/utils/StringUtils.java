@@ -16,8 +16,6 @@
 
 package org.bithon.component.commons.utils;
 
-import org.bithon.component.commons.exception.HttpMappableException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +50,7 @@ public class StringUtils {
     }
 
     public static boolean hasText(String str) {
-        return (str != null && !str.isEmpty() && containsText(str));
+        return str != null && !str.isEmpty() && containsText(str);
     }
 
     public static boolean isEmpty(String v) {
@@ -64,8 +62,7 @@ public class StringUtils {
     }
 
     private static boolean containsText(CharSequence str) {
-        int strLen = str.length();
-        for (int i = 0; i < strLen; i++) {
+        for (int i = 0, len = str.length(); i < len; i++) {
             if (!Character.isWhitespace(str.charAt(i))) {
                 return true;
             }
@@ -79,9 +76,9 @@ public class StringUtils {
 
     public static String from(InputStream inputStream) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int length;
         byte[] buffer = new byte[1024];
-        while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
             bos.write(buffer, 0, length);
         }
         bos.flush();
@@ -184,52 +181,49 @@ public class StringUtils {
     }
 
     /**
-     * @param input      The input string that needs to be escaped.
-     *                   If the input has escaped character by using leading \ character,
-     *                   the escaped character will not be escaped again.
-     * @param escapeChar The character that is used to escape the single quote. Like ' or \
+     * For all character of toBeEscaped in the input, escape it with escapeCharacter.
      */
-    public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
-        int i = input.indexOf('\'');
-        if (i < 0) {
-            // If no single quote found, no escape is necessary
+    public static String escape(String input, char escapeCharacter, char toBeEscaped) {
+        if (input == null || input.isEmpty()) {
             return input;
         }
 
-        StringBuilder escaped = new StringBuilder(input.length() + 1);
-        {
-            // Processing from non-escape character
-            while (i > 0 && input.charAt(--i) == '\\') {
-            }
-            if (i > 0) {
-                // Before the slash character, there are characters
-                escaped.append(input, 0, i);
-            }
-
-            for (int size = input.length(); i < size; i++) {
-                char c = input.charAt(i);
-                if (c == '\\') {
-                    if (i + 1 == size) {
-                        throw new HttpMappableException(400,
-                                                        StringUtils.format("The string literal[%s] has ill-format escaping at the end of the string."));
-                    }
-                    char next = input.charAt(++i);
-                    if (next == '\'') {
-                        escaped.append(escapeChar);
-                    } else {
-                        escaped.append('\\');
-                    }
-                    escaped.append(next);
-                } else if (c == '\'') {
-                    // Escape the single quote
-                    escaped.append(escapeChar);
-                    escaped.append(c);
-                } else {
-                    escaped.append(c);
-                }
+        int inputLength = input.length();
+        StringBuilder escaped = new StringBuilder(inputLength + 1);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+            if (c == toBeEscaped) {
+                escaped.append(escapeCharacter).append(c);
+            } else {
+                escaped.append(c);
             }
         }
         return escaped.toString();
+    }
+
+    public static String unEscape(String input, char escapeCharacter, char escaped) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        int inputLength = input.length();
+
+        StringBuilder unEscaped = new StringBuilder(inputLength);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+
+            if (c == escapeCharacter && i + 1 < inputLength) {
+                char next = input.charAt(i + 1);
+                if (next == escaped) {
+                    unEscaped.append(next);
+                    i++;
+                    continue;
+                }
+            }
+
+            unEscaped.append(c);
+        }
+        return unEscaped.toString();
     }
 
     public static Map<String, String> extractKeyValueParis(String kvPairs,

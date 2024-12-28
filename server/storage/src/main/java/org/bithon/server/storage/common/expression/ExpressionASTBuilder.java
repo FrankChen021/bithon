@@ -37,6 +37,7 @@ import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.IFunctionProvider;
+import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
 import org.bithon.component.commons.expression.validation.IIdentifier;
@@ -145,10 +146,10 @@ public class ExpressionASTBuilder {
         private void flattenLogicalExpression(List<IExpression> flattenList, int logicalOperatorType, IExpression subexpression) {
             if (subexpression instanceof LogicalExpression) {
                 String subExpressionLogicalOperator = ((LogicalExpression) subexpression).getOperator();
-                if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.equals(subExpressionLogicalOperator)) {
+                if (logicalOperatorType == ExpressionLexer.AND && LogicalExpression.AND.OP.equals(subExpressionLogicalOperator)) {
                     // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
-                } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.equals(subExpressionLogicalOperator)) {
+                } else if (logicalOperatorType == ExpressionLexer.OR && LogicalExpression.OR.OP.equals(subExpressionLogicalOperator)) {
                     // flatten when the parent and sub logical expression have the same operator
                     flattenList.addAll(((LogicalExpression) subexpression).getOperands());
                 } else {
@@ -357,6 +358,33 @@ public class ExpressionASTBuilder {
 
         @Override
         public IExpression visitLiteralExpressionDecl(ExpressionParser.LiteralExpressionDeclContext ctx) {
+            if (ctx.children.get(0) instanceof ExpressionParser.DurationLiteralContext durationLiteral) {
+                String durationText = durationLiteral.children.get(0).getText();
+                LiteralExpression.ReadableDurationLiteral duration = LiteralExpression.of(HumanReadableDuration.parse(durationText));
+
+                // If this expression has a converter,
+                // then the literal and its converted will be turned into a FunctionExpression for simplicity
+                if (durationLiteral.children.size() > 1) {
+                    String converter = durationLiteral.children.get(2).getText();
+                    if (converter.startsWith("toMilli")) {
+                        return new FunctionExpression(TimeFunction.ToMilliSeconds.INSTANCE, duration);
+                    }
+
+                    if (converter.startsWith("toMicro")) {
+                        return new FunctionExpression(TimeFunction.ToMicroSeconds.INSTANCE, duration);
+                    }
+
+                    if (converter.startsWith("toNano")) {
+                        return new FunctionExpression(TimeFunction.ToNanoSeconds.INSTANCE, duration);
+                    }
+
+                    // Should never reach here
+                    throw new InvalidExpressionException("unexpected converter [%s]", converter);
+                }
+
+                return duration;
+            }
+
             TerminalNode literal = ctx.getChild(TerminalNode.class, 0);
 
             return switch (literal.getSymbol().getType()) {
@@ -365,15 +393,13 @@ public class ExpressionASTBuilder {
                 case ExpressionLexer.DECIMAL_LITERAL ->
                     LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
                 case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.ofString(TokenUtils.getUnQuotedString(literal.getSymbol()));
+                    LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
                 case ExpressionLexer.BOOL_LITERAL ->
                     LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
                 case ExpressionLexer.READABLE_SIZE_LITERAL ->
                     LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
                 case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
-                    LiteralExpression.of(HumanReadablePercentage.parse(literal.getText()));
-                case ExpressionLexer.READABLE_DURATION_LITERAL ->
-                    LiteralExpression.of(HumanReadableDuration.parse(literal.getText()));
+                    LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };

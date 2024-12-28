@@ -56,4 +56,36 @@ public class DbUtilsTest {
         Assert.assertEquals("db", conn.getDatabase());
         Assert.assertEquals("mysql", conn.getDbType());
     }
+
+    @Test
+    public void test_ClickHouseConnectionString_NoDatabase() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:clickhouse://localhost:8123");
+        Assert.assertEquals("localhost:8123", conn.getHostAndPort());
+        Assert.assertEquals("", conn.getDatabase());
+        Assert.assertEquals("clickhouse", conn.getDbType());
+    }
+
+    @Test
+    public void test_ClickHouseConnectionString_WithHTTP() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:clickhouse:http://localhost:8123");
+        Assert.assertEquals("localhost:8123", conn.getHostAndPort());
+        Assert.assertEquals("", conn.getDatabase());
+        Assert.assertEquals("clickhouse", conn.getDbType());
+    }
+
+    @Test
+    public void test_ClickHouseConnectionString_HTTPS() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:clickhouse:https://localhost:403");
+        Assert.assertEquals("localhost:403", conn.getHostAndPort());
+        Assert.assertEquals("", conn.getDatabase());
+        Assert.assertEquals("clickhouse", conn.getDbType());
+    }
+
+    @Test
+    public void test_ClickHouseConnectionString_WithDatabase() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:clickhouse:https://localhost:403/bithon");
+        Assert.assertEquals("localhost:403", conn.getHostAndPort());
+        Assert.assertEquals("bithon", conn.getDatabase());
+        Assert.assertEquals("clickhouse", conn.getDbType());
+    }
 }
