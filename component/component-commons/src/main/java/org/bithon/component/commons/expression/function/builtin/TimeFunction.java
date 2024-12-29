@@ -123,8 +123,9 @@ public class TimeFunction {
         public static final FromUnixTimestamp INSTANCE = new FromUnixTimestamp();
 
         public FromUnixTimestamp() {
-            // TODO: Change the DateTime_3 to DateTime
-            super("fromUnixTimestamp", IDataType.LONG, IDataType.DATETIME_3);
+            // TODO: Change the DateTime_3 to DateTime since it returns datatime in second
+            // Currently it works because the return type is not used
+            super("fromUnixTimestamp", IDataType.LONG, IDataType.DATETIME_MILLI);
         }
 
         @Override

@@ -39,7 +39,7 @@ public class DateTimeColumn extends AbstractColumn {
     @JsonIgnore
     @Override
     public IDataType getDataType() {
-        return IDataType.DATETIME_3;
+        return IDataType.DATETIME_MILLI;
     }
 
     @Override

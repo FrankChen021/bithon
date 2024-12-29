@@ -187,7 +187,7 @@ public abstract class LiteralExpression<T> implements IExpression {
                     case STRING:
                         return this;
 
-                    case DATETIME_3: {
+                    case DATETIME_MILLI: {
                         try {
                             long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(value).getTime();
 
@@ -232,7 +232,7 @@ public abstract class LiteralExpression<T> implements IExpression {
                 case BOOLEAN:
                     return new LiteralExpression.BooleanLiteral(value != 0);
 
-                case DATETIME_3:
+                case DATETIME_MILLI:
                     return new TimestampLiteral(value);
 
                 default:
@@ -371,7 +371,7 @@ public abstract class LiteralExpression<T> implements IExpression {
 
         @Override
         public IDataType getDataType() {
-            return IDataType.DATETIME_3;
+            return IDataType.DATETIME_MILLI;
         }
 
         @Override

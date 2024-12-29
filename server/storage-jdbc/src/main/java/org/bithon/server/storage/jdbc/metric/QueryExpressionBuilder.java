@@ -742,18 +742,18 @@ public class QueryExpressionBuilder {
 
             // The timestamp calculation is pushed down to the window aggregation step if needed
             QueryExpression aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;
-            aggregationStep.getSelectorList().insert(expr, TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
+            aggregationStep.getSelectorList().insert(expr, TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
 
             // Always add the timestamp to the group-by clause of the aggregation step
             pipeline.aggregation.getGroupBy().addField(TimestampSpec.COLUMN_ALIAS);
             if (aggregationStep != pipeline.aggregation) {
                 // Add timestamp to the SELECT list of the aggregation step
-                pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
+                pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
             }
 
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
-                pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
+                pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
             }
         }
     }
