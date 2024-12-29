@@ -48,13 +48,16 @@ public class MySql8Plugin implements IPlugin {
             // mysql-connector 8
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")
                 .onMethod("execute")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatement$Execute")
 
                 .onMethod("executeQuery")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatement$Execute")
 
                 .onMethod("executeUpdate")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.mysql8.PreparedStatement$Execute")
                 .build(),
 
             //
@@ -78,19 +81,23 @@ public class MySql8Plugin implements IPlugin {
             forClass("com.mysql.cj.jdbc.StatementImpl")
                 .onMethod("executeInternal")
                 .andArgs("java.lang.String", "boolean")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementImpl$Execute")
 
                 .onMethod("executeQuery")
                 .andArgs("java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
-
-                .onMethod("executeUpdate")
-                .andArgs("java.lang.String", "boolean", "boolean")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementImpl$Execute")
 
                 .onMethod("executeUpdateInternal")
                 .andArgs("java.lang.String", "boolean", "boolean")
-                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementInterceptor")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementImpl$Execute")
+
+                /* TODO:
+                .onMethod("executeBatch")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementImpl$ExecuteBatch")
+
+                .onMethod("executeLargeBatch")
+                .interceptedBy("org.bithon.agent.plugin.mysql8.StatementImpl$ExecuteBatch")
+*/
                 .build()
         );
     }

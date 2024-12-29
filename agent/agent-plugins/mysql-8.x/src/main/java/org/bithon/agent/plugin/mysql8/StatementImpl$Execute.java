@@ -17,34 +17,62 @@
 package org.bithon.agent.plugin.mysql8;
 
 
+import com.mysql.cj.MysqlConnection;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.bithon.agent.observability.tracing.context.ITraceSpan;
+import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.utils.MiscUtils;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.sql.Statement;
 
 /**
  * @author frankchen
  */
-public class StatementInterceptor extends AroundInterceptor {
+public class StatementImpl$Execute extends AroundInterceptor {
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = (Statement) aopContext.getTarget();
 
-        // get the connection info before execution since the connection might be closed during execution
-        aopContext.setUserContext(MiscUtils.cleanupConnectionString(statement.getConnection()
+        String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
                                                                              .getMetaData()
-                                                                             .getURL()));
+                                                                             .getURL());
+
+        ITraceSpan span = TraceContextFactory.newSpan("mysql");
+        if (span != null) {
+            span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                .kind(SpanKind.CLIENT)
+                .tag(Tags.Database.SYSTEM, "mysql")
+                // We can't call getUser on getConnection().getMetaData() because it might issue a query to the server,
+                // which result in recursive call to this interceptor
+                .tag(Tags.Database.USER, ((MysqlConnection) statement.getConnection()).getUser())
+                .tag(Tags.Database.CONNECTION_STRING, connectionString)
+                .start();
+        }
+
+        // get the connection info before execution since the connection might be closed during execution
+        aopContext.setUserContext(connectionString);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void after(AopContext aopContext) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext != null) {
+            traceContext.currentSpan()
+                        .tag(Tags.Database.STATEMENT, aopContext.getArgs()[0])
+                        .finish();
+        }
+
         String connectionString = aopContext.getUserContext();
 
         SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
