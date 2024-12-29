@@ -44,6 +44,6 @@ public class DateTimeColumn extends AbstractColumn {
 
     @Override
     public Selector toSelector() {
-        return new Selector(getName());
+        return new Selector(getName(), getDataType());
     }
 }

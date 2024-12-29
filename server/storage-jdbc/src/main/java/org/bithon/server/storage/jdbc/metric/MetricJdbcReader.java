@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.metric;
 import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.Preconditions;
@@ -151,7 +152,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         QueryExpression queryExpression = new QueryExpression();
         queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         for (Selector selector : query.getSelectors()) {
-            queryExpression.getSelectorList().add(selector.getSelectExpression(), selector.getOutput());
+            queryExpression.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
         }
         queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
@@ -171,7 +172,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         QueryExpression queryExpression = new QueryExpression();
         queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        queryExpression.getSelectorList().add(new TextNode("count(1)"));
+        queryExpression.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
         queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         queryExpression.getWhere().and(sqlDialect.transform(query.getFilter()));
@@ -227,7 +228,7 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         QueryExpression queryExpression = new QueryExpression();
         queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        queryExpression.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension);
+        queryExpression.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
         queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         queryExpression.getWhere().and(sqlDialect.transform(query.getFilter()));

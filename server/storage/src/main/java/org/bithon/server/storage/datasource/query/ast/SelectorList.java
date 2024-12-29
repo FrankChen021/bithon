@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.IDataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,49 +45,42 @@ public class SelectorList implements IASTNode {
     /**
      * insert the column at first place
      */
-    public SelectorList insert(String columnName) {
-        this.selectors.add(0, new Selector(columnName));
+    public SelectorList insert(String columnName, IDataType dataType) {
+        this.selectors.add(0, new Selector(columnName, dataType));
         return this;
     }
 
     /**
      * insert the column at first place
      */
-    public SelectorList insert(IASTNode columnExpression) {
-        return insert(columnExpression, null);
+    public SelectorList insert(IASTNode columnExpression, IDataType dataType) {
+        return insert(columnExpression, null, dataType);
     }
 
-    public SelectorList insert(IASTNode columnExpression, String output) {
+    public SelectorList insert(IASTNode columnExpression, String output, IDataType dataType) {
         if (columnExpression instanceof Selector) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
-        selectors.add(0, new Selector(columnExpression, output));
+        selectors.add(0, new Selector(columnExpression, output, dataType));
         return this;
     }
 
-    public Selector add(IASTNode columnExpression) {
-        return add(columnExpression, (Alias) null);
+    public Selector add(IASTNode columnExpression, IDataType dataType) {
+        return add(columnExpression, (Alias) null, dataType);
     }
 
-    public Selector add(IASTNode columnExpression, String output) {
-        return add(columnExpression, new Alias(output));
+    public Selector add(IASTNode columnExpression, String output, IDataType dataType) {
+        return add(columnExpression, new Alias(output), dataType);
     }
 
-    public Selector add(IASTNode columnExpression, Alias output) {
+    public Selector add(IASTNode columnExpression, Alias output, IDataType dataType) {
         if (columnExpression instanceof Selector) {
             throw new RuntimeException("Can't add typeof ResultColumn");
         }
 
-        Selector selector = new Selector(columnExpression, output);
+        Selector selector = new Selector(columnExpression, output, dataType);
         selectors.add(selector);
         return selector;
-    }
-
-    public SelectorList addAll(List<String> columns) {
-        for (String column : columns) {
-            this.selectors.add(new Selector(column));
-        }
-        return this;
     }
 
     @Override

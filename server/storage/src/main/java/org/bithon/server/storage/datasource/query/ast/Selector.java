@@ -18,6 +18,7 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
@@ -45,28 +46,39 @@ public class Selector implements IASTNode {
     @Setter
     private Object tag;
 
-    public Selector(String name) {
-        this(new Column(name), (Alias) null);
+    private final IDataType dataType;
+
+    public Selector(String name, IDataType dataType) {
+        this(new Column(name), (Alias) null, dataType);
     }
 
-    public Selector(String name, String output) {
-        this(new Column(name), output == null ? null : new Alias(output));
+    public Selector(String name, String output, IDataType dataType) {
+        this(new Column(name), output == null ? null : new Alias(output), dataType);
     }
 
-    public Selector(IASTNode selectExpression, String output) {
-        this(selectExpression, output == null ? null : new Alias(output));
+    public Selector(IASTNode selectExpression, String output, IDataType dataType) {
+        this(selectExpression, output == null ? null : new Alias(output), dataType);
     }
 
-    public Selector(IASTNode selectExpression, Alias output) {
+    public Selector(Expression selectExpression, String output) {
+        this(selectExpression, output, selectExpression.getDataType());
+    }
+
+    public Selector(Expression selectExpression, Alias output) {
+        this(selectExpression, output, selectExpression.getDataType());
+    }
+
+    public Selector(IASTNode selectExpression, Alias output, IDataType dataType) {
         this.selectExpression = selectExpression;
         this.output = output;
+        this.dataType = dataType;
     }
 
     public Selector withOutput(String alias) {
         if (this.output != null && this.output.getName().equals(alias)) {
             return this;
         }
-        return new Selector(this.selectExpression, alias);
+        return new Selector(this.selectExpression, alias, this.dataType);
     }
 
     public String getOutputName() {

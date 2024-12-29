@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.column;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -77,9 +78,10 @@ public class ExpressionColumn implements IColumn {
 
     @Override
     public Selector toSelector() {
-        return new Selector(new Expression(this.expression), this.name);
+        return new Selector(new Expression(this.expression), this.name, this.valueType);
     }
 
+    @JsonIgnore
     @Override
     public IDataType getDataType() {
         return this.valueType;

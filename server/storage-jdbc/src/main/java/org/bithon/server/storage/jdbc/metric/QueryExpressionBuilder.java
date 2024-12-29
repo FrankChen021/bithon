@@ -20,6 +20,7 @@ import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -577,13 +578,13 @@ public class QueryExpressionBuilder {
 
                 String col = identifierExpression.getIdentifier();
                 String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
-                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output);
+                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output, IDataType.DOUBLE);
                 pipeline.aggregation.getSelectorList()
-                                    .add(new Column(aggregator.output))
+                                    .add(new Column(aggregator.output), IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)), aggregator.output)
+                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)), aggregator.output, IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
@@ -599,7 +600,7 @@ public class QueryExpressionBuilder {
         // All columns in the aggregation step must appear in the window aggregation step
         if (pipeline.windowAggregation != null) {
             for (String column : nonWindowAggregators) {
-                pipeline.windowAggregation.getSelectorList().add(new Column(column));
+                pipeline.windowAggregation.getSelectorList().add(new Column(column), IDataType.DOUBLE);
             }
         }
 
@@ -614,11 +615,11 @@ public class QueryExpressionBuilder {
                         // Try to eliminate Alias expression
                         String identifier = identifierExpression.getIdentifier();
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput())
+                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput(), IDataType.STRING)
                                                 .setTag(true);
                     } else {
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput())
+                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput(), IDataType.STRING)
                                                 .setTag(true);
                     }
                 }
@@ -690,7 +691,7 @@ public class QueryExpressionBuilder {
                 // some DBMS does not allow alias to be referenced in the WHERE clause,
                 // in such a case, a 'SELECT *' is added to the outermost query
                 QueryExpression query = new QueryExpression();
-                query.getSelectorList().add(new TextNode("*"));
+                query.getSelectorList().add(new TextNode("*"), IDataType.STRING);
                 query.getFrom().setExpression(pipeline.outermost);
 
                 if (sqlDialect.needTableAlias()) {
@@ -723,13 +724,13 @@ public class QueryExpressionBuilder {
             String groupBy = this.groupBy.get(i);
 
             if (pipeline.windowAggregation != null) {
-                pipeline.windowAggregation.getSelectorList().insert(new Column(groupBy));
+                pipeline.windowAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
             }
 
-            pipeline.aggregation.getSelectorList().insert(new Column(groupBy));
+            pipeline.aggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
 
             if (pipeline.postAggregation != null) {
-                pipeline.postAggregation.getSelectorList().insert(new Column(groupBy));
+                pipeline.postAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
             }
         }
 
@@ -741,18 +742,18 @@ public class QueryExpressionBuilder {
 
             // The timestamp calculation is pushed down to the window aggregation step if needed
             QueryExpression aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;
-            aggregationStep.getSelectorList().insert(expr, TimestampSpec.COLUMN_ALIAS);
+            aggregationStep.getSelectorList().insert(expr, TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
 
             // Always add the timestamp to the group-by clause of the aggregation step
             pipeline.aggregation.getGroupBy().addField(TimestampSpec.COLUMN_ALIAS);
             if (aggregationStep != pipeline.aggregation) {
                 // Add timestamp to the SELECT list of the aggregation step
-                pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
+                pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
             }
 
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
-                pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS);
+                pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_3);
             }
         }
     }

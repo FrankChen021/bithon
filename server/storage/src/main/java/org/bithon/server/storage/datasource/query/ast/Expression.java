@@ -18,6 +18,7 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
@@ -35,6 +36,10 @@ public class Expression implements IASTNode {
     @Getter
     @Setter
     private IExpression parsedExpression;
+
+    public IDataType getDataType() {
+        return parsedExpression.getDataType();
+    }
 
     public Expression(String expression) {
         this.expression = expression;
