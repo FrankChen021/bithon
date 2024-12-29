@@ -348,6 +348,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              AlertStateObject obj = new AlertStateObject();
                              obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
 
+                             String payload = record.get(Tables.BITHON_ALERT_STATE.PAYLOAD);
+                             if (payload != null && !payload.isEmpty()) {
+                                 try {
+                                     obj.setPayload(objectMapper.readValue(payload, AlertStateObject.Payload.class));
+                                 } catch (JsonProcessingException e) {
+                                     throw new RuntimeException(e);
+                                 }
+                             }
+
                              Object timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
                              // It's strange that the returned object is typeof Timestamp under H2
                              if (timestamp instanceof Timestamp) {
