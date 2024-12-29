@@ -52,6 +52,7 @@ public class AlertExpressionEvaluator {
                             return false;
                         }
                     }
+                    return true;
                 } else if (expression instanceof LogicalExpression.OR) {
                     return expression.getOperands().stream().anyMatch(e -> e.accept(this));
                 } else {
