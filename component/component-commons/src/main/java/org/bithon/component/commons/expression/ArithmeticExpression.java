@@ -153,6 +153,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         protected long evaluate(long v1, long v2) {
             return v1 / v2;
         }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
+        }
     }
 }
 
