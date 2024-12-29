@@ -92,6 +92,12 @@ public class DbUtils {
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 StringUtils.isEmpty(uri.getPath()) ? "" : uri.getPath().substring(1),
                                                 "clickhouse");
+
+                case "postgresql":
+                    return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
+                                                uri.getSchemeSpecificPart(),
+                                                "postgresql");
+
                 default:
                     throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown schema of Connection String: [%s]",
                                                              connectionString));

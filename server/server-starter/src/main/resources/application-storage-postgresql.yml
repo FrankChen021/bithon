@@ -5,7 +5,7 @@
 bithon:
   storage:
     tracing:
-      provider: h2-local
+      provider: postgres-local
       enabled: true
       ttl:
         enabled: true
@@ -16,64 +16,52 @@ bithon:
         map:
           "[http.method]": 1
     metric:
-      provider: h2-local
+      provider: postgres-local
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     event:
-      provider: h2-local
+      provider: postgres-local
       enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     meta:
-      provider: h2-local
+      provider: postgres-local
       enabled: true
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
     setting:
-      provider: h2-local
+      provider: postgres-local
       enabled: true
     web:
-      provider: h2-local
+      provider: postgres-local
 
     alerting:
       all:
-        provider: h2-local
+        provider: postgres-local
         ttl:
           enabled: true
           ttl: P1D
           cleanPeriod: PT3M
 
       log:
-        provider: h2-local
+        provider: postgres-local
         ttl:
           enabled: true
           ttl: P1D
           cleanPeriod: PT3M
 
     providers:
-      h2-local:
-        type: h2
-        url: jdbc:h2:mem:bithon;DB_CLOSE_DELAY=-1;MODE=mysql;
-        username: sa
+      postgres-local:
+        type: postgresql
+        url: jdbc:postgresql://localhost:5432/bithon
+        driverClassName: org.postgresql.Driver
+        username: root
+        password: root
 
-spring:
-  h2:
-    console:
-      enabled: true
-      path: /h2-ui
-      settings:
-        web-allow-others: true
-
-#
-# Suppress useless and boring error logging
-#
-logging:
-  level:
-    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF
