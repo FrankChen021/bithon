@@ -47,6 +47,15 @@ public class DruidPlugin implements IPlugin {
 
                 .onMethod("getStatValueAndReset")
                 .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetValueAndReset")
+
+                .onMethod("getConnectionInternal")
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSource$GetConnectionInternal")
+                .build(),
+
+            forClass("com.alibaba.druid.pool.DruidPooledConnection")
+                .onMethod("close")
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledConnection$Close")
                 .build(),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")

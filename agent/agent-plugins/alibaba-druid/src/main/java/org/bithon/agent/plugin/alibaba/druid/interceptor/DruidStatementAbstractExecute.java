@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
+import com.alibaba.druid.pool.DruidPooledConnection;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
@@ -23,14 +24,13 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.utils.MiscUtils;
+import org.bithon.agent.plugin.alibaba.druid.ConnectionContext;
 import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
-import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.util.Locale;
 
@@ -67,26 +67,20 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
     public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = aopContext.getTargetAs();
 
-        // TODO: cache the cleaned-up connection string in IBithonObject after connection object instantiation
-        // to improve performance
-        //
-        // Get connection string before a SQL execution
-        // In some cases, a connection might be aborted by server
-        // then, a getConnection() call would throw an exception saying that connection has been closed
-        DatabaseMetaData meta = statement.getConnection().getMetaData();
-        String connectionString = MiscUtils.cleanupConnectionString(meta.getURL());
+        DruidPooledConnection connection = (DruidPooledConnection) statement.getConnection();
+        ConnectionContext connectionContext = ConnectionContext.from(connection);
 
         ITraceSpan span = TraceContextFactory.newSpan("alibaba-druid");
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
-                .tag(Tags.Database.SYSTEM, meta.getDatabaseProductName().toLowerCase(Locale.ENGLISH))
-                .tag(Tags.Database.USER, meta.getUserName())
-                .tag(Tags.Database.CONNECTION_STRING, connectionString)
+                .tag(Tags.Database.SYSTEM, connection.getMetaData().getDatabaseProductName().toLowerCase(Locale.ENGLISH))
+                .tag(Tags.Database.USER, connectionContext.getUsername())
+                .tag(Tags.Database.CONNECTION_STRING, connectionContext.getConnectionString())
                 .start();
         }
 
-        aopContext.setUserContext(new UserContext(connectionString, span));
+        aopContext.setUserContext(new UserContext(connectionContext.getConnectionString(), span));
 
         return InterceptionDecision.CONTINUE;
     }
