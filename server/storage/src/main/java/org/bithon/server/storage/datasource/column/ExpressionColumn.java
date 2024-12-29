@@ -22,8 +22,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
@@ -45,6 +47,9 @@ public class ExpressionColumn implements IColumn {
 
     @Getter
     private final IDataType valueType;
+
+    @Setter
+    private DefaultSchema schema;
 
     @JsonCreator
     public ExpressionColumn(@JsonProperty("name") @NotNull String name,
@@ -78,7 +83,7 @@ public class ExpressionColumn implements IColumn {
 
     @Override
     public Selector toSelector() {
-        return new Selector(new Expression(this.expression), this.name, this.valueType);
+        return new Selector(new Expression(schema, this.expression), this.name, this.valueType);
     }
 
     @JsonIgnore

@@ -73,9 +73,7 @@ public class QueryConverter {
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
-
-                selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
-
+                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
                 continue;
             }
 
@@ -189,7 +187,7 @@ public class QueryConverter {
             if (field.getExpression() != null) {
                 // This is a client side passed post simple expression, NOT aggregation expression
                 // TODO: check if there's any aggregation function in the expression
-                selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
+                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
 
                 continue;
             }

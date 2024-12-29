@@ -499,7 +499,7 @@ public class QueryExpressionBuilder {
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression) {
-                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
 
                 if (parsedExpression instanceof FunctionExpression functionExpression) {
                     if (!functionExpression.getFunction().isAggregator()) {
@@ -517,7 +517,7 @@ public class QueryExpressionBuilder {
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression) {
-                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
 
                 // Replace all aggregator functions, examples:
                 // Case 1: sum(a) ===> a
@@ -609,7 +609,7 @@ public class QueryExpressionBuilder {
             for (Selector selector : this.selectors) {
                 IASTNode selectExpression = selector.getSelectExpression();
                 if (selectExpression instanceof Expression) {
-                    IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression(this.schema);
+                    IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
 
                     if (parsedExpression instanceof IdentifierExpression identifierExpression) {
                         // Try to eliminate Alias expression

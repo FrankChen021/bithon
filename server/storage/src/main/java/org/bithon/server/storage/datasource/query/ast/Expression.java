@@ -45,18 +45,20 @@ public class Expression implements IASTNode {
         this.expression = expression;
     }
 
+    public Expression(ISchema schema, String expression) {
+        this.expression = expression;
+        this.parsedExpression = ExpressionASTBuilder.builder()
+                                                    .functions(Functions.getInstance())
+                                                    .schema(schema)
+                                                    .build(expression);
+    }
+
     public Expression(IExpression expression) {
         this.expression = expression.serializeToText();
         this.parsedExpression = expression;
     }
 
-    public IExpression getParsedExpression(ISchema schema) {
-        if (this.parsedExpression == null) {
-            this.parsedExpression = ExpressionASTBuilder.builder()
-                                                        .functions(Functions.getInstance())
-                                                        .schema(schema)
-                                                        .build(expression);
-        }
+    public IExpression getParsedExpression() {
         return parsedExpression;
     }
 
