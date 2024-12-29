@@ -17,9 +17,8 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Getter;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.commons.time.TimeSpan;
-
-import java.util.List;
 
 /**
  * @author frankchen
@@ -63,13 +62,8 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     }
 
     @Override
-    public List<String> getLabelNames() {
-        return List.of();
-    }
-
-    @Override
-    public List<String> getLabelValues() {
-        return List.of();
+    public Labels getLabels() {
+        return null;
     }
 
     @Override

@@ -42,6 +42,7 @@ import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -58,6 +59,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -165,29 +167,37 @@ public class AlertEvaluator implements DisposableBean {
                 return;
             }
 
-            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatus();
-
             // Evaluate the alert rule
-            AlertStatus newStatus = evaluate(context, context.getPrevState());
+            Map<Labels, AlertStatus> allNewStatus = evaluate(context, context.getPrevState());
 
-            if (prevStatus.canTransitTo(newStatus)) {
-                context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+            // TODO: Find notifications to send
+            for (Map.Entry<Labels, AlertStatus> entry : allNewStatus.entrySet()) {
+                Labels labels = entry.getKey();
+                AlertStatus newStatus = entry.getValue();
+                AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(labels);
 
-                if (newStatus == AlertStatus.ALERTING) {
-                    // Fire and save alert record
-                    fireAlert(alertRule, context);
-                } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
-                    // Update alert status and resolve alert
-                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+                if (prevStatus.canTransitTo(newStatus)) {
+                    context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
 
-                    this.resolveAlert(alertRule, context);
+                    if (newStatus == AlertStatus.ALERTING) {
+                        // Fire and save alert record
+                        fireAlert(alertRule, context);
+                    } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
+                        // Update alert status and resolve alert
+                        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+
+                        this.resolveAlert(alertRule, context);
+                    } else {
+                        // Update alert status only
+                        this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+                    }
                 } else {
-                    // Update alert status only
-                    this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+                    context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
                 }
-            } else {
-                context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
             }
+
+            // TODO: update state storage
+
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
@@ -195,59 +205,7 @@ public class AlertEvaluator implements DisposableBean {
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
-    private INotificationApi createNotificationAsyncApi(ApplicationContext context) {
-        INotificationApi impl;
-
-        // The notification service is configured by auto-discovery
-        String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
-        if ("discovery".equalsIgnoreCase(service)) {
-            // Even the notification module is deployed with the evaluator module together,
-            // we still call the notification module via HTTP instead of direct API method calls in process
-            // So that it simulates the 'remote call' via discovered service
-            DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
-            impl = invoker.createUnicastApi(INotificationApi.class);
-        } else if (service.startsWith("http:") || service.startsWith("https:")) {
-            // The service is configured as a remote service at fixed address
-            // Create a feign client to call it
-            impl = Feign.builder()
-                        .contract(context.getBean(Contract.class))
-                        .encoder(context.getBean(Encoder.class))
-                        .decoder(context.getBean(Decoder.class))
-                        .target(INotificationApi.class, service);
-        } else {
-            throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
-        }
-
-        return new INotificationApi() {
-            // Cached thread pool
-            private final ThreadPoolExecutor notificationThreadPool = new ThreadPoolExecutor(1,
-                                                                                             10,
-                                                                                             3,
-                                                                                             TimeUnit.MINUTES,
-                                                                                             new SynchronousQueue<>(),
-                                                                                             NamedThreadFactory.nonDaemonThreadFactory("notification"),
-                                                                                             new ThreadPoolExecutor.CallerRunsPolicy());
-
-
-            @Override
-            public void notify(String name, NotificationMessage message) {
-                notificationThreadPool.execute(() -> {
-                    try {
-                        impl.notify(name, message);
-                    } catch (Exception e) {
-                        new EvaluationLogger(evaluationLogWriter).error(message.getAlertRule().getId(),
-                                                                        message.getAlertRule().getName(),
-                                                                        AlertEvaluator.class,
-                                                                        e,
-                                                                        "Failed to send notification to channel [%s]",
-                                                                        name);
-                    }
-                });
-            }
-        };
-    }
-
-    private AlertStatus evaluate(EvaluationContext context, AlertStateObject prevState) {
+    private Map<Labels, AlertStatus> evaluate(EvaluationContext context, AlertStateObject prevState) {
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
@@ -258,19 +216,33 @@ public class AlertEvaluator implements DisposableBean {
                         alertRule.getName());
 
             stateStorage.resetMatchCount(alertRule.getId());
+            // TODO: resolve all unresolved labels
             return AlertStatus.RESOLVED;
         }
         context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
 
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
-        // TODO: Change the return into List<Long>
-        long successiveCount = stateStorage.incrMatchCount(alertRule.getId(),
-                                                           context.getGroups(),
-                                                           alertRule.getEvery()
-                                                                    .getDuration()
-                                                                    // Add 30 seconds for margin
-                                                                    .plus(Duration.ofSeconds(30)));
+        Map<Labels, AlertStatus> alertStatus = new HashMap<>();
+        Map<Labels, Long> successiveCountList = stateStorage.incrMatchCount(alertRule.getId(),
+                                                                            context.getGroups(),
+                                                                            alertRule.getEvery()
+                                                                                     .getDuration()
+                                                                                     // Add 30 seconds for margin
+                                                                                     .plus(Duration.ofSeconds(30)));
+        for (Map.Entry<Labels, Long> entry : successiveCountList.entrySet()) {
+            Labels labels = entry.getKey();
+            long successiveCount = entry.getValue();
+
+            AlertStatus newStatus = getAlertStatus(context, prevState, successiveCount, expectedMatchCount, alertRule);
+
+            alertStatus.put(labels, newStatus);
+        }
+
+        return alertStatus;
+    }
+
+    private AlertStatus getAlertStatus(EvaluationContext context, AlertStateObject prevState, long successiveCount, long expectedMatchCount, AlertRule alertRule) {
         if (successiveCount >= expectedMatchCount) {
             stateStorage.resetMatchCount(alertRule.getId());
 
@@ -315,7 +287,6 @@ public class AlertEvaluator implements DisposableBean {
             return AlertStatus.PENDING;
         }
     }
-
 
     /**
      * Fire alert and update its status
@@ -447,5 +418,57 @@ public class AlertEvaluator implements DisposableBean {
     @Override
     public void destroy() throws Exception {
         this.evaluationLogWriter.close();
+    }
+
+    private INotificationApi createNotificationAsyncApi(ApplicationContext context) {
+        INotificationApi impl;
+
+        // The notification service is configured by auto-discovery
+        String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
+        if ("discovery".equalsIgnoreCase(service)) {
+            // Even the notification module is deployed with the evaluator module together,
+            // we still call the notification module via HTTP instead of direct API method calls in process
+            // So that it simulates the 'remote call' via discovered service
+            DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
+            impl = invoker.createUnicastApi(INotificationApi.class);
+        } else if (service.startsWith("http:") || service.startsWith("https:")) {
+            // The service is configured as a remote service at fixed address
+            // Create a feign client to call it
+            impl = Feign.builder()
+                        .contract(context.getBean(Contract.class))
+                        .encoder(context.getBean(Encoder.class))
+                        .decoder(context.getBean(Decoder.class))
+                        .target(INotificationApi.class, service);
+        } else {
+            throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
+        }
+
+        return new INotificationApi() {
+            // Cached thread pool
+            private final ThreadPoolExecutor notificationThreadPool = new ThreadPoolExecutor(1,
+                                                                                             10,
+                                                                                             3,
+                                                                                             TimeUnit.MINUTES,
+                                                                                             new SynchronousQueue<>(),
+                                                                                             NamedThreadFactory.nonDaemonThreadFactory("notification"),
+                                                                                             new ThreadPoolExecutor.CallerRunsPolicy());
+
+
+            @Override
+            public void notify(String name, NotificationMessage message) {
+                notificationThreadPool.execute(() -> {
+                    try {
+                        impl.notify(name, message);
+                    } catch (Exception e) {
+                        new EvaluationLogger(evaluationLogWriter).error(message.getAlertRule().getId(),
+                                                                        message.getAlertRule().getName(),
+                                                                        AlertEvaluator.class,
+                                                                        e,
+                                                                        "Failed to send notification to channel [%s]",
+                                                                        name);
+                    }
+                });
+            }
+        };
     }
 }

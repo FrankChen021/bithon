@@ -14,31 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.evaluator.result;
-
-import org.bithon.server.storage.alerting.Labels;
-import org.bithon.server.commons.time.TimeSpan;
+package org.bithon.server.storage.alerting;
 
 /**
+ * When an alert rule is based on GROUP-BY clause, this class holds the labels of a series
+ *
  * @author frank.chen021@outlook.com
- * @date 2020-08-25 15:48:07
+ * @date 2024/12/29 14:11
  */
-public interface IEvaluationOutput {
-
-    /**
-     * start time of the current evaluation period
-     */
-    TimeSpan getStart();
-    TimeSpan getEnd();
-
-    boolean isMatched();
-
-    /**
-     * If the evaluation is based on label (group-by semantics)
-     */
-    Labels getLabels();
-
-    String getThresholdText();
-    String getCurrentText();
-    String getDeltaText();
+public class Labels {
 }

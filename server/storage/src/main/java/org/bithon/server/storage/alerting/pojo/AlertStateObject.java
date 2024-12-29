@@ -17,8 +17,10 @@
 package org.bithon.server.storage.alerting.pojo;
 
 import lombok.Data;
+import org.bithon.server.storage.alerting.Labels;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,7 +28,25 @@ import java.time.LocalDateTime;
  */
 @Data
 public class AlertStateObject {
+
+    @Data
+    public static class Payload {
+        /**
+         * Status by labels
+         */
+        private Map<Labels, AlertStatus> status;
+    }
+
     private AlertStatus status;
     private LocalDateTime lastAlertAt;
     private String lastRecordId;
+    private Payload payload;
+
+    public AlertStatus getStatusByLabel(Labels labels) {
+        if (payload == null) {
+            return AlertStatus.READY;
+        }
+
+        return payload.status.getOrDefault(labels, AlertStatus.READY);
+    }
 }
