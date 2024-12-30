@@ -314,7 +314,7 @@ public class QueryExpressionBuilderTest {
     public void testExpressionInAggregation_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema,"sum(totalCount*2)"), new Alias("t"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount*2)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .dataSource(schema)
@@ -337,7 +337,7 @@ public class QueryExpressionBuilderTest {
     public void testSimpleAggregation_TimeSeries() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema,"sum(totalCount)"), new Alias("totalCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -496,7 +496,7 @@ public class QueryExpressionBuilderTest {
     public void testDuplicateAggregations() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new Expression(schema,"sum(count4xx) + sum(count5xx)"), new Alias("errorCount")),
+                                                                .fields(List.of(new Selector(new Expression(schema, "sum(count4xx) + sum(count5xx)"), new Alias("errorCount")),
                                                                                 new Selector(new Expression(schema, "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"), new Alias("errorRate"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
