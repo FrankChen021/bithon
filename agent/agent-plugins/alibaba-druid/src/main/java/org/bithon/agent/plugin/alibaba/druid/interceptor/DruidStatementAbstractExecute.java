@@ -17,7 +17,8 @@
 package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
-import org.bithon.agent.configuration.ConfigurationManager;
+import com.alibaba.druid.pool.DruidPooledStatement;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
@@ -25,7 +26,6 @@ import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.alibaba.druid.ConnectionContext;
-import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -49,19 +49,6 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
     }
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(DruidStatementAbstractExecute.class);
-
-    private final SqlMetricRegistry metricRegistry;
-    private final boolean isSQLMetricEnabled;
-
-    public DruidStatementAbstractExecute() {
-        DruidPluginConfig config = ConfigurationManager.getInstance().getConfig(DruidPluginConfig.class);
-        isSQLMetricEnabled = config.isSQLMetricEnabled();
-        if (isSQLMetricEnabled) {
-            metricRegistry = SqlMetricRegistry.get();
-        } else {
-            metricRegistry = null;
-        }
-    }
 
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
@@ -103,7 +90,13 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
             }
         }
 
-        if (context.uri != null && isSQLMetricEnabled) {
+        DruidPooledStatement druidStatement = aopContext.getTargetAs();
+        boolean isInstrumented = druidStatement.getStatement() instanceof IBithonObject;
+
+        if (context.uri != null
+            // Record the metrics at the druid connection pool level
+            // if the underlying JDBC has not been supported manually for metrics
+            && !isInstrumented) {
 
             String methodName = aopContext.getMethod();
 
@@ -124,7 +117,8 @@ public abstract class DruidStatementAbstractExecute extends AroundInterceptor {
                 log.warn("unknown method intercepted by druid-sql-counter : {}", methodName);
             }
 
-            metricRegistry.getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
+            SqlMetricRegistry.get()
+                             .getOrCreateMetrics(context.uri).update(isQuery, aopContext.hasException(), aopContext.getExecutionTime());
         }
     }
 
