@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.postgresql;
+package org.bithon.agent.plugin.jdbc.common;
 
 import org.bithon.agent.observability.utils.MiscUtils;
 

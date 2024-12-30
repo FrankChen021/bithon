@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 import org.postgresql.jdbc.PgConnection;
 import org.postgresql.util.HostSpec;
 

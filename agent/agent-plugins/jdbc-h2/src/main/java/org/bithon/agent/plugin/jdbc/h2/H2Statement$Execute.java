@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.postgresql;
+package org.bithon.agent.plugin.jdbc.h2;
 
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -41,7 +41,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  *
  * @author frankchen
  */
-public class PgStatement$Execute extends AbstractStatementExecute {
+public class H2Statement$Execute extends AbstractStatementExecute {
     @Override
     protected String getStatement(AopContext aopContext) {
         return aopContext.getArgAs(0);

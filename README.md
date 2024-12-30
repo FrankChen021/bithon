@@ -161,7 +161,6 @@ If the target application runs under JDK 11 and above, the following arguments s
 | JVM                                                          | 1.8         |             | &check;                                        |         |
 | JDK - Thread Pool                                            | 1.8         |             | &check;                                        |         |
 | JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
-| Alibaba Druid                                                | 1.0.28      |             | &check;                                        |         |
 | Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
 | Apache Kafka(2)                                              | 0.10        |             | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
@@ -174,8 +173,10 @@ If the target application runs under JDK 11 and above, the following arguments s
 | HTTP Client - okhttp3                                        | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - reactor-netty                                  | 1.0.11      |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Jersey                                                       | 1.19.4      |             |                                                | &check; |
+| JDBC - Alibaba Druid                                         | 1.0.28      |             | &check;                                        |         |
+| JDBC - MySQL                                                 | 5.x         | 8.x         | &check;                                        |         |
+| JDBC - PostgreSQL                                            | 42.4.3      |             | &check;                                        |         |
 | MongoDB                                                      | 3.4.2       |             | &check;                                        |         |
-| MySQL                                                        | 5.x         | 8.x         | &check;                                        |         |
 | Open Feign                                                   | 10.8        |             |                                                | &check; |
 | Quartz                                                       | 2.x         |             | &check;                                        | &check; |
 | Redis - Jedis                                                | 2.9         | 5.x         | &check;                                        | &check; |

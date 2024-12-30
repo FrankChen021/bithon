@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.postgresql;
+package org.bithon.agent.plugin.jdbc.h2;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
@@ -27,7 +27,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  *
  * @author frankchen
  */
-public class PgPreparedStatement$Execute extends AbstractStatementExecute {
+public class H2PreparedStatement$Execute extends AbstractStatementExecute {
     @Override
     protected String getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();

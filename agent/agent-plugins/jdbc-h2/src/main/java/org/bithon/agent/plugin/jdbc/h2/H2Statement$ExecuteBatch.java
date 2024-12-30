@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.postgresql;
+package org.bithon.agent.plugin.jdbc.h2;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -28,7 +28,7 @@ import org.bithon.component.commons.tracing.Tags;
  * @author frank.chen021@outlook.com
  * @date 2024/12/29 20:15
  */
-public class PgStatement$ExecuteBatch extends AbstractStatementExecute {
+public class H2Statement$ExecuteBatch extends AbstractStatementExecute {
 
     @Override
     protected String getStatement(AopContext aopContext) {
