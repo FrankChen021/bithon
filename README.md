@@ -159,13 +159,13 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Component                                                    | Min Version | Max Version | Metrics                                        | Tracing |
 |--------------------------------------------------------------|-------------|-------------|------------------------------------------------|---------|
 | JVM                                                          | 1.8         |             | &check;                                        |         |
-| JDK - Thread Pool                                            | 1.8         |             | &check;                                        |         |
+| JDK - Thread Pool                                            | 1.8         |             | &check;                                        | &check; |
 | JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
 | Apache Kafka(2)                                              | 0.10        |             | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
-| GRPC                                                         | 1.57.0      |             | &check;                                        |         |
+| GRPC                                                         | 1.57.0      |             |                                                | &check; |
 | Google Guice                                                 | 4.1.0       |             |                                                | &check; |
 | HTTP Client - Apache                                         | 4.5.2       | 5.x         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - Jetty                                          | 9.4.6       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
@@ -173,9 +173,10 @@ If the target application runs under JDK 11 and above, the following arguments s
 | HTTP Client - okhttp3                                        | 3.2         | 4.9         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - reactor-netty                                  | 1.0.11      |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Jersey                                                       | 1.19.4      |             |                                                | &check; |
-| JDBC - Alibaba Druid                                         | 1.0.28      |             | &check;                                        |         |
-| JDBC - MySQL                                                 | 5.x         | 8.x         | &check;                                        |         |
-| JDBC - PostgreSQL                                            | 42.4.3      |             | &check;                                        |         |
+| JDBC - Alibaba Druid                                         | 1.0.28      |             | &check;                                        | &check; |
+| JDBC - H2                                                    | 2.2.224     |             | &check;                                        | &check; |
+| JDBC - MySQL                                                 | 5.x         | 8.x         | &check;                                        | &check; |
+| JDBC - PostgreSQL                                            | 42.4.3      |             | &check;                                        | &check; |
 | MongoDB                                                      | 3.4.2       |             | &check;                                        |         |
 | Open Feign                                                   | 10.8        |             |                                                | &check; |
 | Quartz                                                       | 2.x         |             | &check;                                        | &check; |
