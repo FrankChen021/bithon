@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
@@ -33,6 +34,8 @@ import java.sql.Statement;
  * @author frankchen
  */
 public abstract class AbstractStatementExecute extends AroundInterceptor {
+
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
@@ -54,6 +57,8 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
                 .start();
         }
 
+        aopContext.setUserContext(connectionContext);
+
         return InterceptionDecision.CONTINUE;
     }
 
@@ -68,6 +73,10 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
                         .tag(Tags.Database.STATEMENT, getStatement(aopContext))
                         .finish();
         }
+
+        ConnectionContext connectionContext = aopContext.getUserContext();
+        metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
+                      .update(true, aopContext.hasException(), aopContext.getExecutionTime());
     }
 
     protected abstract String getStatement(AopContext aopContext);
