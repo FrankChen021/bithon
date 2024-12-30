@@ -15,7 +15,6 @@
   <packaging>pom</packaging>
 
   <modules>
-
     <module>apache-druid</module>
     <module>apache-kafka</module>
     <module>apache-ozone</module>
@@ -24,8 +23,6 @@
     <module>glassfish</module>
     <module>grpc</module>
     <module>guice</module>
-    <module>mysql-5.x-6.x</module>
-    <module>mysql-8.x</module>
     <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
@@ -33,6 +30,9 @@
     <module>jdbc/common</module>
     <module>jdbc/h2</module>
     <module>jdbc/postgresql</module>
+    <module>jdbc/mysql5</module>
+    <module>jdbc/mysql6</module>
+    <module>jdbc/mysql8</module>
     <module>jdk-thread</module>
     <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>
@@ -174,12 +174,17 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mysql-5.x-6.x</artifactId>
+      <artifactId>agent-plugin-jdbc-mysql5</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mysql-8.x</artifactId>
+      <artifactId>agent-plugin-jdbc-mysql6</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql8</artifactId>
       <version>${project.version}</version>
     </dependency>
 

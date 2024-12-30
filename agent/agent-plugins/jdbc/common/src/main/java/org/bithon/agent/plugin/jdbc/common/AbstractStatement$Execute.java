@@ -29,6 +29,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -85,13 +86,12 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
     /**
      * Get the connection context which is injected by interceptors on Connection objects
      */
-    protected ConnectionContext getConnectionContext(Connection connection) {
+    protected ConnectionContext getConnectionContext(Connection connection) throws SQLException {
         if (!(connection instanceof IBithonObject)) {
             return null;
         }
 
-        IBithonObject instrumentedConnection = (IBithonObject) connection;
-        return (ConnectionContext) instrumentedConnection.getInjectedObject();
+        return (ConnectionContext) ((IBithonObject) connection).getInjectedObject();
     }
 
     protected abstract String getStatement(AopContext aopContext);
