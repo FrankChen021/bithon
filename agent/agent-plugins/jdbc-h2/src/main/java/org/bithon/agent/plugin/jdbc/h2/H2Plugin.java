@@ -36,45 +36,36 @@ public class H2Plugin implements IPlugin {
 
         return Arrays.asList(
 
-            forClass("org.h2.jdbc.PgConnection")
+            // JdbcConnection
+            forClass("org.h2.jdbc.JdbcConnection")
                 .onConstructor()
-                .andArgsSize(3)
-                .andArgs(2, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgConnection$Ctor")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcConnection$Ctor")
                 .build(),
 
             // PreparedStatement
-            forClass("org.h2.jdbc.PgPreparedStatement")
+            forClass("org.h2.jdbc.JdbcPreparedStatement")
                 .onConstructor()
-                .andArgs(1, "org.postgresql.core.CachedQuery")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Ctor")
+                .andArgs(1, "java.lang.String")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Ctor")
 
-                .onMethod("execute")
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Execute")
 
-                .onMethod("executeQuery")
-                .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Execute")
-
-                .onMethod("executeUpdate")
-                .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Execute")
                 .build(),
 
-            //
             // Statement
-            //
-            forClass("org.h2.jdbc.PgStatement")
+            forClass("org.h2.jdbc.JdbcStatement")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andArgs(0, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$Execute")
 
                 .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$ExecuteBatch")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$ExecuteBatch")
 
                 .build()
         );

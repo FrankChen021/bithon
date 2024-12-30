@@ -14,31 +14,39 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.postgresql;
+package org.bithon.agent.plugin.jdbc.h2;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
-import org.postgresql.jdbc.PgConnection;
-import org.postgresql.util.HostSpec;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 
 import java.util.Properties;
 
 /**
- * Hook on
- * {@link org.postgresql.jdbc.PgConnection#PgConnection(HostSpec[], Properties, String)}
- * to hold the cleaned connection string
+ * {@link org.h2.jdbc.JdbcConnection#JdbcConnection(JdbcConnection)} constructor interceptor
+ * {@link org.h2.jdbc.JdbcConnection#JdbcConnection(Session, String, String)}
+ * {@link org.h2.jdbc.JdbcConnection#JdbcConnection(String, Properties, String, Object, boolean)}
  *
  * @author frank.chen021@outlook.com
- * @date 2024/12/30 09:51
+ * @date 2024/12/30 16:17
  */
-public class PgConnection$Ctor extends AfterInterceptor {
+public class JdbcConnection$Ctor extends AfterInterceptor {
+
+    /**
+     * Inject ConnectionContext on the connection object which will be used by statement interceptors
+     */
     @Override
     public void after(AopContext aopContext) throws Exception {
-        PgConnection connection = aopContext.getTargetAs();
-        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getURL(),
-                                                                             connection.getUserName(),
-                                                                             "postgresql"));
+        if (aopContext.hasException()) {
+            return;
+        }
+
+        JdbcConnection connection = aopContext.getTargetAs();
+        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getMetaData().getURL(),
+                                                                             connection.getMetaData().getUserName(),
+                                                                             "h2"));
     }
 }

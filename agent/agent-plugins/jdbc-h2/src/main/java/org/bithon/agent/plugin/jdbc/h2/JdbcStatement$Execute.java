@@ -41,7 +41,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  *
  * @author frankchen
  */
-public class H2Statement$Execute extends AbstractStatementExecute {
+public class JdbcStatement$Execute extends AbstractStatementExecute {
     @Override
     protected String getStatement(AopContext aopContext) {
         return aopContext.getArgAs(0);

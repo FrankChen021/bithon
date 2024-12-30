@@ -28,6 +28,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
+import java.sql.Connection;
 import java.sql.Statement;
 
 /**
@@ -40,18 +41,18 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
         Statement statement = (Statement) aopContext.getTarget();
-        IBithonObject connection = (IBithonObject) statement.getConnection();
-        ConnectionContext connectionContext = (ConnectionContext) connection.getInjectedObject();
+
+        Connection connection = statement.getConnection();
+        ConnectionContext connectionContext = getConnectionContext(connection);
         if (connectionContext == null) {
-            // An unsupported PG driver
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceContextFactory.newSpan("postgresql");
+        ITraceSpan span = TraceContextFactory.newSpan(connectionContext.getDbType());
         if (span != null) {
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
-                .tag(Tags.Database.SYSTEM, "postgresql")
+                .tag(Tags.Database.SYSTEM, connectionContext.getDbType())
                 .tag(Tags.Database.USER, connectionContext.getUserName())
                 .tag(Tags.Database.CONNECTION_STRING, connectionContext.getConnectionString())
                 .start();
@@ -77,6 +78,18 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
         ConnectionContext connectionContext = aopContext.getUserContext();
         metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
                       .update(true, aopContext.hasException(), aopContext.getExecutionTime());
+    }
+
+    /**
+     * Get the connection context which is injected by interceptors on Connection objects
+     */
+    protected ConnectionContext getConnectionContext(Connection connection) {
+        if (!(connection instanceof IBithonObject)) {
+            return null;
+        }
+
+        IBithonObject instrumentedConnection = (IBithonObject) connection;
+        return (ConnectionContext) instrumentedConnection.getInjectedObject();
     }
 
     protected abstract String getStatement(AopContext aopContext);

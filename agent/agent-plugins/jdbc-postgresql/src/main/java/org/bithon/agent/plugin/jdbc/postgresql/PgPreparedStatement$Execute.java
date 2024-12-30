@@ -19,6 +19,9 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
+import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+
+import java.sql.Connection;
 
 /**
  * {@link org.postgresql.jdbc.PgPreparedStatement#execute()}
@@ -28,6 +31,15 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  * @author frankchen
  */
 public class PgPreparedStatement$Execute extends AbstractStatementExecute {
+    /**
+     * Get the connection context which is injected by {@link PgConnection$Ctor}
+     */
+    @Override
+    protected ConnectionContext getConnectionContext(Connection connection) {
+        IBithonObject instrumentedConnection = (IBithonObject) connection;
+        return (ConnectionContext) instrumentedConnection.getInjectedObject();
+    }
+
     @Override
     protected String getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();

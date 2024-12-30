@@ -16,35 +16,25 @@
 
 package org.bithon.agent.plugin.jdbc.h2;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
-import org.bithon.component.commons.tracing.Tags;
 
 /**
- * {@link org.postgresql.jdbc.PgStatement#executeBatch()}
- * {@link org.postgresql.jdbc.PgStatement#executeLargeBatch()}
+ * {@link org.h2.jdbc.JdbcPreparedStatement#execute()}
+ * {@link org.h2.jdbc.JdbcPreparedStatement#executeQuery()}
+ * {@link org.h2.jdbc.JdbcPreparedStatement#executeUpdate()}
  *
- * @author frank.chen021@outlook.com
- * @date 2024/12/29 20:15
+ * @author frankchen
  */
-public class H2Statement$ExecuteBatch extends AbstractStatementExecute {
+public class JdbcPreparedStatement$Execute extends AbstractStatementExecute {
 
+    /**
+     * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}
+     */
     @Override
     protected String getStatement(AopContext aopContext) {
-        return null;
-    }
-
-    @Override
-    protected void fillSpan(AopContext aopContext, ITraceSpan span) {
-        if (aopContext.getReturning() != null) {
-            int rows = 0;
-            if (aopContext.getMethod().equals("executeBatch")) {
-                rows = ((int[]) aopContext.getReturning()).length;
-            } else {
-                rows = ((long[]) aopContext.getReturning()).length;
-            }
-            span.tag(Tags.Database.PREFIX + "rows", rows);
-        }
+        IBithonObject preparedStatement = aopContext.getTargetAs();
+        return (String) preparedStatement.getInjectedObject();
     }
 }

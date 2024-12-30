@@ -42,6 +42,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  * @author frankchen
  */
 public class PgStatement$Execute extends AbstractStatementExecute {
+
     @Override
     protected String getStatement(AopContext aopContext) {
         return aopContext.getArgAs(0);

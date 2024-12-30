@@ -25,10 +25,12 @@ import org.bithon.agent.observability.utils.MiscUtils;
 public class ConnectionContext {
     private final String userName;
     private final String connectionString;
+    private final String dbType;
 
-    public ConnectionContext(String connectionString, String userName) {
+    public ConnectionContext(String connectionString, String userName, String dbType) {
         this.userName = userName;
         this.connectionString = MiscUtils.cleanupConnectionString(connectionString);
+        this.dbType = dbType;
     }
 
     public String getUserName() {
@@ -37,5 +39,9 @@ public class ConnectionContext {
 
     public String getConnectionString() {
         return connectionString;
+    }
+
+    public String getDbType() {
+        return dbType;
     }
 }

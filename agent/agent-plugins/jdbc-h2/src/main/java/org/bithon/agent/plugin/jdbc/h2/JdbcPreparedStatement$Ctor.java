@@ -18,19 +18,23 @@ package org.bithon.agent.plugin.jdbc.h2;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.h2.jdbc.JdbcConnection;
 
 /**
- * {@link org.postgresql.jdbc.PgPreparedStatement#execute()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeQuery()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeUpdate()}
+ * {@link org.h2.jdbc.JdbcPreparedStatement#JdbcPreparedStatement(JdbcConnection, String, int, int, int, Object)}
  *
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2024/12/30 16:14
  */
-public class H2PreparedStatement$Execute extends AbstractStatementExecute {
+public class JdbcPreparedStatement$Ctor extends AfterInterceptor {
     @Override
-    protected String getStatement(AopContext aopContext) {
+    public void after(AopContext aopContext) throws Exception {
+        JdbcConnection connection = aopContext.getArgAs(0);
+        String sql = aopContext.getArgAs(1);
+
+        // Inject context so that they can be accessed in statement interceptors
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+        preparedStatement.setInjectedObject(sql);
     }
 }
