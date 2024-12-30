@@ -14,14 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.h2;
+package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
 
-
+import com.alibaba.druid.pool.DruidPooledStatement;
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 
+import java.sql.Statement;
+
 /**
- * Hook on execute methods implemented in {@link org.h2.jdbc.JdbcStatement} as
+ * Hook on execute methods implemented in {@link com.alibaba.druid.pool.DruidPooledStatement} as
  * {@link java.sql.Statement#execute(String)}
  * {@link java.sql.Statement#execute(String, int[])}
  * {@link java.sql.Statement#execute(String, String[])}
@@ -40,8 +43,19 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
  * {@link java.sql.Statement#executeLargeUpdate(String, String[])}
  *
  * @author frankchen
+ * @date 2022-07-27
  */
-public class JdbcStatement$Execute extends AbstractStatement$Execute {
+public class DruidPooledStatement$Execute extends AbstractStatement$Execute {
+
+    @Override
+    protected boolean shouldRecordMetrics(Statement statement) {
+        DruidPooledStatement druidStatement = (DruidPooledStatement) statement;
+        boolean isInstrumented = druidStatement.getStatement() instanceof IBithonObject;
+
+        // Only records metrics at Druid level when underlying statement is not instrumented
+        return !isInstrumented;
+    }
+
     @Override
     protected String getStatement(AopContext aopContext) {
         return aopContext.getArgAs(0);

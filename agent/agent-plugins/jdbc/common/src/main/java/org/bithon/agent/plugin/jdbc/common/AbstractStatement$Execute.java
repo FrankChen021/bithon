@@ -34,7 +34,7 @@ import java.sql.Statement;
 /**
  * @author frankchen
  */
-public abstract class AbstractStatementExecute extends AroundInterceptor {
+public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
     private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
@@ -75,9 +75,11 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
                         .finish();
         }
 
-        ConnectionContext connectionContext = aopContext.getUserContext();
-        metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
-                      .update(true, aopContext.hasException(), aopContext.getExecutionTime());
+        if (shouldRecordMetrics(aopContext.getTargetAs())) {
+            ConnectionContext connectionContext = aopContext.getUserContext();
+            metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
+                          .update(true, aopContext.hasException(), aopContext.getExecutionTime());
+        }
     }
 
     /**
@@ -95,5 +97,9 @@ public abstract class AbstractStatementExecute extends AroundInterceptor {
     protected abstract String getStatement(AopContext aopContext);
 
     protected void fillSpan(AopContext aopContext, ITraceSpan span) {
+    }
+
+    protected boolean shouldRecordMetrics(Statement statement) {
+        return true;
     }
 }

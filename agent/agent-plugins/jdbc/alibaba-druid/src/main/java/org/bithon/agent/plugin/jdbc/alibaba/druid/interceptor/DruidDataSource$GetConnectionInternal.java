@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.alibaba.druid.ConnectionContext;
+import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 
 /**
  * the user name is injected to this object so that it can be used in PreparedStatement or Statement interceptors
@@ -37,7 +37,8 @@ public class DruidDataSource$GetConnectionInternal extends AfterInterceptor {
         IBithonObject connection = aopContext.getReturningAs();
         if (connection != null) {
             connection.setInjectedObject(new ConnectionContext(dataSource.getRawJdbcUrl(),
-                                                               dataSource.getUsername()));
+                                                               dataSource.getUsername(),
+                                                               "alibaba-druid"));
         }
     }
 }

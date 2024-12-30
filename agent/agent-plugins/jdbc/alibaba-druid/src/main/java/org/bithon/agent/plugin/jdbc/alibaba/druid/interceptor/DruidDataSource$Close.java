@@ -14,27 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
+import org.bithon.agent.plugin.jdbc.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
- * {@link com.alibaba.druid.pool.DruidPooledConnection#close()}
+ * {@link com.alibaba.druid.pool.DruidDataSource#close()}
  *
- * @author frank.chen021@outlook.com
- * @date 2024/12/29 21:52
+ * @author frankchen
  */
-public class DruidPooledConnection$Close extends AroundInterceptor {
-
+public class DruidDataSource$Close extends BeforeInterceptor {
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        return super.before(aopContext);
-    }
-
-    @Override
-    public void after(AopContext aopContext) throws Exception {
-        super.after(aopContext);
+    public void before(AopContext context) {
+        MonitoredSourceManager.getInstance().rmvDataSource(context.getTargetAs());
     }
 }

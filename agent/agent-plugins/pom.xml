@@ -15,7 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>alibaba-druid</module>
+
     <module>apache-druid</module>
     <module>apache-kafka</module>
     <module>apache-ozone</module>
@@ -29,6 +29,7 @@
     <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
+    <module>jdbc/alibaba-druid</module>
     <module>jdbc/common</module>
     <module>jdbc/h2</module>
     <module>jdbc/postgresql</module>
@@ -168,7 +169,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-alibaba-druid</artifactId>
+      <artifactId>agent-plugin-jdbc-alibaba-druid</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.jdbc.h2;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
+import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 
 /**
  * {@link org.h2.jdbc.JdbcPreparedStatement#execute()}
@@ -27,7 +27,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
  *
  * @author frankchen
  */
-public class JdbcPreparedStatement$Execute extends AbstractStatementExecute {
+public class JdbcPreparedStatement$Execute extends AbstractStatement$Execute {
 
     /**
      * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}

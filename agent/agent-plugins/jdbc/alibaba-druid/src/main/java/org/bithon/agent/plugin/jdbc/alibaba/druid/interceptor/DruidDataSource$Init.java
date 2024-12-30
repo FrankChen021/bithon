@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
+import org.bithon.agent.plugin.jdbc.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen

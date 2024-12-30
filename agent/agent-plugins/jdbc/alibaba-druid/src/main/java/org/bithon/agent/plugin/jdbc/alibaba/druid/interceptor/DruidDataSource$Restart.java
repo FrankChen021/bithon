@@ -14,18 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.alibaba.druid.interceptor;
+package org.bithon.agent.plugin.jdbc.alibaba.druid.interceptor;
 
-import com.alibaba.druid.pool.DruidPooledPreparedStatement;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen
- * @date 2022-07-27
  */
-public class DruidPooledPreparedStatement$Execute extends DruidStatementAbstractExecute {
+public class DruidDataSource$Restart extends AfterInterceptor {
+
     @Override
-    protected String getExecutingSql(AopContext aopContext) {
-        return ((DruidPooledPreparedStatement) aopContext.getTarget()).getSql();
+    public void after(AopContext aopContext) {
+        MonitoredSourceManager.getInstance().addDataSource(aopContext.getTargetAs());
     }
 }

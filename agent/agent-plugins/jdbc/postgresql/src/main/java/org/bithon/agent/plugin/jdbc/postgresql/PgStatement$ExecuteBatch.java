@@ -16,10 +16,7 @@
 
 package org.bithon.agent.plugin.jdbc.postgresql;
 
-import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
-import org.bithon.component.commons.tracing.Tags;
+import org.bithon.agent.plugin.jdbc.common.AbstractStatement$ExecuteBatch;
 
 /**
  * {@link org.postgresql.jdbc.PgStatement#executeBatch()}
@@ -28,23 +25,6 @@ import org.bithon.component.commons.tracing.Tags;
  * @author frank.chen021@outlook.com
  * @date 2024/12/29 20:15
  */
-public class PgStatement$ExecuteBatch extends AbstractStatementExecute {
+public class PgStatement$ExecuteBatch extends AbstractStatement$ExecuteBatch {
 
-    @Override
-    protected String getStatement(AopContext aopContext) {
-        return null;
-    }
-
-    @Override
-    protected void fillSpan(AopContext aopContext, ITraceSpan span) {
-        if (aopContext.getReturning() != null) {
-            int rows = 0;
-            if (aopContext.getMethod().equals("executeBatch")) {
-                rows = ((int[]) aopContext.getReturning()).length;
-            } else {
-                rows = ((long[]) aopContext.getReturning()).length;
-            }
-            span.tag(Tags.Database.PREFIX + "rows", rows);
-        }
-    }
 }

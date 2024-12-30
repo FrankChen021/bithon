@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.plugin.jdbc.common.AbstractStatementExecute;
+import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 
 import java.sql.Connection;
@@ -30,7 +30,7 @@ import java.sql.Connection;
  *
  * @author frankchen
  */
-public class PgPreparedStatement$Execute extends AbstractStatementExecute {
+public class PgPreparedStatement$Execute extends AbstractStatement$Execute {
     /**
      * Get the connection context which is injected by {@link PgConnection$Ctor}
      */
