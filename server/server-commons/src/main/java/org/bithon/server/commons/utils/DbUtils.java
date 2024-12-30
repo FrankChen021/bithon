@@ -95,7 +95,7 @@ public class DbUtils {
 
                 case "postgresql":
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
-                                                uri.getSchemeSpecificPart(),
+                                                StringUtils.isEmpty(uri.getPath()) ? "" : uri.getPath().substring(1),
                                                 "postgresql");
 
                 default:
