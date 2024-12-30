@@ -37,7 +37,7 @@ public class MySql6Plugin implements IPlugin {
     @Override
     public IInterceptorPrecondition getPreconditions() {
         // Only exists in mysql 6
-        return isClassDefined("com.mysql.cj.x.package-info");
+        return isClassDefined("com.mysql.cj.x.core.CoreWarning");
     }
 
     @Override
