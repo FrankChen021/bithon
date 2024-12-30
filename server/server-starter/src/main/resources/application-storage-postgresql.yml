@@ -1,6 +1,6 @@
 #
-# This file demonstrates configuring the Bithon server to use those databases that support JDBC as underlying storage.
-# Currently, only H2 has been tested, so H2 is configured in this file.
+# Note: postgresql support is only for local agent development, NOT for local server side development.
+# There are still bugs at server side when it's used as storage, but these bugs are trivial for agent development.
 #
 bithon:
   storage:

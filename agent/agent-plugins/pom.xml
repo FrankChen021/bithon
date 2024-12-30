@@ -29,9 +29,9 @@
     <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
-    <module>jdbc-common</module>
-    <module>jdbc-h2</module>
-    <module>jdbc-postgresql</module>
+    <module>jdbc/common</module>
+    <module>jdbc/h2</module>
+    <module>jdbc/postgresql</module>
     <module>jdk-thread</module>
     <module>httpclient-okhttp-3.2</module>
     <module>httpclient-jdk</module>

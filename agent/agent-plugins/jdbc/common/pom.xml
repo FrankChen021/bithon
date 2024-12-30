@@ -7,7 +7,7 @@
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
   <artifactId>agent-plugin-jdbc-common</artifactId>
   <modelVersion>4.0.0</modelVersion>
