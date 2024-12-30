@@ -18,56 +18,31 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.utils.MiscUtils;
-import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.tracing.Tags;
-import org.postgresql.jdbc.PgConnection;
-
-import java.sql.Statement;
 
 /**
+ * Hook on execute methods implemented in {@link org.postgresql.jdbc.PgStatement} as
+ * {@link java.sql.Statement#execute(String)}
+ * {@link java.sql.Statement#execute(String, int[])}
+ * {@link java.sql.Statement#execute(String, String[])}
+ * {@link java.sql.Statement#execute(String)}
+ * <p>
+ * {@link java.sql.Statement#executeQuery(String)}
+ * <p>
+ * {@link java.sql.Statement#executeUpdate(String)}
+ * {@link java.sql.Statement#executeUpdate(String, int[])}
+ * {@link java.sql.Statement#executeUpdate(String, String[])}
+ * {@link java.sql.Statement#executeUpdate(String)}
+ * <p>
+ * {@link java.sql.Statement#executeLargeUpdate(String)}
+ * {@link java.sql.Statement#executeLargeUpdate(String, int[])}
+ * {@link java.sql.Statement#executeLargeUpdate(String, int)}
+ * {@link java.sql.Statement#executeLargeUpdate(String, String[])}
+ *
  * @author frankchen
  */
-public class PgStatement$Execute extends AroundInterceptor {
-    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
-
+public class PgStatement$Execute extends AbstractStatementExecute {
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        Statement statement = (Statement) aopContext.getTarget();
-
-        String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
-                                                                             .getMetaData()
-                                                                             .getURL());
-
-        ITraceSpan span = TraceContextFactory.newSpan("postgresql");
-        if (span != null) {
-            span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                .kind(SpanKind.CLIENT)
-                .tag(Tags.Database.SYSTEM, "postgresql")
-                .tag(Tags.Database.USER, ((PgConnection) statement.getConnection()).getUserName())
-                .tag(Tags.Database.CONNECTION_STRING, connectionString)
-                .start();
-        }
-
-        // get the connection info before execution since the connection might be closed during execution
-        aopContext.setUserContext(connectionString);
-        return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void after(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null) {
-            traceContext.currentSpan()
-                        .tag(Tags.Database.STATEMENT, aopContext.getArgs()[0])
-                        .finish();
-        }
+    protected String getStatement(AopContext aopContext) {
+        return aopContext.getArgAs(0);
     }
 }

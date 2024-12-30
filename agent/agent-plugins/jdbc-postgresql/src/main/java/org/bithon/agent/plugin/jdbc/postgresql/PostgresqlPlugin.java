@@ -17,7 +17,9 @@
 package org.bithon.agent.plugin.jdbc.postgresql;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +36,19 @@ public class PostgresqlPlugin implements IPlugin {
 
         return Arrays.asList(
 
+            forClass("org.postgresql.jdbc.PgConnection")
+                .onConstructor()
+                .andArgsSize(3)
+                .andArgs(2, "java.lang.String")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgConnection$Ctor")
+                .build(),
+
             // PreparedStatement
             forClass("org.postgresql.jdbc.PgPreparedStatement")
                 .onConstructor()
                 .andArgs(1, "org.postgresql.core.CachedQuery")
                 .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Ctor")
-                
+
                 .onMethod("execute")
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgPreparedStatement$Execute")
@@ -57,25 +66,16 @@ public class PostgresqlPlugin implements IPlugin {
             // Statement
             //
             forClass("org.postgresql.jdbc.PgStatement")
-                .onMethod("executeInternal")
-                .andArgs("java.lang.String", "boolean")
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
+                .andArgs(0, "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$Execute")
 
-                .onMethod("executeQuery")
-                .andArgs("java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$Execute")
-
-                .onMethod("executeUpdateInternal")
-                .andArgs("java.lang.String", "boolean", "boolean")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$Execute")
-
-                /* TODO:
-                .onMethod("executeBatch")
+                .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))
+                .andVisibility(Visibility.PUBLIC)
+                .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$ExecuteBatch")
 
-                .onMethod("executeLargeBatch")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.postgresql.PgStatement$ExecuteBatch")
-*/
                 .build()
         );
     }

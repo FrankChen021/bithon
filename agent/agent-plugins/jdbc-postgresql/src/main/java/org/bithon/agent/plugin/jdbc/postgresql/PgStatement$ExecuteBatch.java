@@ -17,17 +17,8 @@
 package org.bithon.agent.plugin.jdbc.postgresql;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
-import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.agent.observability.utils.MiscUtils;
-import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
-
-import java.sql.Statement;
 
 /**
  * {@link org.postgresql.jdbc.PgStatement#executeBatch()}
@@ -36,35 +27,23 @@ import java.sql.Statement;
  * @author frank.chen021@outlook.com
  * @date 2024/12/29 20:15
  */
-public class PgStatement$ExecuteBatch extends AroundInterceptor {
+public class PgStatement$ExecuteBatch extends AbstractStatementExecute {
+
     @Override
-    public InterceptionDecision before(AopContext aopContext) throws Exception {
-        Statement statement = (Statement) aopContext.getTarget();
-
-        String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
-                                                                             .getMetaData()
-                                                                             .getURL());
-
-        ITraceSpan span = TraceContextFactory.newSpan("mysql");
-        if (span != null) {
-            span.method(aopContext.getTargetClass(), aopContext.getMethod())
-                .kind(SpanKind.CLIENT)
-                .tag(Tags.Database.SYSTEM, "mysql")
-                .tag(Tags.Database.USER, statement.getConnection().getMetaData().getUserName())
-                .tag(Tags.Database.CONNECTION_STRING, connectionString)
-                .start();
-        }
-
-        return InterceptionDecision.CONTINUE;
+    protected String getStatement(AopContext aopContext) {
+        return null;
     }
 
     @Override
-    public void after(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null) {
-            traceContext.currentSpan()
-                        .tag(Tags.Database.STATEMENT, aopContext.getArgs()[0])
-                        .finish();
+    protected void fillSpan(AopContext aopContext, ITraceSpan span) {
+        if (aopContext.getReturning() != null) {
+            int rows = 0;
+            if (aopContext.getMethod().equals("executeBatch")) {
+                rows = ((int[]) aopContext.getReturning()).length;
+            } else {
+                rows = ((long[]) aopContext.getReturning()).length;
+            }
+            span.tag(Tags.Database.PREFIX + "rows", rows);
         }
     }
 }

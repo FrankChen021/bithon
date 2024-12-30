@@ -18,18 +18,24 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.postgresql.jdbc.PgConnection;
+import org.postgresql.util.HostSpec;
+
+import java.util.Properties;
 
 /**
- * {@link org.postgresql.jdbc.PgPreparedStatement#execute()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeQuery()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeUpdate()}
+ * Hook on
+ * {@link org.postgresql.jdbc.PgConnection#PgConnection(HostSpec[], Properties, String)}
+ * to hold the cleaned connection string
  *
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2024/12/30 09:51
  */
-public class PgPreparedStatement$Execute extends AbstractStatementExecute {
+public class PgConnection$Ctor extends AfterInterceptor {
     @Override
-    protected String getStatement(AopContext aopContext) {
-        IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+    public void after(AopContext aopContext) throws Exception {
+        PgConnection connection = aopContext.getTargetAs();
+        ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getURL(), connection.getUserName()));
     }
 }

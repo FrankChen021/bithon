@@ -23,7 +23,9 @@ import org.postgresql.core.CachedQuery;
 import org.postgresql.jdbc.PgConnection;
 
 /**
+ * Hook on
  * {@link org.postgresql.jdbc.PgPreparedStatement#PgPreparedStatement(PgConnection, CachedQuery, int, int, int)}
+ * to hold the SQL being executed
  *
  * @author frankchen
  */

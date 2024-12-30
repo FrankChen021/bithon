@@ -16,20 +16,26 @@
 
 package org.bithon.agent.plugin.jdbc.postgresql;
 
-import org.bithon.agent.instrumentation.aop.IBithonObject;
-import org.bithon.agent.instrumentation.aop.context.AopContext;
+import org.bithon.agent.observability.utils.MiscUtils;
 
 /**
- * {@link org.postgresql.jdbc.PgPreparedStatement#execute()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeQuery()}
- * {@link org.postgresql.jdbc.PgPreparedStatement#executeUpdate()}
- *
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2024/12/30 09:53
  */
-public class PgPreparedStatement$Execute extends AbstractStatementExecute {
-    @Override
-    protected String getStatement(AopContext aopContext) {
-        IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+public class ConnectionContext {
+    private final String userName;
+    private final String connectionString;
+
+    public ConnectionContext(String connectionString, String userName) {
+        this.userName = userName;
+        this.connectionString = MiscUtils.cleanupConnectionString(connectionString);
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getConnectionString() {
+        return connectionString;
     }
 }
