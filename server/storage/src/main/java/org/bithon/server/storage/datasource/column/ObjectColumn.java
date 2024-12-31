@@ -44,6 +44,6 @@ public class ObjectColumn extends AbstractColumn {
     }
 
     public Selector toSelector() {
-        return new Selector(getName());
+        return new Selector(getName(), getDataType());
     }
 }

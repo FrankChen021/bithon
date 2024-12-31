@@ -73,9 +73,7 @@ public class QueryConverter {
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
-
-                selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
-
+                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
                 continue;
             }
 
@@ -189,7 +187,7 @@ public class QueryConverter {
             if (field.getExpression() != null) {
                 // This is a client side passed post simple expression, NOT aggregation expression
                 // TODO: check if there's any aggregation function in the expression
-                selectorList.add(new Selector(new Expression(field.getExpression()), field.getName()));
+                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
 
                 continue;
             }
@@ -208,7 +206,7 @@ public class QueryConverter {
                 selector = columnSpec.toSelector();
                 // TODO: check if there's any aggregation function in the expression
             } else {
-                selector = new Selector(columnSpec.getName());
+                selector = new Selector(columnSpec.getName(), columnSpec.getDataType());
             }
             if (columnSpec.getAlias().equals(field.getName())) {
                 selector = selector.withOutput(field.getName());
@@ -217,11 +215,14 @@ public class QueryConverter {
         }
 
         // Replace the input '*' with all columns in the schema
+        // the insertIndex is the position of the '*' in the selector list
         if (insertedIndex != -1) {
             Set<String> selectedColumns = selectorList.stream().map((Selector::getOutputName)).collect(Collectors.toSet());
             for (IColumn column : schema.getColumns()) {
                 if (!selectedColumns.contains(column.getName())) {
-                    selectorList.add(insertedIndex, new Selector(column.getName()));
+                    // Create a new selector instance instead of call toSelector on column
+                    // because the column may be column like LongLastColumn
+                    selectorList.add(insertedIndex++, new Selector(column.getName(), column.getDataType()));
                 }
             }
         }

@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.column.DateTimeColumn;
+import org.bithon.server.storage.datasource.column.ExpressionColumn;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 
@@ -150,6 +151,11 @@ public class DefaultSchema implements ISchema {
 
             if (!metricSpec.getAlias().equals(metricSpec.getName())) {
                 aliasColumns.put(metricSpec.getAlias(), metricSpec);
+            }
+
+            if (metricSpec instanceof ExpressionColumn) {
+                ExpressionColumn expressionColumn = (ExpressionColumn) metricSpec;
+                expressionColumn.setSchema(this);
             }
         });
 

@@ -291,7 +291,7 @@ public class QueryExpressionBuilderTest {
     public void testSimpleAggregation_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("t"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .dataSource(schema)
@@ -314,7 +314,7 @@ public class QueryExpressionBuilderTest {
     public void testExpressionInAggregation_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount*2)"), new Alias("t"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount*2)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .dataSource(schema)
@@ -337,7 +337,7 @@ public class QueryExpressionBuilderTest {
     public void testSimpleAggregation_TimeSeries() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -365,7 +365,7 @@ public class QueryExpressionBuilderTest {
     public void testPostAggregation_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
@@ -396,7 +396,7 @@ public class QueryExpressionBuilderTest {
     public void testPostAggregation_GroupBy_NestedFunction() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("round(round(sum(responseTime)/sum(totalCount),2), 2)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "round(round(sum(responseTime)/sum(totalCount),2), 2)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
@@ -427,7 +427,7 @@ public class QueryExpressionBuilderTest {
     public void testPostAggregation_TimeSeries() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -463,7 +463,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFunctionExpression_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("round(sum(responseTime)/sum(totalCount), 2)"),
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "round(sum(responseTime)/sum(totalCount), 2)"),
                                                                                                                new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
@@ -496,8 +496,8 @@ public class QueryExpressionBuilderTest {
     public void testDuplicateAggregations() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new Expression("sum(count4xx) + sum(count5xx)"), new Alias("errorCount")),
-                                                                                new Selector(new Expression("round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"), new Alias("errorRate"))))
+                                                                .fields(List.of(new Selector(new Expression(schema, "sum(count4xx) + sum(count5xx)"), new Alias("errorCount")),
+                                                                                new Selector(new Expression(schema, "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"), new Alias("errorRate"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
@@ -530,7 +530,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_GroupBy() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("a"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)"), new Alias("a"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression("a"), new LiteralExpression.LongLiteral(5)))
@@ -562,7 +562,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_GroupBy_NoUseWindowAggregator() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("a"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)"), new Alias("a"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .dataSource(schema)
@@ -586,7 +586,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_TimeSeries() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)"), new Alias("activeThreads"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)"), new Alias("activeThreads"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -621,7 +621,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_WithAggregator() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder().name("timestamp").order(Order.asc).build())
@@ -661,7 +661,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunction_NoUseWindowAggregator_WithAggregator() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder().name("timestamp").order(Order.asc).build())
@@ -694,7 +694,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunctionAfterAggregator() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -735,7 +735,7 @@ public class QueryExpressionBuilderTest {
     public void testWindowFunctionAfterAggregator_MySQL() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(mysql)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -776,7 +776,7 @@ public class QueryExpressionBuilderTest {
     public void testAggregationWithMacroExpression() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)/{interval}"), new Alias("qps"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)/{interval}"), new Alias("qps"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -813,7 +813,7 @@ public class QueryExpressionBuilderTest {
     public void testCardinalityAggregation() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("cardinality(instance)"), new Alias("instanceCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "cardinality(instance)"), new Alias("instanceCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -839,7 +839,7 @@ public class QueryExpressionBuilderTest {
     public void testCountAggregation() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("count(1)"), new Alias("cnt"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "count(1)"), new Alias("cnt"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -865,7 +865,7 @@ public class QueryExpressionBuilderTest {
     public void testHumanReadableLiteral() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("count(1)"), new Alias("cnt"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "count(1)"), new Alias("cnt"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
@@ -898,7 +898,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFilter_UseExpressionVariable() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(
                                                                     new LogicalExpression.AND(
@@ -943,7 +943,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFilter_UseAggregationAliasInFilter() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("cnt"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("cnt"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression("cnt"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -972,7 +972,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFilter_UseAggregationFilter() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression("totalCount"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -998,7 +998,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFilter_FilterNotInTheSelectList_H2() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(ExpressionASTBuilder.builder()
                                                                                             .schema(schema)
@@ -1042,7 +1042,7 @@ public class QueryExpressionBuilderTest {
     public void testPostFilter_FilterNotInTheSelectList_CK() {
         QueryExpression queryExpression = QueryExpressionBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression("sum(totalCount)"), new Alias("totalCount"))))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"), TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(ExpressionASTBuilder.builder()
                                                                                             .schema(schema)

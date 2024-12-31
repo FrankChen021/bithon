@@ -61,6 +61,8 @@ public class QueryResponse {
     @AllArgsConstructor
     public static class QueryResponseColumn {
         private String name;
+
+        private String dataType;
     }
 
     // The column metadata info in the result set

@@ -34,7 +34,6 @@ import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -111,7 +110,8 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, false, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
-                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
+                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(),
+                                                                                                                        selector.getDataType().name())).toList())
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -126,7 +126,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, true, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
-                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
+                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -160,7 +160,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return QueryResponse.builder()
                                     .meta(query.getSelectors()
                                                .stream()
-                                               .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName()))
+                                               .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
                                                .toList())
                                     .total(total.get())
                                     .limit(query.getLimit())
@@ -187,7 +187,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, false, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
-                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
+                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))
@@ -202,7 +202,7 @@ public class DataSourceApi implements IDataSourceApi {
         Query query = QueryConverter.toQuery(schema, request, true, false);
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
-                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName())).toList())
+                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))
@@ -299,7 +299,7 @@ public class DataSourceApi implements IDataSourceApi {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectors(Collections.singletonList(new Selector(column.getName())))
+                               .selectors(Collections.singletonList(column.toSelector()))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 
