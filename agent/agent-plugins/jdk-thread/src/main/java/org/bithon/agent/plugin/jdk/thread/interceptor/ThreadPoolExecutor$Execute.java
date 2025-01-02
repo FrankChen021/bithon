@@ -16,12 +16,14 @@
 
 package org.bithon.agent.plugin.jdk.thread.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.agent.plugin.jdk.thread.utils.ObservedTask;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -43,6 +45,8 @@ public class ThreadPoolExecutor$Execute extends AroundInterceptor {
         ITraceSpan span = TraceContextFactory.newSpan("thread-pool");
         if (span != null) {
             aopContext.setSpan(span.method(aopContext.getTargetClass(), aopContext.getMethod())
+                                   .tag(Tags.Thread.POOL_CLASS, ThreadPoolExecutor.class.getName())
+                                   .tag(Tags.Thread.POOL_NAME, ((IBithonObject) aopContext.getTarget()).getInjectedObject())
                                    .start());
         }
 

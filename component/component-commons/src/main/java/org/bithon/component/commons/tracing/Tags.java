@@ -178,6 +178,11 @@ public class Tags {
     public static class Thread {
         public static final String ID = "thread.id";
         public static final String NAME = "thread.name";
+
+        // Non standard
+        public static final String POOL_CLASS = "thread.pool.class";
+        public static final String POOL_NAME = "thread.pool.name";
+        public static final String POOL_PARALLELISM = "thread.pool.parallelism";
     }
 
     /**

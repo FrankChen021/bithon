@@ -16,29 +16,30 @@
 
 package org.bithon.agent.plugin.jdk.thread.interceptor;
 
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
-import org.bithon.agent.plugin.jdk.thread.metrics.ForkJoinPoolMetrics;
-import org.bithon.agent.plugin.jdk.thread.metrics.ThreadPoolMetricRegistry;
-import org.bithon.agent.plugin.jdk.thread.utils.ThreadPoolNameExtractor;
-import org.bithon.component.commons.utils.ReflectionUtils;
-
-import java.util.concurrent.ForkJoinPool;
 
 /**
+ * Hook on {@link java.util.concurrent.ForkJoinTask.RunnableExecuteAction#RunnableExecuteAction(Runnable)}
+ * <p>
+ * We need to record the wrapped runnable in the spans,
+ * however, from JDK 11,
+ * we're NOT able to get the runnable object from the ForkJoinTask object without adding --add-exports directive.
+ * <p>
+ * In order NOT to add that directive at user's application side, we have to get store the information by ourselves.
+ * And the stored information will be read in {@link ForkJoinPool$ExternalPush}
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 11:15 下午
+ * @date 2024/12/24 16:44
  */
-public class ForkJoinPool$Ctor extends AfterInterceptor {
+public class ForkJoinTaskRunnableExecuteAction$Ctor extends AfterInterceptor {
+
     @Override
     public void after(AopContext aopContext) {
-        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
-        if (registry != null) {
-            ForkJoinPool pool = aopContext.getTargetAs();
-            registry.addThreadPool(pool,
-                                   pool.getClass().getName(),
-                                   ThreadPoolNameExtractor.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
-                                   ForkJoinPoolMetrics::new);
-        }
+        Runnable runnable = aopContext.getArgAs(0);
+
+        IBithonObject task = aopContext.getTargetAs();
+        task.setInjectedObject(new ForkJoinTaskContext(runnable.getClass().getName(), "run"));
     }
 }

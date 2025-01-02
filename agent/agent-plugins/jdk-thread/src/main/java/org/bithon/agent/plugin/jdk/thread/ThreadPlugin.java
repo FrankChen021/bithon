@@ -17,7 +17,9 @@
 package org.bithon.agent.plugin.jdk.thread;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,19 +58,51 @@ public class ThreadPlugin implements IPlugin {
                 .build(),
 
             forClass("java.util.concurrent.ForkJoinPool")
-                .onConstructor()
-                .andArgs("int",
-                         "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
-                         "java.lang.Thread$UncaughtExceptionHandler",
-                         "int",
-                         "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$Ctor")
+                // Interceptors on ctor are defined in jdk8-thread and jdk9-thread plugins
 
                 .onMethod("tryTerminate")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$TryTerminate")
 
                 .onMethod("externalPush")
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinPool$ExternalPush")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedCallable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedCallable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedInterruptibleCallable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedInterruptibleCallable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$AdaptedRunnable")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedRunnable$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkjoinTask$AdaptedRunnableAction")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskAdaptedRunnableAction$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask$RunnableExecuteAction")
+                .onConstructor()
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTaskRunnableExecuteAction$Ctor")
+                .build(),
+
+            forClass("java.util.concurrent.ForkJoinTask")
+                .onConstructor().andArgsSize(0).andVisibility(Visibility.PUBLIC)
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$Ctor")
+
+                .onMethod(Matchers.name("doExec").and(Matchers.argumentSize(0)))
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$DoExec")
                 .build()
         );
     }
