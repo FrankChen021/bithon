@@ -32,9 +32,10 @@
     <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
-    <module>jdbc/alibaba-druid</module>
-    <module>jdbc/common</module>
     <module>jdbc/apache-derby</module>
+    <module>jdbc/alibaba-druid</module>
+    <module>jdbc/clickhouse</module>
+    <module>jdbc/common</module>
     <module>jdbc/h2</module>
     <module>jdbc/postgresql</module>
     <module>jdbc/mysql5</module>
@@ -224,6 +225,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-alibaba-druid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-clickhouse</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
