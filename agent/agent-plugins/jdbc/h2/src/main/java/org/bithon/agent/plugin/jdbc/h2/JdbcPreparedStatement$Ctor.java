@@ -29,8 +29,7 @@ import org.h2.jdbc.JdbcConnection;
  */
 public class JdbcPreparedStatement$Ctor extends AfterInterceptor {
     @Override
-    public void after(AopContext aopContext) throws Exception {
-        JdbcConnection connection = aopContext.getArgAs(0);
+    public void after(AopContext aopContext) {
         String sql = aopContext.getArgAs(1);
 
         // Inject context so that they can be accessed in statement interceptors
