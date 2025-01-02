@@ -13,10 +13,6 @@
   <modelVersion>4.0.0</modelVersion>
 
   <dependencies>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-observability</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.bithon.agent</groupId>
