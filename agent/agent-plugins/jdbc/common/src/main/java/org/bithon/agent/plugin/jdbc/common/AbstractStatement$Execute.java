@@ -21,10 +21,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
-import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -51,6 +49,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
         ITraceSpan span = TraceContextFactory.newSpan(connectionContext.getDbType());
         if (span != null) {
+            aopContext.setSpan(span);
             span.method(aopContext.getTargetClass(), aopContext.getMethod())
                 .kind(SpanKind.CLIENT)
                 .tag(Tags.Database.SYSTEM, connectionContext.getDbType())
@@ -66,14 +65,13 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext != null) {
-            fillSpan(aopContext, traceContext.currentSpan());
+        ITraceSpan span = aopContext.getSpan();
+        if (span != null) {
+            fillSpan(aopContext, span);
 
-            traceContext.currentSpan()
-                        // the statement is injected in the ctor interceptor of PgPreparedStatement
-                        .tag(Tags.Database.STATEMENT, getStatement(aopContext))
-                        .finish();
+            // the statement is injected in the ctor interceptor of PgPreparedStatement
+            span.tag(Tags.Database.STATEMENT, getStatement(aopContext))
+                .finish();
         }
 
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
