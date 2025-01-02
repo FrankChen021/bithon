@@ -265,5 +265,4 @@ For example, to disable the `spring-bean` plugin, use
 
 ### Plugin Configuration
 
-- [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)

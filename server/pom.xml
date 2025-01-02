@@ -52,6 +52,7 @@
         <module>storage-jdbc-clickhouse</module>
         <module>storage-jdbc-h2</module>
         <module>storage-jdbc-mysql</module>
+        <module>storage-jdbc-postgresql</module>
         <module>opentelemetry</module>
         <module>collector</module>
         <module>metric-expression</module>
@@ -179,6 +180,11 @@
             <dependency>
                 <groupId>org.bithon.server</groupId>
                 <artifactId>server-storage-jdbc-clickhouse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-storage-jdbc-postgresql</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

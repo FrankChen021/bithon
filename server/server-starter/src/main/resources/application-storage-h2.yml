@@ -41,7 +41,6 @@ bithon:
       enabled: true
     web:
       provider: h2-local
-      type: jdbc
 
     alerting:
       all:

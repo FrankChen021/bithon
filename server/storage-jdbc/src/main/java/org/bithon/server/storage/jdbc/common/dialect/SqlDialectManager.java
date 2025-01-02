@@ -46,6 +46,9 @@ public class SqlDialectManager {
     }
 
     public ISqlDialect getSqlDialect(SQLDialect dialect) {
+        if (dialect == SQLDialect.POSTGRES) {
+            return getSqlDialect("postgresql");
+        }
         return getSqlDialect(dialect.name().toLowerCase(Locale.ENGLISH));
     }
 

@@ -77,7 +77,6 @@ public class EventJdbcStorage implements IEventStorage {
                        .columns(Tables.BITHON_EVENT.fields())
                        .indexes(Tables.BITHON_EVENT.getIndexes())
                        .execute();
-
     }
 
     @Override

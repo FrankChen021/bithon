@@ -1,0 +1,67 @@
+#
+# Note: postgresql support is only for local agent development, NOT for local server side development.
+# There are still bugs at server side when it's used as storage, but these bugs are trivial for agent development.
+#
+bithon:
+  storage:
+    tracing:
+      provider: postgres-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+      indexes:
+        # A demo of how the index works, can be removed in production
+        map:
+          "[http.method]": 1
+    metric:
+      provider: postgres-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+    event:
+      provider: postgres-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+    meta:
+      provider: postgres-local
+      enabled: true
+      ttl:
+        enabled: true
+        ttl: PT5M
+        cleanPeriod: PT1M
+    setting:
+      provider: postgres-local
+      enabled: true
+    web:
+      provider: postgres-local
+
+    alerting:
+      all:
+        provider: postgres-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+      log:
+        provider: postgres-local
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+    providers:
+      postgres-local:
+        type: postgresql
+        url: jdbc:postgresql://localhost:5432/bithon
+        driverClassName: org.postgresql.Driver
+        username: root
+        password: root
+
