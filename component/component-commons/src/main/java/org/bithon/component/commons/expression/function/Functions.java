@@ -52,7 +52,7 @@ public class Functions implements IFunctionProvider {
 
         register(new StringFunction.StartsWith());
         register(new StringFunction.EndsWith());
-        register(new StringFunction.HasToken());
+        register(StringFunction.HasToken.INSTANCE);
         register(new StringFunction.Lower());
         register(new StringFunction.Upper());
         register(new StringFunction.Substring());

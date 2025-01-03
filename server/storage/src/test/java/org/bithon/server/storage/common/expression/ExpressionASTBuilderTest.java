@@ -194,9 +194,9 @@ public class ExpressionASTBuilderTest {
     public void test_StringLiteralUnEscaped() {
         // At the AST layer, the string literal does not hold escape characters.
         // The business layer (the layer that uses the AST) needs to handle the escaping
-        Assert.assertEquals("message like 'a''", ExpressionASTBuilder.builder()
-                                                                       .build("message LIKE 'a\\''")
-                                                                       .serializeToText(null));
+        Assert.assertEquals("message contains 'a''", ExpressionASTBuilder.builder()
+                                                                         .build("message contains 'a\\''")
+                                                                         .serializeToText(null));
     }
 
     @Test

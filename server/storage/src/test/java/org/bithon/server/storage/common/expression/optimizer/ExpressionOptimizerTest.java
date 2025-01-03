@@ -343,8 +343,8 @@ public class ExpressionOptimizerTest {
 
     @Test
     public void test_Not_NotLike() {
-        IExpression expr = ExpressionASTBuilder.builder().build("not a not like 'a'");
-        Assert.assertEquals("a like 'a'", expr.serializeToText(null));
+        IExpression expr = ExpressionASTBuilder.builder().build("not a not contains 'a'");
+        Assert.assertEquals("a contains 'a'", expr.serializeToText(null));
     }
 
     @Test

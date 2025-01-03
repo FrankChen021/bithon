@@ -104,50 +104,6 @@ public abstract class ConditionalExpression extends BinaryExpression {
         }
     }
 
-    public static class Like extends ConditionalExpression {
-
-        public Like(IExpression left, IExpression right) {
-            this("like", left, right);
-        }
-
-        public Like(String operator, IExpression left, IExpression right) {
-            super(operator, left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            String input = (String) lhs.evaluate(context);
-            if (input == null) {
-                return false;
-            }
-
-            String pattern = (String) rhs.evaluate(context);
-
-            if (pattern.contains("%")) {
-                // Replace % with .* to convert SQL LIKE pattern to a regex pattern
-                String regexPattern = pattern.replace("%", ".*");
-
-                // Use regex matching to check if the inputString matches the pattern
-                return input.matches(regexPattern);
-            } else {
-                // If the given pattern does not contain '%', check for exact match
-                return input.equals(pattern);
-            }
-        }
-    }
-
-    public static class NotLike extends Like {
-
-        public NotLike(IExpression left, IExpression right) {
-            super("not like", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            return !((boolean) super.evaluate(context));
-        }
-    }
-
     public static class NotIn extends In {
 
         public NotIn(IExpression left, ExpressionList right) {

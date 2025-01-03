@@ -53,6 +53,8 @@ public class StringFunction {
 
     public static class HasToken extends AbstractFunction {
 
+        public static final HasToken INSTANCE = new HasToken();
+
         public HasToken() {
             super("hasToken",
                   Arrays.asList(IDataType.STRING, IDataType.STRING),

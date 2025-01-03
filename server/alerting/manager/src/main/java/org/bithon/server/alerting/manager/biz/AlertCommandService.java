@@ -129,8 +129,6 @@ public class AlertCommandService {
             throw new BizException(e.getMessage());
         }
 
-        alertRule.setExpr(new AlertExpressionSerializer().serialize(alertRule.getAlertExpression()));
-
         Map<String, ISchema> schemas = dataSourceApi.getSchemas();
 
         for (AlertExpression alertExpression : alertRule.getFlattenExpressions().values()) {
