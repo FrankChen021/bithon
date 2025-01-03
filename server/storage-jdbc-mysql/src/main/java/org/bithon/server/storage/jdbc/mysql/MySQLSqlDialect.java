@@ -31,8 +31,8 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
-import org.bithon.server.storage.jdbc.common.expression.LikeOperator;
 
 import java.util.Arrays;
 

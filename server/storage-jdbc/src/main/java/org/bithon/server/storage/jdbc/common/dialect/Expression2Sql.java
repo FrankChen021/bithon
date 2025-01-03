@@ -25,7 +25,6 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.jdbc.common.expression.LikeOperator;
 
 /**
  * @author frank.chen021@outlook.com

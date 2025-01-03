@@ -24,7 +24,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.server.commons.utils.SqlLikeExpression;
-import org.bithon.server.storage.jdbc.common.expression.LikeOperator;
+import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 
 import java.util.ArrayList;
 import java.util.List;

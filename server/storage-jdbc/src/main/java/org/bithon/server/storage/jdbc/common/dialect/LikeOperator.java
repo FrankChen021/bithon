@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.common.expression;
+package org.bithon.server.storage.jdbc.common.dialect;
 
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IEvaluationContext;

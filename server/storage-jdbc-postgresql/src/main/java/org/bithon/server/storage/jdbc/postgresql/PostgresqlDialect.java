@@ -31,6 +31,7 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
 import java.util.Arrays;
@@ -110,12 +111,12 @@ public class PostgresqlDialect implements ISqlDialect {
                 }
 
                 if (expression instanceof ConditionalExpression.StartsWith) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
+                    return new LikeOperator(expression.getLhs(),
+                                            LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
                 }
                 if (expression instanceof ConditionalExpression.EndsWith) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
+                    return new LikeOperator(expression.getLhs(),
+                                            LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
                 }
                 return super.visit(expression);
             }
@@ -131,8 +132,7 @@ public class PostgresqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.ofString("%")));
                     }
-                    return new ConditionalExpression.Like(expression.getArgs().get(0),
-                                                          patternExpression);
+                    return new LikeOperator(expression.getArgs().get(0), patternExpression);
                 } else if ("endsWith".equals(expression.getName())) {
                     // H2 does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
@@ -142,8 +142,7 @@ public class PostgresqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
                     }
-                    return new ConditionalExpression.Like(expression.getArgs().get(0),
-                                                          patternExpression);
+                    return new LikeOperator(expression.getArgs().get(0), patternExpression);
 
                 } else if ("hasToken".equals(expression.getName())) {
                     // H2 does not provide hasToken function, turns it into LIKE expression as: LIKE '%prefix'
@@ -154,8 +153,7 @@ public class PostgresqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
                     }
-                    return new ConditionalExpression.Like(expression.getArgs().get(0),
-                                                          patternExpression);
+                    return new LikeOperator(expression.getArgs().get(0), patternExpression);
                 }
 
                 return super.visit(expression);

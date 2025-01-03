@@ -23,7 +23,6 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.jdbc.common.expression.LikeOperator;
 
 /**
  * @author frank.chen021@outlook.com
