@@ -64,7 +64,7 @@ public class AlertExpressionSuggester {
         MetricExpressionParser.EQ,
         MetricExpressionParser.IS,
         MetricExpressionParser.NOT,
-        MetricExpressionParser.LIKE,
+        MetricExpressionParser.HASTOKEN,
         MetricExpressionParser.CONTAINS,
         MetricExpressionParser.STARTSWITH,
         MetricExpressionParser.ENDSWITH);

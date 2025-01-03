@@ -176,7 +176,7 @@ public class AlertExpressionSuggesterTest {
         Collection<String> suggestions = suggest(suggester, "sum(event.count{app");
 
         // TODO: BUG, should suggest startsWith, contains
-        Assert.assertEquals(Arrays.asList("!=", "<", "<=", "<>", "=", ">", ">=", "endswith", "in", "like", "not"), suggestions);
+        Assert.assertEquals(Arrays.asList("!=", "<", "<=", "<>", "=", ">", ">=", "endswith", "hastoken", "in", "not"), suggestions);
     }
 
     @Test
@@ -189,7 +189,7 @@ public class AlertExpressionSuggesterTest {
         Collection<String> suggestions = suggest(suggester, "sum(event.count{app not");
 
         // BUG: should also suggest startsWith, contains
-        Assert.assertEquals(Arrays.asList("endswith", "in", "like"), suggestions);
+        Assert.assertEquals(Arrays.asList("endswith", "hastoken", "in"), suggestions);
     }
 
     @Test
