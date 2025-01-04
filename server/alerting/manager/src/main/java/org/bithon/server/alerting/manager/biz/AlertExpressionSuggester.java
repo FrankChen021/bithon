@@ -141,7 +141,7 @@ public class AlertExpressionSuggester {
             }
 
             // sample: sum(appName.
-            // lastIndex: is the DOT,
+            // lastIndex: the DOT,
             // lastIndex - 1: appName(the data source name)
             // lastIndex - 3: the aggregator name
             int lastIndex = inputs.size() - 1;
