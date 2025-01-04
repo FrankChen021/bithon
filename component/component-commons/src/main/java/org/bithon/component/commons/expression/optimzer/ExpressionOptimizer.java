@@ -311,18 +311,10 @@ public class ExpressionOptimizer {
                 // Turn the expression: 'NOT var not in ('xxx')' into 'var in (xxx)'
                 return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLhs(),
                                                     (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRhs());
-            } else if (subExpression instanceof ConditionalExpression.NotLike) {
-                // Turn the expression: 'NOT var not like 'xxx'' into 'var like (xxx)'
-                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLhs(),
-                                                      ((ConditionalExpression.NotLike) subExpression).getRhs());
             } else if (subExpression instanceof ConditionalExpression.In) {
                 // Turn into In into NotIn
                 return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLhs(),
                                                        (ExpressionList) ((ConditionalExpression.In) subExpression).getRhs());
-            } else if (subExpression instanceof ConditionalExpression.Like) {
-                // Turn into Like into NotLike
-                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLhs(),
-                                                         ((ConditionalExpression.Like) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.EQ) {
                 // Turn '=' into '<>'
                 return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLhs(),
@@ -347,6 +339,9 @@ public class ExpressionOptimizer {
                 // Turn '>= into '<'
                 return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLhs(),
                                                    ((ComparisonExpression.GTE) subExpression).getRhs());
+            } else if (subExpression instanceof LogicalExpression.NOT) {
+                // NOT (NOT (xxx))  => xxx
+                return ((LogicalExpression.NOT) subExpression).getOperands().get(0);
             }
 
             return expression;

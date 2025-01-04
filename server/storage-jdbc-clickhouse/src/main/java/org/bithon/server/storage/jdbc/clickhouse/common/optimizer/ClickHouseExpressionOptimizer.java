@@ -21,9 +21,10 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.server.commons.utils.SqlLikeExpression;
+import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
     public IExpression visit(ConditionalExpression expression) {
         if (expression instanceof ConditionalExpression.StartsWith) {
             return new FunctionExpression(
-                Functions.getInstance().getFunction("startsWith"),
+                StringFunction.StartsWith.INSTANCE,
                 expression.getLhs(),
                 expression.getRhs()
             );
@@ -46,18 +47,20 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
 
         if (expression instanceof ConditionalExpression.EndsWith) {
             return new FunctionExpression(
-                Functions.getInstance().getFunction("endsWith"),
+                StringFunction.EndsWith.INSTANCE,
                 expression.getLhs(),
                 expression.getRhs()
             );
         }
-
+        if (expression instanceof ConditionalExpression.HasToken) {
+            return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
+        }
         return super.visit(expression);
     }
 
     @Override
     public IExpression visit(FunctionExpression expression) {
-        if (!"hasToken".equals(expression.getName())) {
+        if (!(expression.getFunction() instanceof StringFunction.HasToken)) {
             return super.visit(expression);
         }
         return HasTokenFunctionOptimizer.optimize(expression);
@@ -85,8 +88,8 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
             if (leadingTokenIndex > 0 && trailingTokenIndex < pattenLength - 1) {
                 // This is the case that the pattern is surrounded by token separators,
                 // CK can use index for such LIKE expression.
-                return new ConditionalExpression.Like(input,
-                                                      LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern)));
+                return new LikeOperator(input,
+                                        LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern)));
             }
 
             // Otherwise, we try to extract tokens from the pattern to turn this function as
@@ -115,8 +118,8 @@ public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractO
                 return expression;
             }
 
-            subExpressions.add(new ConditionalExpression.Like(input,
-                                                              LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
+            subExpressions.add(new LikeOperator(input,
+                                                LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
 
             return new LogicalExpression.AND(subExpressions);
         }

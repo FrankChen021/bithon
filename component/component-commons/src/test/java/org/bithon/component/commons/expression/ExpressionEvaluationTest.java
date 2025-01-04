@@ -26,41 +26,6 @@ import org.junit.Test;
 public class ExpressionEvaluationTest {
 
     @Test
-    public void test_LikeExpression1() {
-        // a LIKE '%bison%'
-        ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
-                                                                         new LiteralExpression.StringLiteral("%an%"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
-    }
-
-    @Test
-    public void test_LikeExpression2() {
-        // a LIKE 'bison%'
-        ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
-                                                                         new LiteralExpression.StringLiteral("bison%"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
-    }
-
-    @Test
-    public void test_LikeExpression3() {
-        // a LIKE 'bison'
-        ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
-                                                                         new LiteralExpression.StringLiteral("bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
-        Assert.assertFalse((boolean) expr.evaluate(name -> "bisonn"));
-    }
-
-    @Test
-    public void test_LikeExpression4() {
-        // a LIKE 'bison'
-        ConditionalExpression.Like expr = new ConditionalExpression.Like(new IdentifierExpression("a"),
-                                                                         new LiteralExpression.StringLiteral("%bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "american bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
-    }
-
-    @Test
     public void test_ContainsExpression() {
         // a contains 'bison'
         IExpression expr = new ConditionalExpression.Contains(new IdentifierExpression("a"),

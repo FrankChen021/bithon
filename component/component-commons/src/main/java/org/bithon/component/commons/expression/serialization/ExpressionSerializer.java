@@ -78,22 +78,40 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
 
     @Override
     public boolean visit(LogicalExpression expression) {
+        boolean needClose = false;
+
         String concatOperator = expression.getOperator();
         if (expression instanceof LogicalExpression.NOT) {
             sb.append("NOT ");
             concatOperator = "AND";
+            needClose = expression.getOperands().size() > 1;
+            if (needClose) {
+                sb.append('(');
+            }
         }
 
-        sb.append('(');
         for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
             if (i > 0) {
                 sb.append(' ');
                 sb.append(concatOperator);
                 sb.append(' ');
             }
-            expression.getOperands().get(i).accept(this);
+
+            IExpression operand = expression.getOperands().get(i);
+            if (operand instanceof ConditionalExpression || operand instanceof LogicalExpression) {
+                sb.append('(');
+                operand.accept(this);
+                sb.append(')');
+            } else {
+                // Might be FunctionExpression
+                operand.accept(this);
+            }
         }
-        sb.append(')');
+
+        if (needClose) {
+            sb.append(')');
+        }
+
         return false;
     }
 

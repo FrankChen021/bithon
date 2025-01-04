@@ -49,7 +49,7 @@ labelSelectorExpression
 
 labelPredicateExpression
   : LT|LTE|GT|GTE|NE|EQ
-  | NOT? (CONTAINS|STARTSWITH|ENDSWITH|LIKE)
+  | NOT? (CONTAINS|STARTSWITH|ENDSWITH|HASTOKEN)
   ;
 
 metricPredicateExpression
@@ -96,7 +96,7 @@ EQ: '=';
 IS: I S;
 IN: I N;
 NOT: N O T;
-LIKE: L I K E;
+HASTOKEN: H A S T O K E N;
 CONTAINS: C O N T A I N S;
 STARTSWITH: S T A R T S W I T H;
 ENDSWITH: E N D S W I T H;

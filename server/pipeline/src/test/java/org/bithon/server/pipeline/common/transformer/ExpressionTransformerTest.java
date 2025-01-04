@@ -47,8 +47,8 @@ public class ExpressionTransformerTest {
 
 
     @Test
-    public void testLikeExpression() throws JsonProcessingException {
-        ITransformer transformer = new ExpressionTransformer("a LIKE '%bison%'", "bison", null);
+    public void test_ContainsExpression() throws JsonProcessingException {
+        ITransformer transformer = new ExpressionTransformer("a contains 'bison'", "bison", null);
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();

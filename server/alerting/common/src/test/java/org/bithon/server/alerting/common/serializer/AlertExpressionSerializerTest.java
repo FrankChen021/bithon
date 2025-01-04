@@ -48,7 +48,7 @@ public class AlertExpressionSerializerTest {
 
         Assert.assertEquals("1", tree.get("id").asText());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'a' AND instance = 'b')", tree.get("where").asText());
+        Assert.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
     }
 
     @Test
@@ -67,7 +67,7 @@ public class AlertExpressionSerializerTest {
 
         // appName should be escaped as ab\"cd
         Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"ab\\\"cd\", instance = \"ab'cd\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'ab\"cd' AND instance = 'ab\\'cd')", tree.get("where").asText());
+        Assert.assertEquals("(appName = 'ab\"cd') AND (instance = 'ab\\'cd')", tree.get("where").asText());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class AlertExpressionSerializerTest {
 
         Assert.assertEquals("1", tree.get("id").asText());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'a' AND instance = 'b')", tree.get("where").asText());
+        Assert.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
     }
 
     @Test

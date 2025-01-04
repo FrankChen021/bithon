@@ -71,8 +71,6 @@ public class ExpressionDeserializer extends JsonDeserializer<IExpression> {
                     BinaryExpressionDeserializer.deserialize(type, jsonNode, ComparisonExpression.NE::new);
                 case "in" ->
                     new ConditionalExpression.In(Expression.deserialize(jsonNode.get("lhs")), ExpressionListExpressionDeserializer.deserialize(jsonNode.get("rhs")));
-                case "like" ->
-                    BinaryExpressionDeserializer.deserialize(type, jsonNode, ConditionalExpression.Like::new);
                 case "literal" -> LiteralExpressionDeserializer.deserialize(jsonNode);
                 case "logical" -> LogicalExpressionDeserializer.deserialize(jsonNode);
                 case "identifier" -> IdentifierExpressionDeserializer.deserialize(jsonNode);

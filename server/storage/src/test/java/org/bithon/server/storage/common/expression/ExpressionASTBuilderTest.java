@@ -131,6 +131,16 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
+    public void test_LogicalExpression_ConsecutiveAND_WithBrace() {
+        IExpression expr = ExpressionASTBuilder.builder().build("(a = 1) AND (b = 1 AND c = 1 AND d = 1)");
+        Assert.assertTrue(expr instanceof LogicalExpression.AND);
+
+        // Logical AND is flattened
+        Assert.assertEquals(4, ((LogicalExpression.AND) expr).getOperands().size());
+        Assert.assertEquals("(a = 1) AND (b = 1) AND (c = 1) AND (d = 1)", expr.serializeToText(null));
+    }
+
+    @Test
     public void test_LogicalExpression_OR() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1 OR b = 1");
         Assert.assertTrue(expr instanceof LogicalExpression.OR);
@@ -194,9 +204,9 @@ public class ExpressionASTBuilderTest {
     public void test_StringLiteralUnEscaped() {
         // At the AST layer, the string literal does not hold escape characters.
         // The business layer (the layer that uses the AST) needs to handle the escaping
-        Assert.assertEquals("message like 'a''", ExpressionASTBuilder.builder()
-                                                                       .build("message LIKE 'a\\''")
-                                                                       .serializeToText(null));
+        Assert.assertEquals("message contains 'a''", ExpressionASTBuilder.builder()
+                                                                         .build("message contains 'a\\''")
+                                                                         .serializeToText(null));
     }
 
     @Test

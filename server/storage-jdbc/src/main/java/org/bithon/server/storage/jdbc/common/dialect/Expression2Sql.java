@@ -109,8 +109,8 @@ public class Expression2Sql extends ExpressionSerializer {
 
         String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
 
-        serializeBinary(new ConditionalExpression.Like(expression.getLhs(),
-                                                       LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
+        serializeBinary(new LikeOperator(expression.getLhs(),
+                                         LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
 
         return false;
     }

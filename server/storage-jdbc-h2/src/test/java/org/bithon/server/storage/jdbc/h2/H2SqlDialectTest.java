@@ -20,7 +20,7 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ public class H2SqlDialectTest {
 
     @Test
     public void testTransformStartsWith() {
-        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("startsWith"),
+        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.StartsWith.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '1231%'", expr.serializeToText(null));
@@ -40,7 +40,7 @@ public class H2SqlDialectTest {
 
     @Test
     public void testTransformEndsWith() {
-        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("endsWith"),
+        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.EndsWith.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '%1231'", expr.serializeToText(null));
@@ -48,7 +48,7 @@ public class H2SqlDialectTest {
 
     @Test
     public void testHasToken() {
-        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("hasToken"),
+        IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.HasToken.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
         Assert.assertEquals("a like '%1231%'", expr.serializeToText(null));

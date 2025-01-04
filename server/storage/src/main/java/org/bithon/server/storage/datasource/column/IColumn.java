@@ -87,7 +87,7 @@ public interface IColumn extends IIdentifier {
      * so this interface provides an opportunity for subclasses to override the default aggregator name
      */
     default IExpression createAggregateFunctionExpression(IFunction function) {
-        return new FunctionExpression(function, new IdentifierExpression(getName()));
+        return new FunctionExpression(function, IdentifierExpression.of(getName(), getDataType()));
     }
 
     IDataType getDataType();

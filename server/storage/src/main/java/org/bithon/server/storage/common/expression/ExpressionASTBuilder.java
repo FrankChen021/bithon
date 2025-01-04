@@ -45,6 +45,7 @@ import org.bithon.component.commons.expression.validation.IIdentifierProvider;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
 import org.bithon.server.commons.antlr4.TokenUtils;
@@ -234,7 +235,10 @@ public class ExpressionASTBuilder {
             public IExpression visitExtraPredicate(ExpressionParser.ExtraPredicateContext ctx) {
                 TerminalNode op = (TerminalNode) ctx.getChild(0);
                 return switch (op.getSymbol().getType()) {
-                    case ExpressionLexer.LIKE -> new ConditionalExpression.Like(left, right);
+                    case ExpressionLexer.HASTOKEN -> {
+                        Preconditions.checkIfTrue(right instanceof LiteralExpression, "The 2nd parameter of hasToken must be a string constant");
+                        yield new ConditionalExpression.HasToken(left, right);
+                    }
                     case ExpressionLexer.STARTSWITH -> new ConditionalExpression.StartsWith(left, right);
                     case ExpressionLexer.ENDSWITH -> new ConditionalExpression.EndsWith(left, right);
                     case ExpressionLexer.CONTAINS -> new ConditionalExpression.Contains(left, right);
@@ -245,10 +249,6 @@ public class ExpressionASTBuilder {
             @Override
             public IExpression visitNotPredicate(ExpressionParser.NotPredicateContext ctx) {
                 IExpression expr = ctx.extraPredicate().accept(this);
-                if (expr instanceof ConditionalExpression.Like) {
-                    return new ConditionalExpression.NotLike(((ConditionalExpression.Like) expr).getLhs(),
-                                                             ((ConditionalExpression.Like) expr).getRhs());
-                }
                 return new LogicalExpression.NOT(expr);
             }
 

@@ -186,7 +186,7 @@ public class MetricExpressionASTBuilder {
         }
 
         private static PredicateEnum getPredicate(int predicateToken,
-                                                  LiteralExpression expected,
+                                                  LiteralExpression<?> expected,
                                                   HumanReadableDuration expectedWindow) {
             switch (predicateToken) {
                 case MetricExpressionParser.LT:
@@ -293,10 +293,9 @@ public class MetricExpressionASTBuilder {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'endsWith' predicate must be type of string literal.");
                     yield new ConditionalExpression.EndsWith(identifier, expected);
                 }
-                // For compatibility
-                case MetricExpressionParser.LIKE -> {
-                    checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'LIKE' predicate must be type of string literal.");
-                    yield new ConditionalExpression.Like(identifier, expected);
+                case MetricExpressionParser.HASTOKEN -> {
+                    checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'hasToken' predicate must be type of string literal.");
+                    yield new ConditionalExpression.HasToken(identifier, expected);
                 }
                 default -> throw new RuntimeException("Unsupported predicate type: " + predicateType);
             };

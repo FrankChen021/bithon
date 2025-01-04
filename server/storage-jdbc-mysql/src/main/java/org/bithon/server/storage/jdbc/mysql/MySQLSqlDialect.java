@@ -26,11 +26,13 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
 
 import java.util.Arrays;
@@ -109,14 +111,16 @@ public class MySQLSqlDialect implements ISqlDialect {
                 }
 
                 if (expression instanceof ConditionalExpression.StartsWith) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
+                    return new LikeOperator(expression.getLhs(),
+                                            LiteralExpression.ofString(((LiteralExpression<?>) expression.getRhs()).asString() + "%"));
                 }
                 if (expression instanceof ConditionalExpression.EndsWith) {
-                    return new ConditionalExpression.Like(expression.getLhs(),
-                                                          LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
+                    return new LikeOperator(expression.getLhs(),
+                                            LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
                 }
-
+                if (expression instanceof ConditionalExpression.HasToken) {
+                    return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
+                }
                 return super.visit(expression);
             }
 
@@ -131,8 +135,8 @@ public class MySQLSqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(patternExpression, LiteralExpression.ofString("%")));
                     }
-                    return new ConditionalExpression.Like(expression.getArgs().get(0),
-                                                          patternExpression);
+                    return new LikeOperator(expression.getArgs().get(0),
+                                            patternExpression);
                 } else if ("endsWith".equals(expression.getName())) {
                     // MySQL does not provide endsWith function, turns it into LIKE expression as: LIKE '%prefix'
                     IExpression patternExpression = expression.getArgs().get(1);
@@ -142,8 +146,8 @@ public class MySQLSqlDialect implements ISqlDialect {
                         patternExpression = new FunctionExpression(Functions.getInstance().getFunction("concat"),
                                                                    Arrays.asList(LiteralExpression.ofString("%"), patternExpression));
                     }
-                    return new ConditionalExpression.Like(expression.getArgs().get(0),
-                                                          patternExpression);
+                    return new LikeOperator(expression.getArgs().get(0),
+                                            patternExpression);
                 }
 
                 return super.visit(expression);

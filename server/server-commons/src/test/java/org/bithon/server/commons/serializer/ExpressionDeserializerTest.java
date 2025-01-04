@@ -48,8 +48,7 @@ public class ExpressionDeserializerTest {
                                                            new IdentifierExpression("a"),
                                                            new ConditionalExpression.In(new IdentifierExpression("a"),
                                                                                         new ExpressionList(LiteralExpression.ofLong(1),
-                                                                                                           LiteralExpression.ofLong(2))),
-                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.ofString("c"))
+                                                                                                           LiteralExpression.ofLong(2)))
         );
 
         String jsonText = om.writeValueAsString(expression);

@@ -260,7 +260,7 @@ public class ExpressionOptimizerTest {
     public void test_OptimizeOR_4() {
         IExpression expr = ExpressionASTBuilder.builder().build("2 > 1 OR 1 = 1");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
+        Assert.assertTrue(expr instanceof LiteralExpression.BooleanLiteral);
         Assert.assertEquals("true", expr.serializeToText(null));
     }
 
@@ -275,14 +275,14 @@ public class ExpressionOptimizerTest {
     public void test_OptimizeOR_6() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'God' OR 1 > 2 OR b = 'c'");
 
-        Assert.assertEquals("(a = 'God' OR b = 'c')", expr.serializeToText(null));
+        Assert.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeLogical() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'God' OR 1 > 2 OR b = 'c' AND 1 = 1");
 
-        Assert.assertEquals("(a = 'God' OR b = 'c')", expr.serializeToText(null));
+        Assert.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
     }
 
     @Test
@@ -343,8 +343,8 @@ public class ExpressionOptimizerTest {
 
     @Test
     public void test_Not_NotLike() {
-        IExpression expr = ExpressionASTBuilder.builder().build("not a not like 'a'");
-        Assert.assertEquals("a like 'a'", expr.serializeToText(null));
+        IExpression expr = ExpressionASTBuilder.builder().build("not a not contains 'a'");
+        Assert.assertEquals("a contains 'a'", expr.serializeToText(null));
     }
 
     @Test

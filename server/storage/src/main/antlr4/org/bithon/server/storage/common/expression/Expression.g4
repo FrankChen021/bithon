@@ -26,7 +26,7 @@ expression
 // The 'endsWith' and 'startsWith' functions are supported in previous version,
 // but now they're defined as predicate, to make sure the backward compatibility, we put them in the expression below
 functionExpressionDecl
-   : (IDENTIFIER | ENDSWITH | STARTSWITH) expressionListDecl
+   : (IDENTIFIER | ENDSWITH | STARTSWITH | HASTOKEN) expressionListDecl
    ;
 
 notExpressionDecl
@@ -66,7 +66,7 @@ simplePredicate
   ;
 
 extraPredicate
-  : LIKE | STARTSWITH | ENDSWITH | CONTAINS
+  : STARTSWITH | ENDSWITH | CONTAINS | HASTOKEN
   ;
 
 notPredicate
@@ -107,7 +107,7 @@ EQ: '=';
 AND: A N D;
 OR: O R;
 IN: I N;
-LIKE: L I K E;
+HASTOKEN: H A S T O K E N;
 ENDSWITH: E N D S W I T H;
 STARTSWITH: S T A R T S W I T H;
 CONTAINS: C O N T A I N S;
