@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -257,5 +258,27 @@ public class AlertExpressionSuggesterTest {
         // TODO: buggy, should suggest 'and', 'or' only
         Assert.assertEquals(Arrays.asList(")", "and", "or"),
                             suggestions);
+    }
+
+    @Test
+    public void test_SuggestionAllColumnForCountAggregator() {
+        IDataSourceApi dataSourceApi = Mockito.mock(IDataSourceApi.class);
+        Mockito.when(dataSourceApi.getSchemaByName("event"))
+               .thenReturn(eventSchema);
+
+        AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
+        List<Suggestion> suggestionList = suggester.suggest("count(event.")
+                                                   .stream()
+                                                   .toList();
+        // all 3 columns are suggested
+        Assert.assertEquals(3, suggestionList.size());
+        Assert.assertEquals("appName", suggestionList.get(0).getText());
+        Assert.assertEquals("Dimension", ((AlertExpressionSuggester.SuggestionTag) suggestionList.get(0).getTag()).getTagText());
+
+        Assert.assertEquals("eventCount", suggestionList.get(1).getText());
+        Assert.assertEquals("Metric", ((AlertExpressionSuggester.SuggestionTag) suggestionList.get(1).getTag()).getTagText());
+
+        Assert.assertEquals("instanceName", suggestionList.get(2).getText());
+        Assert.assertEquals("Dimension", ((AlertExpressionSuggester.SuggestionTag) suggestionList.get(2).getTag()).getTagText());
     }
 }

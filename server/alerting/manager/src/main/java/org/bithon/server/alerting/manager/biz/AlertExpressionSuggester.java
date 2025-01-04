@@ -29,6 +29,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -133,20 +134,35 @@ public class AlertExpressionSuggester {
         });
 
         // Suggest metric names for the metric name expression
+        // sample input: sum(appName.
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_metricNameExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType != MetricExpressionParser.IDENTIFIER) {
                 return false;
             }
 
-            // -1 is the DOT
-            String dataSource = inputs.get(inputs.size() - 2).getText();
+            // sample: sum(appName.
+            // lastIndex: the DOT,
+            // lastIndex - 1: appName(the data source name)
+            // lastIndex - 3: the aggregator name
+            int lastIndex = inputs.size() - 1;
+            String aggregator = inputs.get(lastIndex - 3).getText();
+            boolean isCountAggregator = "count".equalsIgnoreCase(aggregator);
+
+            String dataSource = inputs.get(lastIndex - 1).getText();
             ISchema schema = dataSourceApi.getSchemaByName(dataSource);
             if (schema != null) {
-                schema.getColumns()
-                      .stream()
-                      .filter((col) -> !(col instanceof StringColumn)
-                                       && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
-                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Metric").build())));
+                for (IColumn col : schema.getColumns()) {
+                    // For count aggregator, any column can be referenced
+                    // otherwise only numeric column can be referenced
+                    if ((isCountAggregator || (!(col instanceof StringColumn)))
+                        && !col.getName().equals(schema.getTimestampSpec().getColumnName())) {
+                        suggestions.add(Suggestion.of(expectedToken.tokenType,
+                                                      col.getName(),
+                                                      SuggestionTag.builder()
+                                                                   .tagText(col instanceof StringColumn ? "Dimension" : "Metric")
+                                                                   .build()));
+                    }
+                }
             }
 
             return false;
