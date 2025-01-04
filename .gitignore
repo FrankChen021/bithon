@@ -8,6 +8,7 @@
 /**/.sts4-cache/
 **/dependency-reduced-pom.xml
 /logs/
+/.vscode/
 
 
 /server/web-server/src/main/resources/static/bower_components/
