@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
@@ -116,6 +117,9 @@ public class H2SqlDialect implements ISqlDialect {
                 if (expression instanceof ConditionalExpression.EndsWith) {
                     return new LikeOperator(expression.getLhs(),
                                             LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
+                }
+                if (expression instanceof ConditionalExpression.HasToken) {
+                    return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
                 }
                 return super.visit(expression);
             }

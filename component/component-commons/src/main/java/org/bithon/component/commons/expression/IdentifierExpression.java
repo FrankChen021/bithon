@@ -26,6 +26,12 @@ public class IdentifierExpression implements IExpression {
         return new IdentifierExpression(identifier);
     }
 
+    public static IdentifierExpression of(String identifier, IDataType argType) {
+        IdentifierExpression expr = new IdentifierExpression(identifier);
+        expr.setDataType(argType);
+        return expr;
+    }
+
     /**
      * NOT final to allow AST optimization
      */

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
 
@@ -45,7 +46,7 @@ public abstract class AggregateMinColumn implements IAggregatableColumn {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in the underlying database,
         // So the two parameters of the following ctor are all `name` properties
-        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Min.INSTANCE, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Min.INSTANCE, IdentifierExpression.of(name, getDataType()));
     }
 
     @JsonIgnore

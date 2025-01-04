@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
@@ -44,7 +45,7 @@ public abstract class AggregateLastColumn implements IAggregatableColumn {
                                String alias) {
         this.name = name;
         this.alias = alias == null ? name : alias;
-        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Last.INSTANCE, name);
+        this.aggregateFunctionExpression = FunctionExpression.create(AggregateFunction.Last.INSTANCE, IdentifierExpression.of(name, getDataType()));
     }
 
     @Override

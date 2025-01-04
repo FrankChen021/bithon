@@ -67,7 +67,8 @@ public class AggregateFunctionColumn implements IColumn {
         this.alias = StringUtils.isEmpty(alias) ? name : alias;
         this.dataType = dataType;
         this.aggregator = aggregator;
-        this.functionExpression = FunctionExpression.create("sum".equals(aggregator) ? SumMergeFunction.INSTANCE : CountMergeFunction.INSTANCE, name);
+        this.functionExpression = FunctionExpression.create("sum".equals(aggregator) ? SumMergeFunction.INSTANCE : CountMergeFunction.INSTANCE,
+                                                            IdentifierExpression.of(name, dataType));
     }
 
     @Override

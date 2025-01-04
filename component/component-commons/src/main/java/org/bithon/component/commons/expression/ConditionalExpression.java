@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
+
 import java.util.Set;
 
 /**
@@ -113,6 +115,26 @@ public abstract class ConditionalExpression extends BinaryExpression {
         @Override
         public Object evaluate(IEvaluationContext context) {
             return !((boolean) super.evaluate(context));
+        }
+    }
+
+    /**
+     * match token in given input
+     */
+    public static class HasToken extends ConditionalExpression {
+        public HasToken(IExpression left, IExpression right) {
+            super("hasToken", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            String input = (String) lhs.evaluate(context);
+            if (input == null) {
+                return false;
+            }
+
+            String pattern = (String) rhs.evaluate(context);
+            return StringFunction.HasToken.INSTANCE.evaluate(input, pattern);
         }
     }
 

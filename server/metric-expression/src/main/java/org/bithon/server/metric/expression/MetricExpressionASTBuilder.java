@@ -23,14 +23,12 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
-import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
-import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
@@ -297,7 +295,7 @@ public class MetricExpressionASTBuilder {
                 }
                 case MetricExpressionParser.HASTOKEN -> {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'hasToken' predicate must be type of string literal.");
-                    yield new FunctionExpression(StringFunction.HasToken.INSTANCE, identifier, expected);
+                    yield new ConditionalExpression.HasToken(identifier, expected);
                 }
                 default -> throw new RuntimeException("Unsupported predicate type: " + predicateType);
             };

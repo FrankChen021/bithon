@@ -73,9 +73,11 @@ public class StringFunction {
 
         @Override
         public Object evaluate(List<Object> args) {
-            String haystack = (String) args.get(0);
-            String needle = (String) args.get(1);
-            return haystack != null && needle != null && haystack.contains(needle);
+            return evaluate((String) args.get(0), (String) args.get(1));
+        }
+
+        public boolean evaluate(String target, String token) {
+            return target != null && token != null && target.contains(token);
         }
 
         @Override
@@ -137,7 +139,9 @@ public class StringFunction {
 
 
     public static class StartsWith extends AbstractFunction {
-        public StartsWith() {
+        public static final StartsWith INSTANCE = new StartsWith();
+
+        private StartsWith() {
             super("startsWith", Arrays.asList(IDataType.STRING, IDataType.STRING), IDataType.BOOLEAN);
         }
 
@@ -155,7 +159,9 @@ public class StringFunction {
     }
 
     public static class EndsWith extends AbstractFunction {
-        public EndsWith() {
+        public static final EndsWith INSTANCE = new EndsWith();
+
+        private EndsWith() {
             super("endsWith",
                   Arrays.asList(IDataType.STRING, IDataType.STRING),
                   IDataType.BOOLEAN);

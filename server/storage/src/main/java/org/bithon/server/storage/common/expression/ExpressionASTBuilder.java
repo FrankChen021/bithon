@@ -37,7 +37,6 @@ import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.IFunctionProvider;
-import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.validation.ExpressionValidator;
@@ -238,7 +237,7 @@ public class ExpressionASTBuilder {
                 return switch (op.getSymbol().getType()) {
                     case ExpressionLexer.HASTOKEN -> {
                         Preconditions.checkIfTrue(right instanceof LiteralExpression, "The 2nd parameter of hasToken must be a string constant");
-                        yield new FunctionExpression(StringFunction.HasToken.INSTANCE, left, right);
+                        yield new ConditionalExpression.HasToken(left, right);
                     }
                     case ExpressionLexer.STARTSWITH -> new ConditionalExpression.StartsWith(left, right);
                     case ExpressionLexer.ENDSWITH -> new ConditionalExpression.EndsWith(left, right);

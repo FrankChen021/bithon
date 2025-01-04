@@ -50,8 +50,8 @@ public class Functions implements IFunctionProvider {
     public Functions() {
         register(new NumberFunction.Round());
 
-        register(new StringFunction.StartsWith());
-        register(new StringFunction.EndsWith());
+        register(StringFunction.StartsWith.INSTANCE);
+        register(StringFunction.EndsWith.INSTANCE);
         register(StringFunction.HasToken.INSTANCE);
         register(new StringFunction.Lower());
         register(new StringFunction.Upper());

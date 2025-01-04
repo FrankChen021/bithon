@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,9 @@ public class FunctionExpression implements IExpression {
      * @param args MUST be a WRITABLE list
      */
     public FunctionExpression(IFunction function, List<IExpression> args) {
+        Preconditions.checkNotNull(function, "function object cannot be null");
+        function.validateArgs(args);
+
         this.function = function;
         this.args = args;
     }
@@ -91,10 +95,7 @@ public class FunctionExpression implements IExpression {
         return visitor.visit(this);
     }
 
-    public static FunctionExpression create(IFunction function, String... args) {
-        return new FunctionExpression(function,
-                                      Arrays.stream(args)
-                                            .map(IdentifierExpression::new)
-                                            .collect(Collectors.toList()));
+    public static FunctionExpression create(IFunction function, IExpression... args) {
+        return new FunctionExpression(function, args);
     }
 }
