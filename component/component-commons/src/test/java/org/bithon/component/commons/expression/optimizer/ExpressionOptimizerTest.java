@@ -53,7 +53,7 @@ public class ExpressionOptimizerTest {
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
         Assert.assertEquals(5, expr.getOperands().size());
-        Assert.assertEquals("(a = 1 AND b = 2 AND c = 3 AND d = 4 AND e = 5)", expr.serializeToText(null));
+        Assert.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4) AND (e = 5)", expr.serializeToText(null));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class ExpressionOptimizerTest {
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
         Assert.assertEquals(3, expr.getOperands().size());
-        Assert.assertEquals("(a = 1 OR b = 2 OR c = 3)", expr.serializeToText(null));
+        Assert.assertEquals("(a = 1) OR (b = 2) OR (c = 3)", expr.serializeToText(null));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ExpressionOptimizerTest {
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
         Assert.assertEquals(2, expr.getOperands().size());
-        Assert.assertEquals("(a = 1 AND (b = 2 OR c = 3))", expr.serializeToText(null));
+        Assert.assertEquals("(a = 1) AND ((b = 2) OR (c = 3))", expr.serializeToText(null));
     }
 
     @Test
@@ -111,7 +111,7 @@ public class ExpressionOptimizerTest {
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
         Assert.assertEquals(4, expr.getOperands().size());
-        Assert.assertEquals("(a = 1 AND b = 2 AND c = 3 AND d = 4)", expr.serializeToText(null));
+        Assert.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4)", expr.serializeToText(null));
     }
 
     @Test
@@ -133,7 +133,7 @@ public class ExpressionOptimizerTest {
         );
 
         expr = ExpressionOptimizer.optimize(expr);
-        Assert.assertEquals("NOT (a = 1 AND b = 2 AND c = 3 AND d = 4)", expr.serializeToText(null));
+        Assert.assertEquals("NOT ((a = 1) AND (b = 2) AND (c = 3) AND (d = 4))", expr.serializeToText(null));
     }
 
     @Test

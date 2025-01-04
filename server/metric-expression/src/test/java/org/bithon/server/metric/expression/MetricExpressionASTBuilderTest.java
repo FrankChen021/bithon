@@ -177,7 +177,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_hasTokenPredicateExpression() {
         MetricExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName hasToken 'a', instanceName hasToken '192.'})[5m] > 1");
-        Assert.assertEquals("(hasToken(appName, 'a') AND hasToken(instanceName, '192.'))", expression.getLabelSelectorExpression().serializeToText(null));
+        Assert.assertEquals("(appName hasToken 'a') AND (instanceName hasToken '192.')", expression.getLabelSelectorExpression().serializeToText(null));
 
         // hasToken require string literal
         Assert.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName hasToken 5})[5m] > 1"));
@@ -199,7 +199,7 @@ public class MetricExpressionASTBuilderTest {
 
         // not hasToken
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not hasToken 'a'})[5m] is null");
-        Assert.assertEquals("NOT (hasToken(appName, 'a'))", expression.getLabelSelectorExpression().serializeToText(null));
+        Assert.assertEquals("NOT (appName hasToken 'a')", expression.getLabelSelectorExpression().serializeToText(null));
     }
 
     @Test
@@ -309,7 +309,7 @@ public class MetricExpressionASTBuilderTest {
     public void test_MultipleSelector() {
         MetricExpression alertExpression = MetricExpressionASTBuilder.parse("avg(http-metrics.responseTime{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1%[-7m]");
         IExpression whereExpression = alertExpression.getLabelSelectorExpression();
-        Assert.assertEquals("(appName = 'a' AND instance = 'localhost' AND url = 'http://localhost/test')", whereExpression.serializeToText(null));
+        Assert.assertEquals("(appName = 'a') AND (instance = 'localhost') AND (url = 'http://localhost/test')", whereExpression.serializeToText(null));
     }
 
     @Test

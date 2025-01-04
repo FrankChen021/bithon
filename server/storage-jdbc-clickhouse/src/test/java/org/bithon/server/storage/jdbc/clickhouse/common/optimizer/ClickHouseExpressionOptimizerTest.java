@@ -54,7 +54,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'SERVER-ERROR')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER-ERROR%')",
+        Assert.assertEquals("hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER-ERROR%')",
                             expr.serializeToText(null));
     }
 
@@ -65,7 +65,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, '_SERVER')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("(hasToken(a, 'SERVER') AND a like '%\\_SERVER%')", expr.serializeToText(null));
+        Assert.assertEquals("hasToken(a, 'SERVER') AND (a like '%\\_SERVER%')", expr.serializeToText(null));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'ERROR_')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("(hasToken(a, 'ERROR') AND a like '%ERROR\\_%')", expr.serializeToText(null));
+        Assert.assertEquals("hasToken(a, 'ERROR') AND (a like '%ERROR\\_%')", expr.serializeToText(null));
     }
 
     @Test
@@ -85,6 +85,6 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'SERVER_ERROR') AND hasToken(a, 'EXCEPTION_CODE')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("(hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND a like '%SERVER\\_ERROR%' AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND a like '%EXCEPTION\\_CODE%')", expr.serializeToText(null));
+        Assert.assertEquals("hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER\\_ERROR%') AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND (a like '%EXCEPTION\\_CODE%')", expr.serializeToText(null));
     }
 }

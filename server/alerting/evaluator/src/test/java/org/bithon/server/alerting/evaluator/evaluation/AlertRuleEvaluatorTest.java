@@ -540,7 +540,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testLike() throws IOException {
+    public void test_Contains() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
@@ -554,7 +554,7 @@ public class AlertRuleEvaluatorTest {
                                         .build());
         EasyMock.replay(dataSourceProvider);
 
-        String expr = StringUtils.format("sum(test-metrics.%s{type like 'a'})[1m] <= 50%%[-1m]", metric);
+        String expr = StringUtils.format("sum(test-metrics.%s{type contains 'a'})[1m] <= 50%%[-1m]", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
@@ -572,7 +572,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testNotLike() throws IOException {
+    public void test_NotContains() throws IOException {
         // Current
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
@@ -586,7 +586,7 @@ public class AlertRuleEvaluatorTest {
                                         .build());
         EasyMock.replay(dataSourceProvider);
 
-        String expr = StringUtils.format("sum(test-metrics.%s{type not like 'a'})[1m] <= 50%%[-1m]", metric);
+        String expr = StringUtils.format("sum(test-metrics.%s{type not contains 'a'})[1m] <= 50%%[-1m]", metric);
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
