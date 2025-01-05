@@ -1,0 +1,3 @@
+- [ ] group-by in two AND operands
+- [ ] notification label
+- [ ] merge memory states with alert states
