@@ -23,7 +23,7 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
@@ -61,7 +61,7 @@ public class EvaluationContext implements IEvaluationContext {
     /**
      * Each element in the list is the values of the group by fields
      */
-    private final List<Labels> groups = new ArrayList<>();
+    private final List<Label> groups = new ArrayList<>();
 
     private final IDataSourceApi dataSourceApi;
     private final @Nullable AlertStateObject prevState;

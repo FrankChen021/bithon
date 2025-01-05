@@ -16,7 +16,7 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -36,7 +36,7 @@ public interface IEvaluationOutput {
     /**
      * If the evaluation is based on label (group-by semantics)
      */
-    Labels getLabels();
+    Label getLabel();
 
     String getThresholdText();
     String getCurrentText();

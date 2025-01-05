@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Getter;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -48,11 +48,11 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     private final TimeSpan end;
 
     @Getter
-    private final Labels labels;
+    private final Label label;
 
     public AbsoluteComparisonEvaluationOutput(TimeSpan start,
                                               TimeSpan end,
-                                              Labels labels,
+                                              Label label,
                                               String now,
                                               String threshold,
                                               String delta,
@@ -60,15 +60,14 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
         this.start = start;
         this.end = end;
         this.isMatched = isMatches;
-        this.labels = labels;
+        this.label = label;
         this.now = now;
         this.threshold = threshold;
         this.delta = delta;
     }
 
-    @Override
-    public Labels getLabels() {
-        return labels;
+    public Label getLabel() {
+        return label;
     }
 
     @Override

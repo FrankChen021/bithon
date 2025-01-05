@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -82,7 +82,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     @Override
     public void updateAlertStatus(String id, AlertStateObject prevState,
                                   AlertStatus newStatus,
-                                  Map<Labels, AlertStatus> statusPerLabel) {
+                                  Map<Label, AlertStatus> statusPerLabel) {
         String payload = "{}";
         if (statusPerLabel != null) {
             try {

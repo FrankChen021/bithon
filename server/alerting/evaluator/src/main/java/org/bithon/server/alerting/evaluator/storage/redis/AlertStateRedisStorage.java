@@ -26,7 +26,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -90,15 +90,15 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
     }
 
     @Override
-    public Map<Labels, Long> incrMatchCount(String alertId, List<Labels> series, Duration duration) {
-        Map<Labels, Long> ret = new HashMap<>();
+    public Map<Label, Long> incrMatchCount(String alertId, List<Label> series, Duration duration) {
+        Map<Label, Long> ret = new HashMap<>();
 
-        for (Labels labels : series) {
-            String key = getAlertKey(alertId, labels.getId());
+        for (Label label : series) {
+            String key = getAlertKey(alertId, label.getId());
             long v = redisClient.increment(key);
             redisClient.expire(key, duration);
 
-            ret.put(labels, v);
+            ret.put(label, v);
         }
 
         return ret;

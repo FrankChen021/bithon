@@ -38,18 +38,18 @@ import java.util.List;
  * @date 2024/12/29 14:11
  */
 
-@JsonSerialize(using = Labels.Serializer.class)
-@JsonDeserialize(using = Labels.Deserializer.class)
-public class Labels {
+@JsonSerialize(using = Label.Serializer.class)
+@JsonDeserialize(using = Label.Deserializer.class)
+public class Label {
     private final List<String> values = new ArrayList<>();
 
     @Getter
     private String id = "";
 
-    public Labels() {
+    public Label() {
     }
 
-    public Labels(String id) {
+    public Label(String id) {
         this.id = id;
     }
 
@@ -65,10 +65,6 @@ public class Labels {
         id += StringUtils.format("%s = '%s'", label, value);
     }
 
-    public List<String> getValues() {
-        return values;
-    }
-
     @Override
     public String toString() {
         return id;
@@ -81,34 +77,34 @@ public class Labels {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Labels) {
-            return id.equals(((Labels) obj).id);
+        if (obj instanceof Label) {
+            return id.equals(((Label) obj).id);
         }
         return false;
     }
 
-    public static class Serializer extends JsonSerializer<Labels> {
+    public static class Serializer extends JsonSerializer<Label> {
         @Override
-        public void serialize(Labels labels, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            gen.writeString(labels.id);
+        public void serialize(Label label, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(label.id);
         }
 
         @Override
-        public Class<Labels> handledType() {
-            return Labels.class;
+        public Class<Label> handledType() {
+            return Label.class;
         }
     }
 
-    public static class Deserializer extends JsonDeserializer<Labels> {
+    public static class Deserializer extends JsonDeserializer<Label> {
         @Override
-        public Labels deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            return new Labels(p.getValueAsString());
+        public Label deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            return new Label(p.getValueAsString());
         }
 
 
         @Override
-        public Class<Labels> handledType() {
-            return Labels.class;
+        public Class<Label> handledType() {
+            return Label.class;
         }
     }
 }

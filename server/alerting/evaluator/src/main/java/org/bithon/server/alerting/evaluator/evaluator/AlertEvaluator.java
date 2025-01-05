@@ -36,7 +36,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -164,31 +164,31 @@ public class AlertEvaluator implements DisposableBean {
             }
 
             // Evaluate the alert rule
-            Map<Labels, AlertStatus> allNewStatus = evaluate(context, context.getPrevState());
+            Map<Label, AlertStatus> allNewStatus = evaluate(context, context.getPrevState());
 
             // TODO: Find notifications to send
-            Map<Labels, AlertStatus> notificationStatus = new HashMap<>();
-            for (Map.Entry<Labels, AlertStatus> entry : allNewStatus.entrySet()) {
-                Labels labels = entry.getKey();
+            Map<Label, AlertStatus> notificationStatus = new HashMap<>();
+            for (Map.Entry<Label, AlertStatus> entry : allNewStatus.entrySet()) {
+                Label label = entry.getKey();
                 AlertStatus newStatus = entry.getValue();
-                AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(labels);
+                AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
 
                 if (prevStatus.canTransitTo(newStatus)) {
                     context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
 
                     if (newStatus == AlertStatus.ALERTING) {
-                        notificationStatus.put(labels, newStatus);
-                        allNewStatus.put(labels, newStatus);
+                        notificationStatus.put(label, newStatus);
+                        allNewStatus.put(label, newStatus);
                     } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
-                        notificationStatus.put(labels, newStatus);
-                        allNewStatus.put(labels, newStatus);
+                        notificationStatus.put(label, newStatus);
+                        allNewStatus.put(label, newStatus);
                     } else {
                         // Update alert status only
                         //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
-                        allNewStatus.put(labels, newStatus);
+                        allNewStatus.put(label, newStatus);
                     }
                 } else {
-                    allNewStatus.put(labels, prevStatus);
+                    allNewStatus.put(label, prevStatus);
                     context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
                 }
             }
@@ -197,9 +197,9 @@ public class AlertEvaluator implements DisposableBean {
             this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), getStatus(allNewStatus), allNewStatus);
 
             // Group by alert status
-            Map<AlertStatus, Map<Labels, AlertStatus>> groupedStatus = notificationStatus.entrySet()
-                                                                                         .stream()
-                                                                                         .collect(HashMap::new,
+            Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
+                                                                                        .stream()
+                                                                                        .collect(HashMap::new,
                                                                                                   (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
                                                                                                                      .put(entry.getKey(), entry.getValue()),
                                                                                                   HashMap::putAll);
@@ -213,7 +213,7 @@ public class AlertEvaluator implements DisposableBean {
         this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
-    private AlertStatus getStatus(Map<Labels, AlertStatus> status) {
+    private AlertStatus getStatus(Map<Label, AlertStatus> status) {
         if (status.isEmpty()) {
             return AlertStatus.READY;
         }
@@ -247,7 +247,7 @@ public class AlertEvaluator implements DisposableBean {
         return AlertStatus.READY;
     }
 
-    private Map<Labels, AlertStatus> evaluate(EvaluationContext context, AlertStateObject prevState) {
+    private Map<Label, AlertStatus> evaluate(EvaluationContext context, AlertStateObject prevState) {
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
@@ -259,9 +259,9 @@ public class AlertEvaluator implements DisposableBean {
 
             stateStorage.resetMatchCount(alertRule.getId());
 
-            Map<Labels, AlertStatus> newStatus = new HashMap<>();
+            Map<Label, AlertStatus> newStatus = new HashMap<>();
             if (prevState != null) {
-                for (Map.Entry<Labels, AlertStatus> item : prevState.getPayload().getStatus().entrySet()) {
+                for (Map.Entry<Label, AlertStatus> item : prevState.getPayload().getStatus().entrySet()) {
                     newStatus.put(item.getKey(), AlertStatus.RESOLVED);
                 }
             }
@@ -272,20 +272,20 @@ public class AlertEvaluator implements DisposableBean {
 
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
-        Map<Labels, AlertStatus> alertStatus = new HashMap<>();
-        Map<Labels, Long> successiveCountList = stateStorage.incrMatchCount(alertRule.getId(),
-                                                                            context.getGroups(),
-                                                                            alertRule.getEvery()
+        Map<Label, AlertStatus> alertStatus = new HashMap<>();
+        Map<Label, Long> successiveCountList = stateStorage.incrMatchCount(alertRule.getId(),
+                                                                           context.getGroups(),
+                                                                           alertRule.getEvery()
                                                                                      .getDuration()
                                                                                      // Add 30 seconds for margin
                                                                                      .plus(Duration.ofSeconds(30)));
-        for (Map.Entry<Labels, Long> entry : successiveCountList.entrySet()) {
-            Labels labels = entry.getKey();
+        for (Map.Entry<Label, Long> entry : successiveCountList.entrySet()) {
+            Label label = entry.getKey();
             long successiveCount = entry.getValue();
 
             AlertStatus newStatus = getAlertStatus(context, prevState, successiveCount, expectedMatchCount);
 
-            alertStatus.put(labels, newStatus);
+            alertStatus.put(label, newStatus);
         }
 
         return alertStatus;
@@ -346,7 +346,7 @@ public class AlertEvaluator implements DisposableBean {
     /**
      * Fire alert and update its status
      */
-    private void fireAlert(AlertRule alertRule, Map<Labels, AlertStatus> labels, EvaluationContext context) {
+    private void fireAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
         if (CollectionUtils.isEmpty(labels)) {
             return;
         }
@@ -398,7 +398,7 @@ public class AlertEvaluator implements DisposableBean {
     /**
      * Fire alert and update its status
      */
-    private void resolveAlert(AlertRule alertRule, Map<Labels, AlertStatus> labels, EvaluationContext context) {
+    private void resolveAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
         if (CollectionUtils.isEmpty(labels)) {
             return;
         }

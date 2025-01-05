@@ -67,7 +67,7 @@ public class AlertExpressionEvaluator {
                 if (isTrue) {
                     EvaluationOutputs outputs = context.getEvaluationOutputs().get(expression.getId());
                     for (IEvaluationOutput output : outputs) {
-                        context.getGroups().add(output.getLabels());
+                        context.getGroups().add(output.getLabel());
                     }
                 }
                 return isTrue;

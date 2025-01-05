@@ -34,7 +34,7 @@ public interface IAlertStateStorage {
     /**
      * @param duration The duration of an alert rule
      */
-    Map<Labels, Long> incrMatchCount(String alertId, List<Labels> series, Duration duration);
+    Map<Label, Long> incrMatchCount(String alertId, List<Label> series, Duration duration);
 
     /**
      * Check if there's an alert sending out in the past {@param silencePeriod} minutes.

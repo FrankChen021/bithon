@@ -24,7 +24,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -78,12 +78,12 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
     }
 
     @Override
-    public Map<Labels, Long> incrMatchCount(String ruleId, List<Labels> series, Duration duration) {
-        Map<Labels, Long> result = new HashMap<>();
-        for (Labels labels : series) {
-            long counter = matchCounters.computeIfAbsent(ruleId, k -> new AtomicInteger())
+    public Map<Label, Long> incrMatchCount(String ruleId, List<Label> labels, Duration duration) {
+        Map<Label, Long> result = new HashMap<>();
+        for (Label label : labels) {
+            long counter = matchCounters.computeIfAbsent(ruleId + ":" + label, k -> new AtomicInteger())
                                         .incrementAndGet();
-            result.put(labels, counter);
+            result.put(label, counter);
         }
         return result;
     }

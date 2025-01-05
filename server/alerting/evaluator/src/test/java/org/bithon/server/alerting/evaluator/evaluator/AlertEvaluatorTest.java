@@ -183,6 +183,40 @@ public class AlertEvaluatorTest {
     }
 
     @Test
+    public void test_ReadyToReady_GroupBy() throws IOException {
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that does NOT satisfy the condition,
+                                        // Alert Status keeps unchanged
+                                        .data(Collections.singletonList(ImmutableMap.of(
+                                            "appName", "bithon-test-app",
+                                            metric, 3)))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(2)
+                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(1))
+               .groupBy(Mockito.any());
+    }
+
+    @Test
     public void test_ReadToPending() throws IOException {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
@@ -198,6 +232,39 @@ public class AlertEvaluatorTest {
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
                                        .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(1))
+               .groupBy(Mockito.any());
+    }
+
+    @Test
+    public void test_ReadToPending_GroupBy() throws IOException {
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that DOES satisfy the condition,
+                                        .data(Collections.singletonList(ImmutableMap.of(
+                                            "appName", "bithon-test-app",
+                                            metric, 5)))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(2)
+                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
                                        .build()
                                        .initialize();
 
@@ -256,6 +323,92 @@ public class AlertEvaluatorTest {
 
     @SneakyThrows
     @Test
+    public void test_ReadToAlerting_GroupBy_OneGroupAlerting() {
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that DOES satisfy the condition,
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 7),
+                                                            ImmutableMap.of("appName", "test-app-2", metric, 3)
+                                        ))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       // Match times is 1, should go to ALERTING status
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           .silence(HumanReadableDuration.DURATION_30_MINUTE)
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+
+        // Check if the notification api is invoked
+        Mockito.verify(notificationApiStub, Mockito.times(1))
+               .notify(Mockito.any(), Mockito.any());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(1))
+               .groupBy(Mockito.any());
+    }
+
+    @SneakyThrows
+    @Test
+    public void test_ReadToAlerting_GroupBy_AllGroupAlerting() {
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that DOES satisfy the condition,
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 7),
+                                                            ImmutableMap.of("appName", "test-app-2", metric, 8)
+                                        ))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       // Match times is 1, should go to ALERTING status
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           .silence(HumanReadableDuration.DURATION_30_MINUTE)
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+
+        // Check if the notification api is invoked
+        Mockito.verify(notificationApiStub, Mockito.times(1))
+               .notify(Mockito.any(), Mockito.any());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(1))
+               .groupBy(Mockito.any());
+    }
+
+    @SneakyThrows
+    @Test
     public void test_PendingToAlerting() {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
@@ -275,6 +428,69 @@ public class AlertEvaluatorTest {
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
                                        .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        //
+        // First round evaluation, expect PENDING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(1))
+               .groupBy(Mockito.any());
+        Mockito.verify(notificationApiStub, Mockito.times(0))
+               .notify(Mockito.any(), Mockito.any());
+
+        //
+        // 2nd round evaluation, ALERTING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+
+        // 2 times of invocation in total
+        Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupBy(Mockito.any());
+        Mockito.verify(notificationApiStub, Mockito.times(1))
+               .notify(Mockito.any(), Mockito.any());
+    }
+
+    @SneakyThrows
+    @Test
+    public void test_PendingToAlerting_GroupBy_1SeriesMatches() {
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that DOES satisfy the condition,
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 88),
+                                                            ImmutableMap.of("appName", "test-app-1", metric, 99)))
+                                        .build())
+               .thenReturn(QueryResponse.builder()
+                                        // Return a value that DOES satisfy the condition,
+                                        .data(List.of(ImmutableMap.of("appName", "test-app-2", metric, 88)))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(2)
+                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.alerting.pojo;
 
 import lombok.Data;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class AlertStateObject {
         /**
          * Status by labels
          */
-        private Map<Labels, AlertStatus> status;
+        private Map<Label, AlertStatus> status;
     }
 
     private AlertStatus status;
@@ -42,11 +42,11 @@ public class AlertStateObject {
     private String lastRecordId;
     private Payload payload;
 
-    public AlertStatus getStatusByLabel(Labels labels) {
+    public AlertStatus getStatusByLabel(Label label) {
         if (payload == null) {
             return AlertStatus.READY;
         }
 
-        return payload.status.getOrDefault(labels, AlertStatus.READY);
+        return payload.status.getOrDefault(label, AlertStatus.READY);
     }
 }

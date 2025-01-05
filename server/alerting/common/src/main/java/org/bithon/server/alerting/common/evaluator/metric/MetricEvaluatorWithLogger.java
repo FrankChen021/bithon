@@ -69,7 +69,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
             }
 
             for (IEvaluationOutput output : outputs) {
-                if (output.getLabels().isEmpty()) {
+                if (output.getLabel().isEmpty()) {
                     context.log(delegateEvaluator.getClass(),
                                 "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
                                 delegateEvaluator.toString(),
@@ -81,7 +81,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                 "Expected: [%s], Current: [%s {%s}], Delta: [%s], Result: [%s]",
                                 delegateEvaluator.toString(),
                                 output.getCurrentText(),
-                                output.getLabels(),
+                                output.getLabel(),
                                 output.getDeltaText(),
                                 output.isMatched() ? "Matched" : "NOT Matched");
                 }

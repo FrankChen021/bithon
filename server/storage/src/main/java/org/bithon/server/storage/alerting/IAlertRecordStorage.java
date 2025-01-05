@@ -56,5 +56,5 @@ public interface IAlertRecordStorage extends IStorage, IExpirable {
 
     void updateAlertStatus(String id, AlertStateObject prevState,
                            AlertStatus newStatus,
-                           Map<Labels, AlertStatus> statusPerLabel);
+                           Map<Label, AlertStatus> statusPerLabel);
 }

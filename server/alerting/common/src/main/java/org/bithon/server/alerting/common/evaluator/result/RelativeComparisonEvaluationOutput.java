@@ -20,7 +20,7 @@ import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.commons.time.TimeSpan;
 
 import java.math.BigDecimal;
@@ -42,7 +42,7 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private IMetricEvaluator metric;
     private TimeSpan start;
     private TimeSpan end;
-    private Labels labels;
+    private Label label;
 
     /**
      * Used for plotting if the image rendering service is enabled
@@ -59,9 +59,8 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
         return end;
     }
 
-    @Override
-    public Labels getLabels() {
-        return labels;
+    public Label getLabel() {
+        return label;
     }
 
     @Override

@@ -38,7 +38,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
-import org.bithon.server.storage.alerting.Labels;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
@@ -306,7 +306,7 @@ public class AlertCommandService {
             }
 
             @Override
-            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus, Map<Labels, AlertStatus> statusPerLabel) {
+            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus, Map<Label, AlertStatus> statusPerLabel) {
             }
 
             @Override
