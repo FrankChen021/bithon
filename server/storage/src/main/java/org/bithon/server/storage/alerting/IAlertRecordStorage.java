@@ -28,6 +28,7 @@ import org.bithon.server.storage.metrics.Interval;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -53,5 +54,7 @@ public interface IAlertRecordStorage extends IStorage, IExpirable {
 
     void initialize();
 
-    void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus);
+    void updateAlertStatus(String id, AlertStateObject prevState,
+                           AlertStatus newStatus,
+                           Map<Labels, AlertStatus> statusPerLabel);
 }

@@ -19,8 +19,11 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -39,6 +42,7 @@ import org.jooq.SelectWhereStep;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,16 +52,21 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     protected final DSLContext dslContext;
     protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
+    protected final ObjectMapper objectMapper;
 
     @JsonCreator
     public AlertRecordJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        this(storageProvider.getDslContext(), storageConfig);
+                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this(storageProvider.getDslContext(), storageConfig, objectMapper);
     }
 
-    public AlertRecordJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    public AlertRecordJdbcStorage(DSLContext dslContext,
+                                  AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                  ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.storageConfig = storageConfig;
+        this.objectMapper = objectMapper;
     }
 
     public void initialize() {
@@ -71,16 +80,29 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
     }
 
     @Override
-    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
+    public void updateAlertStatus(String id,
+                                  AlertStateObject prevState,
+                                  AlertStatus newStatus,
+                                  Map<Labels, AlertStatus> statusPerLabel) {
+        AlertStateObject.Payload payload = new AlertStateObject.Payload();
+        payload.setStatus(statusPerLabel);
+        String payloadString = "{}";
+        try {
+            payloadString = this.objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException ignored) {
+        }
+
         dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
                   .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState == null ? new Timestamp(0).toLocalDateTime() : new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState == null ? "" : prevState.getLastRecordId())
                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                  .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
                   .onDuplicateKeyUpdate()
                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
+                  .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
                   .execute();
     }
 

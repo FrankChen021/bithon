@@ -69,12 +69,22 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
             }
 
             for (IEvaluationOutput output : outputs) {
-                context.log(delegateEvaluator.getClass(),
-                            "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
-                            delegateEvaluator.toString(),
-                            output.getCurrentText(),
-                            output.getDeltaText(),
-                            output.isMatched() ? "Matched" : "NOT Matched");
+                if (output.getLabels().isEmpty()) {
+                    context.log(delegateEvaluator.getClass(),
+                                "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
+                                delegateEvaluator.toString(),
+                                output.getCurrentText(),
+                                output.getDeltaText(),
+                                output.isMatched() ? "Matched" : "NOT Matched");
+                } else {
+                    context.log(delegateEvaluator.getClass(),
+                                "Expected: [%s], Current: [%s {%s}], Delta: [%s], Result: [%s]",
+                                delegateEvaluator.toString(),
+                                output.getCurrentText(),
+                                output.getLabels(),
+                                output.getDeltaText(),
+                                output.isMatched() ? "Matched" : "NOT Matched");
+                }
             }
 
             return outputs;

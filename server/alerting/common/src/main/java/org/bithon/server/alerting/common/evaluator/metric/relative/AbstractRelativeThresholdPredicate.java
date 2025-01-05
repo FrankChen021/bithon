@@ -27,6 +27,7 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.RelativeComparisonEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -99,6 +100,12 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                 continue;
             }
 
+            Labels labels = new Labels();
+            for (String groupByField : groupBy) {
+                String groupByValue = (String) series.get(groupByField);
+                labels.add(groupByValue);
+            }
+
             // TODO: MOVE out of for-loop
             response = dataSourceApi.groupBy(QueryRequest.builder()
                                                          .dataSource(dataSource)
@@ -144,6 +151,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             output.setStart(start);
             output.setEnd(end);
             output.setMetric(this);
+            output.setLabels(labels);
 
             outputs.add(output);
         }

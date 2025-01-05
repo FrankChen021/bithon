@@ -47,8 +47,12 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     @Getter
     private final TimeSpan end;
 
+    @Getter
+    private final Labels labels;
+
     public AbsoluteComparisonEvaluationOutput(TimeSpan start,
                                               TimeSpan end,
+                                              Labels labels,
                                               String now,
                                               String threshold,
                                               String delta,
@@ -56,6 +60,7 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
         this.start = start;
         this.end = end;
         this.isMatched = isMatches;
+        this.labels = labels;
         this.now = now;
         this.threshold = threshold;
         this.delta = delta;
@@ -63,7 +68,7 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public Labels getLabels() {
-        return null;
+        return labels;
     }
 
     @Override

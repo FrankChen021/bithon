@@ -67,7 +67,11 @@ public class EvaluationLogger {
     }
 
     private void log(String ruleId, String ruleName, LogLevel level, Class<?> logClass, String message) {
-        log.info("[Alert Logger] [{} {}]: {}", ruleId, ruleName, message);
+        log.info("[{}}] [{} {}]: {}",
+                 logClass.getSimpleName(),
+                 ruleId,
+                 ruleName,
+                 message);
 
         EvaluationLogEvent log = new EvaluationLogEvent();
         log.setTimestamp(new Timestamp(System.currentTimeMillis()));

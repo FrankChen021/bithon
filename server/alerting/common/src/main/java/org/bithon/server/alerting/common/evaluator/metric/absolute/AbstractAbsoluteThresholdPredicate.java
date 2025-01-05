@@ -29,6 +29,7 @@ import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEval
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -129,8 +130,15 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                 continue;
             }
 
+            Labels labels = new Labels();
+            for (String groupByField : groupBy) {
+                String groupByValue = (String) series.get(groupByField);
+                labels.add(groupByValue);
+            }
+
             IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput(start,
                                                                               end,
+                                                                              labels,
                                                                               valueType.format(currentValue),
                                                                               expected.toString(),
                                                                               valueType.format(valueType.diff(currentValue, expectedValue)),

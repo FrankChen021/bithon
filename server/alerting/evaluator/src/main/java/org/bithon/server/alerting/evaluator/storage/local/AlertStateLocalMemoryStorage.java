@@ -27,6 +27,7 @@ import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.Labels;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,8 +79,13 @@ public class AlertStateLocalMemoryStorage implements IAlertStateStorage {
 
     @Override
     public Map<Labels, Long> incrMatchCount(String ruleId, List<Labels> series, Duration duration) {
-        return matchCounters.computeIfAbsent(ruleId, k -> new AtomicInteger())
-                            .incrementAndGet();
+        Map<Labels, Long> result = new HashMap<>();
+        for (Labels labels : series) {
+            long counter = matchCounters.computeIfAbsent(ruleId, k -> new AtomicInteger())
+                                        .incrementAndGet();
+            result.put(labels, counter);
+        }
+        return result;
     }
 
     @Override

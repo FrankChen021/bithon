@@ -20,8 +20,11 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -38,6 +41,7 @@ import org.jooq.InsertSetMoreStep;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -50,8 +54,9 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
 
     @JsonCreator
     public AlertRecordStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
-                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        super(storageProvider.getDslContext(), storageConfig);
+                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                              @JacksonInject(useInput = OptBoolean.DEFAULT) ObjectMapper objectMapper) {
+        super(storageProvider.getDslContext(), storageConfig, objectMapper);
         this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
 
@@ -75,17 +80,29 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     }
 
     @Override
-    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
+    public void updateAlertStatus(String id, AlertStateObject prevState,
+                                  AlertStatus newStatus,
+                                  Map<Labels, AlertStatus> statusPerLabel) {
+        String payload = "{}";
+        if (statusPerLabel != null) {
+            try {
+                payload = objectMapper.writeValueAsString(statusPerLabel);
+            } catch (JsonProcessingException ignored) {
+            }
+        }
+
         InsertSetMoreStep<BithonAlertStateRecord> step = dslContext.insertInto(Tables.BITHON_ALERT_STATE)
                                                                    .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
-                                                                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime());
+                                                                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
+                                                                   .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payload)
+                                                                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode());
+
         if (prevState != null) {
             step = step.set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState.getLastAlertAt())
                        .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState.getLastRecordId());
         }
 
-        step.set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
-            .execute();
+        step.execute();
     }
 
     @Override

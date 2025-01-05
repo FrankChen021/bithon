@@ -19,6 +19,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
@@ -88,7 +89,7 @@ public class AlertExpressionEvaluator {
                                                                                             start,
                                                                                             context.getIntervalEnd(),
                                                                                             expression.getMetricExpression().getWhereText(),
-                                                                                            expression.getMetricExpression().getGroupBy(),
+                                                                                            CollectionUtils.emptyOrOriginal(expression.getMetricExpression().getGroupBy()),
                                                                                             context);
         if (outputs.isEmpty() || !outputs.isMatched()) {
             context.setEvaluationResult(expression.getId(), false, null);

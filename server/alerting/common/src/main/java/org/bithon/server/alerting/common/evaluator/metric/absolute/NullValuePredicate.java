@@ -24,6 +24,7 @@ import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -80,6 +81,7 @@ public class NullValuePredicate implements IMetricEvaluator {
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
         return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(start,
                                                                             end,
+                                                                            new Labels(),
                                                                             nowValue == null ? null : valueType.format(nowValue),
                                                                             "null",
                                                                             nowValue == null ? null : nowValue.toString(),

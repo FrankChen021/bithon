@@ -603,4 +603,29 @@ public class AlertRuleEvaluatorTest {
                                                               dataSourceProvider,
                                                               null)));
     }
+
+    @Test
+    public void test_GroupBy_GreaterThan() throws IOException {
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(QueryResponse.builder()
+                                        .data(Collections.singletonList(ImmutableMap.of(
+                                            "appName", "bithon-local",
+                                            metric, 5)))
+                                        .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                  CONSOLE_LOGGER,
+                                                                                                  alertRule,
+                                                                                                  dataSourceProvider,
+                                                                                                  null)));
+    }
 }

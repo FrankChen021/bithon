@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.postgresql.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
@@ -32,8 +33,9 @@ import org.bithon.server.storage.jdbc.postgresql.TableCreator;
 public class AlertRecordStorage extends AlertRecordJdbcStorage {
     @JsonCreator
     public AlertRecordStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
-                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        super(storageProvider.getDslContext(), storageConfig);
+                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        super(storageProvider.getDslContext(), storageConfig, objectMapper);
     }
 
     @Override

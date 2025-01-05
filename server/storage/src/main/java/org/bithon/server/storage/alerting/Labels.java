@@ -16,6 +16,11 @@
 
 package org.bithon.server.storage.alerting;
 
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * When an alert rule is based on GROUP-BY clause, this class holds the labels of a series
  *
@@ -23,4 +28,29 @@ package org.bithon.server.storage.alerting;
  * @date 2024/12/29 14:11
  */
 public class Labels {
+    private final List<String> values = new ArrayList<>();
+
+    @Getter
+    private String id = "";
+
+    public boolean isEmpty() {
+        return values.isEmpty();
+    }
+
+    public void add(String value) {
+        values.add(value);
+        if (!id.isEmpty()) {
+            id += ", ";
+        }
+        id += value;
+    }
+
+    public List<String> getValues() {
+        return values;
+    }
+
+    @Override
+    public String toString() {
+        return id;
+    }
 }
