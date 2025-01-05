@@ -58,6 +58,11 @@ public class AlertRepository {
         return this.loadedAlerts;
     }
 
+    public AlertRule getAlertRuleFromStorage(String ruleId) {
+        AlertStorageObject storageObject = this.alertObjectStorage.getAlertById(ruleId);
+        return AlertRule.from(storageObject);
+    }
+
     public void loadChanges() {
         Timestamp lastTimestamp = lastLoadedAt;
         Timestamp now = TimeSpan.now().ceil(Duration.ofSeconds(1)).toTimestamp();

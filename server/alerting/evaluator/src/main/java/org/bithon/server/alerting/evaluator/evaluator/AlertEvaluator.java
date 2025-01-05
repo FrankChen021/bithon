@@ -18,27 +18,21 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import feign.Contract;
-import feign.Feign;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import com.google.common.annotations.VisibleForTesting;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
-import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
@@ -50,8 +44,6 @@ import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -61,9 +53,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -146,6 +135,11 @@ public class AlertEvaluator implements DisposableBean {
      * @param prevState can be null
      */
     public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
+        evaluate(now, alertRule, prevState, false);
+    }
+
+    @VisibleForTesting
+    void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState, boolean skipPrecheck) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
@@ -154,17 +148,19 @@ public class AlertEvaluator implements DisposableBean {
 
         Duration interval = alertRule.getEvery().getDuration();
         try {
-            if (!alertRule.isEnabled()) {
-                context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
-                return;
-            }
+            if (!skipPrecheck) {
+                if (!alertRule.isEnabled()) {
+                    context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
+                    return;
+                }
 
-            TimeSpan lastEvaluationAt = TimeSpan.of(this.stateStorage.getEvaluationTimestamp(alertRule.getId()));
-            if (now.diff(lastEvaluationAt) < interval.toMillis()) {
-                context.log(AlertEvaluator.class,
-                            "Evaluation skipped, it's expected to be evaluated at %s",
-                            lastEvaluationAt.after(interval).format("HH:mm"));
-                return;
+                TimeSpan lastEvaluationAt = TimeSpan.of(this.stateStorage.getEvaluationTimestamp(alertRule.getId()));
+                if (now.diff(lastEvaluationAt) < interval.toMillis()) {
+                    context.log(AlertEvaluator.class,
+                                "Evaluation skipped, it's expected to be evaluated at %s",
+                                lastEvaluationAt.after(interval).format("HH:mm"));
+                    return;
+                }
             }
 
             // Evaluate the alert rule
@@ -264,8 +260,10 @@ public class AlertEvaluator implements DisposableBean {
             stateStorage.resetMatchCount(alertRule.getId());
 
             Map<Labels, AlertStatus> newStatus = new HashMap<>();
-            for (Map.Entry<Labels, AlertStatus> item : prevState.getPayload().getStatus().entrySet()) {
-                newStatus.put(item.getKey(), AlertStatus.RESOLVED);
+            if (prevState != null) {
+                for (Map.Entry<Labels, AlertStatus> item : prevState.getPayload().getStatus().entrySet()) {
+                    newStatus.put(item.getKey(), AlertStatus.RESOLVED);
+                }
             }
             return newStatus;
         }
@@ -318,7 +316,8 @@ public class AlertEvaluator implements DisposableBean {
             TimeSpan now = TimeSpan.now();
             TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
             Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
-            if (stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
+
+            if (silenceDuration.getDuration().getSeconds() > 0 && stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
                 Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
                 context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
                             silenceDuration,
@@ -348,6 +347,10 @@ public class AlertEvaluator implements DisposableBean {
      * Fire alert and update its status
      */
     private void fireAlert(AlertRule alertRule, Map<Labels, AlertStatus> labels, EvaluationContext context) {
+        if (CollectionUtils.isEmpty(labels)) {
+            return;
+        }
+
         // Prepare notification
         NotificationMessage notification = new NotificationMessage();
         notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
@@ -396,6 +399,10 @@ public class AlertEvaluator implements DisposableBean {
      * Fire alert and update its status
      */
     private void resolveAlert(AlertRule alertRule, Map<Labels, AlertStatus> labels, EvaluationContext context) {
+        if (CollectionUtils.isEmpty(labels)) {
+            return;
+        }
+
         // Prepare notification
         NotificationMessage notification = new NotificationMessage();
         notification.setStatus(AlertStatus.RESOLVED);
@@ -472,59 +479,7 @@ public class AlertEvaluator implements DisposableBean {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         this.evaluationLogWriter.close();
-    }
-
-    private INotificationApi createNotificationAsyncApi(ApplicationContext context) {
-        INotificationApi impl;
-
-        // The notification service is configured by auto-discovery
-        String service = context.getBean(Environment.class).getProperty("bithon.alerting.evaluator.notification-service", "discovery");
-        if ("discovery".equalsIgnoreCase(service)) {
-            // Even the notification module is deployed with the evaluator module together,
-            // we still call the notification module via HTTP instead of direct API method calls in process
-            // So that it simulates the 'remote call' via discovered service
-            DiscoveredServiceInvoker invoker = context.getBean(DiscoveredServiceInvoker.class);
-            impl = invoker.createUnicastApi(INotificationApi.class);
-        } else if (service.startsWith("http:") || service.startsWith("https:")) {
-            // The service is configured as a remote service at fixed address
-            // Create a feign client to call it
-            impl = Feign.builder()
-                        .contract(context.getBean(Contract.class))
-                        .encoder(context.getBean(Encoder.class))
-                        .decoder(context.getBean(Decoder.class))
-                        .target(INotificationApi.class, service);
-        } else {
-            throw new RuntimeException(StringUtils.format("Invalid notification property configured. Only 'discovery' or URL is allowed, but got [%s]", service));
-        }
-
-        return new INotificationApi() {
-            // Cached thread pool
-            private final ThreadPoolExecutor notificationThreadPool = new ThreadPoolExecutor(1,
-                                                                                             10,
-                                                                                             3,
-                                                                                             TimeUnit.MINUTES,
-                                                                                             new SynchronousQueue<>(),
-                                                                                             NamedThreadFactory.nonDaemonThreadFactory("notification"),
-                                                                                             new ThreadPoolExecutor.CallerRunsPolicy());
-
-
-            @Override
-            public void notify(String name, NotificationMessage message) {
-                notificationThreadPool.execute(() -> {
-                    try {
-                        impl.notify(name, message);
-                    } catch (Exception e) {
-                        new EvaluationLogger(evaluationLogWriter).error(message.getAlertRule().getId(),
-                                                                        message.getAlertRule().getName(),
-                                                                        AlertEvaluator.class,
-                                                                        e,
-                                                                        "Failed to send notification to channel [%s]",
-                                                                        name);
-                    }
-                });
-            }
-        };
     }
 }

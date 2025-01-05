@@ -16,9 +16,18 @@
 
 package org.bithon.server.storage.alerting;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,11 +37,21 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2024/12/29 14:11
  */
+
+@JsonSerialize(using = Labels.Serializer.class)
+@JsonDeserialize(using = Labels.Deserializer.class)
 public class Labels {
     private final List<String> values = new ArrayList<>();
 
     @Getter
     private String id = "";
+
+    public Labels() {
+    }
+
+    public Labels(String id) {
+        this.id = id;
+    }
 
     public boolean isEmpty() {
         return values.isEmpty();
@@ -53,5 +72,43 @@ public class Labels {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Labels) {
+            return id.equals(((Labels) obj).id);
+        }
+        return false;
+    }
+
+    public static class Serializer extends JsonSerializer<Labels> {
+        @Override
+        public void serialize(Labels labels, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(labels.id);
+        }
+
+        @Override
+        public Class<Labels> handledType() {
+            return Labels.class;
+        }
+    }
+
+    public static class Deserializer extends JsonDeserializer<Labels> {
+        @Override
+        public Labels deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            return new Labels(p.getValueAsString());
+        }
+
+
+        @Override
+        public Class<Labels> handledType() {
+            return Labels.class;
+        }
     }
 }

@@ -72,8 +72,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--Introduce H2 storage for testing-->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-storage-jdbc-h2</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
