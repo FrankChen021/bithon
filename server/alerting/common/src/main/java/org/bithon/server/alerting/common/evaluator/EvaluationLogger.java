@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public class EvaluationLogger {
-    private final AtomicLong SEQUENCE = new AtomicLong(0);
+    private static final AtomicLong SEQUENCE = new AtomicLong(0);
 
     private final IEvaluationLogWriter logWriter;
 

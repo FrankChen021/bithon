@@ -76,7 +76,7 @@ public class AlertEvaluator implements DisposableBean {
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final INotificationApi notificationAsyncApi;
+    private final INotificationApiInvoker notificationApiInvoker;
 
     public AlertEvaluator(AlertRepository repository,
                           IAlertStateStorage stateStorage,
@@ -84,7 +84,7 @@ public class AlertEvaluator implements DisposableBean {
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
-                          ApplicationContext applicationContext,
+                          INotificationApiInvoker notificationApiInvoker,
                           ObjectMapper objectMapper) {
         this.stateStorage = stateStorage;
         this.alertRecordStorage = recordStorage;
@@ -96,7 +96,7 @@ public class AlertEvaluator implements DisposableBean {
         // It's a copy of existing ObjectMapper
         // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
-        this.notificationAsyncApi = createNotificationAsyncApi(applicationContext);
+        this.notificationApiInvoker = notificationApiInvoker;
 
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {
@@ -382,7 +382,7 @@ public class AlertEvaluator implements DisposableBean {
                 context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
-                    notificationAsyncApi.notify(channelName, notification);
+                    notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
                     context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
@@ -427,7 +427,7 @@ public class AlertEvaluator implements DisposableBean {
                 context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {
-                    notificationAsyncApi.notify(channelName, notification);
+                    notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
                     context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }

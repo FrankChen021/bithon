@@ -27,6 +27,7 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
@@ -37,6 +38,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.Labels;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
@@ -304,8 +306,7 @@ public class AlertCommandService {
             }
 
             @Override
-            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-
+            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus, Map<Labels, AlertStatus> statusPerLabel) {
             }
 
             @Override
@@ -325,7 +326,7 @@ public class AlertCommandService {
                                                       recordStorage,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),
-                                                      applicationContext,
+                                                      applicationContext.getBean(INotificationApiInvoker.class),
                                                       this.objectMapper);
 
         TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));

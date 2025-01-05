@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @Slf4j
 public class EvaluationLogBatchWriter implements IEvaluationLogWriter {
+    @Getter
     private final IEvaluationLogWriter delegate;
     private final Duration flushInterval;
     private final int batchSize;
