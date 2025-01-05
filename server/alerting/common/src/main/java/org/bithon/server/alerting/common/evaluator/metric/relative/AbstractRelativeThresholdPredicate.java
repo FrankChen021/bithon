@@ -101,9 +101,9 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             }
 
             Labels labels = new Labels();
-            for (String groupByField : groupBy) {
-                String groupByValue = (String) series.get(groupByField);
-                labels.add(groupByValue);
+            for (String labelName : groupBy) {
+                String labelValue = (String) series.get(labelName);
+                labels.add(labelName, labelValue);
             }
 
             // TODO: MOVE out of for-loop

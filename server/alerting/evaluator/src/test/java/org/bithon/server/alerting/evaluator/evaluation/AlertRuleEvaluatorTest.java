@@ -65,7 +65,6 @@ public class AlertRuleEvaluatorTest {
 
         @Override
         public void write(EvaluationLogEvent logEvent) {
-            log.info("[{}] {}", logEvent.getClazz(), logEvent.getMessage());
         }
 
         @Override
@@ -605,12 +604,15 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void test_GroupBy_GreaterThan() throws IOException {
+    public void test_GroupBy_PartiallySatisfiesCondition() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
-                                        .data(Collections.singletonList(ImmutableMap.of(
-                                            "appName", "bithon-local",
-                                            metric, 5)))
+                                        .data(Arrays.asList(
+                                            // Returns two series,
+                                            // one is 5, which satisfies the condition
+                                            // The other is 4, which does NOT satisfy the condition
+                                            ImmutableMap.of("appName", "bithon-local", metric, 5),
+                                            ImmutableMap.of("appName", "bithon-local-2", metric, 4)))
                                         .build());
         EasyMock.replay(dataSourceProvider);
 
@@ -618,6 +620,64 @@ public class AlertRuleEvaluatorTest {
         AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
+                                       .id("1")
+                                       .name("test")
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                  CONSOLE_LOGGER,
+                                                                                                  alertRule,
+                                                                                                  dataSourceProvider,
+                                                                                                  null)));
+    }
+
+    @Test
+    public void test_GroupBy_NoneSatisfiesCondition() throws IOException {
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(QueryResponse.builder()
+                                        .data(Arrays.asList(
+                                            // Returns two series, both of which do NOT satisfy the condition
+                                            ImmutableMap.of("appName", "bithon-local", metric, 3),
+                                            ImmutableMap.of("appName", "bithon-local-2", metric, 4)))
+                                        .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .id("1")
+                                       .name("test")
+                                       .expr(expr)
+                                       .build()
+                                       .initialize();
+
+        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                                                                   CONSOLE_LOGGER,
+                                                                                                   alertRule,
+                                                                                                   dataSourceProvider,
+                                                                                                   null)));
+    }
+
+    @Test
+    public void test_GroupBy_AllSatisfiesCondition() throws IOException {
+        EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
+                .andReturn(QueryResponse.builder()
+                                        .data(Arrays.asList(
+                                            // Returns two series, both of which DO satisfy the condition
+                                            ImmutableMap.of("appName", "bithon-local", metric, 5),
+                                            ImmutableMap.of("appName", "bithon-local-2", metric, 6)))
+                                        .build());
+        EasyMock.replay(dataSourceProvider);
+
+        String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
+        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
+
+        AlertRule alertRule = AlertRule.builder()
+                                       .id("1")
+                                       .name("test")
                                        .expr(expr)
                                        .build()
                                        .initialize();

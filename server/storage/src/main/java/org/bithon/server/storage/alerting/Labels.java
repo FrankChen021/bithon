@@ -17,6 +17,7 @@
 package org.bithon.server.storage.alerting;
 
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +38,12 @@ public class Labels {
         return values.isEmpty();
     }
 
-    public void add(String value) {
+    public void add(String label, String value) {
         values.add(value);
         if (!id.isEmpty()) {
             id += ", ";
         }
-        id += value;
+        id += StringUtils.format("%s = '%s'", label, value);
     }
 
     public List<String> getValues() {
