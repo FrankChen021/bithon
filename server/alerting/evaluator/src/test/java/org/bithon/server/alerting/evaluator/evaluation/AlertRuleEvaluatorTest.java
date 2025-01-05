@@ -90,7 +90,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testConditionGreaterThan() throws IOException {
+    public void test_GreaterThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -306,7 +306,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testConditionGreaterThanOrEqual() throws IOException {
+    public void test_GreaterThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -329,7 +329,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testConditionLessThan() throws IOException {
+    public void test_LessThan() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -352,7 +352,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testConditionLessThanOrEqual() throws IOException {
+    public void test_LessThanOrEqual() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -376,7 +376,7 @@ public class AlertRuleEvaluatorTest {
 
 
     @Test
-    public void testConditionNull_OnEmptyMap() throws IOException {
+    public void test_IsNull_OnEmptyMap() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(Collections.emptyList())
@@ -399,7 +399,7 @@ public class AlertRuleEvaluatorTest {
     }
 
     @Test
-    public void testConditionNull_OnNullReturn() throws IOException {
+    public void test_IsNull_OnNullReturn() throws IOException {
         EasyMock.expect(dataSourceProvider.groupBy(EasyMock.anyObject()))
                 .andReturn(QueryResponse.builder()
                                         .data(null)
