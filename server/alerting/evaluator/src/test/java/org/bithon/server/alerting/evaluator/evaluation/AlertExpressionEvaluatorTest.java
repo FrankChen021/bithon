@@ -51,7 +51,7 @@ import java.util.List;
  * @date 28/3/22 9:42 PM
  */
 @Slf4j
-public class AlertRuleEvaluatorTest {
+public class AlertExpressionEvaluatorTest {
 
     private static final IEvaluationLogWriter CONSOLE_LOGGER = new IEvaluationLogWriter() {
         @Override
