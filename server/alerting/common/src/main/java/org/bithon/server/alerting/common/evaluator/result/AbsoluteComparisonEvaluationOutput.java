@@ -17,8 +17,8 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Getter;
-import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 
 /**
  * @author frankchen

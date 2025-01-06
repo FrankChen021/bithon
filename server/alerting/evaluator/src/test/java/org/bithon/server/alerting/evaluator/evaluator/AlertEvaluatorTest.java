@@ -16,8 +16,8 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -147,7 +147,7 @@ public class AlertEvaluatorTest {
                                        dataSourceApiStub,
                                        serverProperties,
                                        notificationApiStub,
-                                       new ObjectMapper().configure(MapperFeature.USE_ANNOTATIONS, true));
+                                       JsonMapper.builder().build());
     }
 
     @Test
