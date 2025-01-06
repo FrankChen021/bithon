@@ -62,11 +62,13 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
 
         ConsumerNetworkClient consumerNetworkClient = (ConsumerNetworkClient) ReflectionUtils.getFieldValue(aopContext.getTarget(), "client");
         if (!setContextOnNetworkClient(kafkaPluginContext, consumerNetworkClient)) {
-            // Check if the KafkaConsumer is the type of higher version.
+            // Check if the KafkaConsumer is the type of higher version (>=3.7)
             // The Higher version of the Kafka client wraps the consumer into a 'delegate' property
             Object consumerDelegate = ReflectionUtils.getFieldValue(aopContext.getTarget(), "delegate");
             String clazzName = consumerDelegate.getClass().getSimpleName();
-            if ("LegacyKafkaConsumer".equals(clazzName)) {
+            if ("LegacyKafkaConsumer".equals(clazzName) // 3.7 and 3.8
+                || "ClassicKafkaConsumer".equals(clazzName)
+            ) {
                 if (consumerDelegate instanceof IBithonObject) {
                     // The LegacyKafkaConsumer is also instrumented
                     ((IBithonObject) consumerDelegate).setInjectedObject(kafkaPluginContext);

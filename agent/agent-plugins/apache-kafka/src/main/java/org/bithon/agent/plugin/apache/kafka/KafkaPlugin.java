@@ -41,8 +41,9 @@ public class KafkaPlugin implements IPlugin {
                          "org.apache.kafka.common.serialization.Deserializer<K>",
                          "org.apache.kafka.common.serialization.Deserializer<V>")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
+
                 .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
+                .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
@@ -50,16 +51,10 @@ public class KafkaPlugin implements IPlugin {
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher$FetchResponseMetricAggregator")
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Ctor")
+
                 .onMethod("record")
                 .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Record")
-                .build(),
-
-            // 3.7
-            forClass("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
-                .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
             // 3.7
