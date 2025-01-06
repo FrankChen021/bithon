@@ -38,6 +38,8 @@ public class FetchMetricsAggregator$Record extends AfterInterceptor {
         if (aopContext.hasException()) {
             return;
         }
+
+        // context is injected by FetchMetricsAggregator$Ctor
         KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
         if (kafkaPluginContext == null) {
             return;

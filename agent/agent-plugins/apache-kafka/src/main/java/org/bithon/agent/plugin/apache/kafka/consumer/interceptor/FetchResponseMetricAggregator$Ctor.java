@@ -31,6 +31,8 @@ public class FetchResponseMetricAggregator$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
         IBithonObject bithonObject = aopContext.getTargetAs();
+
+        // KafkaPluginContext is set by KafkaConsumer#poll
         bithonObject.setInjectedObject(KafkaPluginContext.getCurrent());
     }
 }

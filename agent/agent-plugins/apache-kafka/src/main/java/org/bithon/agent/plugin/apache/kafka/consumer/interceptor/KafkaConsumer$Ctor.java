@@ -23,6 +23,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -66,7 +67,9 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
             // The Higher version of the Kafka client wraps the consumer into a 'delegate' property
             Object consumerDelegate = ReflectionUtils.getFieldValue(aopContext.getTarget(), "delegate");
             String clazzName = consumerDelegate.getClass().getSimpleName();
-            if ("LegacyKafkaConsumer".equals(clazzName) // 3.7 and 3.8
+            // 3.7 and 3.8
+            if ("LegacyKafkaConsumer".equals(clazzName)
+                // 3.9
                 || "ClassicKafkaConsumer".equals(clazzName)
             ) {
                 if (consumerDelegate instanceof IBithonObject) {
@@ -76,7 +79,8 @@ public class KafkaConsumer$Ctor extends AfterInterceptor {
 
                 setContextOnNetworkClient(kafkaPluginContext, ReflectionUtils.getFieldValue(consumerDelegate, "client"));
             } else if ("AsyncKafkaConsumer".equals(clazzName)) {
-                // TODO:
+                LoggerFactory.getLogger(KafkaConsumer$Ctor.class)
+                             .error("Unable to inject Kafka plugin context to Kafka Consumer. The AsyncKafkaConsumer is not supported yet.");
             }
         }
     }
