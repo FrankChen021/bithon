@@ -17,6 +17,8 @@
   <modules>
     <module>apache-druid</module>
     <module>apache-kafka</module>
+    <module>apache-kafka-3.7</module>
+    <module>apache-kafka-3.9</module>
     <module>apache-ozone</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
@@ -77,6 +79,16 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.7</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.9</artifactId>
       <version>${project.version}</version>
     </dependency>
 

@@ -21,8 +21,12 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 
+import java.util.Set;
+
 /**
- * 3.7
+ * Since 3.5
+ *
+ * {@link org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator#FetchMetricsAggregator(FetchMetricsManager, Set)}
  *
  * @author frank.chen021@outlook.com
  * @date 6/7/24 11:01 pm
@@ -32,7 +36,7 @@ public class FetchMetricsAggregator$Ctor extends AfterInterceptor {
     public void after(AopContext aopContext) throws Exception {
         IBithonObject bithonObject = aopContext.getTargetAs();
 
-        // KafkaPluginContext is set by KafkaConsumer#poll
+        // KafkaPluginContext is set by xxxKafkaConsumer#poll
         bithonObject.setInjectedObject(KafkaPluginContext.getCurrent());
     }
 }
