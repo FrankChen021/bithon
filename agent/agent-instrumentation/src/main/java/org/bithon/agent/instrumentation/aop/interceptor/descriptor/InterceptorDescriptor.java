@@ -16,6 +16,8 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+
 /**
  * Class-oriented descriptor
  *
@@ -25,13 +27,16 @@ package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 public class InterceptorDescriptor {
 
     private final boolean debug;
+    private final IInterceptorPrecondition precondition;
     private final String targetClass;
     private final MethodPointCutDescriptor[] methodPointCutDescriptors;
 
     public InterceptorDescriptor(boolean debug,
+                                 IInterceptorPrecondition precondition,
                                  String targetClass,
                                  MethodPointCutDescriptor[] methodPointCutDescriptors) {
         this.debug = debug;
+        this.precondition = precondition;
         this.targetClass = targetClass;
         this.methodPointCutDescriptors = methodPointCutDescriptors;
     }
@@ -48,7 +53,11 @@ public class InterceptorDescriptor {
         return debug;
     }
 
+    public IInterceptorPrecondition getPrecondition() {
+        return precondition;
+    }
+
     public InterceptorDescriptor withTargetClazz(String targetClass) {
-        return new InterceptorDescriptor(debug, targetClass, methodPointCutDescriptors);
+        return new InterceptorDescriptor(debug, precondition, targetClass, methodPointCutDescriptors);
     }
 }

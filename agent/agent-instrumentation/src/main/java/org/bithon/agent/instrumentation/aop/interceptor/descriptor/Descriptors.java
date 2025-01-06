@@ -58,7 +58,9 @@ public class Descriptors {
     /**
      * merge method instrumentation
      */
-    public void merge(String plugin, IInterceptorPrecondition preconditions, List<InterceptorDescriptor> interceptors) {
+    public void merge(String plugin,
+                      IInterceptorPrecondition pluginLevelPrecondition,
+                      List<InterceptorDescriptor> interceptors) {
         for (InterceptorDescriptor interceptor : interceptors) {
             String targetClass = interceptor.getTargetClass();
 
@@ -67,7 +69,21 @@ public class Descriptors {
                 descriptor.isDebuggingOn = interceptor.isDebug();
             }
 
-            MethodPointCuts mp = new MethodPointCuts(plugin, preconditions, interceptor.getMethodPointCutDescriptors());
+            // Merge plugin level precondition and interceptor level precondition
+            IInterceptorPrecondition precondition;
+            if (pluginLevelPrecondition == null) {
+                precondition = interceptor.getPrecondition();
+            } else {
+                if (interceptor.getPrecondition() == null) {
+                    precondition = pluginLevelPrecondition;
+                } else {
+                    precondition = IInterceptorPrecondition.and(pluginLevelPrecondition, interceptor.getPrecondition());
+                }
+            }
+
+            MethodPointCuts mp = new MethodPointCuts(plugin,
+                                                     precondition,
+                                                     interceptor.getMethodPointCutDescriptors());
             descriptor.getMethodPointCuts().add(mp);
         }
     }
