@@ -24,6 +24,7 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetricRegistry;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetrics;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -58,9 +59,13 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
         }
 
         List<ClientResponse> responses = aopContext.getArgAs(0);
+        if (CollectionUtils.isEmpty(responses)) {
+            return;
+        }
+
         for (ClientResponse response : responses) {
 
-            ApiKeys apiKeys = response.requestHeader().apiKey();
+            ApiKeys apiKeys = getResponseApiKeys(response);
             String messageType = apiKeys.name;
             String nodeId = response.destination();
 
@@ -111,5 +116,9 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
             metrics.responseTime.update(latency);
             metrics.maxResponseTime.update(latency);
         }
+    }
+
+    protected ApiKeys getResponseApiKeys(ClientResponse response) {
+        return response.requestHeader().apiKey();
     }
 }
