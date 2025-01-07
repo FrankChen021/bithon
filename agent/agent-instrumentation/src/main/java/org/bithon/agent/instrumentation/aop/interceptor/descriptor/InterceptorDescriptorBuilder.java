@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.aop.interceptor.descriptor;
 
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatcher;
 import org.bithon.shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -31,6 +32,9 @@ import java.util.List;
 public class InterceptorDescriptorBuilder {
 
     private final String targetClass;
+
+    // Interceptor level precondition
+    private IInterceptorPrecondition precondition;
     private boolean debug;
     private final List<MethodPointCutDescriptor> pointCuts = new ArrayList<>();
 
@@ -72,11 +76,16 @@ public class InterceptorDescriptorBuilder {
                 pointCut.setDebug(debug);
             }
         }
-        return new InterceptorDescriptor(debug, targetClass, pointCuts.toArray(new MethodPointCutDescriptor[0]));
+        return new InterceptorDescriptor(debug, precondition, targetClass, pointCuts.toArray(new MethodPointCutDescriptor[0]));
     }
 
     public InterceptorDescriptorBuilder debug() {
         this.debug = true;
+        return this;
+    }
+
+    public InterceptorDescriptorBuilder whenSatisfy(IInterceptorPrecondition precondition) {
+        this.precondition = precondition;
         return this;
     }
 

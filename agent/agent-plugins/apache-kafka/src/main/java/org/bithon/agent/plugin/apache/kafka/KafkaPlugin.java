@@ -19,6 +19,8 @@ package org.bithon.agent.plugin.apache.kafka;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -36,13 +38,25 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
+                .whenSatisfy(IInterceptorPrecondition.and(
+                    IInterceptorPrecondition.not(
+                        // Since 3.7
+                        IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
+                    ),
+                    IInterceptorPrecondition.not(
+                        // Since 3.9
+                        IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer")
+                    )
+                ))
+
                 .onConstructor()
                 .andArgs("org.apache.kafka.clients.consumer.ConsumerConfig",
                          "org.apache.kafka.common.serialization.Deserializer<K>",
                          "org.apache.kafka.common.serialization.Deserializer<V>")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
+
                 .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
+                .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
@@ -50,23 +64,17 @@ public class KafkaPlugin implements IPlugin {
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher$FetchResponseMetricAggregator")
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Ctor")
+
                 .onMethod("record")
                 .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Record")
                 .build(),
 
-            // 3.7
-            forClass("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
-                .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
-                .build(),
-
-            // 3.7
-            // The Fetcher$FetchResponseMetricAggregator in previous release is renamed to FetchMetricsAggregator
+            // Since 3.5, the Fetcher$FetchResponseMetricAggregator in the previous release is renamed to FetchMetricsAggregator
             forClass("org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator")
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Ctor")
+
                 .onMethod("record")
                 .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Record")
@@ -112,6 +120,9 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
+                .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                               "version",
+                                                               PropertyFileValuePrecondition.VersionGTE.of("1.0.0")))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),

@@ -101,7 +101,7 @@ public class InterceptorInstaller {
 
                     // Run checkers first to see if an interceptor can be installed
                     if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
-                        log.info("[{}] Interceptor on class [{}] not installed because precondition [{}] not satisfied",
+                        log.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
                                  mp.getPlugin(),
                                  typeDescription.getName(),
                                  mp.getPrecondition().toString());

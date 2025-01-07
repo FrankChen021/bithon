@@ -42,6 +42,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-annotations</artifactId>
+        <version>4.8.3</version> <!-- Use the latest version -->
+        <scope>provided</scope>
+      </dependency>
+
       <!-- Lombok -->
       <dependency>
         <groupId>org.projectlombok</groupId>
