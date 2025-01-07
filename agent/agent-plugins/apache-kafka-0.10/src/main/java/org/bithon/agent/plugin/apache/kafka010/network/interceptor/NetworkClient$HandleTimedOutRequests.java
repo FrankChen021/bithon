@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.apache.kafka010.network.interceptor;
 
 import org.apache.kafka.clients.ClientResponse;
 import org.apache.kafka.common.protocol.ApiKeys;
+import org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/12/4 17:13
  */
-public class NetworkClient$CompleteResponses extends org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses {
+public class NetworkClient$HandleTimedOutRequests extends NetworkClient$CompleteResponses {
 
     @Override
     protected ApiKeys getResponseApiKeys(ClientResponse response) {
@@ -42,7 +43,6 @@ public class NetworkClient$CompleteResponses extends org.bithon.agent.plugin.apa
 
     @Override
     protected String getException(ClientResponse response) {
-
         return "";
     }
 }

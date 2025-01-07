@@ -16,6 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bithon.agent.instrumentation.utils.VersionUtils;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
@@ -29,7 +30,7 @@ import java.util.Properties;
  * @date 2025/1/6 23:58
  */
 public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
-    protected final String metaFileName;
+    protected final String propertyFile;
     protected final String propertyName;
     protected final PropertyValuePredicate valuePredicate;
 
@@ -84,31 +85,33 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
     public PropertyFileValuePrecondition(String propertyFile,
                                          String propertyName,
                                          PropertyValuePredicate valuePredicate) {
-        this.metaFileName = propertyFile;
+        this.propertyFile = propertyFile;
         this.propertyName = propertyName;
         this.valuePredicate = valuePredicate;
     }
 
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     @Override
     public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-        try (InputStream inputStream = classLoader.getResourceAsStream(metaFileName)) {
+        try (InputStream inputStream = classLoader.getResourceAsStream(propertyFile)) {
             if (inputStream == null) {
                 return false;
             }
+
             Properties properties = new Properties();
             properties.load(inputStream);
             String value = properties.getProperty(propertyName);
             return this.valuePredicate.matches(value);
         } catch (IOException ignored) {
+            return false;
         }
-        return false;
     }
 
     @Override
     public String toString() {
         return String.format(Locale.ENGLISH,
                              "'%s'[%s] %s",
-                             metaFileName,
+                             propertyFile,
                              propertyName,
                              valuePredicate);
     }

@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.apache.kafka011.network.interceptor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.kafka.clients.ClientResponse;
 import org.apache.kafka.common.protocol.ApiKeys;
 
@@ -27,6 +28,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/12/4 17:13
  */
+@SuppressFBWarnings("NM_SAME_SIMPLE_NAME_AS_SUPERCLASS")
 public class NetworkClient$CompleteResponses extends org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses {
 
     @Override

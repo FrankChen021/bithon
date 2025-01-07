@@ -38,7 +38,7 @@ public class Kafka010Plugin implements IPlugin {
                                                                "version",
                                                                PropertyFileValuePrecondition.StringEQ.of("0.10.0.0")))
                 .onMethod("handleTimedOutRequests")
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$CompleteResponses")
+                .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$HandleTimedOutRequests")
                 .build()
         );
     }
