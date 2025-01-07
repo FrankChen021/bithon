@@ -46,13 +46,13 @@ import java.util.List;
 public class AggregateFunctionColumn implements IColumn {
     private final FunctionExpression functionExpression;
     @Getter
-    private String name;
+    private final String name;
 
     @Getter
-    private String alias;
+    private final String alias;
 
     @Getter
-    private IDataType dataType;
+    private final IDataType dataType;
 
     @Getter
     @Setter
@@ -76,13 +76,17 @@ public class AggregateFunctionColumn implements IColumn {
         return new Selector(new Expression(functionExpression), getName());
     }
 
+    /**
+     * Create an aggregated function call expression on this AggregateColumn
+     *
+     */
     @Override
     public IExpression createAggregateFunctionExpression(IFunction function) {
         if (function instanceof AggregateFunction.Sum) {
             if ("sum".equals(this.aggregator)) {
                 // use sum on a AggregateFunction(sum, type) column,
                 // turn it into sumMerge function
-                return new FunctionExpression(SumMergeFunction.INSTANCE, new IdentifierExpression(name));
+                return new FunctionExpression(SumMergeFunction.INSTANCE, IdentifierExpression.of(name, dataType));
             } else {
                 throw new HttpMappableException(HttpStatus.SC_BAD_REQUEST, "Invalid aggregator [%s] on column [AggregateFunction(%s,%s)]", function.getName(), this.aggregator, this.dataType);
             }
@@ -90,13 +94,13 @@ public class AggregateFunctionColumn implements IColumn {
             if ("count".equals(this.aggregator)) {
                 // use count on a AggregateFunction(count, type) column,
                 // turn it into countMerge function
-                return new FunctionExpression(CountMergeFunction.INSTANCE, new IdentifierExpression(name));
+                return new FunctionExpression(CountMergeFunction.INSTANCE, IdentifierExpression.of(name, IDataType.LONG));
             } else {
                 // otherwise, treat it as a normal count operation
-                return new FunctionExpression(function, new IdentifierExpression(name));
+                return new FunctionExpression(function, IdentifierExpression.of(name, IDataType.LONG));
             }
         } else {
-            return new FunctionExpression(function, new IdentifierExpression(name));
+            return new FunctionExpression(function, IdentifierExpression.of(name, dataType));
         }
     }
 
