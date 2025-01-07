@@ -67,7 +67,8 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
             ApiKeys apiKeys = getResponseApiKeys(response);
             String messageType = apiKeys.name;
-            String nodeId = response.destination();
+
+            String nodeId = getResponseNodeId(response);
 
             // Process the node id for messages sending to group coordinator
             if (apiKeys.id == ApiKeys.LEAVE_GROUP.id
@@ -85,23 +86,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
                 }
             }
 
-            String exceptionName = response.wasDisconnected() ? "Disconnected" : "";
-
-            // authenticationException is only support in some higher version (at least 1.0 version has no such exception)
-            // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
-            Exception exception = null;
-            if (authenticationExceptionField != null) {
-                try {
-                    exception = (Exception) authenticationExceptionField.get(response);
-                } catch (IllegalAccessException ignored) {
-                }
-            }
-            if (exception == null) {
-                exception = response.versionMismatch();
-            }
-            if (exception != null) {
-                exceptionName = exception.getClass().getSimpleName();
-            }
+            String exceptionName = getException(response);
 
             NetworkMetrics metrics = metricRegistry.getOrCreateMetrics(messageType,
                                                                        pluginContext.broker,
@@ -120,5 +105,32 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
 
     protected ApiKeys getResponseApiKeys(ClientResponse response) {
         return response.requestHeader().apiKey();
+    }
+
+    protected String getResponseNodeId(ClientResponse response) {
+        return response.destination();
+    }
+
+    protected String getException(ClientResponse response) {
+        // authenticationException is only support in some higher version (at least 1.0 version has no such exception)
+        // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
+        Exception exception = null;
+        if (authenticationExceptionField != null) {
+            try {
+                exception = (Exception) authenticationExceptionField.get(response);
+            } catch (IllegalAccessException ignored) {
+            }
+        }
+
+        // the versionMisMatch is supported since 0.11
+        if (exception != null) {
+            exception = response.versionMismatch();
+        }
+
+        if (exception == null) {
+            return response.wasDisconnected() ? "Disconnected" : "";
+        } else {
+            return exception.getClass().getSimpleName();
+        }
     }
 }

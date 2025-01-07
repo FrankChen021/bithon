@@ -25,9 +25,16 @@
       <scope>provided</scope>
     </dependency>
 
+    <!--
+      NOTE:
+      This module is running in the bootstrap classloader,
+      DO NOT introduce any other dependencies other than the above
+    -->
+
     <dependency>
-      <groupId>org.bithon.component</groupId>
-      <artifactId>component-commons</artifactId>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

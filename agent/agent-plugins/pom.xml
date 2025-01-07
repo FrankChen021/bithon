@@ -17,6 +17,7 @@
   <modules>
     <module>apache-druid</module>
     <module>apache-kafka</module>
+    <module>apache-kafka-0.10</module>
     <module>apache-kafka-0.11</module>
     <module>apache-kafka-3.7</module>
     <module>apache-kafka-3.9</module>
@@ -80,6 +81,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.10</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

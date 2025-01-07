@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.utils;
+package org.bithon.agent.instrumentation.utils;
 
+import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,31 +27,31 @@ public class VersionUtilsTest {
 
     @Test
     public void test_EQ() {
-        assertEquals(0, VersionUtils.compare("1.0.0", "1.0.0"));
+        Assert.assertEquals(0, VersionUtils.compare("1.0.0", "1.0.0"));
     }
 
     @Test
     public void test_LE() {
-        assertEquals(-1, VersionUtils.compare("1.0.0", "1.0.1"));
+        Assert.assertEquals(-1, VersionUtils.compare("1.0.0", "1.0.1"));
     }
 
     @Test
     public void test_GE() {
-        assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0"));
+        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0"));
     }
 
     @Test
     public void test_GE_2() {
-        assertEquals(1, VersionUtils.compare("1.0.11", "1.0.1"));
+        Assert.assertEquals(1, VersionUtils.compare("1.0.11", "1.0.1"));
     }
 
     @Test
     public void test_GE_3() {
-        assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
+        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
     }
 
     @Test
     public void test_GE_4() {
-        assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
+        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
     }
 }

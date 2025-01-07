@@ -16,7 +16,7 @@
 
 package org.bithon.agent.instrumentation.aop.interceptor.precondition;
 
-import org.bithon.component.commons.utils.VersionUtils;
+import org.bithon.agent.instrumentation.utils.VersionUtils;
 import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
         @Override
         public String toString() {
-            return "=" + expected;
+            return "= '" + expected + "'";
         }
 
         public static PropertyValuePredicate of(String expected) {
@@ -73,7 +73,7 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
         @Override
         public String toString() {
-            return ">=" + expected;
+            return ">= '" + expected + "'";
         }
 
         public static PropertyValuePredicate of(String expected) {
