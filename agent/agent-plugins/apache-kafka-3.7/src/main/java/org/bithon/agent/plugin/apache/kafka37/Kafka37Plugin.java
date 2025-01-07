@@ -18,8 +18,6 @@ package org.bithon.agent.plugin.apache.kafka37;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.MetadataEQPrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Collections;
@@ -31,14 +29,6 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  * @author frankchen
  */
 public class Kafka37Plugin implements IPlugin {
-
-    @Override
-    public IInterceptorPrecondition getPreconditions() {
-        //return IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer");
-        return new MetadataEQPrecondition("kafka/kafka-version.properties",
-                                          "version",
-                                          "3.7");
-    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

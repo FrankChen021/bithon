@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDe
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.MetadataGTEPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -120,9 +120,9 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
-                .whenSatisfy(new MetadataGTEPrecondition("kafka/kafka-version.properties",
-                                                         "version",
-                                                         "1.0.0"))
+                .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                               "version",
+                                                               PropertyFileValuePrecondition.VersionGTE.of("1.0.0")))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),

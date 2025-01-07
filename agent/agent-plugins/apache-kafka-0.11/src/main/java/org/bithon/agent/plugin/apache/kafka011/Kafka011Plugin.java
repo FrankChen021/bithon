@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.apache.kafka011;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.MetadataEQPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,9 +35,9 @@ public class Kafka011Plugin implements IPlugin {
 
         return Collections.singletonList(
             forClass("org.apache.kafka.clients.NetworkClient")
-                .whenSatisfy(new MetadataEQPrecondition("kafka/kafka-version.properties",
-                                                        "version",
-                                                        "0.11.0.0"))
+                .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                               "version",
+                                                               PropertyFileValuePrecondition.StringEQ.of("0.11.0.0")))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka011.network.interceptor.NetworkClient$CompleteResponses")
                 .build()

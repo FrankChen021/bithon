@@ -24,6 +24,11 @@
       <version>3.0.2</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.bithon.component</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
