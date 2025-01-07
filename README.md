@@ -162,7 +162,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | JDK - Thread Pool                                            | 1.8         |             | &check;                                        | &check; |
 | JDK - HTTP Client                                            | 1.8         |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
-| Apache Kafka(2)                                              | 0.11.0.0    | 3.9.0       | &check;                                        | &check; |
+| Apache Kafka(2)                                              | 0.10.0.0    | 3.9.0       | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
 | GRPC                                                         | 1.57.0      |             |                                                | &check; |
@@ -197,7 +197,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 
 ## Restrictions
 1. For Apache Druid, the Jersey plugin is required to be enabled to collect query information.
-2. For Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
+2. From Apache Kafka clients 3.7, the consumer metrics only works when the `group.protocol` is configured as `classic` which is the default configuration of the consumer client. 
 3. For Lettuce, the tracing support is only available when it's used with Spring Data Redis API.
 
 
