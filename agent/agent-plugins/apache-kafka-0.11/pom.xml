@@ -30,5 +30,18 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <ignoredUnusedDeclaredDependencies>
+            <!-- DON'T know why the warning is reported, but just ignore it
+            -->
+            <dependency>org.bithon.agent:agent-plugin-apache-kafka</dependency>
+          </ignoredUnusedDeclaredDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
