@@ -22,8 +22,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -31,9 +33,11 @@ import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfig
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.jooq.BatchBindStep;
 import org.jooq.Select;
 
 import java.sql.Timestamp;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -173,6 +177,48 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     protected String getAlertListSql(Select<?> selectQuery) {
         // Make sure the un-joined rows are filled with NULL or the default timestamp might be wrong
         return dslContext.renderInlined(selectQuery) + " SETTINGS join_use_nulls = 1";
+    }
+
+    @Override
+    public void saveAlertStates(Map<String, AlertStateObject> states) {
+        if (CollectionUtils.isEmpty(states)) {
+            return;
+        }
+
+        BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_ALERT_STATE,
+                                                                    Tables.BITHON_ALERT_STATE.ALERT_ID,
+                                                                    Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
+                                                                    Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
+                                                                    Tables.BITHON_ALERT_STATE.UPDATE_AT,
+                                                                    Tables.BITHON_ALERT_STATE.PAYLOAD,
+                                                                    Tables.BITHON_ALERT_STATE.ALERT_STATUS)
+                                                        .values((String) null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null
+                                                        ));
+
+        for (Map.Entry<String, AlertStateObject> entry : states.entrySet()) {
+            String ruleId = entry.getKey();
+            AlertStateObject state = entry.getValue();
+            String payloadString;
+            try {
+                payloadString = objectMapper.writeValueAsString(state.getPayload());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            step = step.bind(ruleId,
+                             state.getLastAlertAt() == null ? new Timestamp(0).toLocalDateTime() : state.getLastAlertAt(),
+                             state.getLastRecordId() == null ? "" : state.getLastRecordId(),
+                             new Timestamp(System.currentTimeMillis()).toLocalDateTime(),
+                             payloadString,
+                             state.getStatus().statusCode());
+        }
+
+        step.execute();
     }
 
     @Override
