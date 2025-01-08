@@ -28,7 +28,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
-import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
+import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.commons.time.TimeSpan;
@@ -321,7 +321,7 @@ public class AlertCommandService {
         };
 
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new AlertStateLocalMemoryStorage(),
+                                                      new LocalStateManager(),
                                                       logStorage.createWriter(),
                                                       recordStorage,
                                                       this.dataSourceApi,
@@ -329,9 +329,8 @@ public class AlertCommandService {
                                                       applicationContext.getBean(INotificationApiInvoker.class),
                                                       this.objectMapper);
 
-        TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
-
-        evaluator.evaluate(now, rule, null);
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           rule);
 
         return logStorage.getLogs();
     }

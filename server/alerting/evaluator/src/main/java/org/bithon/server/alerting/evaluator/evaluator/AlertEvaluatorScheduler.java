@@ -22,6 +22,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -47,8 +48,11 @@ public class AlertEvaluatorScheduler {
     private final AlertEvaluator alertEvaluator;
     private final AlertRepository alertRepository;
     private final ThreadPoolExecutor executor;
+    private final IAlertObjectStorage alertObjectStorage;
 
-    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertRepository alertRepository) {
+    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator,
+                                   AlertRepository alertRepository,
+                                   IAlertObjectStorage alertObjectStorage) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
         this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
@@ -58,6 +62,7 @@ public class AlertEvaluatorScheduler {
                                                new LinkedBlockingQueue<>(128),
                                                new ThreadFactoryBuilder().setDaemon(true).setNameFormat("alert-evaluator-%d").build(),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
+        this.alertObjectStorage = alertObjectStorage;
     }
 
     @Scheduled(cron = "${bithon.alerting.evaluator.scheduler.cron:15 0/1 * 1/1 * ?}")
@@ -72,27 +77,23 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Load states of all alert rules
-            Map<String, AlertStateObject> alertState = alertRepository.loadStates();
+            Map<String, AlertStateObject> alertStates = alertRepository.loadStates();
+            alertEvaluator.getStateManager().importAlertStates(alertStates);
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
                 executor.execute(() -> alertEvaluator.evaluate(now,
                                                                alertRule,
-                                                               alertState.get(alertRule.getId())
-                                                              ));
+                                                               alertStates.get(alertRule.getId())
+                ));
             }
         } finally {
+            try {
+                alertObjectStorage.saveAlertStates(alertEvaluator.getStateManager().exportAlertStates());
+            } catch (Exception e) {
+                log.error("Failed to save alert states", e);
+            }
             Thread.currentThread().setName(name);
-        }
-    }
-
-    /**
-     * for debugging
-     */
-    private void evaluate(String alertId) {
-        AlertRule alertRule = alertRepository.getLoadedAlerts().get(alertId);
-        if (alertRule != null) {
-            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule, null);
         }
     }
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.storage.redis;
+package org.bithon.server.alerting.evaluator.state.redis;
 
 import org.bithon.component.commons.utils.StringUtils;
 import redis.clients.jedis.ConnectionPoolConfig;

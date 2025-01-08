@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting;
+package org.bithon.server.alerting.evaluator.state;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.alerting.Label;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 
 import java.time.Duration;
 import java.util.List;
@@ -27,7 +29,7 @@ import java.util.Map;
  * @date 2020/12/14 2:51 下午
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IAlertStateStorage {
+public interface IEvaluationStateManager {
 
     void resetMatchCount(String alertId);
 
@@ -39,14 +41,15 @@ public interface IAlertStateStorage {
     /**
      * Check if there's an alert sending out in the past {@param silencePeriod} minutes.
      */
-    boolean tryEnterSilence(String alertId, Duration silenceDuration);
+    boolean tryEnterSilence(String alertId, Label label, Duration silenceDuration);
 
-    Duration getSilenceRemainTime(String alertId);
+    Duration getSilenceRemainTime(String alertId, Label label);
 
     /**
      * Set the last evaluation time of an alert.
+     *
      * @param timestamp the timestamp when the alert is evaluated
-     * @param interval the interval of two consecutive evaluations
+     * @param interval  the interval of two consecutive evaluations
      */
     void setEvaluationTime(String alertId, long timestamp, Duration interval);
 
@@ -54,4 +57,11 @@ public interface IAlertStateStorage {
      * Get the timestamp when the alert is evaluated last time in milliseconds
      */
     long getEvaluationTimestamp(String alertId);
+
+    /**
+     * Two interfaces that export and import alert states from an external system
+     */
+    Map<String, AlertStateObject> exportAlertStates();
+
+    void importAlertStates(Map<String, AlertStateObject> alertStates);
 }

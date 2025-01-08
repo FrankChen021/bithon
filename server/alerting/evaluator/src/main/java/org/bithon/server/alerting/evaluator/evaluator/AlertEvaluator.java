@@ -19,6 +19,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
+import lombok.Getter;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
@@ -29,12 +30,12 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
+import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
@@ -60,7 +61,8 @@ import java.util.UUID;
  */
 public class AlertEvaluator implements DisposableBean {
 
-    private final IAlertStateStorage stateStorage;
+    @Getter
+    private final IEvaluationStateManager stateManager;
     private final IEvaluationLogWriter evaluationLogWriter;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
@@ -68,14 +70,14 @@ public class AlertEvaluator implements DisposableBean {
     private final INotificationApiInvoker notificationApiInvoker;
 
     public AlertEvaluator(AlertRepository repository,
-                          IAlertStateStorage stateStorage,
+                          IEvaluationStateManager stateManager,
                           IEvaluationLogWriter evaluationLogWriter,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
                           INotificationApiInvoker notificationApiInvoker,
                           ObjectMapper objectMapper) {
-        this.stateStorage = stateStorage;
+        this.stateManager = stateManager;
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogWriter = evaluationLogWriter;
@@ -131,10 +133,16 @@ public class AlertEvaluator implements DisposableBean {
         }
     }
 
+    public void evaluate(TimeSpan now, AlertRule rule) {
+        Map<String, AlertStateObject> state = this.getStateManager().exportAlertStates();
+        this.evaluate(now, rule, state == null ? null : state.get(rule.getId()), false);
+    }
+
     /**
      * @param prevState can be null
      */
-    public void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
+    @VisibleForTesting
+    void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
         evaluate(now, alertRule, prevState, false);
     }
 
@@ -154,7 +162,7 @@ public class AlertEvaluator implements DisposableBean {
                     return;
                 }
 
-                TimeSpan lastEvaluationAt = TimeSpan.of(this.stateStorage.getEvaluationTimestamp(alertRule.getId()));
+                TimeSpan lastEvaluationAt = TimeSpan.of(this.stateManager.getEvaluationTimestamp(alertRule.getId()));
                 if (now.diff(lastEvaluationAt) < interval.toMillis()) {
                     context.log(AlertEvaluator.class,
                                 "Evaluation skipped, it's expected to be evaluated at %s",
@@ -194,15 +202,19 @@ public class AlertEvaluator implements DisposableBean {
             }
 
             // Update state storage
-            this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), getStatus(allNewStatus), allNewStatus);
+            //this.stateStorage.setAlertStates(alertRule.getId(), allNewStatus);
+            this.alertRecordStorage.updateAlertStatus(alertRule.getId(),
+                                                      context.getPrevState(),
+                                                      getStatus(allNewStatus),
+                                                      allNewStatus);
 
             // Group by alert status
             Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
                                                                                         .stream()
                                                                                         .collect(HashMap::new,
-                                                                                                  (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
-                                                                                                                     .put(entry.getKey(), entry.getValue()),
-                                                                                                  HashMap::putAll);
+                                                                                                 (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
+                                                                                                                    .put(entry.getKey(), entry.getValue()),
+                                                                                                 HashMap::putAll);
             fireAlert(alertRule, groupedStatus.get(AlertStatus.ALERTING), context);
             resolveAlert(alertRule, groupedStatus.get(AlertStatus.RESOLVED), context);
 
@@ -210,7 +222,7 @@ public class AlertEvaluator implements DisposableBean {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
 
-        this.stateStorage.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
+        this.stateManager.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
     private AlertStatus getStatus(Map<Label, AlertStatus> status) {
@@ -257,11 +269,11 @@ public class AlertEvaluator implements DisposableBean {
                         "Rule [%s] evaluated as FALSE",
                         alertRule.getName());
 
-            stateStorage.resetMatchCount(alertRule.getId());
+            stateManager.resetMatchCount(alertRule.getId());
 
             Map<Label, AlertStatus> newStatus = new HashMap<>();
             if (prevState != null) {
-                for (Map.Entry<Label, AlertStatus> item : prevState.getPayload().getStatus().entrySet()) {
+                for (Map.Entry<Label, AlertStateObject.StatePerLabel> item : prevState.getPayload().getStates().entrySet()) {
                     newStatus.put(item.getKey(), AlertStatus.RESOLVED);
                 }
             }
@@ -273,17 +285,17 @@ public class AlertEvaluator implements DisposableBean {
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
         Map<Label, AlertStatus> alertStatus = new HashMap<>();
-        Map<Label, Long> successiveCountList = stateStorage.incrMatchCount(alertRule.getId(),
+        Map<Label, Long> successiveCountList = stateManager.incrMatchCount(alertRule.getId(),
                                                                            context.getGroups(),
                                                                            alertRule.getEvery()
-                                                                                     .getDuration()
-                                                                                     // Add 30 seconds for margin
-                                                                                     .plus(Duration.ofSeconds(30)));
+                                                                                    .getDuration()
+                                                                                    // Add 30 seconds for margin
+                                                                                    .plus(Duration.ofSeconds(30)));
         for (Map.Entry<Label, Long> entry : successiveCountList.entrySet()) {
             Label label = entry.getKey();
             long successiveCount = entry.getValue();
 
-            AlertStatus newStatus = getAlertStatus(context, prevState, successiveCount, expectedMatchCount);
+            AlertStatus newStatus = getAlertStatus(context, label, prevState, successiveCount, expectedMatchCount);
 
             alertStatus.put(label, newStatus);
         }
@@ -292,13 +304,14 @@ public class AlertEvaluator implements DisposableBean {
     }
 
     private AlertStatus getAlertStatus(EvaluationContext context,
+                                       Label label,
                                        AlertStateObject prevState,
                                        long successiveCount,
                                        long expectedMatchCount) {
         AlertRule alertRule = context.getAlertRule();
 
         if (successiveCount >= expectedMatchCount) {
-            stateStorage.resetMatchCount(alertRule.getId());
+            stateManager.resetMatchCount(alertRule.getId());
 
             context.log(AlertEvaluator.class,
                         "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
@@ -317,8 +330,8 @@ public class AlertEvaluator implements DisposableBean {
             TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
             Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
 
-            if (silenceDuration.getDuration().getSeconds() > 0 && stateStorage.tryEnterSilence(alertRule.getId(), silencePeriod)) {
-                Duration silenceRemainTime = stateStorage.getSilenceRemainTime(alertRule.getId());
+            if (silenceDuration.getDuration().getSeconds() > 0 && stateManager.tryEnterSilence(alertRule.getId(), label, silencePeriod)) {
+                Duration silenceRemainTime = stateManager.getSilenceRemainTime(alertRule.getId(), label);
                 context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
                             silenceDuration,
                             lastAlertingAt,

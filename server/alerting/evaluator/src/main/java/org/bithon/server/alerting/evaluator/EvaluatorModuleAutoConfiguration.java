@@ -32,14 +32,14 @@ import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
-import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
+import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
+import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
+import org.bithon.server.alerting.evaluator.state.redis.RedisStateManager;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -74,8 +74,8 @@ import java.util.concurrent.TimeUnit;
 public class EvaluatorModuleAutoConfiguration {
 
     @Bean
-    public IAlertStateStorage alertStateStorage(ObjectMapper objectMapper,
-                                                Environment environment) throws IOException {
+    public IEvaluationStateManager alertStateStorage(ObjectMapper objectMapper,
+                                                     Environment environment) throws IOException {
         HashMap<?, ?> stateConfig = Binder.get(environment)
                                           .bind("bithon.alerting.evaluator.state", HashMap.class)
                                           .orElseGet(() -> null);
@@ -83,7 +83,7 @@ public class EvaluatorModuleAutoConfiguration {
 
         String jsonType = objectMapper.writeValueAsString(stateConfig);
         try {
-            return objectMapper.readValue(jsonType, IAlertStateStorage.class);
+            return objectMapper.readValue(jsonType, IEvaluationStateManager.class);
         } catch (InvalidTypeIdException e) {
             throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
         }
@@ -147,7 +147,7 @@ public class EvaluatorModuleAutoConfiguration {
 
     @Bean
     public AlertEvaluator alertEvaluator(AlertRepository repository,
-                                         IAlertStateStorage stateStorage,
+                                         IEvaluationStateManager stateStorage,
                                          IEvaluationLogStorage logStorage,
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
@@ -184,8 +184,9 @@ public class EvaluatorModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(AlertStateLocalMemoryStorage.class,
-                                         AlertStateRedisStorage.class);
+                context.registerSubtypes(LocalStateManager.class,
+                                         RedisStateManager.class
+                );
             }
         };
     }

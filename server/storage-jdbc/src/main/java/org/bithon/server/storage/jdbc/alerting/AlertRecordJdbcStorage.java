@@ -85,7 +85,7 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
                                   AlertStatus newStatus,
                                   Map<Label, AlertStatus> statusPerLabel) {
         AlertStateObject.Payload payload = new AlertStateObject.Payload();
-        payload.setStatus(statusPerLabel);
+        //payload.setStates(statusPerLabel);
         String payloadString = "{}";
         try {
             payloadString = this.objectMapper.writeValueAsString(payload);

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.storage.redis;
+package org.bithon.server.alerting.evaluator.state.redis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Max;

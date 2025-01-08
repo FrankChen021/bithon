@@ -25,14 +25,13 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
+import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
-import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
 import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.ISchema;
@@ -70,31 +69,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AlertEvaluatorTest {
 
-    private static final IEvaluationLogWriter evaluationLogWriterStub = new IEvaluationLogWriter() {
-        @Override
-        public void close() {
-        }
-
-        @Override
-        public void setInstance(String instance) {
-
-        }
-
-        @Override
-        public void write(EvaluationLogEvent logEvent) {
-        }
-
-        @Override
-        public void write(List<EvaluationLogEvent> logs) {
-
-        }
-    };
-
-
     private final String metric = "count";
 
     private IDataSourceApi dataSourceApiStub;
 
+    private static IEvaluationLogWriter evaluationLogWriterStub;
     private static INotificationApiInvoker notificationApiStub;
     private static IAlertRecordStorage alertRecordStorageStub;
     private static AlertObjectJdbcStorage alertObjectStorageStub;
@@ -123,6 +102,8 @@ public class AlertEvaluatorTest {
                                                             objectMapper,
                                                             new AlertingStorageConfiguration.AlertStorageConfig());
         alertObjectStorageStub.initialize();
+
+        evaluationLogWriterStub = Mockito.mock(IEvaluationLogWriter.class);
     }
 
     @Before
@@ -141,7 +122,7 @@ public class AlertEvaluatorTest {
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
         evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
-                                       new AlertStateLocalMemoryStorage(),
+                                       new LocalStateManager(),
                                        evaluationLogWriterStub,
                                        alertRecordStorageStub,
                                        dataSourceApiStub,
@@ -551,8 +532,7 @@ public class AlertEvaluatorTest {
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 101)))
-                                        .build())
-        ;
+                                        .build());
 
         String id = UUID.randomUUID().toString().replace("-", "");
         AlertRule alertRule = AlertRule.builder()

@@ -73,7 +73,9 @@ public interface IAlertObjectStorage {
                                     OrderBy orderBy,
                                     Limit limit);
 
+    // TODO: MOVE these two into IAlertStateStorage
     Map<String, AlertStateObject> getAlertStates();
+    void saveAlertStates(Map<String, AlertStateObject> states);
 
     ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize);
 

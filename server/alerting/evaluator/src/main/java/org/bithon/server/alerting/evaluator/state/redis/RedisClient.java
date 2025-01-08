@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.storage.redis;
+package org.bithon.server.alerting.evaluator.state.redis;
 
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPooled;

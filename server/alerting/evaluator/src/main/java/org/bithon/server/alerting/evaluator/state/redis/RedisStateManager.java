@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.storage.redis;
+package org.bithon.server.alerting.evaluator.state.redis;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -25,8 +25,9 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.Label;
+import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -34,17 +35,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * States are managed in redis
+ *
  * @author frank.chen021@outlook.com
  * @date 2020/12/14 2:51 下午
  */
 @JsonTypeName("redis")
-public class AlertStateRedisStorage implements IAlertStateStorage {
+public class RedisStateManager implements IEvaluationStateManager {
 
     private final RedisClient redisClient;
 
     @JsonCreator
-    public AlertStateRedisStorage(@JsonProperty("props") RedisConfig props,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
+    public RedisStateManager(@JsonProperty("props") RedisConfig props,
+                             @JacksonInject(useInput = OptBoolean.FALSE) AlertRepository alertRepository) {
 
         this.redisClient = RedisClientFactory.create(props);
 
@@ -105,12 +108,12 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
     }
 
     @Override
-    public boolean tryEnterSilence(String alertId, Duration silencePeriod) {
+    public boolean tryEnterSilence(String alertId, Label label, Duration silencePeriod) {
         return redisClient.setIfAbsent(getAlertKey(alertId, "silence"), "silence", silencePeriod);
     }
 
     @Override
-    public Duration getSilenceRemainTime(String alertId) {
+    public Duration getSilenceRemainTime(String alertId, Label label) {
         return redisClient.getExpire(getAlertKey(alertId, "silence"));
     }
 
@@ -130,6 +133,15 @@ public class AlertStateRedisStorage implements IAlertStateStorage {
             }
         }
         return 0;
+    }
+
+    @Override
+    public Map<String, AlertStateObject> exportAlertStates() {
+        return Map.of();
+    }
+
+    @Override
+    public void importAlertStates(Map<String, AlertStateObject> alertStates) {
     }
 
     private String getAlertKey(String alertId) {
