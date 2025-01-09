@@ -63,5 +63,5 @@ public interface IEvaluationStateManager {
      */
     Map<String, AlertStateObject> exportAlertStates();
 
-    void importAlertStates(Map<String, AlertStateObject> alertStates);
+    void restoreAlertStates(Map<String, AlertStateObject> alertStates);
 }

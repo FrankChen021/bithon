@@ -67,16 +67,9 @@ public class LocalStateManager implements IEvaluationStateManager {
 
             // Update expiration
             statusPerLabel.setMatchExpiredAt(now + duration.toMillis());
-            statusPerLabel.setAccessed(true);
 
             result.put(label, statusPerLabel.getMatchCount());
         }
-
-        // Remove expired labels
-        payload.getStates()
-               .entrySet()
-               .removeIf(entry -> !entry.getValue().isAccessed()
-                                  && entry.getValue().getMatchExpiredAt() <= now);
 
         return result;
     }
@@ -147,11 +140,19 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public Map<String, AlertStateObject> exportAlertStates() {
+        // Remove expired states
+        long now = System.currentTimeMillis();
+        for (AlertStateObject alertStateObject : alertStates.values()) {
+            AlertStateObject.Payload payload = alertStateObject.getPayload();
+
+            payload.getStates().entrySet().removeIf(entry -> entry.getValue().getMatchExpiredAt() < now);
+        }
+
         return Map.copyOf(this.alertStates);
     }
 
     @Override
-    public void importAlertStates(Map<String, AlertStateObject> alertStates) {
+    public void restoreAlertStates(Map<String, AlertStateObject> alertStates) {
         this.alertStates = new ConcurrentHashMap<>(alertStates);
     }
 }

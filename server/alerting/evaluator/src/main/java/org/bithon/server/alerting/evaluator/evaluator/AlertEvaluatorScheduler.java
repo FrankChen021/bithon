@@ -77,8 +77,8 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Load states of all alert rules
-            Map<String, AlertStateObject> alertStates = alertRepository.loadStates();
-            alertEvaluator.getStateManager().importAlertStates(alertStates);
+            Map<String, AlertStateObject> alertStates = alertObjectStorage.getAlertStates();
+            alertEvaluator.getStateManager().restoreAlertStates(alertStates);
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {

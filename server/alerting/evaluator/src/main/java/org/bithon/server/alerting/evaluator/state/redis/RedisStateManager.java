@@ -141,7 +141,7 @@ public class RedisStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public void importAlertStates(Map<String, AlertStateObject> alertStates) {
+    public void restoreAlertStates(Map<String, AlertStateObject> alertStates) {
     }
 
     private String getAlertKey(String alertId) {

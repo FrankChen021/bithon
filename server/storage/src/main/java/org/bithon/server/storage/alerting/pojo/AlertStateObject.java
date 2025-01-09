@@ -17,7 +17,6 @@
 package org.bithon.server.storage.alerting.pojo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -37,10 +36,6 @@ public class AlertStateObject {
 
     @Data
     public static class StatePerLabel {
-        // A runtime property to indicate if this label has been accessed in the current evaluation cycle
-        @JsonIgnore
-        private boolean accessed;
-
         private AlertStatus status;
 
         private long matchCount;
