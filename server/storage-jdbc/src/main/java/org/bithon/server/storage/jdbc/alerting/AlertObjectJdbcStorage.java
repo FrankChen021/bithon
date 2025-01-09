@@ -27,7 +27,6 @@ import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
@@ -51,7 +50,6 @@ import org.springframework.dao.DuplicateKeyException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -96,10 +94,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public void initialize() {
+    public final void initialize() {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
+
+        createTableIfNotExists();
+    }
+
+    protected void createTableIfNotExists() {
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_OBJECT)
                        .columns(Tables.BITHON_ALERT_OBJECT.fields())
                        .indexes(Tables.BITHON_ALERT_OBJECT.getIndexes()).execute();
@@ -107,11 +110,6 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_CHANGE_LOG)
                        .columns(Tables.BITHON_ALERT_CHANGE_LOG.fields())
                        .indexes(Tables.BITHON_ALERT_CHANGE_LOG.getIndexes())
-                       .execute();
-
-        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_STATE)
-                       .columns(Tables.BITHON_ALERT_STATE.fields())
-                       .indexes(Tables.BITHON_ALERT_STATE.getIndexes())
                        .execute();
     }
 
@@ -339,62 +337,6 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              obj.setAlertStatus(status == null ? AlertStatus.READY : AlertStatus.fromCode(status));
                              return obj;
                          });
-    }
-
-    @Override
-    public Map<String, AlertStateObject> getAlertStates() {
-        return dslContext.selectFrom(this.quotedStateTableSelectName)
-                         .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> {
-                             AlertStateObject obj = new AlertStateObject();
-                             obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
-
-                             String payload = record.get(Tables.BITHON_ALERT_STATE.PAYLOAD);
-                             if (payload != null && !payload.isEmpty()) {
-                                 try {
-                                     obj.setPayload(objectMapper.readValue(payload, AlertStateObject.Payload.class));
-                                 } catch (JsonProcessingException e) {
-                                     throw new RuntimeException(e);
-                                 }
-                             }
-
-                             Object timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
-                             // It's strange that the returned object is typeof Timestamp under H2
-                             if (timestamp instanceof Timestamp) {
-                                 obj.setLastAlertAt(((Timestamp) timestamp).toLocalDateTime());
-                             } else {
-                                 obj.setLastAlertAt((LocalDateTime) timestamp);
-                             }
-                             obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
-                             return obj;
-                         });
-    }
-
-    @Override
-    public void saveAlertStates(Map<String, AlertStateObject> states) {
-
-        for (Map.Entry<String, AlertStateObject> entry : states.entrySet()) {
-            String ruleId = entry.getKey();
-            AlertStateObject state = entry.getValue();
-            String payloadString;
-            try {
-                payloadString = objectMapper.writeValueAsString(state.getPayload());
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-
-            dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_ID, ruleId)
-                      .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, state.getLastAlertAt() == null ? new Timestamp(0).toLocalDateTime() : state.getLastAlertAt())
-                      .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, state.getLastRecordId() == null ? "" : state.getLastRecordId())
-                      .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, state.getStatus().statusCode())
-                      .onDuplicateKeyUpdate()
-                      .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                      .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, state.getStatus().statusCode())
-                      .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
-                      .execute();
-        }
     }
 
     protected String getAlertListSql(Select<?> selectQuery) {

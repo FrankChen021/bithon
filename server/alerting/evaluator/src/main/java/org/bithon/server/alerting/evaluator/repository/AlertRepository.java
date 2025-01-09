@@ -23,7 +23,6 @@ import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -58,11 +57,6 @@ public class AlertRepository {
         return this.loadedAlerts;
     }
 
-    public AlertRule getAlertRuleFromStorage(String ruleId) {
-        AlertStorageObject storageObject = this.alertObjectStorage.getAlertById(ruleId);
-        return AlertRule.from(storageObject);
-    }
-
     public void loadChanges() {
         Timestamp lastTimestamp = lastLoadedAt;
         Timestamp now = TimeSpan.now().ceil(Duration.ofSeconds(1)).toTimestamp();
@@ -92,10 +86,6 @@ public class AlertRepository {
         });
 
         this.lastLoadedAt = now;
-    }
-
-    public Map<String, AlertStateObject> loadStates() {
-        return alertObjectStorage.getAlertStates();
     }
 
     private AlertRule toAlert(AlertStorageObject alertObject) {

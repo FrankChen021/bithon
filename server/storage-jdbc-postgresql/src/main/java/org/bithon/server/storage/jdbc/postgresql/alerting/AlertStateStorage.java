@@ -22,33 +22,31 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.postgresql.TableCreator;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/12/29 23:30
+ * @date 2025/1/9 23:03
  */
-public class AlertObjectStorage extends AlertObjectJdbcStorage {
+public class AlertStateStorage extends AlertStateJdbcStorage {
+
     @JsonCreator
-    public AlertObjectStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
-                              @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                              @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    public AlertStateStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
+                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                             @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         super(storageProvider.getDslContext(),
-              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()),
-              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_OBJECT.getName()),
-              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName()),
+              storageConfig,
               objectMapper,
-              storageConfig
-        );
+              sqlDialectManager.getSqlDialect(storageProvider.getDslContext()).quoteIdentifier(Tables.BITHON_ALERT_STATE.getName())
+              );
     }
 
     @Override
     protected void createTableIfNotExists() {
-        TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_OBJECT);
-        TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_CHANGE_LOG);
+        TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_STATE);
     }
 }

@@ -41,6 +41,7 @@ import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLon
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.h2.H2StorageModuleAutoConfiguration;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -69,6 +70,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AlertEvaluatorTest {
 
+
     private final String metric = "count";
 
     private IDataSourceApi dataSourceApiStub;
@@ -76,6 +78,7 @@ public class AlertEvaluatorTest {
     private static IEvaluationLogWriter evaluationLogWriterStub;
     private static INotificationApiInvoker notificationApiStub;
     private static IAlertRecordStorage alertRecordStorageStub;
+    private static AlertStateJdbcStorage alertStateStorageStub;
     private static AlertObjectJdbcStorage alertObjectStorageStub;
     private AlertEvaluator evaluator;
 
@@ -102,6 +105,12 @@ public class AlertEvaluatorTest {
                                                             objectMapper,
                                                             new AlertingStorageConfiguration.AlertStorageConfig());
         alertObjectStorageStub.initialize();
+
+        alertStateStorageStub = new AlertStateJdbcStorage(jdbcStorageProviderConfiguration,
+                                                          new AlertingStorageConfiguration.AlertStorageConfig(),
+                                                          sqlDialectManager,
+                                                          objectMapper);
+        alertStateStorageStub.initialize();
 
         evaluationLogWriterStub = Mockito.mock(IEvaluationLogWriter.class);
     }
@@ -155,7 +164,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
@@ -189,7 +198,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
@@ -220,7 +229,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
@@ -253,7 +262,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
@@ -290,7 +299,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
@@ -333,7 +342,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
@@ -376,7 +385,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
@@ -423,7 +432,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
@@ -439,7 +448,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            stateObject,
                            true);
-        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
@@ -486,7 +495,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
@@ -502,7 +511,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            stateObject,
                            true);
-        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
@@ -556,7 +565,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(1)).groupBy(Mockito.any());
@@ -568,7 +577,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            stateObject,
                            true);
-        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(2)).groupBy(Mockito.any());
@@ -580,7 +589,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            stateObject,
                            true);
-        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(3)).groupBy(Mockito.any());
@@ -592,7 +601,7 @@ public class AlertEvaluatorTest {
                            alertRule,
                            stateObject,
                            true);
-        stateObject = alertObjectStorageStub.getAlertStates().get(id);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(4)).groupBy(Mockito.any());
