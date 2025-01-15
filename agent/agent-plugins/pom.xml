@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>apache-zookeeper</module>
     <module>apache-druid</module>
     <module>apache-kafka</module>
     <module>apache-kafka-0.10</module>
@@ -70,8 +71,13 @@
     <module>xxl-job</module>
   </modules>
 
-  <dependencies>
-    <!-- Use to publish -->
+  <dependencies> <!-- Include all plugins for publication -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-zookeeper</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-druid</artifactId>
