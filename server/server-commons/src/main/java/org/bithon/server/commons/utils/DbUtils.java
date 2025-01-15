@@ -93,14 +93,10 @@ public class DbUtils {
                                                 StringUtils.isEmpty(uri.getPath()) ? "" : uri.getPath().substring(1),
                                                 "clickhouse");
 
-                case "postgresql":
+                default:
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 StringUtils.isEmpty(uri.getPath()) ? "" : uri.getPath().substring(1),
-                                                "postgresql");
-
-                default:
-                    throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown schema of Connection String: [%s]",
-                                                             connectionString));
+                                                uri.getScheme());
             }
         } catch (URISyntaxException e) {
             throw new RuntimeException(String.format(Locale.ENGLISH, "Invalid format of Connection String: [%s]", connectionString));
