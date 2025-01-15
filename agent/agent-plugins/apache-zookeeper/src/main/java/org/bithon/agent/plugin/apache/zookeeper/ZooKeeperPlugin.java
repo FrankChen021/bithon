@@ -41,6 +41,9 @@ public class ZooKeeperPlugin implements IPlugin {
                 .onMethod("submitRequest")
                 .andVisibility(Visibility.PUBLIC)
                 .andArgsSize(5)
+                .andArgs(0, "org.apache.zookeeper.proto.RequestHeader")
+                .andArgs(1, "org.apache.jute.Record")
+                .andArgs(2, "org.apache.jute.Record")
                 .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxn$SubmitRequest")
                 .build(),
 

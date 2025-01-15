@@ -24,7 +24,6 @@ import org.apache.zookeeper.proto.ReplyHeader;
 import org.apache.zookeeper.proto.RequestHeader;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricRegistry;
 
@@ -35,10 +34,10 @@ import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricRegistry;
  * @date 15/1/25 3:55 pm
  */
 public class ClientCnxn$SubmitRequest extends AroundInterceptor {
+    private final OpNameLookup opNameLookup;
 
-    @Override
-    public InterceptionDecision before(AopContext aopContext) {
-        return aopContext.getArgAs(1) == null ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
+    public ClientCnxn$SubmitRequest() {
+        opNameLookup = new OpNameLookup();
     }
 
     @Override
@@ -55,10 +54,16 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
             }
         }
 
+        String operation;
         Record request = aopContext.getArgAs(1);
-        String operation = request.getClass().getSimpleName();
-        if (operation.endsWith("Request")) {
-            operation = operation.substring(0, operation.length() - 7);
+        if (request != null) {
+            operation = request.getClass().getSimpleName();
+            if (operation.endsWith("Request")) {
+                operation = operation.substring(0, operation.length() - 7);
+            }
+        } else {
+            RequestHeader requestHeader = aopContext.getArgAs(0);
+            operation = opNameLookup.lookup(requestHeader.getType());
         }
 
         // The ConnectionContext is injected by ClientCnxn$Ctor
