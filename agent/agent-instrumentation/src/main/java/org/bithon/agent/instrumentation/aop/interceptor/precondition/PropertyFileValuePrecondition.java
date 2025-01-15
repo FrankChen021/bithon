@@ -60,6 +60,28 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         }
     }
 
+    public static class VersionGT implements PropertyValuePredicate {
+        protected final String expected;
+
+        private VersionGT(String expected) {
+            this.expected = expected;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            return VersionUtils.compare(actual, expected) > 0;
+        }
+
+        @Override
+        public String toString() {
+            return "> '" + expected + "'";
+        }
+
+        public static PropertyValuePredicate of(String expected) {
+            return new VersionGTE(expected);
+        }
+    }
+
     public static class VersionGTE implements PropertyValuePredicate {
         protected final String expected;
 

@@ -28,6 +28,8 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricRegistry;
 
 /**
+ * For version below 3.5, only the first is defined while these two are defined for 3.5+
+ * {@link org.apache.zookeeper.ClientCnxn#submitRequest(RequestHeader, Record, Record, ZooKeeper.WatchRegistration)}
  * {@link org.apache.zookeeper.ClientCnxn#submitRequest(RequestHeader, Record, Record, ZooKeeper.WatchRegistration, WatchDeregistration)}
  *
  * @author frank.chen021@outlook.com

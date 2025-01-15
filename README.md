@@ -164,6 +164,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Apache Druid(1)                                              | 0.16        | 31.0        |                                                | &check; |
 | Apache Kafka(2)                                              | 0.10.0.0    | 3.9.0       | &check;                                        | &check; |
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
+| Apache ZooKeeper Client                                      | 3.5         | 3.9         | &check;                                        |         |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
 | GRPC                                                         | 1.57.0      |             |                                                | &check; |
 | Google Guice                                                 | 4.1.0       |             |                                                | &check; |

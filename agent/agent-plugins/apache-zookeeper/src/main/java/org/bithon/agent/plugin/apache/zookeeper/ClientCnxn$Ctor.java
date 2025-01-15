@@ -16,15 +16,19 @@
 
 package org.bithon.agent.plugin.apache.zookeeper;
 
+import org.apache.zookeeper.ClientWatchManager;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.client.HostProvider;
-import org.apache.zookeeper.client.ZKClientConfig;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 
 /**
- * {@link org.apache.zookeeper.ClientCnxn#ClientCnxn(String, HostProvider, int, ZKClientConfig, Watcher, org.apache.zookeeper.ClientCnxnSocket, boolean)}
+ * {@link org.apache.zookeeper.ClientCnxn#ClientCnxn(String, HostProvider, int, ZooKeeper, ClientWatchManager, org.apache.zookeeper.ClientCnxnSocket, long, byte[], boolean)}
+ * {@link org.apache.zookeeper.ClientCnxn#ClientCnxn(String, HostProvider, int, ZooKeeper, ClientWatchManager, org.apache.zookeeper.ClientCnxnSocket, boolean)}
+ * <p>
+ * 3.7+ {@link org.apache.zookeeper.ClientCnxn#ClientCnxn(String, HostProvider, int, org.apache.zookeeper.client.ZKClientConfig, Watcher, org.apache.zookeeper.ClientCnxnSocket, boolean)}
  *
  * @author frank.chen021@outlook.com
  * @date 15/1/25 3:58 pm

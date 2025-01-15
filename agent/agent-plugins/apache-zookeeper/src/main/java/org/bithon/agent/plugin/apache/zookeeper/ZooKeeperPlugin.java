@@ -18,6 +18,8 @@ package org.bithon.agent.plugin.apache.zookeeper;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -29,6 +31,13 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
  * @author frankchen
  */
 public class ZooKeeperPlugin implements IPlugin {
+
+    @Override
+    public IInterceptorPrecondition getPreconditions() {
+        return new PropertyFileValuePrecondition("META-INF/maven/org.apache.zookeeper/zookeeper/pom.properties",
+                                                 "version",
+                                                 PropertyFileValuePrecondition.VersionGTE.of("3.5"));
+    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -50,6 +59,7 @@ public class ZooKeeperPlugin implements IPlugin {
             // Context injection
             forClass("org.apache.zookeeper.ClientCnxnSocketNIO")
                 .onMethod("connect")
+                .andArgs("java.net.InetSocketAddress")
                 .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxnSocket$Connect")
                 .build(),
 

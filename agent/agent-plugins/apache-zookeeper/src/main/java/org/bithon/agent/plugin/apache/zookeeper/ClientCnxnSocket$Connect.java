@@ -28,8 +28,8 @@ import java.net.InetSocketAddress;
  * To get the remote address simpler (to avoid Reflection which might fail in JDK 9 and above in which module is introduced),
  * we inject the address to the socket object itself.
  * <p>
- * {@link org.apache.zookeeper.ClientCnxnSocketNetty#connect(InetSocketAddress)}
- * {@link org.apache.zookeeper.ClientCnxnSocketNIO#connect(InetSocketAddress)}
+ * <3.5 {@link org.apache.zookeeper.ClientCnxnSocketNIO#connect(InetSocketAddress)}
+ * 3.5+ {@link org.apache.zookeeper.ClientCnxnSocketNetty#connect(InetSocketAddress)}
  *
  * @author frank.chen021@outlook.com
  * @date 15/1/25 6:10 pm
