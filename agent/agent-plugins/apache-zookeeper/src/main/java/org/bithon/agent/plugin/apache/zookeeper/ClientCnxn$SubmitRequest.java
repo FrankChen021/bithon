@@ -72,10 +72,16 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
         IBithonObject clientCnxn = aopContext.getTargetAs();
         ZKConnectionContext ctx = ((ZKConnectionContext) clientCnxn.getInjectedObject());
 
+        // The IOContext is initialized when the RequestHeader is created
+        IBithonObject requestHeader = aopContext.getArgAs(0);
+        IOMetrics ioMetrics = (IOMetrics) requestHeader.getInjectedObject();
+
         ZKClientMetricRegistry.getInstance()
                               .getOrCreateMetrics(ctx.getServerAddress(),
                                                   operation,
                                                   status)
-                              .add(aopContext.getExecutionTime());
+                              .add(aopContext.getExecutionTime(),
+                                   ioMetrics.bytesReceived,
+                                   ioMetrics.bytesSent);
     }
 }

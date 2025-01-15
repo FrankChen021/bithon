@@ -48,6 +48,14 @@
       "displayText": "total count of requests"
     },
     {
+      "type": "longSum",
+      "name": "bytesSent"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesReceived"
+    },
+    {
       "type": "post",
       "name": "avgResponseTime",
       "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)",

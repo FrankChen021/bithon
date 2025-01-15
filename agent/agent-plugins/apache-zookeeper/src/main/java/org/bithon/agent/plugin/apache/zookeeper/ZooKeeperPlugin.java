@@ -54,6 +54,30 @@ public class ZooKeeperPlugin implements IPlugin {
                 .andArgs(1, "org.apache.jute.Record")
                 .andArgs(2, "org.apache.jute.Record")
                 .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxn$SubmitRequest")
+
+                .onMethod("finishPacket")
+                .andArgs("org.apache.zookeeper.ClientCnxn$Packet")
+                .debug()
+                .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxn$FinishPacket")
+                .build(),
+
+            forClass("org.apache.zookeeper.ClientCnxn$SendThread")
+                .onMethod("readResponse")
+                .andArgs("java.nio.ByteBuffer")
+                .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxnSendThread$ReadResponse")
+                .build(),
+
+            // For IO metrics
+            forClass("org.apache.zookeeper.ClientCnxn$Packet")
+                .onMethod("createBB")
+                .andArgsSize(0)
+                .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxnPacket$CreateBB")
+                .build(),
+
+            // For IO metrics
+            forClass("org.apache.zookeeper.proto.RequestHeader")
+                .onConstructor()
+                .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.RequestHeader$Ctor")
                 .build(),
 
             // Context injection

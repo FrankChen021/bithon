@@ -127,6 +127,51 @@
           "limit": 15
         }
       }
+    },
+    {
+      "title": "IO",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "bytesSent",
+        "bytesReceived"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "zookeeper-client-metrics",
+        "fields": [
+          "bytesSent",
+          "bytesReceived"
+        ]
+      },
+      "details": {
+        "columns": [
+          "operation",
+          "status",
+          "server",
+          "totalCount",
+          "bytesSent",
+          "bytesReceived"
+        ],
+        "query": {
+          "dataSource": "zookeeper-client-metrics",
+          "fields": [
+            "totalCount",
+            "bytesSent",
+            "bytesReceived"
+          ],
+          "groupBy": [
+            "operation",
+            "status",
+            "server"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          },
+          "limit": 15
+        }
+      }
     }
   ]
 }

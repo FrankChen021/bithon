@@ -32,14 +32,15 @@ public class ZKClientMetrics implements IMetricSet {
     private final Max maxResponseTime = new Max();
 
     private final Sum totalCount = new Sum();
-    private final Sum bytesIn = new Sum();
-    private final Sum bytesOut = new Sum();
+    private final Sum bytesReceived = new Sum();
+    private final Sum bytesSent = new Sum();
 
-    public void add(long responseTime) {
+    public void add(long responseTime, int bytesReceived, int bytesSent) {
         minResponseTime.update(responseTime);
         this.responseTime.update(responseTime);
         maxResponseTime.update(responseTime);
-
+        this.bytesReceived.update(bytesReceived);
+        this.bytesSent.update(bytesSent);
         this.totalCount.update(1);
     }
 
@@ -50,8 +51,8 @@ public class ZKClientMetrics implements IMetricSet {
             responseTime,
             maxResponseTime,
             totalCount,
-            bytesIn,
-            bytesOut
+            bytesReceived,
+            bytesSent
         };
     }
 }
