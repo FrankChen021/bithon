@@ -1,0 +1,182 @@
+{
+  "name": "zookeeper-client-metrics",
+  "title": "ZooKeeper Client",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "zookeeper-client-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "operation",
+          "status",
+          "server"
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "QPS",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "qps",
+        {
+          "name": "totalCount",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "zookeeper-client-metrics",
+        "fields": [
+          "qps",
+          "totalCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "operation",
+          "status",
+          "server",
+          "totalCount",
+          "qps"
+        ],
+        "query": {
+          "dataSource": "zookeeper-client-metrics",
+          "fields": [
+            "qps",
+            "totalCount"
+          ],
+          "groupBy": [
+            "operation",
+            "status",
+            "server"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          },
+          "limit": 15
+        }
+      }
+    },
+    {
+      "title": "Response Time",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "nanoFormatter"
+        }
+      ],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "dataSource": "zookeeper-client-metrics",
+        "type": "timeseries",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      },
+      "details": {
+        "columns": [
+          "operation",
+          "status",
+          "server",
+          "totalCount",
+          {
+            "name": "minResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "avgResponseTime",
+            "format": "nanoFormatter"
+          },
+          {
+            "name": "maxResponseTime",
+            "format": "nanoFormatter"
+          }
+        ],
+        "query": {
+          "dataSource": "zookeeper-client-metrics",
+          "type": "groupBy",
+          "fields": [
+            "totalCount",
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "groupBy": [
+            "operation",
+            "status",
+            "server"
+          ],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          },
+          "limit": 15
+        }
+      }
+    },
+    {
+      "title": "IO",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "bytesSent",
+        "bytesReceived"
+      ],
+      "yAxis": [
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "zookeeper-client-metrics",
+        "fields": [
+          "bytesSent",
+          "bytesReceived"
+        ]
+      },
+      "details": {
+        "columns": [
+          "operation",
+          "status",
+          "server",
+          "totalCount",
+          "bytesSent",
+          "bytesReceived"
+        ],
+        "query": {
+          "dataSource": "zookeeper-client-metrics",
+          "fields": [
+            "totalCount",
+            "bytesSent",
+            "bytesReceived"
+          ],
+          "groupBy": [
+            "operation",
+            "status",
+            "server"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          },
+          "limit": 15
+        }
+      }
+    }
+  ]
+}

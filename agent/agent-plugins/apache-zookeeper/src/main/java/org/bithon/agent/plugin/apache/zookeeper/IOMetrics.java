@@ -14,36 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.meta;
+package org.bithon.agent.plugin.apache.zookeeper;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/4 9:28 下午
+ * @date 15/1/25 10:30 pm
  */
-public enum EndPointType {
-
-    USER(-1),
-    APPLICATION(0),
-
-    // Database
-    DB_UNKNOWN(10),
-    DB_H2(11),
-    DB_MYSQL(12),
-    DB_MONGO(13),
-    DB_CLICKHOUSE(14),
-
-    REDIS(20),
-    WEB_SERVICE(30),
-
-    ZOOKEEPER(40);
-
-    public int getType() {
-        return type;
-    }
-
-    private final int type;
-
-    EndPointType(int type) {
-        this.type = type;
-    }
+public class IOMetrics {
+    public int bytesSent;
+    public int bytesReceived;
 }

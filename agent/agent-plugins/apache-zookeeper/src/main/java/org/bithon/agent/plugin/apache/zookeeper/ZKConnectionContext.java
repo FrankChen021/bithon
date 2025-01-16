@@ -14,36 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.meta;
+package org.bithon.agent.plugin.apache.zookeeper;
+
+import org.bithon.agent.instrumentation.aop.IBithonObject;
 
 /**
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/3/4 9:28 下午
+ * @date 15/1/25 5:46 pm
  */
-public enum EndPointType {
+public class ZKConnectionContext {
+    private final IBithonObject clientSocket;
 
-    USER(-1),
-    APPLICATION(0),
-
-    // Database
-    DB_UNKNOWN(10),
-    DB_H2(11),
-    DB_MYSQL(12),
-    DB_MONGO(13),
-    DB_CLICKHOUSE(14),
-
-    REDIS(20),
-    WEB_SERVICE(30),
-
-    ZOOKEEPER(40);
-
-    public int getType() {
-        return type;
+    public ZKConnectionContext(Object clientSocket) {
+        this.clientSocket = clientSocket instanceof IBithonObject ? (IBithonObject) clientSocket : null;
     }
 
-    private final int type;
-
-    EndPointType(int type) {
-        this.type = type;
+    /**
+     * The remote address is injected to the socket object in the {@link ClientCnxnSocket$Connect} after the 'connect'
+     * method is called
+     */
+    public String getServerAddress() {
+        return (String) clientSocket.getInjectedObject();
     }
 }
