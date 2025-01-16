@@ -14,25 +14,29 @@
 #   limitations under the License.
 #
 
-FROM maven:3.8.6-jdk-8-slim as builder
+FROM maven:3.9.6-eclipse-temurin-8 as builder
+
+ARG BUILD_FROM_SOURCE="true"
 
 # The git is required to get the branch info during build
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -qq update \
-    && apt-get -qq -y install --no-install-recommends git
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      export DEBIAN_FRONTEND=noninteractive \
+          && apt-get -qq update \
+          && apt-get -qq -y install --no-install-recommends git \
+      ; fi
 
 COPY . /src
 WORKDIR /src/shaded
-RUN mvn -ntp clean install
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp clean install -T 1C \
+      ; fi
 
 WORKDIR /src
-RUN mvn -ntp -P!server clean install -DskipTests
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp -P!server clean install -DskipTests -T 1C \
+      ; fi
 
-FROM amd64/busybox:1.30.0-glibc as busybox
-FROM gcr.io/distroless/java:8
-
-COPY --from=busybox /bin/busybox /busybox/busybox
-RUN ["/busybox/busybox", "--install", "/bin"]
+FROM openjdk:8-jre-alpine
 
 COPY --from=builder /src/agent/agent-distribution/target/agent-distribution/agent-distribution/ /opt/agent-distribution
 
