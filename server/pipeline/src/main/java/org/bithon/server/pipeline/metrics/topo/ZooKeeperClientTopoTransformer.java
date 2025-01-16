@@ -41,7 +41,7 @@ public class ZooKeeperClientTopoTransformer implements ITopoTransformer {
                                          .dstEndpoint(message.getColAsString("server"))
                                          // metric
                                          .interval(message.getColAsLong("interval", 0))
-                                         .errorCount("OK".equals(message.getColAsString("status")) ? 0: totalCount)
+                                         .errorCount("OK".equals(message.getColAsString("status")) ? 0 : totalCount)
                                          .callCount(totalCount)
                                          .responseTime(message.getColAsLong("responseTime", 0))
                                          .minResponseTime(message.getColAsLong("minResponseTime", 0))
