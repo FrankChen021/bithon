@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.apache.kafka010;
+package org.bithon.agent.plugin.apache.kafka0102;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
@@ -28,7 +28,7 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class Kafka010Plugin implements IPlugin {
+public class Kafka0102Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -37,9 +37,10 @@ public class Kafka010Plugin implements IPlugin {
                 .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
                                                                "version",
                                                                PropertyFileValuePrecondition.AND(
-                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
-                                                                   PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
-                                                               )))
+                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.10.2.0"),
+                                                                   PropertyFileValuePrecondition.VersionLT.of("0.11.0.0")
+                                                               )
+                ))
                 .onMethod("handleTimedOutRequests")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$HandleTimedOutRequests")
                 .build()

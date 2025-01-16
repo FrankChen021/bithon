@@ -38,6 +38,28 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         boolean matches(String actual);
     }
 
+    public static PropertyValuePredicate AND(PropertyValuePredicate... predicates) {
+        return new And(predicates);
+    }
+
+    private static class And implements PropertyValuePredicate {
+        private final PropertyValuePredicate[] predicates;
+
+        public And(PropertyValuePredicate[] predicates) {
+            this.predicates = predicates;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            for (PropertyValuePredicate predicate : predicates) {
+                if (!predicate.matches(actual)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     public static class StringEQ implements PropertyValuePredicate {
         private final String expected;
 
@@ -57,6 +79,28 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
         public static PropertyValuePredicate of(String expected) {
             return new StringEQ(expected);
+        }
+    }
+
+    public static class VersionLT implements PropertyValuePredicate {
+        protected final String expected;
+
+        private VersionLT(String expected) {
+            this.expected = expected;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            return VersionUtils.compare(actual, expected) < 0;
+        }
+
+        @Override
+        public String toString() {
+            return "> '" + expected + "'";
+        }
+
+        public static PropertyValuePredicate of(String expected) {
+            return new VersionGTE(expected);
         }
     }
 
