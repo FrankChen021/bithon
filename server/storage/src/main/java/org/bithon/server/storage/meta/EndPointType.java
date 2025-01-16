@@ -33,7 +33,10 @@ public enum EndPointType {
     DB_CLICKHOUSE(14),
 
     REDIS(20),
-    WEB_SERVICE(30);
+    WEB_SERVICE(30),
+
+    ZOOKEEPER(40)
+    ;
 
     public int getType() {
         return type;
