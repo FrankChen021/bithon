@@ -136,6 +136,11 @@
         "bytesSent",
         "bytesReceived"
       ],
+      "yAxis": [
+        {
+          "format": "binary_byte"
+        }
+      ],
       "query": {
         "type": "timeseries",
         "dataSource": "zookeeper-client-metrics",
