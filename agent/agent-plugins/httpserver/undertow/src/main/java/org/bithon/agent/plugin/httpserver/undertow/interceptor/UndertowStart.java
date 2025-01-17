@@ -22,9 +22,9 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.observability.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.xnio.XnioWorker;
 
@@ -53,9 +53,9 @@ public class UndertowStart extends AfterInterceptor {
         XnioWorker worker = (XnioWorker) ReflectionUtils.getFieldValue(server, "worker");
         TaskPoolAccessor accessor = new TaskPoolAccessor(ReflectionUtils.getFieldValue(worker, "taskPool"));
 
-        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
-                                                                            WebServerMetrics::new);
+        HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
+                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                                             HttpServerMetrics::new);
         metrics.activeThreads.setProvider(accessor.getActiveCount::getValue);
         metrics.maxThreads.setProvider(accessor.getMaximumPoolSize::getValue);
         metrics.queueSize.setProvider(accessor.getQueueSize::getValue);

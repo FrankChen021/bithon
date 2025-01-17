@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.httpclient.netty3;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;

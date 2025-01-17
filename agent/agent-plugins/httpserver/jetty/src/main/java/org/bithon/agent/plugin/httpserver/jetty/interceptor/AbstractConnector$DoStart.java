@@ -20,9 +20,9 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.observability.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 
 import java.util.Collections;
@@ -41,9 +41,9 @@ public class AbstractConnector$DoStart extends AfterInterceptor {
         // notify to start emit the metrics
         AppInstance.getInstance().setPort(connector.getPort());
 
-        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
-                                                                            WebServerMetrics::new);
+        HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
+                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.JETTY.type()),
+                                                                             HttpServerMetrics::new);
 
         metrics.connectionCount.setProvider(() -> connector.getConnectedEndPoints().size());
         metrics.maxConnections.setProvider(connector::getAcceptors);

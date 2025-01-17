@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.httpclient.jetty;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;

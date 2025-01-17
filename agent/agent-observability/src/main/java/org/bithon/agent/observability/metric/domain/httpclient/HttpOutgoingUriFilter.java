@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.domain.http;
+package org.bithon.agent.observability.metric.domain.httpclient;
 
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonProperty;

@@ -22,9 +22,9 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.observability.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.Collections;
@@ -51,9 +51,9 @@ public class AbstractEndpoint$Start extends AfterInterceptor {
 
         AppInstance.getInstance().setPort(endpoint.getPort());
 
-        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
-                                                                            WebServerMetrics::new);
+        HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
+                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                                             HttpServerMetrics::new);
         metrics.connectionCount.setProvider(endpoint::getConnectionCount);
         metrics.maxConnections.setProvider(endpoint::getMaxConnections);
         metrics.activeThreads.setProvider(endpoint::getCurrentThreadsBusy);

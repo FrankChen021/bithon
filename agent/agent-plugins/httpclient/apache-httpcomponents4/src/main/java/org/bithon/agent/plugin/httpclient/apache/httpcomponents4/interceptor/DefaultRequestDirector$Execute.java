@@ -28,8 +28,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.context.InterceptorContext;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetrics;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 
 /**
  * Old http client 4.0.1~4.2.5

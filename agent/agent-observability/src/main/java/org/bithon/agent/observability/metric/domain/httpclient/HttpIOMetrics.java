@@ -14,25 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.domain.web;
-
-import org.bithon.agent.observability.metric.collector.MetricRegistry;
-
-import java.util.Collections;
+package org.bithon.agent.observability.metric.domain.httpclient;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/14 9:30 下午
+ * @date 6/11/21 7:55 pm
  */
-public class WebServerMetricRegistry extends MetricRegistry<WebServerMetrics> {
-
-    public static final String NAME = "web-server-metrics";
-
-    public WebServerMetricRegistry() {
-        super(NAME,
-              Collections.singletonList("type"),
-              WebServerMetrics.class,
-              null,
-              false);
-    }
+public class HttpIOMetrics {
+    public long requestBytes = -1;
+    public long responseBytes = -1;
+    public long receivedTimeNs = 0;
 }

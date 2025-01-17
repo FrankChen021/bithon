@@ -25,8 +25,8 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetrics;
-import org.bithon.agent.observability.metric.domain.http.HttpOutgoingMetricsRegistry;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetrics;
+import org.bithon.agent.observability.metric.domain.httpclient.HttpOutgoingMetricsRegistry;
 
 /**
  * Apache http component(client) interceptor

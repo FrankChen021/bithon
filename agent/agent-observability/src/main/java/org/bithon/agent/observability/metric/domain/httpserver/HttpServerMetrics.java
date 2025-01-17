@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.domain.web;
+package org.bithon.agent.observability.metric.domain.httpserver;
 
 import org.bithon.agent.observability.metric.model.Gauge2;
 import org.bithon.agent.observability.metric.model.IMetricSet;
@@ -24,7 +24,7 @@ import org.bithon.agent.observability.metric.model.IMetricValueProvider;
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:51 下午
  */
-public class WebServerMetrics implements IMetricSet {
+public class HttpServerMetrics implements IMetricSet {
 
     public final Gauge2 connectionCount = new Gauge2();
     public final Gauge2 maxConnections = new Gauge2();

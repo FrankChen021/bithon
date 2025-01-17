@@ -14,20 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.domain.web;
+package org.bithon.agent.observability.metric.domain.httpserver;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:53 下午
  */
-public enum WebServerType {
+public enum HttpServerType {
     TOMCAT("tomcat"),
     UNDERTOW("undertow"),
     JETTY("jetty");
 
     private final String type;
 
-    WebServerType(String type) {
+    HttpServerType(String type) {
         this.type = type;
     }
 

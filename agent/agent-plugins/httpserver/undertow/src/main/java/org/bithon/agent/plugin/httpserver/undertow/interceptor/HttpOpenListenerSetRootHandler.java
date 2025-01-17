@@ -22,9 +22,9 @@ import io.undertow.server.protocol.http.HttpOpenListener;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetricRegistry;
-import org.bithon.agent.observability.metric.domain.web.WebServerMetrics;
-import org.bithon.agent.observability.metric.domain.web.WebServerType;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
+import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
 import org.xnio.OptionMap;
 
 import java.util.Collections;
@@ -41,9 +41,9 @@ public class HttpOpenListenerSetRootHandler extends AfterInterceptor {
                                                  .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
                                                  .getMap());
 
-        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
-                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
-                                                                            WebServerMetrics::new);
+        HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
+                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                                             HttpServerMetrics::new);
 
         ConnectorStatistics connectorStatistics = openListener.getConnectorStatistics();
         metrics.connectionCount.setProvider(connectorStatistics::getActiveConnections);
