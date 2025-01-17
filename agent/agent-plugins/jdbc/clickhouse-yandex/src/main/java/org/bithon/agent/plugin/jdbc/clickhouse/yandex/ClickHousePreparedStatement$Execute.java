@@ -22,8 +22,6 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 
 /**
  * {@link ru.yandex.clickhouse.ClickHousePreparedStatementImpl
- * {@link com.clickhouse.jdbc.internal.InputBasedPreparedStatement}
- * {@link com.clickhouse.jdbc.internal.TableBasedPreparedStatement}
  *
  * @author frankchen
  */

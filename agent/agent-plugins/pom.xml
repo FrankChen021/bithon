@@ -215,6 +215,11 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-clickhouse</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-clickhouse-yandex</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -231,11 +236,6 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-alibaba-druid</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-clickhouse</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
