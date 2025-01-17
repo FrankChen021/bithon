@@ -50,6 +50,10 @@
     <module>httpclient/jetty</module>
     <module>httpclient/netty3</module>
     <module>httpclient/reactor</module>
+    <module>httpserver/tomcat</module>
+    <module>httpserver/undertow</module>
+    <module>httpserver/jetty</module>
+    <module>httpserver/netty</module>
     <module>openfeign</module>
     <module>redis-jedis-2.x</module>
     <module>redis-jedis-3.x</module>
@@ -65,10 +69,6 @@
     <module>spring/scheduling</module>
     <module>spring/webflux</module>
     <module>spring/webmvc</module>
-    <module>webserver-tomcat</module>
-    <module>webserver-undertow</module>
-    <module>webserver-jetty</module>
-    <module>webserver-netty</module>
     <module>xxl-job</module>
   </modules>
 
@@ -159,22 +159,22 @@
     <!-- Web Container-->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-tomcat</artifactId>
+      <artifactId>agent-plugin-httpserver-tomcat</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-undertow</artifactId>
+      <artifactId>agent-plugin-httpserver-undertow</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-jetty</artifactId>
+      <artifactId>agent-plugin-httpserver-jetty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-netty</artifactId>
+      <artifactId>agent-plugin-httpserver-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
