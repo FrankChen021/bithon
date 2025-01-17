@@ -72,7 +72,7 @@
             <!-- Dispatcher brpc client -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-dispatcher-brpc</artifactId>
+                <artifactId>agent-exporter-brpc</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

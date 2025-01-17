@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.exporter.brpc;
+package org.bithon.agent.controller.impl.brpc;
 
 import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.controller.AgentControllerConfig;

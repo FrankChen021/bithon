@@ -6,7 +6,7 @@ application:
 controller:
   servers: 127.0.0.1:9899
   client:
-    factory: org.bithon.agent.exporter.brpc.BrpcAgentControllerFactory
+    factory: org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory
     connectionLifeTime: 2000
     connectionTimeout: 2000
 
