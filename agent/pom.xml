@@ -31,7 +31,7 @@
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
-        <module>agent-dispatcher-brpc</module>
+        <module>agent-exporter-brpc</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
         <module>agent-main</module>

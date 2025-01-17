@@ -14,18 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
-
-import org.bithon.agent.observability.exporter.IMessageConverter;
-
-import java.util.List;
+package org.bithon.agent.observability.exporter;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2020/10/27 2:17 下午
  */
-public interface IMetricCollector extends IMetricCollectorBase {
+public interface IMessageExporter extends AutoCloseable {
 
-    List<Object> collect(IMessageConverter messageConverter,
-                         int interval,
-                         long timestamp);
+    /**
+     * In the current design, this method is called in one thread only, so it's thread-safe.
+     */
+    void export(Object message);
 }

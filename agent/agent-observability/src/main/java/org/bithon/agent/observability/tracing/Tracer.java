@@ -18,8 +18,8 @@ package org.bithon.agent.observability.tracing;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.observability.context.AppInstance;
-import org.bithon.agent.observability.dispatcher.Dispatcher;
-import org.bithon.agent.observability.dispatcher.Dispatchers;
+import org.bithon.agent.observability.exporter.Exporter;
+import org.bithon.agent.observability.exporter.Exporters;
 import org.bithon.agent.observability.tracing.config.TraceConfig;
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
@@ -141,20 +141,20 @@ public class Tracer {
     }
 
     static class DefaultReporter implements ITraceReporter {
-        private final Dispatcher traceDispatcher;
+        private final Exporter traceExporter;
 
         public DefaultReporter() {
-            traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
+            traceExporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_TRACING);
         }
 
         @Override
         public void report(List<ITraceSpan> spans) {
             List<Object> traceMessages = spans.stream()
-                                              .map(span -> traceDispatcher.getMessageConverter().from(span))
+                                              .map(span -> traceExporter.getMessageConverter().from(span))
                                               .filter(Objects::nonNull)
                                               .collect(Collectors.toList());
             try {
-                traceDispatcher.send(traceMessages);
+                traceExporter.send(traceMessages);
             } catch (Exception e) {
                 log.error("exception when sending trace messages.", e);
             }

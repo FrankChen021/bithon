@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.quartz2;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.observability.dispatcher.Dispatcher;
-import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.exporter.Exporter;
+import org.bithon.agent.observability.exporter.Exporters;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
 
-    private final Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
+    private final Exporter exporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_EVENT);
 
     @Override
     public void before(AopContext aopContext) {
@@ -56,7 +56,7 @@ public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
             quartzLog.put("duration", jec.getJobRunTime());
             quartzLog.put("successfulCount", isExceptionOccurred ? 0 : 1);
             quartzLog.put("exceptionCount", isExceptionOccurred ? 1 : 0);
-            dispatcher.send(dispatcher.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
+            exporter.send(exporter.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
         }
 
         // save the object on the current target,

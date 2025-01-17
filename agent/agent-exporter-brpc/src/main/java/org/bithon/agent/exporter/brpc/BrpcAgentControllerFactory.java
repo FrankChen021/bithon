@@ -14,17 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.exporter.brpc;
 
-import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.controller.AgentControllerConfig;
+import org.bithon.agent.controller.IAgentController;
+import org.bithon.agent.controller.IAgentControllerFactory;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021-10-03
+ * @date 2021/1/16 4:40 下午
  */
-public interface IMetricCollector2 extends IMetricCollectorBase {
+public class BrpcAgentControllerFactory implements IAgentControllerFactory {
 
-    Object collect(IMessageConverter messageConverter,
-                   int interval,
-                   long timestamp);
+    static {
+        // Make sure the underlying netty use JDK direct memory region so that the memory can be tracked
+        System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
+    }
+
+    @Override
+    public IAgentController createController(AgentControllerConfig config) {
+        return new BrpcAgentController(config);
+    }
 }
