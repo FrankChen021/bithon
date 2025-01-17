@@ -62,8 +62,8 @@
     <module>redis-redisson</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
-    <module>logging-log4j2</module>
-    <module>logging-logback</module>
+    <module>logging/log4j2</module>
+    <module>logging/logback</module>
     <module>spring/bean</module>
     <module>spring/boot</module>
     <module>spring/scheduling</module>
