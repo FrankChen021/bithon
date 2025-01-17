@@ -34,44 +34,44 @@ public class Exporters {
     /**
      * the name MUST correspond to the name of methods such as {@link IMessageExporterFactory#createMetricExporter(ExporterConfig)}
      */
-    public static final String DISPATCHER_NAME_METRIC = "metric";
-    public static final String DISPATCHER_NAME_TRACING = "tracing";
-    public static final String DISPATCHER_NAME_EVENT = "event";
+    public static final String EXPORTER_NAME_METRIC = "metric";
+    public static final String EXPORTER_NAME_TRACING = "tracing";
+    public static final String EXPORTER_NAME_EVENT = "event";
 
-    private static final Map<String, Exporter> DISPATCHERS = new HashMap<>();
+    private static final Map<String, Exporter> EXPORTERS = new HashMap<>();
 
     public static Collection<Exporter> getAllDispatcher() {
-        synchronized (DISPATCHERS) {
-            return new ArrayList<>(DISPATCHERS.values());
+        synchronized (EXPORTERS) {
+            return new ArrayList<>(EXPORTERS.values());
         }
     }
 
-    public static Exporter getOrCreate(String dispatcherName) {
+    public static Exporter getOrCreate(String exporterName) {
         ExporterConfig config = ConfigurationManager.getInstance()
-                                                    .getConfig("exporters." + dispatcherName, ExporterConfig.class, true);
+                                                    .getConfig("exporters." + exporterName, ExporterConfig.class, true);
         if (config == null) {
             return null;
         }
-        Exporter exporter = DISPATCHERS.get(dispatcherName);
+        Exporter exporter = EXPORTERS.get(exporterName);
         if (exporter != null) {
             return exporter;
         }
 
-        synchronized (DISPATCHERS) {
+        synchronized (EXPORTERS) {
             // double check
-            exporter = DISPATCHERS.get(dispatcherName);
+            exporter = EXPORTERS.get(exporterName);
             if (exporter != null) {
                 return exporter;
             }
 
-            return DISPATCHERS.computeIfAbsent(dispatcherName, key -> {
+            return EXPORTERS.computeIfAbsent(exporterName, key -> {
                 try {
-                    return new Exporter(dispatcherName,
+                    return new Exporter(exporterName,
                                         AppInstance.getInstance(),
                                         config);
                 } catch (Exception e) {
                     LoggerFactory.getLogger(Exporters.class)
-                                 .error("Failed to create dispatcher: " + dispatcherName, e);
+                                 .error("Failed to create exporter: " + exporterName, e);
                     return null;
                 }
             });

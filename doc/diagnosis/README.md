@@ -121,16 +121,16 @@ application:
   env: "live"
 controller:
   servers: "10.180.128.197:9899"
-  client: "org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory"
-dispatchers:
+  client: "org.bithon.agent.controller.impl.brpc.BrpcAgentControllerFactory"
+exporters:
   metric:
     client:
-      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      factory: "org.bithon.agent.exporter.brpc.BrpcChannelFactory"
       maxLifeTime: 300000
     servers: "10.180.128.197:9898"
   tracing:
     client:
-      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      factory: "org.bithon.agent.exporter.brpc.BrpcChannelFactory"
       maxLifeTime: 300000
     servers: "10.180.128.197:9895"
     batchSize: 2000
@@ -138,7 +138,7 @@ dispatchers:
     queueSize: 8192
   event:
     client:
-      factory: "org.bithon.agent.dispatcher.brpc.BrpcChannelFactory"
+      factory: "org.bithon.agent.exporter.brpc.BrpcChannelFactory"
       maxLifeTime: 300000
     servers: "10.180.128.197:9896"
     batchSize: 500

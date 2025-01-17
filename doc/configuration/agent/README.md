@@ -129,18 +129,18 @@ To do this, we can add environment variable `bithon_application_instance` in the
 
 ## Dispatcher Configuration
 
-The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
+The default exporter configuration locates in the `agent.yml` file under `agent-distribution` module.
 
 ```yaml
-dispatchers:
+exporters:
   metric:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9898
   tracing:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9895
     batchSize: 500
@@ -148,7 +148,7 @@ dispatchers:
     queueSize: 8192
   event:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9896
     batchSize: 100

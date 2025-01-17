@@ -61,7 +61,7 @@ public class ExporterConfig {
 
     /**
      * The time interval in milliseconds to flush messages.
-     * The dispatcher waits up to this configured time to prepare a batch to send,
+     * The exporter waits up to this configured time to prepare a batch to send,
      * When the messages are sent is determined by this time and {@link #batchSize}, whichever first arrives.
      */
     private int flushTime = 10;

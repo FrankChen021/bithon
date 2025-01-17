@@ -48,7 +48,7 @@ public class Exporter {
         this.exporterConfig = exporterConfig;
 
         //
-        // create dispatcher instance by config
+        // create exporter instance from configuration
         //
         IMessageExporterFactory factory = createDispatcherFactory(exporterConfig);
         Method createMethod = IMessageExporterFactory.class.getMethod("create" + capitalize(exporterName) + "Exporter",
@@ -115,13 +115,13 @@ public class Exporter {
     }
 
     public void shutdown() {
-        LOG.info("Shutting down dispatcher task [{}]...", exporterName);
+        LOG.info("Shutting down exporter task [{}]...", exporterName);
         if (task != null) {
             task.stop();
         }
 
-        // stop underlying message channel
-        LOG.info("Closing message channel [{}]...", exporterName);
+        // stop underlying message exporter
+        LOG.info("Closing message exporter [{}]...", exporterName);
         try {
             messageExporter.close();
         } catch (Exception ignored) {

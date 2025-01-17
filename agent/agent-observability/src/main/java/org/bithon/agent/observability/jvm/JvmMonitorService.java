@@ -37,17 +37,17 @@ public class JvmMonitorService implements IAgentService {
         new JvmMetricCollector().start();
 
         //
-        // dispatch started message once the dispatcher is ready
+        // dispatch started message once the exporter is ready
         //
-        Exporters.getOrCreate(Exporters.DISPATCHER_NAME_EVENT)
-                 .onReady((dispatcher) -> dispatcher.send(dispatcher.getMessageConverter()
-                                                                      .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
+        Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT)
+                 .onReady((exporter) -> exporter.send(exporter.getMessageConverter()
+                                                              .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
     }
 
     @Override
     public void stop() {
         // dispatch jvm stopped message
-        Exporter exporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_EVENT);
+        Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
         exporter.send(exporter.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
     }
 }

@@ -144,7 +144,7 @@ public class Tracer {
         private final Exporter traceExporter;
 
         public DefaultReporter() {
-            traceExporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_TRACING);
+            traceExporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_TRACING);
         }
 
         @Override

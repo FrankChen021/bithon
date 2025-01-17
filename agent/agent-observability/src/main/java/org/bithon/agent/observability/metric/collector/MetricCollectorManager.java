@@ -94,7 +94,7 @@ public class MetricCollectorManager {
 
     private MetricCollectorManager() {
         this.collectors = new ConcurrentHashMap<>();
-        this.exporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_METRIC);
+        this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
 
         // NOTE:
         // Constructing ScheduledThreadPoolExecutor would cause ThreadPoolInterceptor be executed

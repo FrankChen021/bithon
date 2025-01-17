@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
 
-    private final Exporter exporter = Exporters.getOrCreate(Exporters.DISPATCHER_NAME_EVENT);
+    private final Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
 
     @Override
     public void before(AopContext aopContext) {

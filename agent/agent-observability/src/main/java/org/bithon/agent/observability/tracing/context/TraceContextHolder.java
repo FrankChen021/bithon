@@ -38,8 +38,8 @@ public class TraceContextHolder {
         ITraceContext ctx = HOLDER.get();
         // If the context is not null, check if the context has already finished.
         // This case is a little complex.
-        // When the 'finish' of tracing context is called, it flushes the tracing spans to dispatcher to send them on network.
-        // However, the underlying dispatcher might use ThreadPool to do some work.
+        // When the 'finish' of tracing context is called, it flushes the tracing spans to the exporter to send them on network.
+        // However, the underlying exporter might use ThreadPool to do some work.
         // Because the ThreadPool has been instrumented to copy tracing context to its task,
         // and the task or code during task execution might create spans based on the copied tracing context.
         // At this point, the tracing context has been finished, creating spans might cause exceptions.
