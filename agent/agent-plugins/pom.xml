@@ -44,9 +44,9 @@
     <module>jdk8-thread</module>
     <module>jdk9-thread</module>
     <module>httpclient/okhttp-3.2</module>
+    <module>httpclient/apache-httpcomponents4</module>
+    <module>httpclient/apache-httpcomponents5</module>
     <module>httpclient/jdk</module>
-    <module>apache-httpcomponents4</module>
-    <module>apache-httpcomponents5</module>
     <module>httpclient/jetty</module>
     <module>httpclient/netty3</module>
     <module>httpclient/reactor</module>
@@ -261,12 +261,12 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents4</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents5</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
