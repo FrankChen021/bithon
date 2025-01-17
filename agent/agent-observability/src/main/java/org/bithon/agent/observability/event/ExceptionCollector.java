@@ -16,8 +16,8 @@
 
 package org.bithon.agent.observability.event;
 
-import org.bithon.agent.observability.dispatcher.Dispatcher;
-import org.bithon.agent.observability.dispatcher.Dispatchers;
+import org.bithon.agent.observability.exporter.Exporter;
+import org.bithon.agent.observability.exporter.Exporters;
 
 import java.util.Collections;
 import java.util.Map;
@@ -41,8 +41,8 @@ public class ExceptionCollector {
 
     public static void collect(ExceptionBuilder builder) {
         EventMessage exceptionEvent = new EventMessage("exception", builder.build());
-        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        dispatcher.send(dispatcher.getMessageConverter().from(exceptionEvent));
+        Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
+        exporter.send(exporter.getMessageConverter().from(exceptionEvent));
     }
 
 }

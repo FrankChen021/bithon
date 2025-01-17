@@ -22,9 +22,9 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
-import org.bithon.agent.observability.dispatcher.Dispatcher;
-import org.bithon.agent.observability.dispatcher.Dispatchers;
 import org.bithon.agent.observability.event.EventMessage;
+import org.bithon.agent.observability.exporter.Exporter;
+import org.bithon.agent.observability.exporter.Exporters;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
@@ -59,8 +59,8 @@ public class Logger$CallAppenders extends BeforeInterceptor {
         }
 
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
-        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        dispatcher.send(dispatcher.getMessageConverter().from(exceptionEvent));
+        Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
+        exporter.send(exporter.getMessageConverter().from(exceptionEvent));
     }
 
     static class StackTraceBuilder {

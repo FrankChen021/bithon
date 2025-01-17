@@ -31,7 +31,7 @@
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
-        <module>agent-dispatcher-brpc</module>
+        <module>agent-exporter-brpc</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
         <module>agent-main</module>
@@ -72,7 +72,7 @@
             <!-- Dispatcher brpc client -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-dispatcher-brpc</artifactId>
+                <artifactId>agent-exporter-brpc</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

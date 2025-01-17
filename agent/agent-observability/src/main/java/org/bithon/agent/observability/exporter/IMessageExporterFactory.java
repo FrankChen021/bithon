@@ -14,18 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.observability.exporter;
 
-import org.bithon.agent.observability.exporter.IMessageConverter;
-
-import java.util.List;
+import org.bithon.agent.observability.exporter.config.ExporterConfig;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/5 11:08 下午
  */
-public interface IMetricCollector extends IMetricCollectorBase {
+public interface IMessageExporterFactory {
+    IMessageExporter createMetricExporter(ExporterConfig exporterConfig);
 
-    List<Object> collect(IMessageConverter messageConverter,
-                         int interval,
-                         long timestamp);
+    IMessageExporter createTracingExporter(ExporterConfig exporterConfig);
+
+    IMessageExporter createEventExporter(ExporterConfig exporterConfig);
+
+    IMessageConverter createMessageConverter();
 }

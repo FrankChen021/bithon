@@ -14,18 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.observability.exporter;
 
-import org.bithon.agent.observability.exporter.IMessageConverter;
-
-import java.util.List;
+import org.bithon.agent.starter.IAgentShutdownListener;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2023/3/17 00:43
  */
-public interface IMetricCollector extends IMetricCollectorBase {
+public class ExporterShutdown implements IAgentShutdownListener {
 
-    List<Object> collect(IMessageConverter messageConverter,
-                         int interval,
-                         long timestamp);
+    @Override
+    public int getOrder() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
+    public void shutdown() {
+        for (Exporter exporter : Exporters.getAllDispatcher()) {
+            exporter.shutdown();
+        }
+    }
 }

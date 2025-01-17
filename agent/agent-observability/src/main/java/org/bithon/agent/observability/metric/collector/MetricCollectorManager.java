@@ -16,9 +16,9 @@
 
 package org.bithon.agent.observability.metric.collector;
 
-import org.bithon.agent.observability.dispatcher.Dispatcher;
-import org.bithon.agent.observability.dispatcher.Dispatchers;
-import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.exporter.Exporter;
+import org.bithon.agent.observability.exporter.Exporters;
+import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -46,7 +46,7 @@ public class MetricCollectorManager {
     private static final int INTERVAL = 10;
     private static final MetricCollectorManager INSTANCE = new MetricCollectorManager();
     private final ConcurrentMap<String, ManagedMetricCollector> collectors;
-    private final Dispatcher dispatcher;
+    private final Exporter exporter;
     private final ScheduledExecutorService scheduler;
     private final AtomicInteger unnamedCollectorIndex = new AtomicInteger(0);
 
@@ -94,7 +94,7 @@ public class MetricCollectorManager {
 
     private MetricCollectorManager() {
         this.collectors = new ConcurrentHashMap<>();
-        this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRIC);
+        this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
 
         // NOTE:
         // Constructing ScheduledThreadPoolExecutor would cause ThreadPoolInterceptor be executed
@@ -161,7 +161,7 @@ public class MetricCollectorManager {
     }
 
     private void collectAndDispatch() {
-        if (!dispatcher.isReady()) {
+        if (!exporter.isReady()) {
             return;
         }
 
@@ -172,9 +172,9 @@ public class MetricCollectorManager {
 
             this.scheduler.execute(() -> {
                 try {
-                    Object message = managedCollector.collect(dispatcher.getMessageConverter());
+                    Object message = managedCollector.collect(exporter.getMessageConverter());
                     if (message != null) {
-                        dispatcher.send(message);
+                        exporter.send(message);
                     }
                 } catch (Throwable e) {
                     LOG.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
