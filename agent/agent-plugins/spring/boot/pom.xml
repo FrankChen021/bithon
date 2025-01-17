@@ -1,0 +1,36 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.bithon.agent</groupId>
+    <artifactId>agent-all</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+  <artifactId>agent-plugin-spring-boot</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-instrumentation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
+
+    <!-- The minimal version to support LoggingSystem -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot</artifactId>
+      <version>1.5.0.RELEASE</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+  </build>
+</project>

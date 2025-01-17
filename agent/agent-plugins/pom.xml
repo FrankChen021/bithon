@@ -43,13 +43,17 @@
     <module>jdk-thread</module>
     <module>jdk8-thread</module>
     <module>jdk9-thread</module>
-    <module>httpclient-okhttp-3.2</module>
-    <module>httpclient-jdk</module>
-    <module>apache-httpcomponents4</module>
-    <module>apache-httpcomponents5</module>
-    <module>httpclient-jetty</module>
-    <module>httpclient-netty3</module>
-    <module>httpclient-reactor</module>
+    <module>httpclient/okhttp-3.2</module>
+    <module>httpclient/apache-httpcomponents4</module>
+    <module>httpclient/apache-httpcomponents5</module>
+    <module>httpclient/jdk</module>
+    <module>httpclient/jetty</module>
+    <module>httpclient/netty3</module>
+    <module>httpclient/reactor</module>
+    <module>httpserver/tomcat</module>
+    <module>httpserver/undertow</module>
+    <module>httpserver/jetty</module>
+    <module>httpserver/netty</module>
     <module>openfeign</module>
     <module>redis-jedis-2.x</module>
     <module>redis-jedis-3.x</module>
@@ -58,17 +62,13 @@
     <module>redis-redisson</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
-    <module>logging-log4j2</module>
-    <module>logging-logback</module>
-    <module>spring-bean</module>
-    <module>spring-boot</module>
-    <module>spring-scheduling</module>
-    <module>spring-webflux</module>
-    <module>spring-webmvc</module>
-    <module>webserver-tomcat</module>
-    <module>webserver-undertow</module>
-    <module>webserver-jetty</module>
-    <module>webserver-netty</module>
+    <module>logging/log4j2</module>
+    <module>logging/logback</module>
+    <module>spring/bean</module>
+    <module>spring/boot</module>
+    <module>spring/scheduling</module>
+    <module>spring/webflux</module>
+    <module>spring/webmvc</module>
     <module>xxl-job</module>
   </modules>
 
@@ -159,22 +159,22 @@
     <!-- Web Container-->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-tomcat</artifactId>
+      <artifactId>agent-plugin-httpserver-tomcat</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-undertow</artifactId>
+      <artifactId>agent-plugin-httpserver-undertow</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-jetty</artifactId>
+      <artifactId>agent-plugin-httpserver-jetty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-netty</artifactId>
+      <artifactId>agent-plugin-httpserver-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -261,12 +261,12 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents4</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents5</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
