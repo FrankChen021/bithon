@@ -37,7 +37,10 @@ public class Kafka011Plugin implements IPlugin {
             forClass("org.apache.kafka.clients.NetworkClient")
                 .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
                                                                "version",
-                                                               PropertyFileValuePrecondition.StringEQ.of("0.11.0.0")))
+                                                               PropertyFileValuePrecondition.and(
+                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.11.0.0"),
+                                                                   PropertyFileValuePrecondition.VersionLT.of("1.0.0")
+                                                               )))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka011.network.interceptor.NetworkClient$CompleteResponses")
                 .build()

@@ -22,8 +22,10 @@ import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +40,7 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         boolean matches(String actual);
     }
 
-    public static PropertyValuePredicate AND(PropertyValuePredicate... predicates) {
+    public static PropertyValuePredicate and(PropertyValuePredicate... predicates) {
         return new And(predicates);
     }
 
@@ -57,6 +59,13 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
                 }
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.stream(this.predicates)
+                         .map(Object::toString)
+                         .collect(Collectors.joining(" AND "));
         }
     }
 
@@ -96,11 +105,11 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
         @Override
         public String toString() {
-            return "> '" + expected + "'";
+            return "< '" + expected + "'";
         }
 
         public static PropertyValuePredicate of(String expected) {
-            return new VersionGTE(expected);
+            return new VersionLT(expected);
         }
     }
 

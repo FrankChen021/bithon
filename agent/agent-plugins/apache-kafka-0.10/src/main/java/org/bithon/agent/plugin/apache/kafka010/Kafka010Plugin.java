@@ -36,7 +36,7 @@ public class Kafka010Plugin implements IPlugin {
             forClass("org.apache.kafka.clients.NetworkClient")
                 .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
                                                                "version",
-                                                               PropertyFileValuePrecondition.AND(
+                                                               PropertyFileValuePrecondition.and(
                                                                    PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
                                                                    PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
                                                                )))
