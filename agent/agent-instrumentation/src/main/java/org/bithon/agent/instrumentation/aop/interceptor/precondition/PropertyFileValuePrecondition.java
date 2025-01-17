@@ -22,8 +22,10 @@ import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,6 +38,35 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
     public interface PropertyValuePredicate {
         boolean matches(String actual);
+    }
+
+    public static PropertyValuePredicate and(PropertyValuePredicate... predicates) {
+        return new And(predicates);
+    }
+
+    private static class And implements PropertyValuePredicate {
+        private final PropertyValuePredicate[] predicates;
+
+        public And(PropertyValuePredicate[] predicates) {
+            this.predicates = predicates;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            for (PropertyValuePredicate predicate : predicates) {
+                if (!predicate.matches(actual)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.stream(this.predicates)
+                         .map(Object::toString)
+                         .collect(Collectors.joining(" AND "));
+        }
     }
 
     public static class StringEQ implements PropertyValuePredicate {
@@ -57,6 +88,28 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
         public static PropertyValuePredicate of(String expected) {
             return new StringEQ(expected);
+        }
+    }
+
+    public static class VersionLT implements PropertyValuePredicate {
+        protected final String expected;
+
+        private VersionLT(String expected) {
+            this.expected = expected;
+        }
+
+        @Override
+        public boolean matches(String actual) {
+            return VersionUtils.compare(actual, expected) < 0;
+        }
+
+        @Override
+        public String toString() {
+            return "< '" + expected + "'";
+        }
+
+        public static PropertyValuePredicate of(String expected) {
+            return new VersionLT(expected);
         }
     }
 
