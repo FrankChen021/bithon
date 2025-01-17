@@ -43,13 +43,13 @@
     <module>jdk-thread</module>
     <module>jdk8-thread</module>
     <module>jdk9-thread</module>
-    <module>httpclient-okhttp-3.2</module>
-    <module>httpclient-jdk</module>
+    <module>httpclient/okhttp-3.2</module>
+    <module>httpclient/jdk</module>
     <module>apache-httpcomponents4</module>
     <module>apache-httpcomponents5</module>
-    <module>httpclient-jetty</module>
-    <module>httpclient-netty3</module>
-    <module>httpclient-reactor</module>
+    <module>httpclient/jetty</module>
+    <module>httpclient/netty3</module>
+    <module>httpclient/reactor</module>
     <module>openfeign</module>
     <module>redis-jedis-2.x</module>
     <module>redis-jedis-3.x</module>
