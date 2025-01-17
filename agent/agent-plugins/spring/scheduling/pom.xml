@@ -5,9 +5,9 @@
     <groupId>org.bithon.agent</groupId>
     <artifactId>agent-all</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-spring-web</artifactId>
+  <artifactId>agent-plugin-spring-scheduling</artifactId>
 
   <dependencies>
     <dependency>
@@ -16,7 +16,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
+      <artifactId>spring-context</artifactId>
       <version>4.3.12.RELEASE</version>
       <scope>provided</scope>
     </dependency>

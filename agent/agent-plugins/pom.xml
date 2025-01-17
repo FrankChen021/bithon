@@ -60,11 +60,11 @@
     <module>mongodb-3.8</module>
     <module>logging-log4j2</module>
     <module>logging-logback</module>
-    <module>spring-bean</module>
-    <module>spring-boot</module>
-    <module>spring-scheduling</module>
-    <module>spring-webflux</module>
-    <module>spring-webmvc</module>
+    <module>spring/bean</module>
+    <module>spring/boot</module>
+    <module>spring/scheduling</module>
+    <module>spring/webflux</module>
+    <module>spring/webmvc</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
     <module>webserver-jetty</module>
