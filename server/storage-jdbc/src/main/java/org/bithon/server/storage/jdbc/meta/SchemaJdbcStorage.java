@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.security.HashGenerator;
+import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -121,7 +121,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void update(String name, ISchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+        schema.setSignature(HashUtils.sha256Hex(schemaText));
         try {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
@@ -143,7 +143,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void putIfNotExist(String name, ISchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
 
-        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+        schema.setSignature(HashUtils.sha256Hex(schemaText));
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
@@ -166,7 +166,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
+                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashUtils.sha256Hex(schemaText))
                       .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException ignored) {

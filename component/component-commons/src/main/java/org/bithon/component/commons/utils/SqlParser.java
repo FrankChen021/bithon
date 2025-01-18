@@ -16,8 +16,6 @@
 
 package org.bithon.component.commons.utils;
 
-import java.util.Locale;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/1/17 23:39

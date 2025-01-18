@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.component.commons.security.HashGenerator;
+import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
@@ -79,7 +79,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
     @Override
     public String put(String name, String payload) {
-        String signature = HashGenerator.sha256Hex(payload);
+        String signature = HashUtils.sha256Hex(payload);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         dslContext.insertInto(Tables.BITHON_WEB_DASHBOARD)
@@ -95,7 +95,7 @@ public class DashboardStorage extends DashboardJdbcStorage {
 
     @Override
     public void putIfNotExist(String name, String payload) {
-        String signature = HashGenerator.sha256Hex(payload);
+        String signature = HashUtils.sha256Hex(payload);
 
         if (dslContext.fetchCount(Tables.BITHON_WEB_DASHBOARD,
                                   Tables.BITHON_WEB_DASHBOARD.NAME.eq(name)) > 0) {
