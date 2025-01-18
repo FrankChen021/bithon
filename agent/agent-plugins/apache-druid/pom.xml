@@ -17,7 +17,10 @@
     <dependency>
       <groupId>org.apache.druid</groupId>
       <artifactId>druid-server</artifactId>
-      <version>0.16.0-incubating</version>
+      <!--
+      Although the version is declared as 24, but for queries, the support is from 0.16
+      -->
+      <version>24.0.0</version>
       <scope>provided</scope>
 
       <!-- Sigar is indirectly used, however sometimes it can't be pulled from the maven repository located in https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads/
@@ -33,7 +36,7 @@
     <dependency>
       <groupId>org.apache.druid</groupId>
       <artifactId>druid-sql</artifactId>
-      <version>0.16.0-incubating</version>
+      <version>24.0.0</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
