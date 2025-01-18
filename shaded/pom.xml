@@ -13,7 +13,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <modules>
-    <module>shaded-alibaba-druid</module>
     <module>shaded-alibaba-sentinel</module>
     <module>shaded-bytebuddy</module>
     <module>shaded-jackson</module>
