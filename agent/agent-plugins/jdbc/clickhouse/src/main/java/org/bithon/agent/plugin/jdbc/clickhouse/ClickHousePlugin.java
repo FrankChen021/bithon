@@ -70,6 +70,14 @@ public class ClickHousePlugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.TableBasedPreparedStatement$Execute")
                 .build(),
 
+            // Since 4.x
+            forClass(" com.clickhouse.jdbc.internal.StreamBasedPreparedStatement")
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.StreamBasedPreparedStatement$Execute")
+                .build(),
+
             // Statement
             forClass("com.clickhouse.jdbc.internal.ClickHouseStatementImpl")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))

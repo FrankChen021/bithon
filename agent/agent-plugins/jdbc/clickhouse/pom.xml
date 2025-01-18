@@ -21,10 +21,14 @@
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.clickhouse/clickhouse-jdbc -->
+    <!--
+    Although the version is 0.4.0, 0.3.2 is also supported.
+    We use 0.4.0 here is that StreamBasedPreparedStatement is supported since this release
+    -->
     <dependency>
       <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.3.2</version>
+      <version>0.4.0</version>
       <scope>provided</scope>
     </dependency>
 
