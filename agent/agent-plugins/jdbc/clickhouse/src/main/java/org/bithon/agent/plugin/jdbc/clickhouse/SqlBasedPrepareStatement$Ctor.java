@@ -16,25 +16,27 @@
 
 package org.bithon.agent.plugin.jdbc.clickhouse;
 
+import com.clickhouse.client.ClickHouseRequest;
+import com.clickhouse.jdbc.internal.ClickHouseConnectionImpl;
+import com.clickhouse.jdbc.parser.ClickHouseSqlStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
-import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 
 /**
- * {@link com.clickhouse.jdbc.internal.SqlBasedPreparedStatement}
- * {@link com.clickhouse.jdbc.internal.InputBasedPreparedStatement}
- * {@link com.clickhouse.jdbc.internal.TableBasedPreparedStatement}
+ * {@link com.clickhouse.jdbc.internal.SqlBasedPreparedStatement#SqlBasedPreparedStatement(ClickHouseConnectionImpl, ClickHouseRequest, ClickHouseSqlStatement, int, int, int)}
  *
- * @author frankchen
+ * Inject the {@link ClickHouseSqlStatement} so that {@link SqlBasedPreparedStatement$Execute} can access the statement
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2025/1/18 11:41
  */
-public class ClickHousePreparedStatement$Execute extends AbstractStatement$Execute {
-
-    /**
-     * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}
-     */
+public class SqlBasedPrepareStatement$Ctor extends AfterInterceptor {
     @Override
-    protected String getStatement(AopContext aopContext) {
+    public void after(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+
+        ClickHouseSqlStatement statement = aopContext.getArgAs(2);
+        preparedStatement.setInjectedObject(statement);
     }
 }

@@ -36,36 +36,51 @@ public class ClickHousePlugin implements IPlugin {
 
         return Arrays.asList(
 
-            // JdbcConnection
-            forClass("org.h2.jdbc.JdbcConnection")
+            // ClickHouseConnection
+            forClass("com.clickhouse.jdbc.internal.ClickHouseConnectionImpl")
                 .onConstructor()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcConnection$Ctor")
+                .andArgs("com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser$ConnectionInfo")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.ClickHouseConnectionImpl$Ctor")
                 .build(),
 
             // PreparedStatement
-            forClass("org.h2.jdbc.JdbcPreparedStatement")
+            forClass(" com.clickhouse.jdbc.internal.SqlBasedPreparedStatement")
                 .onConstructor()
-                .andArgs(1, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Ctor")
+                .andArgs(2, "com.clickhouse.jdbc.parser.ClickHouseSqlStatement")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.SqlBasedPreparedStatement$Ctor")
 
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.JdbcPreparedStatement$Execute")
 
                 .build(),
 
+            forClass(" com.clickhouse.jdbc.internal.InputBasedPreparedStatement")
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.InputBasedPreparedStatement$Execute")
+                .build(),
+
+            forClass(" com.clickhouse.jdbc.internal.TableBasedPreparedStatement")
+                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
+                .andNoArgs()
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.TableBasedPreparedStatement$Execute")
+                .build(),
+
             // Statement
-            forClass("org.h2.jdbc.JdbcStatement")
+            forClass("com.clickhouse.jdbc.internal.ClickHouseStatementImpl")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andArgs(0, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.ClickHouseStatementImpl$Execute")
 
                 .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$ExecuteBatch")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.ClickHouseStatementImpl$ExecuteBatch")
 
                 .build()
         );

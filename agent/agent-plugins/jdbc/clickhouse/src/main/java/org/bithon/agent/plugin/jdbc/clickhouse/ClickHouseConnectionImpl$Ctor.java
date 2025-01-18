@@ -23,12 +23,8 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 
-import java.util.Properties;
-
 /**
- * {@link com.clickhouse.jdbc.internal.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String)}
  * {@link com.clickhouse.jdbc.internal.ClickHouseConnectionImpl#ClickHouseConnectionImpl(ClickHouseJdbcUrlParser.ConnectionInfo)}
- * {@link com.clickhouse.jdbc.internal.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String, Properties)}
  *
  * @author frank.chen021@outlook.com
  * @date 2024/12/30 16:17
