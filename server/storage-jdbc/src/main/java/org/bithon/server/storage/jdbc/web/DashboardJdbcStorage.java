@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.web;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.component.commons.security.HashGenerator;
+import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.web.Dashboard;
@@ -61,7 +61,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
     @Override
     public String put(String name, String payload) {
-        String signature = HashGenerator.sha256Hex(payload);
+        String signature = HashUtils.sha256Hex(payload);
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
@@ -88,7 +88,7 @@ public class DashboardJdbcStorage implements IDashboardStorage {
 
     @Override
     public void putIfNotExist(String name, String payload) {
-        String signature = HashGenerator.sha256Hex(payload);
+        String signature = HashUtils.sha256Hex(payload);
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead

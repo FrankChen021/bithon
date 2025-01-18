@@ -14,9 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.commons.security;
-
-import org.bithon.component.commons.utils.NumberUtils;
+package org.bithon.component.commons.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,7 +24,7 @@ import java.security.NoSuchAlgorithmException;
  * @author frank.chen021@outlook.com
  * @date 13/4/22 10:12 PM
  */
-public class HashGenerator {
+public class HashUtils {
 
     private static MessageDigest sha256Provider;
 

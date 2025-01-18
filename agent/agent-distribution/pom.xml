@@ -52,12 +52,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- a lib used by plugins -->
-    <dependency>
-      <groupId>org.bithon.shaded</groupId>
-      <artifactId>shaded-alibaba-druid</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 
   <build>
