@@ -71,7 +71,7 @@ public class HttpChannel$Handle extends AroundInterceptor {
                             .component(Components.HTTP_SERVER)
                             .tag(Tags.Http.SERVER, "jetty")
                             .tag(Tags.Net.PEER, request.getRemoteAddr() + ":" + request.getRemotePort())
-                            .tag(Tags.Http.URL, request.getRequestURI())
+                            .tag(Tags.Http.URL, request.getHttpURI() == null ? null : request.getHttpURI().getPathQuery())
                             .tag(Tags.Http.METHOD, request.getMethod())
                             .tag(Tags.Http.VERSION, request.getHttpVersion().toString())
                             .configIfTrue(!traceConfig.getHeaders().getRequest().isEmpty(),

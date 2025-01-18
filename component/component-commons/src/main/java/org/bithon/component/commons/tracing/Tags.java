@@ -44,9 +44,9 @@ public class Tags {
         public static final String METHOD = "http.method";
 
         /**
-         * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represent the target service
+         * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represents the target service
          * <p>
-         * For example: http://localhost:8080
+         * For example: http://localhost:8080?param1=value1
          * <p>
          */
         public static final String URL = "http.url";
