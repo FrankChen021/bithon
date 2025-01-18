@@ -41,7 +41,7 @@ public class JarClassLoader extends ClassLoader {
     private final List<JarFile> jars;
     private final IClassLoaderProvider[] parents;
 
-    interface IClassLoaderProvider {
+    public interface IClassLoaderProvider {
         ClassLoader getClassLoader();
     }
 
@@ -60,24 +60,26 @@ public class JarClassLoader extends ClassLoader {
 
     public JarClassLoader(String name, File directory, ClassLoader... parents) {
         this(name,
-             directory,
+             JarResolver.resolve(directory),
              Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
-    }
-
-    public List<JarFile> getJars() {
-        return jars;
     }
 
     /**
      * @param name used for logging
      */
-    public JarClassLoader(String name, File directory, IClassLoaderProvider... parents) {
+    public JarClassLoader(String name,
+                          List<JarFile> jars,
+                          IClassLoaderProvider... parents) {
         // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
         this.name = name;
-        this.jars = JarResolver.resolve(directory);
+        this.jars = jars;
         this.parents = parents;
+    }
+
+    public List<JarFile> getJars() {
+        return jars;
     }
 
     @Override

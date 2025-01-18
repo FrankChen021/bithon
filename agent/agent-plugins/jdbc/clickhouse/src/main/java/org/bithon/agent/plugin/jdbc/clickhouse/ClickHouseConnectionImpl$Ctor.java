@@ -40,6 +40,9 @@ public class ClickHouseConnectionImpl$Ctor extends AfterInterceptor {
             return;
         }
 
+        // Use ClickHouseConnection which is the interface
+        // This is because user code might define their own connection class
+        // which implements ClickHouseConnectionImpl and loaded in different class loader
         ClickHouseConnectionImpl connection = aopContext.getTargetAs();
         ((IBithonObject) connection).setInjectedObject(new ConnectionContext(connection.getMetaData().getURL(),
                                                                              connection.getMetaData().getUserName(),

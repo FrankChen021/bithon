@@ -52,18 +52,18 @@ public class ClickHousePlugin implements IPlugin {
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.JdbcPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.SqlBasedPreparedStatement$Execute")
 
                 .build(),
 
-            forClass(" com.clickhouse.jdbc.internal.InputBasedPreparedStatement")
+            forClass("com.clickhouse.jdbc.internal.InputBasedPreparedStatement")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.InputBasedPreparedStatement$Execute")
                 .build(),
 
-            forClass(" com.clickhouse.jdbc.internal.TableBasedPreparedStatement")
+            forClass("com.clickhouse.jdbc.internal.TableBasedPreparedStatement")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
@@ -71,7 +71,7 @@ public class ClickHousePlugin implements IPlugin {
                 .build(),
 
             // Since 4.x
-            forClass(" com.clickhouse.jdbc.internal.StreamBasedPreparedStatement")
+            forClass("com.clickhouse.jdbc.internal.StreamBasedPreparedStatement")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()

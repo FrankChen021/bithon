@@ -19,6 +19,7 @@ package org.bithon.agent.instrumentation.loader;
 import org.bithon.agent.instrumentation.expt.AgentException;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +34,22 @@ public class JarResolver {
      * resolve all jars under searchLocations
      */
     public static List<JarFile> resolve(File... directories) {
+        return resolve(null, directories);
+    }
+
+    public static List<JarFile> resolve(FilenameFilter predicate, File... directories) {
         List<JarFile> jarFiles = new ArrayList<>();
         for (File dir : directories) {
             if (!dir.exists() || !dir.isDirectory()) {
                 continue;
             }
 
-            String[] jarFileNames = dir.list((directory, name) -> name.endsWith(".jar"));
+            String[] jarFileNames = dir.list((directory, name) -> {
+                if (!name.endsWith(".jar")) {
+                    return false;
+                }
+                return predicate == null || predicate.accept(directory, name);
+            });
             if (jarFileNames == null) {
                 continue;
             }

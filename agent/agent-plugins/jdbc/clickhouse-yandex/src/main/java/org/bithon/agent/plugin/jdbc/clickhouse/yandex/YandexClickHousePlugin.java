@@ -57,7 +57,7 @@ public class YandexClickHousePlugin implements IPlugin {
                 .build(),
 
             // Statement
-            forClass(" ru.yandex.clickhouse.ClickHouseStatementImpl")
+            forClass("ru.yandex.clickhouse.ClickHouseStatementImpl")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andArgs(0, "java.lang.String")

@@ -16,15 +16,15 @@
 
 package org.bithon.agent.plugin.jdbc.clickhouse.yandex;
 
-import com.clickhouse.jdbc.internal.ClickHouseConnectionImpl;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import ru.yandex.clickhouse.ClickHouseConnectionImpl;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 /**
- * {@link ru.yandex.clickhouse.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String, ClickHouseProperties)} 
+ * {@link ru.yandex.clickhouse.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String, ClickHouseProperties)}
  *
  * @author frank.chen021@outlook.com
  * @date 2024/12/30 16:17

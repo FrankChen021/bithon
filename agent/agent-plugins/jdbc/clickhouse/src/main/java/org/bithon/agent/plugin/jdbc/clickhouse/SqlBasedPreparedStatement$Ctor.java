@@ -31,7 +31,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterce
  * @author frank.chen021@outlook.com
  * @date 2025/1/18 11:41
  */
-public class SqlBasedPrepareStatement$Ctor extends AfterInterceptor {
+public class SqlBasedPreparedStatement$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
