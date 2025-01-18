@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.jdbc.clickhouse;
 
 import com.clickhouse.jdbc.internal.StreamBasedPreparedStatement;
-import com.clickhouse.jdbc.internal.TableBasedPreparedStatement;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 

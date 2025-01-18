@@ -21,7 +21,7 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 
 /**
- * Hook on execute methods implemented in {@link org.h2.jdbc.JdbcStatement} as
+ * Hook on execute methods implemented in {@link ru.yandex.clickhouse.ClickHouseStatementImpl} as
  * {@link java.sql.Statement#execute(String)}
  * {@link java.sql.Statement#execute(String, int[])}
  * {@link java.sql.Statement#execute(String, String[])}
@@ -39,7 +39,6 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
  * {@link java.sql.Statement#executeLargeUpdate(String, int)}
  * {@link java.sql.Statement#executeLargeUpdate(String, String[])}
  *
- * {@link ru.yandex.clickhouse.ClickHouseStatementImpl}
  * @author frankchen
  */
 public class ClickHouseStatementImpl$Execute extends AbstractStatement$Execute {

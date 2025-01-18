@@ -17,17 +17,13 @@
 package org.bithon.agent.plugin.jdbc.clickhouse.yandex;
 
 import com.clickhouse.jdbc.internal.ClickHouseConnectionImpl;
-import com.clickhouse.jdbc.internal.ClickHouseJdbcUrlParser;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
-import java.util.Properties;
-
 /**
- * {@link ru.yandex.clickhouse.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String)} 
  * {@link ru.yandex.clickhouse.ClickHouseConnectionImpl#ClickHouseConnectionImpl(String, ClickHouseProperties)} 
  *
  * @author frank.chen021@outlook.com

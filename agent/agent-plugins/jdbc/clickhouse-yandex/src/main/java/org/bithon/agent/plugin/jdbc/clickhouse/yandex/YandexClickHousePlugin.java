@@ -37,35 +37,36 @@ public class YandexClickHousePlugin implements IPlugin {
         return Arrays.asList(
 
             // JdbcConnection
-            forClass("org.h2.jdbc.JdbcConnection")
+            forClass("ru.yandex.clickhouse.ClickHouseConnectionImpl")
                 .onConstructor()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcConnection$Ctor")
+                .andArgsSize(2)
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHouseConnectionImpl$Ctor")
                 .build(),
 
             // PreparedStatement
-            forClass("org.h2.jdbc.JdbcPreparedStatement")
+            forClass("ru.yandex.clickhouse.ClickHousePreparedStatementImpl")
                 .onConstructor()
-                .andArgs(1, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Ctor")
+                .andArgs(3, "java.lang.String")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHousePreparedStatementImpl$Ctor")
 
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcPreparedStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHousePreparedStatementImpl$Execute")
 
                 .build(),
 
             // Statement
-            forClass("org.h2.jdbc.JdbcStatement")
+            forClass(" ru.yandex.clickhouse.ClickHouseStatementImpl")
                 .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andArgs(0, "java.lang.String")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$Execute")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHouseStatementImpl$Execute")
 
                 .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))
                 .andVisibility(Visibility.PUBLIC)
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.jdbc.h2.JdbcStatement$ExecuteBatch")
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHouseStatementImpl$ExecuteBatch")
 
                 .build()
         );

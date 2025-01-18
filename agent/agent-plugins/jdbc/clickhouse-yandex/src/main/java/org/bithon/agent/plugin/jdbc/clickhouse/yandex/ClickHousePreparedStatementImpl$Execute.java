@@ -21,14 +21,14 @@ import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 
 /**
- * {@link ru.yandex.clickhouse.ClickHousePreparedStatementImpl
+ * {@link ru.yandex.clickhouse.ClickHousePreparedStatementImpl#execute()}
  *
  * @author frankchen
  */
-public class ClickHousePreparedStatement$Execute extends AbstractStatement$Execute {
+public class ClickHousePreparedStatementImpl$Execute extends AbstractStatement$Execute {
 
     /**
-     * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}
+     * The executing statement is injected by {@link ClickHousePreparedStatementImpl$Ctor}
      */
     @Override
     protected String getStatement(AopContext aopContext) {
