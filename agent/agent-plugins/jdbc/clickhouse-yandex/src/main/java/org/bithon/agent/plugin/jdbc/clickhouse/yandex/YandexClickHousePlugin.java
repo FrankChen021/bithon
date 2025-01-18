@@ -58,9 +58,16 @@ public class YandexClickHousePlugin implements IPlugin {
 
             // Statement
             forClass("ru.yandex.clickhouse.ClickHouseStatementImpl")
-                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
+                // execute is NOT instrumented because it calls executeQuery
+                .onMethod(Matchers.names("executeQuery"))
                 .andVisibility(Visibility.PUBLIC)
-                .andArgs(0, "java.lang.String")
+                // instrument the method with 4 arguments only 'cause the others call this one
+                .andArgsSize(4)
+                .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHouseStatementImpl$Execute")
+
+                .onMethod(Matchers.names("executeUpdate"))
+                .andVisibility(Visibility.PUBLIC)
+                .andArgsSize(1)
                 .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.yandex.ClickHouseStatementImpl$Execute")
 
                 .onMethod(Matchers.names("executeBatch", "executeLargeBatch"))

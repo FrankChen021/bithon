@@ -44,7 +44,7 @@ public class ClickHousePlugin implements IPlugin {
                 .build(),
 
             // PreparedStatement
-            forClass(" com.clickhouse.jdbc.internal.SqlBasedPreparedStatement")
+            forClass("com.clickhouse.jdbc.internal.SqlBasedPreparedStatement")
                 .onConstructor()
                 .andArgs(2, "com.clickhouse.jdbc.parser.ClickHouseSqlStatement")
                 .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.SqlBasedPreparedStatement$Ctor")
@@ -80,7 +80,9 @@ public class ClickHousePlugin implements IPlugin {
 
             // Statement
             forClass("com.clickhouse.jdbc.internal.ClickHouseStatementImpl")
-                .onMethod(Matchers.names("execute", "executeQuery", "executeUpdate", "executeLargeUpdate"))
+                // execute and executeUpdate are NOT instrumented,
+                // because they call executeQuery and executeLargeUpdate respectively
+                .onMethod(Matchers.names("executeQuery", "executeLargeUpdate"))
                 .andVisibility(Visibility.PUBLIC)
                 .andArgs(0, "java.lang.String")
                 .interceptedBy("org.bithon.agent.plugin.jdbc.clickhouse.ClickHouseStatementImpl$Execute")
