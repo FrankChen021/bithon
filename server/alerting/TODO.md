@@ -2,4 +2,5 @@
 - [ ] notification label
 - [x] merge memory states with alert states
   - [x] Consider to separate evaluation state and rule state
-  - [x] Remove updateAlertStatus from RecordStorage
+  - [x] Remove updateAlertStatus from RecordStorage/StateStorage
+  - [ ] Fix AlertEvaluatorTest

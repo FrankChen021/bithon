@@ -19,13 +19,11 @@ package org.bithon.server.alerting.evaluator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import feign.Contract;
 import feign.Feign;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
@@ -34,18 +32,17 @@ import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
-import org.bithon.server.alerting.evaluator.state.redis.RedisStateManager;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.ApplicationContext;
@@ -55,9 +52,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -74,19 +69,8 @@ import java.util.concurrent.TimeUnit;
 public class EvaluatorModuleAutoConfiguration {
 
     @Bean
-    public IEvaluationStateManager alertStateStorage(ObjectMapper objectMapper,
-                                                     Environment environment) throws IOException {
-        HashMap<?, ?> stateConfig = Binder.get(environment)
-                                          .bind("bithon.alerting.evaluator.state", HashMap.class)
-                                          .orElseGet(() -> null);
-        Preconditions.checkIfTrue(stateConfig.containsKey("type"), "Missed 'type' property for bithon.alerting.evaluator.state");
-
-        String jsonType = objectMapper.writeValueAsString(stateConfig);
-        try {
-            return objectMapper.readValue(jsonType, IEvaluationStateManager.class);
-        } catch (InvalidTypeIdException e) {
-            throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
-        }
+    public IEvaluationStateManager stateManager(IAlertStateStorage stateStorage) {
+        return new LocalStateManager(stateStorage);
     }
 
     @Bean
@@ -147,7 +131,7 @@ public class EvaluatorModuleAutoConfiguration {
 
     @Bean
     public AlertEvaluator alertEvaluator(AlertRepository repository,
-                                         IEvaluationStateManager stateStorage,
+                                         IEvaluationStateManager stateManager,
                                          IEvaluationLogStorage logStorage,
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
@@ -158,9 +142,8 @@ public class EvaluatorModuleAutoConfiguration {
         EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         logWriter.start();
 
-
         return new AlertEvaluator(repository,
-                                  stateStorage,
+                                  stateManager,
                                   logWriter,
                                   recordStorage,
                                   dataSourceApi,
@@ -184,8 +167,7 @@ public class EvaluatorModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(LocalStateManager.class,
-                                         RedisStateManager.class
+                context.registerSubtypes(LocalStateManager.class
                 );
             }
         };

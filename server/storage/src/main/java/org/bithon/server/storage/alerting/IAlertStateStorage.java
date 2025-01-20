@@ -29,13 +29,23 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IAlertStateStorage {
 
+    /**
+     * Initialize the storage
+     */
     void initialize();
 
+    /**
+     * Get alert state for all rules
+     */
     Map<String, AlertStateObject> getAlertStates();
 
+    /**
+     * @param states a map of all alert states, key is alert rule id
+     */
     void saveAlertStates(Map<String, AlertStateObject> states);
 
-    void updateAlertStatus(String id, AlertStateObject prevState,
+    void updateAlertStatus(String id,
+                           AlertStateObject prevState,
                            AlertStatus newStatus,
                            Map<Label, AlertStatus> statusPerLabel);
 }

@@ -23,14 +23,12 @@ import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -77,22 +75,13 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Load states of all alert rules
-            Map<String, AlertStateObject> alertStates = this.alertStateStorage.getAlertStates();
-            alertEvaluator.getStateManager().restoreAlertStates(alertStates);
+            alertEvaluator.getStateManager().restoreAlertStates();
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
-                executor.execute(() -> alertEvaluator.evaluate(now,
-                                                               alertRule,
-                                                               alertStates.get(alertRule.getId())
-                ));
+                executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
             }
         } finally {
-            try {
-                this.alertStateStorage.saveAlertStates(alertEvaluator.getStateManager().exportAlertStates());
-            } catch (Exception e) {
-                log.error("Failed to save alert states", e);
-            }
             Thread.currentThread().setName(name);
         }
     }

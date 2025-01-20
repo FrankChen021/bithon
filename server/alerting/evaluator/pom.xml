@@ -28,18 +28,6 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <!-- Redis State Storage -->
-    <dependency>
-      <groupId>redis.clients</groupId>
-      <artifactId>jedis</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>gson</artifactId>
-          <groupId>com.google.code.gson</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>

@@ -16,10 +16,14 @@
 
 package org.bithon.server.alerting.evaluator.state.local;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -36,7 +40,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @JsonTypeName("local")
 public class LocalStateManager implements IEvaluationStateManager {
 
+    private final IAlertStateStorage stateStorage;
     private Map<String, AlertStateObject> alertStates = new ConcurrentHashMap<>();
+
+    public LocalStateManager(@JacksonInject(useInput = OptBoolean.FALSE) IAlertStateStorage stateStorage) {
+        this.stateStorage = stateStorage;
+    }
 
     @Override
     public void resetMatchCount(String alertId) {
@@ -139,20 +148,44 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public Map<String, AlertStateObject> exportAlertStates() {
-        // Remove expired states
-        long now = System.currentTimeMillis();
-        for (AlertStateObject alertStateObject : alertStates.values()) {
-            AlertStateObject.Payload payload = alertStateObject.getPayload();
-
-            payload.getStates().entrySet().removeIf(entry -> entry.getValue().getMatchExpiredAt() < now);
-        }
-
-        return Map.copyOf(this.alertStates);
+    public void restoreAlertStates() {
+        this.alertStates = new ConcurrentHashMap<>(this.stateStorage.getAlertStates());
     }
 
     @Override
-    public void restoreAlertStates(Map<String, AlertStateObject> alertStates) {
-        this.alertStates = new ConcurrentHashMap<>(alertStates);
+    public AlertStateObject getAlertState(String alertId) {
+        return this.alertStates.computeIfAbsent(alertId, k -> {
+            AlertStateObject state = new AlertStateObject();
+            state.setPayload(new AlertStateObject.Payload());
+            return state;
+        });
+    }
+
+    @Override
+    public void setState(String alertId, AlertStatus status, Map<Label, AlertStatus> allNewStatus) {
+        AlertStateObject stateObject = alertStates.computeIfAbsent(alertId, k -> {
+            AlertStateObject state = new AlertStateObject();
+            state.setPayload(new AlertStateObject.Payload());
+            return state;
+        });
+
+        for (Map.Entry<Label, AlertStatus> entry : allNewStatus.entrySet()) {
+            // Remove expired states for each label
+            boolean removed = stateObject.getPayload()
+                                         .getStates()
+                                         .entrySet()
+                                         .removeIf(e -> e.getValue().getMatchExpiredAt() < System.currentTimeMillis());
+
+            if (!removed) {
+                AlertStateObject.StatePerLabel statePerLabel = stateObject.getPayload()
+                                                                          .getStates()
+                                                                          .computeIfAbsent(entry.getKey(), k -> new AlertStateObject.StatePerLabel());
+                statePerLabel.setStatus(entry.getValue());
+            }
+        }
+        stateObject.setStatus(status);
+
+        // TODO: apply batch mechanism
+        this.stateStorage.saveAlertStates(Map.of(alertId, stateObject));
     }
 }

@@ -134,8 +134,8 @@ public class AlertEvaluator implements DisposableBean {
     }
 
     public void evaluate(TimeSpan now, AlertRule rule) {
-        Map<String, AlertStateObject> state = this.getStateManager().exportAlertStates();
-        this.evaluate(now, rule, state == null ? null : state.get(rule.getId()), false);
+        AlertStateObject stateObject = this.getStateManager().getAlertState(rule.getId());
+        this.evaluate(now, rule, stateObject, false);
     }
 
     /**
@@ -143,7 +143,7 @@ public class AlertEvaluator implements DisposableBean {
      */
     @VisibleForTesting
     void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
-        evaluate(now, alertRule, prevState, false);
+        this.evaluate(now, alertRule, prevState, false);
     }
 
     @VisibleForTesting
@@ -201,13 +201,6 @@ public class AlertEvaluator implements DisposableBean {
                 }
             }
 
-            // Update state storage
-            //this.stateStorage.setAlertStates(alertRule.getId(), allNewStatus);
-            this.alertRecordStorage.updateAlertStatus(alertRule.getId(),
-                                                      context.getPrevState(),
-                                                      getStatus(allNewStatus),
-                                                      allNewStatus);
-
             // Group by alert status
             Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
                                                                                         .stream()
@@ -218,11 +211,11 @@ public class AlertEvaluator implements DisposableBean {
             fireAlert(alertRule, groupedStatus.get(AlertStatus.ALERTING), context);
             resolveAlert(alertRule, groupedStatus.get(AlertStatus.RESOLVED), context);
 
+            this.stateManager.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
+            this.stateManager.setState(alertRule.getId(), getStatus(allNewStatus), allNewStatus);
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
-
-        this.stateManager.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
     }
 
     private AlertStatus getStatus(Map<Label, AlertStatus> status) {

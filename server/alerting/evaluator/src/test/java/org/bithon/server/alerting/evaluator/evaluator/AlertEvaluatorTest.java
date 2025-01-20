@@ -131,7 +131,7 @@ public class AlertEvaluatorTest {
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
         evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
-                                       new LocalStateManager(),
+                                       new LocalStateManager(alertStateStorageStub),
                                        evaluationLogWriterStub,
                                        alertRecordStorageStub,
                                        dataSourceApiStub,

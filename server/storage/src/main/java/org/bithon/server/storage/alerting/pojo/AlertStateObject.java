@@ -49,7 +49,8 @@ public class AlertStateObject {
          * Status by labels
          */
         @Getter
-        private final Map<Label, StatePerLabel> states;
+        @Setter
+        private Map<Label, StatePerLabel> states;
 
         @Getter
         @Setter

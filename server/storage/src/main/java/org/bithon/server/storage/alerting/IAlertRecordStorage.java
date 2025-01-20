@@ -18,8 +18,6 @@ package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
@@ -28,7 +26,6 @@ import org.bithon.server.storage.metrics.Interval;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -53,8 +50,4 @@ public interface IAlertRecordStorage extends IStorage, IExpirable {
     void setNotificationResult(String id, int statusCode, String status);
 
     void initialize();
-
-    void updateAlertStatus(String id, AlertStateObject prevState,
-                           AlertStatus newStatus,
-                           Map<Label, AlertStatus> statusPerLabel);
 }
