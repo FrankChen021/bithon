@@ -19,10 +19,10 @@ package org.bithon.server.storage.jdbc.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -48,16 +48,21 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
 
     protected final DSLContext dslContext;
     protected final AlertingStorageConfiguration.AlertStorageConfig storageConfig;
+    protected final ObjectMapper objectMapper;
 
     @JsonCreator
     public AlertRecordJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageProvider,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
-        this(storageProvider.getDslContext(), storageConfig);
+                                  @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this(storageProvider.getDslContext(), storageConfig, objectMapper);
     }
 
-    public AlertRecordJdbcStorage(DSLContext dslContext, AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    public AlertRecordJdbcStorage(DSLContext dslContext,
+                                  AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                  ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.storageConfig = storageConfig;
+        this.objectMapper = objectMapper;
     }
 
     public void initialize() {
@@ -68,20 +73,6 @@ public class AlertRecordJdbcStorage implements IAlertRecordStorage {
                        .columns(Tables.BITHON_ALERT_RECORD.fields())
                        .indexes(Tables.BITHON_ALERT_RECORD.getIndexes())
                        .execute();
-    }
-
-    @Override
-    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
-                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState == null ? new Timestamp(0).toLocalDateTime() : new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState == null ? "" : prevState.getLastRecordId())
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
-                  .onDuplicateKeyUpdate()
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
-                  .execute();
     }
 
     @Override

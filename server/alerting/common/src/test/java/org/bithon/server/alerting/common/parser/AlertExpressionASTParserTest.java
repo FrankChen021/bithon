@@ -18,6 +18,7 @@ package org.bithon.server.alerting.common.parser;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,5 +61,32 @@ public class AlertExpressionASTParserTest {
                                        "(avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1) OR (avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2) " +
                                        ")");
 
+    }
+
+    @Test
+    public void test_ByExpression_OneHasBY() {
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] BY (instanceName) <> 1 " +
+                                                                "AND " +
+                                                                "avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 2 ");
+        Assert.assertTrue(expression instanceof LogicalExpression.AND);
+        Assert.assertEquals("1", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(0)).getId());
+        Assert.assertEquals("2", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(1)).getId());
+    }
+
+    @Test
+    public void test_ByExpression_ByExpressionAreTheSame() {
+        IExpression expression = AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] BY (appName, instanceName) <> 1 " +
+                                                                "AND " +
+                                                                "avg(jvm-metrics.cpu{appName <= 'a'})[5m] BY (instanceName, appName) > 2 ");
+        Assert.assertTrue(expression instanceof LogicalExpression.AND);
+        Assert.assertEquals("1", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(0)).getId());
+        Assert.assertEquals("2", ((AlertExpression) ((LogicalExpression.AND) expression).getOperands().get(1)).getId());
+    }
+
+    @Test(expected = InvalidExpressionException.class)
+    public void test_ByExpression_ByExpressionAreNOTSame() {
+        AlertExpressionASTParser.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] BY (appName) <> 1 " +
+                                       "AND " +
+                                       "avg(jvm-metrics.cpu{appName <= 'a'})[5m] BY (instanceName) > 2 ");
     }
 }

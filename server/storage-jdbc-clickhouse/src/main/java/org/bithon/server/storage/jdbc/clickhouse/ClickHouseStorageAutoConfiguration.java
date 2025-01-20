@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertObjectStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertRecordStorage;
+import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertStateStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.EvaluationLogStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.NotificationChannelStorage;
 import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
@@ -69,6 +70,7 @@ public class ClickHouseStorageAutoConfiguration {
                                          // alerting
                                          AlertObjectStorage.class,
                                          AlertRecordStorage.class,
+                                         AlertStateStorage.class,
                                          EvaluationLogStorage.class,
                                          NotificationChannelStorage.class
                                         );

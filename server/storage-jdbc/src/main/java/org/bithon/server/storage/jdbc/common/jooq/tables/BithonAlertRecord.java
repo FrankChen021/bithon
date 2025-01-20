@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Alerting History Records
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertRecord extends TableImpl<BithonAlertRecordRecord> {
 
     private static final long serialVersionUID = 1L;

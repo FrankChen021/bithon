@@ -16,9 +16,16 @@
 
 package org.bithon.server.storage.alerting.pojo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.bithon.server.storage.alerting.Label;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,7 +33,52 @@ import java.time.LocalDateTime;
  */
 @Data
 public class AlertStateObject {
+
+    @Data
+    public static class StatePerLabel {
+        private AlertStatus status;
+
+        private long matchCount;
+        private long matchExpiredAt;
+
+        private long silenceExpiredAt;
+    }
+
+    public static class Payload {
+        /**
+         * Status by labels
+         */
+        @Getter
+        @Setter
+        private Map<Label, StatePerLabel> states;
+
+        @Getter
+        @Setter
+        private long evaluationTimestamp;
+
+        public Payload() {
+            this(new HashMap<>(), 0L);
+        }
+
+        @JsonCreator
+        public Payload(@JsonProperty("states") Map<Label, StatePerLabel> states,
+                       @JsonProperty("evaluationTimestamp") long evaluationTimestamp) {
+            this.states = states;
+            this.evaluationTimestamp = evaluationTimestamp;
+        }
+    }
+
     private AlertStatus status;
     private LocalDateTime lastAlertAt;
     private String lastRecordId;
+    private Payload payload;
+
+    public AlertStatus getStatusByLabel(Label label) {
+        if (payload == null) {
+            return AlertStatus.READY;
+        }
+
+        StatePerLabel statusPerLabel = payload.states.get(label);
+        return statusPerLabel == null ? AlertStatus.READY : statusPerLabel.status;
+    }
 }
