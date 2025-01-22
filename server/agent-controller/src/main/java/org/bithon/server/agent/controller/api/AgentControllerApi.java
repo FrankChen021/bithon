@@ -81,7 +81,14 @@ public class AgentControllerApi implements IAgentControllerApi {
                                         record.setInstance(session.getRemoteAttribute(Headers.HEADER_APP_ID, session.getRemoteEndpoint()));
                                         record.setEndpoint(session.getRemoteEndpoint());
                                         record.setController(session.getLocalEndpoint());
-                                        record.setAgentVersion(session.getRemoteAttribute(Headers.HEADER_VERSION));
+
+                                        String agentVersion = session.getRemoteAttribute(Headers.HEADER_VERSION);
+                                        if (agentVersion != null) {
+                                            String[] parts = agentVersion.split("@");
+                                            record.setAgentVersion(parts[0]);
+                                            record.setBuildId(parts[1]);
+                                            record.setBuildTime(parts[2]);
+                                        }
                                         long start = 0;
                                         try {
                                             start = Long.parseLong(session.getRemoteAttribute(Headers.HEADER_START_TIME, "0"));
