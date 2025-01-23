@@ -23,7 +23,6 @@ import feign.codec.ErrorDecoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
