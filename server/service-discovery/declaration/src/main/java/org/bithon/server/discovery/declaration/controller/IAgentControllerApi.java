@@ -77,10 +77,10 @@ public interface IAgentControllerApi {
      * @param instance the target client instance that the request will be sent to.
      * @param token    For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
      * @param timeout  timeout value in milliseconds
-     * @param message message bytes serialized from ServiceRequestMessageOut
+     * @param message  message bytes serialized from ServiceRequestMessageOut
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] callAgentService(@RequestHeader(name = "token", required = false) String token,
+    byte[] callAgentService(@RequestHeader(name = "X-Bithon-Token", required = false) String token,
                             @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
                             @RequestParam(name = "timeout", required = false) Integer timeout,
                             @RequestBody byte[] message) throws IOException;

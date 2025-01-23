@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.commons.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -40,9 +40,9 @@ public class JwtTokenComponent {
     private final SecretKey signKey;
     private final long globalValidityMilliseconds;
 
-    public JwtTokenComponent(WebSecurityConfig securityConfig) {
-        this.signKey = Keys.hmacShaKeyFor(securityConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
-        this.globalValidityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
+    public JwtTokenComponent(JwtConfig jwtConfig) {
+        this.signKey = Keys.hmacShaKeyFor(jwtConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
+        this.globalValidityMilliseconds = jwtConfig.getJwtTokenValiditySeconds() * 1000L;
     }
 
     /**

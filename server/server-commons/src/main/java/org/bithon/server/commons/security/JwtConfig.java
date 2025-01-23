@@ -14,27 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.commons.security;
 
 import lombok.Data;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author Frank Chen
- * @date 8/9/23 4:35 pm
- */
+import java.time.Duration;
+
 @Data
 @Configuration
 @ConfigurationProperties("bithon.web.security")
-public class WebSecurityConfig {
-    private boolean enabled = false;
-
-    private OAuth2Config oauth2;
-
-    @Data
-    public static class OAuth2Config {
-        private OAuth2ClientProperties client;
-    }
+public class JwtConfig {
+    private String jwtTokenSignKey = "BithonIsAObservabilityPlatformThatMakesUEasy10";
+    private long jwtTokenValiditySeconds = Duration.ofDays(1).getSeconds();
 }

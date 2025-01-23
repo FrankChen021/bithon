@@ -20,10 +20,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.agent.controller.rbac.User;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,14 +39,16 @@ public class RbacConfig {
     private List<User> users;
 
     public boolean isPermitted(Operation operation, String user, String application, String resourceName) {
-        return users.stream().anyMatch((rbacUser) -> {
-            if (!rbacUser.getName().equals(user)) {
-                return false;
-            }
+        if (CollectionUtils.isEmpty(users)) {
+            // No rules defined, deny all
+            return false;
+        }
 
-            return rbacUser.getPermissions()
-                           .stream()
-                           .anyMatch((permission) -> permission.isPermitted(operation, application, resourceName));
-        });
+        // Find rules of given user
+        Stream<User> userRules = users.stream().filter((rbacUser) -> rbacUser.getName().equals(user));
+
+        return userRules.anyMatch((rbacUser) -> rbacUser.getPermissions()
+                                                        .stream()
+                                                        .anyMatch((permission) -> permission.isPermitted(operation, application, resourceName)));
     }
 }

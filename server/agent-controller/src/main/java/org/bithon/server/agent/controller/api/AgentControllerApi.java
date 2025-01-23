@@ -16,7 +16,8 @@
 
 package org.bithon.server.agent.controller.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import jakarta.servlet.http.HttpServletRequest;
 import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -25,11 +26,15 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
+import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.agent.controller.config.PermissionConfig;
+import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.agent.controller.service.AgentSettingLoader;
 import org.bithon.server.commons.exception.ErrorResponse;
+import org.bithon.server.commons.security.JwtConfig;
+import org.bithon.server.commons.security.JwtTokenComponent;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -55,18 +60,18 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(value = "bithon.agent-controller.enabled", havingValue = "true")
 public class AgentControllerApi implements IAgentControllerApi {
 
-    private final ObjectMapper objectMapper;
     private final AgentControllerServer agentControllerServer;
     private final PermissionConfig permissionConfig;
     private final AgentSettingLoader loader;
+    private final JwtTokenComponent jwtTokenComponent;
 
-    public AgentControllerApi(ObjectMapper objectMapper,
+    public AgentControllerApi(JwtConfig jwtConfig,
                               AgentControllerServer agentControllerServer,
                               AgentControllerConfig agentConfig,
                               AgentSettingLoader loader) {
-        this.objectMapper = objectMapper;
         this.agentControllerServer = agentControllerServer;
         this.permissionConfig = agentConfig.getPermission();
+        this.jwtTokenComponent = new JwtTokenComponent(jwtConfig);
         this.loader = loader;
     }
 
@@ -107,16 +112,27 @@ public class AgentControllerApi implements IAgentControllerApi {
         BrpcServer.Session agentSession = agentControllerServer.getBrpcServer().getSession(instance);
 
         //
-        // Parse input request stream
+        // Parse input request stream so that we get the request object that the user is going to access
         //
         CodedInputStream input = CodedInputStream.newInstance(message);
         input.pushLimit(message.length);
         ServiceRequestMessageIn rawRequest = ServiceRequestMessageIn.from(input);
 
-        // Verify if the given token matches
-        // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
-        if (!rawRequest.getMethodName().startsWith("get") && !rawRequest.getMethodName().startsWith("dump")) {
-            permissionConfig.verifyPermission(objectMapper, agentSession.getRemoteApplicationName(), token);
+        // Verify if the user has permission if the permission checking is ENABLE on this service
+        if (permissionConfig != null && permissionConfig.isEnabled()) {
+            Jws<Claims> parsedToken = jwtTokenComponent.parseToken(token);
+            if (parsedToken == null || !jwtTokenComponent.isValidToken(parsedToken)) {
+                throw new HttpMappableException(HttpStatus.UNAUTHORIZED.value(), "Invalid token provided to perform the operation on agent.");
+            }
+            String user = parsedToken.getBody().getSubject();
+
+            // Verify if the given token matches
+            // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
+            Operation operation = rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
+            permissionConfig.verifyPermission(operation,
+                                              user,
+                                              agentSession.getRemoteApplicationName(),
+                                              rawRequest.getServiceName());
         }
 
         // Turn the input request stream to the request that is going to send to remote
@@ -149,7 +165,7 @@ public class AgentControllerApi implements IAgentControllerApi {
 
     @Override
     public void updateAgentSetting(String appName, String env) {
-        // TODO: update setting at agent side immediately
+        // TODO: call the agent RPC to update setting at agent side immediately
         this.loader.update(appName, env);
     }
 

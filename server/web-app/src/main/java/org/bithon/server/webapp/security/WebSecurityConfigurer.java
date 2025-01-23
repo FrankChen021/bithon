@@ -18,6 +18,8 @@ package org.bithon.server.webapp.security;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.security.JwtConfig;
+import org.bithon.server.commons.security.JwtTokenComponent;
 import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.webapp.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
@@ -48,7 +50,8 @@ public class WebSecurityConfigurer {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            ServerProperties serverProperties,
-                                           WebSecurityConfig securityConfig) throws Exception {
+                                           WebSecurityConfig securityConfig,
+                                           JwtConfig jwtConfig) throws Exception {
         String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
 
         String[] ignoreList = Stream.of("/images/**",
@@ -78,7 +81,7 @@ public class WebSecurityConfigurer {
             }).build();
         }
 
-        JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(securityConfig);
+        JwtTokenComponent jwtTokenComponent = new JwtTokenComponent(jwtConfig);
 
         http.sessionManagement((c) -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
@@ -86,7 +89,7 @@ public class WebSecurityConfigurer {
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenComponent), OAuth2AuthorizationRequestRedirectFilter.class)
             .oauth2Login(c -> c.clientRegistrationRepository(newClientRegistrationRepo(securityConfig)).permitAll()
                                .authorizationEndpoint(a -> a.authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository()))
-                               .successHandler(new AuthSuccessHandler(jwtTokenComponent, securityConfig)))
+                               .successHandler(new AuthSuccessHandler(jwtTokenComponent, jwtConfig)))
             .logout(c -> c.logoutSuccessUrl("/"))
             .exceptionHandling(c -> c.authenticationEntryPoint(new LoginAuthenticationEntryPoint(contextPath + "/oauth2/authorization/google")));
 

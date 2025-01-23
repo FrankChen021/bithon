@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 @Data
 public class PermissionConfig {
 
+    private boolean enabled;
     private RbacConfig rbac;
 
     public void verifyPermission(Operation operation,
