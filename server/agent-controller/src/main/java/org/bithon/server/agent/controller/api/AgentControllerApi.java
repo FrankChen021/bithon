@@ -126,7 +126,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                 // because feign client is not able to read response body when 401 is returned.
                 // don't know why
                 throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "The controller module has ENABLED authorization for operations on agent while there's NO token provided to authorize operation.");
+                                                "The controller module has ENABLED authorization for operations on agent but there's NO token provided to authorize such operation.");
             }
 
             Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);

@@ -56,7 +56,7 @@ public class InvocationManager {
 
     private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
 
-    public Object invoke(String appName,
+    public Object invoke(String invokerName,
                          Headers headers,
                          IBrpcChannel channel,
                          long timeoutMillisecond,
@@ -72,7 +72,7 @@ public class InvocationManager {
                                                                           .serializer(serviceRegistryItem.getSerializer())
                                                                           .isOneway(serviceRegistryItem.isOneway())
                                                                           .messageType(serviceRegistryItem.getMessageType())
-                                                                          .applicationName(appName)
+                                                                          .applicationName(invokerName)
                                                                           .headers(headers)
                                                                           .args(args)
                                                                           .build();
