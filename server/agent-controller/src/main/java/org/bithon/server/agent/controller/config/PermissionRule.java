@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * application:   application = "bithon-server" &&
+ * authorization: authorizations in ()
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/4/8 16:42
  */

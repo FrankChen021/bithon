@@ -26,6 +26,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
+import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.storage.setting.ISettingReader;
@@ -146,7 +147,7 @@ public class AgentConfigurationApi {
         String settingVal = request.getValue().trim();
 
         this.agentControllerConfig.getPermission()
-                                  .verifyPermission(objectMapper, application, getUserOrToken(token));
+                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), application, "agent.setting");
 
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
@@ -184,7 +185,7 @@ public class AgentConfigurationApi {
         String settingVal = request.getValue().trim();
 
         this.agentControllerConfig.getPermission()
-                                  .verifyPermission(objectMapper, application, getUserOrToken(token));
+                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), application, "agent.setting");
 
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
@@ -211,7 +212,7 @@ public class AgentConfigurationApi {
     public void deleteConfiguration(@RequestHeader(value = "token", required = false) String token,
                                     @Validated @RequestBody DeleteRequest request) {
         this.agentControllerConfig.getPermission()
-                                  .verifyPermission(objectMapper, request.getAppName(), getUserOrToken(token));
+                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), request.getAppName(), "agent.setting");
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
