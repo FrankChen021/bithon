@@ -27,6 +27,7 @@ import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
 import org.bithon.server.agent.controller.config.PermissionConfig;
 import org.bithon.server.agent.controller.rbac.Operation;
@@ -120,14 +121,26 @@ public class AgentControllerApi implements IAgentControllerApi {
 
         // Verify if the user has permission if the permission checking is ENABLE on this service
         if (permissionConfig != null && permissionConfig.isEnabled()) {
-            Jws<Claims> parsedToken = jwtTokenComponent.parseToken(token);
-            if (parsedToken == null || !jwtTokenComponent.isValidToken(parsedToken)) {
-                throw new HttpMappableException(HttpStatus.UNAUTHORIZED.value(), "Invalid token provided to perform the operation on agent.");
+            if (StringUtils.isEmpty(token)) {
+                // Use HTTP 403 instead of 401
+                // because feign client is not able to read response body when 401 is returned.
+                // don't know why
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                "The controller module has ENABLED authorization for operations on agent while there's NO token provided to authorize operation.");
             }
-            String user = parsedToken.getBody().getSubject();
+
+            Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);
+            if (parsedToken == null) {
+                // Use HTTP 403 instead of 401
+                // because feign client is not able to read response body when 401 is returned.
+                // don't know why
+                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                "Invalid token provided to perform the operation on agent.");
+            }
 
             // Verify if the given token matches
             // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
+            String user = parsedToken.getBody().getSubject();
             Operation operation = rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
             permissionConfig.verifyPermission(operation,
                                               user,

@@ -40,7 +40,6 @@ import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.agent.sql.table.IPushdownPredicateProvider;
@@ -53,8 +52,6 @@ import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -97,15 +94,7 @@ public class AgentDiagnosisApi {
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-        String authorization = authentication == null ? null : (String) authentication.getPrincipal();
-
         SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
-            if (authentication != null) {
-                // Use user-based authorization first
-                queryContext.set("_token", authorization);
-            }
-
             SqlNode whereNode;
             SqlNode from = null;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
@@ -205,7 +194,7 @@ public class AgentDiagnosisApi {
             }
 
             String identifier = ((SqlIdentifier) identifierNode).getSimple().toLowerCase(Locale.ENGLISH);
-            if (!IAgentControllerApi.PARAMETER_NAME_TOKEN.equals(identifier) && !pushDownPredicates.containsKey(identifier)) {
+            if (!pushDownPredicates.containsKey(identifier)) {
                 return super.visit(call);
             }
 

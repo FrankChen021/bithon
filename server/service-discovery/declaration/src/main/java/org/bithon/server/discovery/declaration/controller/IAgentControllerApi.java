@@ -41,8 +41,6 @@ public interface IAgentControllerApi {
      */
     String PARAMETER_NAME_INSTANCE = "instance";
 
-    String PARAMETER_NAME_TOKEN = "_token";
-
     /**
      * Declare all fields as public to treat it as a record
      * This simplifies Calcite related type construction.

@@ -44,6 +44,9 @@ public class ServiceInvocationExecutor implements AutoCloseable, Executor {
             try {
                 return task.call();
             } catch (Exception e) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
                 throw new RuntimeException(e);
             }
         }, executorService);

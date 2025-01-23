@@ -237,16 +237,10 @@ public class AgentServiceProxyFactory {
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
-                                                                                  .requestInterceptor(template -> {
-                                                                                      Object token = context.get("X-Bithon-Token");
-                                                                                      if (token != null) {
-                                                                                          template.header("X-Bithon-Token", token.toString());
-                                                                                      }
-                                                                                  })
                                                                                   .target(IAgentControllerApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
 
                                               try {
-                                                  return proxyApi.callAgentService((String) context.getOrDefault("_token", ""),
+                                                  return proxyApi.callAgentService((String) context.getOrDefault("X-Bithon-Token", ""),
                                                                                    (String) context.getOrDefault(IAgentControllerApi.PARAMETER_NAME_INSTANCE, ""),
                                                                                    30_000,
                                                                                    message);

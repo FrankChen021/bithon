@@ -43,7 +43,7 @@ public class Permission {
     private String application;
 
     @Nullable
-    private String resourceName;
+    private String resource;
 
     public boolean isPermitted(Operation operation, String application, String resourceName) {
         if (this.operation != null && !this.operation.isPermitted(operation)) {
@@ -54,7 +54,7 @@ public class Permission {
             return false;
         }
 
-        if (this.resourceName != null && !matchesPattern(this.resourceName, resourceName)) {
+        if (this.resource != null && !matchesPattern(this.resource, resourceName)) {
             return false;
         }
 

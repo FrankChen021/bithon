@@ -37,15 +37,14 @@ public class PermissionConfig {
                                  String user,
                                  String application,
                                  String resourceName) {
-        if (rbac != null) {
-            if (!rbac.isPermitted(operation, user, application, resourceName)) {
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "No permission rule defined for [%s] to perform [%s] on resource [%s] in application [%s]. Contact the ADMIN to grant permission.",
-                                                user,
-                                                operation,
-                                                resourceName,
-                                                application);
-            }
+
+        if (rbac != null && !rbac.isPermitted(operation, user, application, resourceName)) {
+            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                            "No permission rule defined for [%s] to perform [%s] on resource [%s] in application [%s]. Contact the ADMIN to grant permission.",
+                                            user,
+                                            operation,
+                                            resourceName,
+                                            application);
         }
     }
 }

@@ -16,8 +16,10 @@
 
 package org.bithon.server.agent.controller.rbac;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -27,8 +29,10 @@ import java.util.List;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
-    private final String name;
-    private final List<Permission> permissions;
-    private final List<Role> roles;
+    private String name;
+    private List<Permission> permissions;
+    private List<Role> roles;
 }

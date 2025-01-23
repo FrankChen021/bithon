@@ -17,6 +17,7 @@
 package org.bithon.server.commons.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
@@ -53,6 +54,21 @@ public class JwtTokenComponent {
                    .setSigningKey(signKey)
                    .build()
                    .parseClaimsJws(tokenText);
+    }
+
+    /**
+     * Try to parse and return a valid token
+     */
+    public Jws<Claims> tryParseToken(String tokenText) {
+        try {
+            Jws<Claims> token = Jwts.parserBuilder()
+                                    .setSigningKey(signKey)
+                                    .build()
+                                    .parseClaimsJws(tokenText);
+            return isValidToken(token) ? token : null;
+        } catch (ExpiredJwtException ignored) {
+            return null;
+        }
     }
 
     public String createToken(String name, Collection<? extends GrantedAuthority> authorities) {

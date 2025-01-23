@@ -97,9 +97,6 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
     public int update(SqlExecutionContext executionContext,
                       IExpression filterExpression,
                       Map<String, Object> newValues) {
-        String token = (String) executionContext.get("_token");
-        Preconditions.checkNotNull(token, "'_token' is missed in the WHERE clause.");
-
         Preconditions.checkNotNull(filterExpression, "'name' is missed in the WHERE clause.");
         Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
 
