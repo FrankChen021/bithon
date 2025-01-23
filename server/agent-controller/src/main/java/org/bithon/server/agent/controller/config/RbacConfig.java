@@ -45,7 +45,7 @@ public class RbacConfig {
         }
 
         // Find rules of given user
-        Stream<User> userRules = users.stream().filter((rbacUser) -> rbacUser.getName().equals(user));
+        Stream<User> userRules = users.stream().filter((rbacUser) -> user.equals(rbacUser.getName()) || "*".equals(rbacUser.getName()));
 
         return userRules.anyMatch((rbacUser) -> rbacUser.getPermissions()
                                                         .stream()

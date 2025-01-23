@@ -114,6 +114,19 @@ public class RbacConfigTest {
     }
 
     @Test
+    public void test_WildMatchAgainstDataSource_Contains() {
+        RbacConfig config = new RbacConfig();
+        config.setUsers(List.of(User.builder()
+                                    .name("user1")
+                                    .permissions(List.of(new Permission(Operation.RW, "*bithon*", "dataSource1")))
+                                    .build()));
+
+        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app-bithon-controller", "dataSource1"));
+        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "bithon", "dataSource1"));
+        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app-bitho-controller", "dataSource1"));
+    }
+
+    @Test
     public void test_WildMatchAgainstDataSource_StartWith() {
         RbacConfig config = new RbacConfig();
         config.setUsers(List.of(User.builder()
@@ -189,4 +202,18 @@ public class RbacConfigTest {
         Assert.assertFalse(config.isPermitted(Operation.WRITE, "user3", "app3", "dataSource1"));
     }
 
+    @Test
+    public void test_AnyUser() {
+        RbacConfig config = new RbacConfig();
+        config.setUsers(List.of(User.builder()
+                                    .name("*")
+                                    .permissions(List.of(new Permission(Operation.RW, "application", "dataSource1")))
+                                    .build()));
+
+        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
+        Assert.assertTrue(config.isPermitted(Operation.READ, "user2", "application", "dataSource1"));
+        Assert.assertTrue(config.isPermitted(Operation.RW, "user3", "application", "dataSource1"));
+
+        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application1", "dataSource1"));
+    }
 }

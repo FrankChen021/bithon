@@ -64,9 +64,19 @@ public class Permission {
     private boolean matchesPattern(String pattern, String value) {
         if ("*".equals(pattern)) {
             return true;
-        } else if (pattern.startsWith("*")) {
-            return value.endsWith(pattern.substring(1));
-        } else if (pattern.endsWith("*")) {
+        }
+
+        // e.g. *app
+        if (pattern.startsWith("*")) {
+            if (pattern.endsWith("*")) {
+                return value.contains(pattern.substring(1, pattern.length() - 1));
+            } else {
+                return value.endsWith(pattern.substring(1));
+            }
+        }
+
+        // e.g. app*
+        if (pattern.endsWith("*")) {
             return value.startsWith(pattern.substring(0, pattern.length() - 1));
         } else {
             return pattern.equals(value);
