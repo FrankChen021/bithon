@@ -82,6 +82,9 @@ public class AgentServiceProxyFactory {
     public <T> T create(Map<String, Object> context,
                         Class<T> agentServiceDeclaration) {
         // instance is a mandatory parameter
+        String application = (String) context.get(IAgentControllerApi.PARAMETER_NAME_APP_NAME);
+        Preconditions.checkNotNull(application, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_APP_NAME);
+
         String instance = (String) context.get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
         Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
@@ -96,8 +99,7 @@ public class AgentServiceProxyFactory {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
                                           new Class<?>[]{agentServiceDeclaration},
-                                          new AgentServiceInvoker(context,
-                                                                  invocationManager));
+                                          new AgentServiceInvoker(application, instance, context, invocationManager));
     }
 
     /**
@@ -108,10 +110,16 @@ public class AgentServiceProxyFactory {
 
         private final InvocationManager brpcInvocationManager;
         private final Map<String, Object> context;
+        private final String targetApplication;
+        private final String targetInstance;
 
-        private AgentServiceInvoker(Map<String, Object> context,
+        private AgentServiceInvoker(String targetApplication,
+                                    String targetInstance,
+                                    Map<String, Object> context,
                                     InvocationManager brpcInvocationManager) {
             this.brpcInvocationManager = brpcInvocationManager;
+            this.targetApplication = targetApplication;
+            this.targetInstance = targetInstance;
 
             // Make sure the context is modifiable because we're going to add token into the context
             this.context = new TreeMap<>(context);
@@ -128,8 +136,6 @@ public class AgentServiceProxyFactory {
                 context.put("X-Bithon-Token", authentication.getCredentials());
             }
 
-            String targetInstance = (String) context.getOrDefault(IAgentControllerApi.PARAMETER_NAME_INSTANCE, "");
-
             //
             // Find given agent instance on each controller
             //
@@ -139,7 +145,7 @@ public class AgentServiceProxyFactory {
             for (DiscoveredServiceInstance controller : controllerList) {
                 discoveryServiceInvoker.getExecutor()
                                        .submit(() -> discoveryServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controller)
-                                                                            .getAgentInstanceList(targetInstance))
+                                                                            .getAgentInstanceList(targetApplication, targetInstance))
                                        .thenAccept((returning) -> {
                                            List<Object[]> applicationInstanceList = returning.stream()
                                                                                              .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
@@ -167,7 +173,10 @@ public class AgentServiceProxyFactory {
             try {
                 return brpcInvocationManager.invoke("bithon-webservice",
                                                     Headers.EMPTY,
-                                                    new BrpcChannelOverHttp(connectedController.get(0), context),
+                                                    new BrpcChannelOverHttp(connectedController.get(0),
+                                                                            this.targetApplication,
+                                                                            this.targetInstance,
+                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
                                                     30_000,
                                                     agentServiceMethod,
                                                     args);
@@ -188,13 +197,19 @@ public class AgentServiceProxyFactory {
     }
 
     class BrpcChannelOverHttp implements IBrpcChannel {
-        private final DiscoveredServiceInstance proxyHost;
-        private final Map<String, Object> context;
+        private final DiscoveredServiceInstance controller;
+        private final String targetApplication;
+        private final String targetInstance;
+        private final String token;
 
-        public BrpcChannelOverHttp(DiscoveredServiceInstance proxyHost,
-                                   Map<String, Object> context) {
-            this.proxyHost = proxyHost;
-            this.context = context;
+        public BrpcChannelOverHttp(DiscoveredServiceInstance controller,
+                                   String targetApplication,
+                                   String targetInstance,
+                                   String token) {
+            this.controller = controller;
+            this.targetApplication = targetApplication;
+            this.targetInstance = targetInstance;
+            this.token = token;
         }
 
         @Override
@@ -214,7 +229,7 @@ public class AgentServiceProxyFactory {
 
         @Override
         public EndPoint getRemoteAddress() {
-            return new EndPoint(proxyHost.getHost(), proxyHost.getPort());
+            return new EndPoint(controller.getHost(), controller.getPort());
         }
 
         @Override
@@ -233,11 +248,12 @@ public class AgentServiceProxyFactory {
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
-                                                                                  .target(IAgentControllerApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
+                                                                                  .target(IAgentControllerApi.class, "http://" + controller.getHost() + ":" + controller.getPort());
 
                                               try {
-                                                  return proxyApi.callAgentService((String) context.getOrDefault("X-Bithon-Token", ""),
-                                                                                   (String) context.getOrDefault(IAgentControllerApi.PARAMETER_NAME_INSTANCE, ""),
+                                                  return proxyApi.callAgentService(token,
+                                                                                   targetApplication,
+                                                                                   targetInstance,
                                                                                    30_000,
                                                                                    message);
                                               } catch (IOException e) {

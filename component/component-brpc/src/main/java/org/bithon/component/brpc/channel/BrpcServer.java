@@ -147,6 +147,9 @@ public class BrpcServer implements Closeable {
         return sessionManager.getSessions();
     }
 
+    /**
+     * {@link SessionNotFoundException} will be thrown if the remote application is not connected to this server
+     */
     public Session getSession(String remoteAppId) {
         return sessionManager.getSessions()
                              .stream()

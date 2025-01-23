@@ -53,6 +53,7 @@ public class InstrumentedMethodTable extends AbstractBaseTable implements IPushd
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

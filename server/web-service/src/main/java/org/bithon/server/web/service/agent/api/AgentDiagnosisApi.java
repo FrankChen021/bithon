@@ -193,7 +193,7 @@ public class AgentDiagnosisApi {
                 return super.visit(call);
             }
 
-            String identifier = ((SqlIdentifier) identifierNode).getSimple().toLowerCase(Locale.ENGLISH);
+            String identifier = ((SqlIdentifier) identifierNode).getSimple();
             if (!pushDownPredicates.containsKey(identifier)) {
                 return super.visit(call);
             }

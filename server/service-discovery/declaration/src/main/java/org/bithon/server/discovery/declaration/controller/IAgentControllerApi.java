@@ -39,6 +39,7 @@ public interface IAgentControllerApi {
     /**
      * The two special parameters that will be extracted from the SQL and push down to the underlying query
      */
+    String PARAMETER_NAME_APP_NAME = "appName";
     String PARAMETER_NAME_INSTANCE = "instance";
 
     /**
@@ -67,7 +68,8 @@ public interface IAgentControllerApi {
      * @param instance The specific instance that callers want to get information about
      */
     @GetMapping("/api/agent/service/instances")
-    List<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
+    List<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_APP_NAME, required = false) String application,
+                                                   @RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
 
     /**
      * Call Brpc services provided at agent side over HTTP.
@@ -79,6 +81,7 @@ public interface IAgentControllerApi {
      */
     @PostMapping("/api/agent/service/proxy")
     byte[] callAgentService(@RequestHeader(name = "X-Bithon-Token", required = false) String token,
+                            @RequestParam(name = PARAMETER_NAME_APP_NAME) String application,
                             @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
                             @RequestParam(name = "timeout", required = false) Integer timeout,
                             @RequestBody byte[] message) throws IOException;

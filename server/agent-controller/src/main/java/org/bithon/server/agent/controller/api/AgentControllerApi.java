@@ -77,7 +77,7 @@ public class AgentControllerApi implements IAgentControllerApi {
     }
 
     @Override
-    public List<AgentInstanceRecord> getAgentInstanceList(String instance) {
+    public List<AgentInstanceRecord> getAgentInstanceList(String application, String instance) {
         return agentControllerServer.getBrpcServer()
                                     .getSessions()
                                     .stream()
@@ -103,14 +103,25 @@ public class AgentControllerApi implements IAgentControllerApi {
                                         record.setStartAt(new Timestamp(start).toLocalDateTime());
                                         return record;
                                     })
-                                    .filter((record) -> instance == null || instance.equals(record.getInstance()))
+                                    .filter((record) -> application == null || application.equals(record.getAppName())
+                                                                               && (instance == null || instance.equals(record.getInstance())))
                                     .collect(Collectors.toList());
     }
 
     @Override
-    public byte[] callAgentService(String token, String instance, Integer timeout, byte[] message) throws IOException {
+    public byte[] callAgentService(String token,
+                                   String application,
+                                   String instance,
+                                   Integer timeout,
+                                   byte[] message) throws IOException {
         // Get the session first
-        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer().getSession(instance);
+        BrpcServer.Session agentSession = agentControllerServer.getBrpcServer()
+                                                               .getSessions()
+                                                               .stream()
+                                                               .filter((session) -> application.equals(session.getRemoteApplicationName())
+                                                                                    && instance.equals(session.getRemoteAttribute(Headers.HEADER_APP_ID)))
+                                                               .findFirst()
+                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%d] ", application, instance));
 
         //
         // Parse input request stream so that we get the request object that the user is going to access

@@ -49,13 +49,13 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   ILoggingCommand.class)
+        return proxyFactory.create(executionContext.getParameters(), ILoggingCommand.class)
                            .getLoggers()
                            .stream()
                            .map(LoggerConfiguration::toObjects)
