@@ -80,10 +80,10 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
     }
 
     /**
-     * Create invoker for given interface.
+     * Create an invoker to broadcast the service call on all instances of remote service providers
      *
      * @param serviceDeclaration An interface which MUST be annotated by {@link DiscoverableService}.
-     *                           And each of methods must return a type of void
+     *                           And each of methods MUST return a type of void
      */
     public <T> T createBroadcastApi(Class<T> serviceDeclaration) {
         DiscoverableService metadata = serviceDeclaration.getAnnotation(DiscoverableService.class);
