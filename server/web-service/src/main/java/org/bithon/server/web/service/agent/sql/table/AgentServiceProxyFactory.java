@@ -163,7 +163,8 @@ public class AgentServiceProxyFactory {
             }
             if (connectedController.isEmpty()) {
                 throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
-                                                "Can't find agent instance [%s] on any controller",
+                                                "Can't find target application instance [appName = %s, instance = %s] on any controller",
+                                                targetApplication,
                                                 targetInstance);
             }
 
