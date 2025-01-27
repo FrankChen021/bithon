@@ -14,27 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.web.service.security;
 
-import lombok.Data;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 /**
- * @author Frank Chen
- * @date 8/9/23 4:35 pm
+ * @author frank.chen021@outlook.com
+ * @date 2025/1/27 21:46
  */
-@Data
-@Configuration
-@ConfigurationProperties("bithon.web.security")
-public class WebSecurityConfig {
-    private boolean enabled = false;
-
-    private OAuth2Config oauth2;
-
-    @Data
-    public static class OAuth2Config {
-        private OAuth2ClientProperties client;
-    }
+public interface IHttpSecurityCustomizer {
+    void customize(HttpSecurity httpSecurity) throws Exception;
 }

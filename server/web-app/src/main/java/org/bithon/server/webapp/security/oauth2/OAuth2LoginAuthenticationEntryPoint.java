@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.webapp.security.oauth2;
 
 import groovy.util.logging.Slf4j;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.web.service.security.cookie.CookieHelper;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -30,12 +31,12 @@ import java.time.Duration;
  * @date 8/9/23 3:28 pm
  */
 @Slf4j
-public class LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+public class OAuth2LoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
     public static final long MAX_AGE = Duration.ofDays(7).getSeconds();
 
     public static final String LOGIN_REDIRECT = "login_redirect";
 
-    public LoginAuthenticationEntryPoint(String loginFormUrl) {
+    public OAuth2LoginAuthenticationEntryPoint(String loginFormUrl) {
         super(loginFormUrl);
     }
 

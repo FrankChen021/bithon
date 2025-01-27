@@ -19,8 +19,7 @@ package org.bithon.server.webapp.security.oauth2;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.webapp.security.CookieHelper;
-import org.bithon.server.webapp.security.LoginAuthenticationEntryPoint;
+import org.bithon.server.web.service.security.cookie.CookieHelper;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -57,7 +56,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         // If the cookie exists at the client side, it will be overwritten
         CookieHelper.Builder.newCookie(AUTHORIZATION_REQUEST_COOKIE_NAME, serialize(authorizationRequest))
                             .path("/")
-                            .expiration(LoginAuthenticationEntryPoint.MAX_AGE)
+                            .expiration(OAuth2LoginAuthenticationEntryPoint.MAX_AGE)
                             .addTo(response);
     }
 

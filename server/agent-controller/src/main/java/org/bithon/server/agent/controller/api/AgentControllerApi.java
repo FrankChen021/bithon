@@ -34,9 +34,9 @@ import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.agent.controller.service.AgentControllerServer;
 import org.bithon.server.agent.controller.service.AgentSettingLoader;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.bithon.server.commons.security.JwtConfig;
-import org.bithon.server.commons.security.JwtTokenComponent;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.security.jwt.JwtConfig;
+import org.bithon.server.web.service.security.jwt.JwtTokenComponent;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -140,8 +140,8 @@ public class AgentControllerApi implements IAgentControllerApi {
                 Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);
                 if (parsedToken == null) {
                     // Use HTTP 403 instead of 401
-                    // because feign client is not able to read response body when 401 is returned.
-                    // don't know why
+                    // Because the feign client is not able to read response body when 401 is returned.
+                    // Don't know why
                     throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
                                                     "Invalid token provided to perform the operation on the agent of target application.");
 

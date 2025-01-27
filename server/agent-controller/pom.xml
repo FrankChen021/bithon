@@ -62,6 +62,14 @@
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
 
+    <!--
+      Controller API requires JWT security
+    -->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-web-service-security</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
