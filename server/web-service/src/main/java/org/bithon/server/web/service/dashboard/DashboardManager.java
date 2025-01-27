@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.services;
+package org.bithon.server.web.service.dashboard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.web.Dashboard;
 import org.bithon.server.storage.web.IDashboardStorage;
-import org.bithon.server.webapp.WebAppModuleEnabler;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@Conditional(value = WebAppModuleEnabler.class)
+@Conditional(WebServiceModuleEnabler.class)
 public class DashboardManager implements SmartLifecycle {
 
     public interface IDashboardChangedListener {

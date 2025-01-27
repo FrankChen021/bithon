@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.ui;
+package org.bithon.server.web.service.dashboard;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,8 +26,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.web.Dashboard;
-import org.bithon.server.webapp.WebAppModuleEnabler;
-import org.bithon.server.webapp.services.DashboardManager;
+import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -55,7 +54,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @CrossOrigin
 @RestController
-@Conditional(value = WebAppModuleEnabler.class)
+@Conditional(WebServiceModuleEnabler.class)
 public class DashboardController {
 
     private final DashboardManager dashboardManager;
@@ -97,7 +96,7 @@ public class DashboardController {
                                              .collect(Collectors.toList());
     }
 
-    @GetMapping("/web/api/dashboard/names")
+    @GetMapping("/api/dashboard/names")
     public List<DisplayableText> getDashboardNames(@RequestParam(value = "folder", required = false) String folder) {
         if (dashboardList == null) {
             // no need to sync because it's acceptable
@@ -110,7 +109,7 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/web/api/dashboard/all")
+    @GetMapping("/api/dashboard/all")
     public void getAllDashboards(HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
@@ -141,7 +140,7 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/web/api/dashboard/get/{name}")
+    @GetMapping("/api/dashboard/get/{name}")
     public void getDashboard(@PathVariable("name") String name, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
@@ -156,7 +155,7 @@ public class DashboardController {
         }
     }
 
-    @PostMapping("/web/api/dashboard/update")
+    @PostMapping("/api/dashboard/update")
     public void updateDashboard(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         JsonNode dashboard;
