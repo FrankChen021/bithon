@@ -22,8 +22,8 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
 import org.bithon.server.storage.jdbc.postgresql.TableCreator;
-import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 
 /**
  * @author frank.chen021@outlook.com

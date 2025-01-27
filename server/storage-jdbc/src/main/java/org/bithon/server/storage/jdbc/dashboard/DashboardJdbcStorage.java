@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.web;
+package org.bithon.server.storage.jdbc.dashboard;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.HashUtils;
+import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.DashboardStorageConfig;
+import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.dashboard.Dashboard;
-import org.bithon.server.storage.dashboard.IDashboardStorage;
-import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.dao.DuplicateKeyException;
