@@ -146,7 +146,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                 // because feign client is not able to read response body when 401 is returned.
                 // don't know why
                 throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "Invalid token provided to perform the operation on agent.");
+                                                "Invalid token provided to perform the operation on the agent of target application.");
             }
 
             // Verify if the given token matches
@@ -156,7 +156,12 @@ public class AgentControllerApi implements IAgentControllerApi {
             permissionConfig.verifyPermission(operation,
                                               user,
                                               agentSession.getRemoteApplicationName(),
-                                              rawRequest.getServiceName());
+                                              // Previously,
+                                              // some data sources is defined from one remote service like IJvmCommand
+                                              // if we want to limit the access to one data source, we have to use the service name combined with the method name
+                                              // From this point of view, at the agent side, each data source should be defined as a separate service
+                                              // But now, changing/adding service name at the agent side is not easy which requires all target applications to be updated
+                                              rawRequest.getServiceName() + "#" + rawRequest.getMethodName());
         }
 
         // Turn the input request stream to the request that is going to send to remote
