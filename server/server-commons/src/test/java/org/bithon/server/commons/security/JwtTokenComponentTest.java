@@ -14,14 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp;
+package org.bithon.server.commons.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.webapp.security.JwtTokenComponent;
-import org.bithon.server.webapp.security.WebSecurityConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +36,7 @@ public class JwtTokenComponentTest {
 
     @Before
     public void before() {
-        component = new JwtTokenComponent(new WebSecurityConfig());
+        component = new JwtTokenComponent(new JwtConfig());
     }
 
     @Test

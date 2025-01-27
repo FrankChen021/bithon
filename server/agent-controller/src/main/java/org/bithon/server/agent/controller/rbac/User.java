@@ -14,27 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.agent.controller.rbac;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * @author Frank Chen
- * @date 8/9/23 4:35 pm
+ * @author frank.chen021@outlook.com
+ * @date 23/1/25 9:57 am
  */
 @Data
-@Configuration
-@ConfigurationProperties("bithon.web.security")
-public class WebSecurityConfig {
-    private boolean enabled = false;
-
-    private OAuth2Config oauth2;
-
-    @Data
-    public static class OAuth2Config {
-        private OAuth2ClientProperties client;
-    }
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    private String name;
+    private List<Permission> permissions;
+    private List<Role> roles;
 }

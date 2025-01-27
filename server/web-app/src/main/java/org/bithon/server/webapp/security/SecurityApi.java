@@ -24,6 +24,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.security.JwtConfig;
+import org.bithon.server.commons.security.JwtTokenComponent;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,10 +49,10 @@ import java.util.Collections;
 @ConditionalOnProperty(value = "bithon.web.security.enabled", havingValue = "true")
 public class SecurityApi {
 
-    private final WebSecurityConfig securityConfig;
+    private final JwtConfig jwtConfig;
 
-    public SecurityApi(WebSecurityConfig securityConfig) {
-        this.securityConfig = securityConfig;
+    public SecurityApi(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
     }
 
     @Data
@@ -68,10 +70,10 @@ public class SecurityApi {
     public String createToken(@Validated @RequestBody CreateTokenRequest request) {
         String currentUser = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return new JwtTokenComponent(securityConfig).createToken(request.issueTo,
-                                                                 Collections.emptyList(),
-                                                                 currentUser,
-                                                                 request.validity.getDuration());
+        return new JwtTokenComponent(jwtConfig).createToken(request.issueTo,
+                                                            Collections.emptyList(),
+                                                            currentUser,
+                                                            request.validity.getDuration());
     }
 
     @Data
@@ -98,7 +100,7 @@ public class SecurityApi {
         }
 
         try {
-            JwtTokenComponent tokenComponent = new JwtTokenComponent(securityConfig);
+            JwtTokenComponent tokenComponent = new JwtTokenComponent(jwtConfig);
             Jws<Claims> parsedToken = tokenComponent.parseToken(token);
             return GetTokenValidityResponse.builder()
                                            .expiredAt(TimeSpan.of(tokenComponent.getExpirationTimestamp(parsedToken)).toISO8601())

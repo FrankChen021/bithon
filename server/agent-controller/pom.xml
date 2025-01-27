@@ -61,6 +61,12 @@
       <groupId>org.bithon.server</groupId>
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.commons.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
@@ -40,9 +41,9 @@ public class JwtTokenComponent {
     private final SecretKey signKey;
     private final long globalValidityMilliseconds;
 
-    public JwtTokenComponent(WebSecurityConfig securityConfig) {
-        this.signKey = Keys.hmacShaKeyFor(securityConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
-        this.globalValidityMilliseconds = securityConfig.getJwtTokenValiditySeconds() * 1000L;
+    public JwtTokenComponent(JwtConfig jwtConfig) {
+        this.signKey = Keys.hmacShaKeyFor(jwtConfig.getJwtTokenSignKey().getBytes(StandardCharsets.UTF_8));
+        this.globalValidityMilliseconds = jwtConfig.getJwtTokenValiditySeconds() * 1000L;
     }
 
     /**
@@ -53,6 +54,21 @@ public class JwtTokenComponent {
                    .setSigningKey(signKey)
                    .build()
                    .parseClaimsJws(tokenText);
+    }
+
+    /**
+     * Try to parse and return a valid token
+     */
+    public Jws<Claims> tryParseToken(String tokenText) {
+        try {
+            Jws<Claims> token = Jwts.parserBuilder()
+                                    .setSigningKey(signKey)
+                                    .build()
+                                    .parseClaimsJws(tokenText);
+            return isValidToken(token) ? token : null;
+        } catch (ExpiredJwtException ignored) {
+            return null;
+        }
     }
 
     public String createToken(String name, Collection<? extends GrantedAuthority> authorities) {

@@ -19,6 +19,8 @@ package org.bithon.server.webapp.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.security.JwtConfig;
+import org.bithon.server.commons.security.JwtTokenComponent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -36,9 +38,9 @@ import java.util.Map;
  */
 public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenComponent jwtTokenComponent;
-    private final WebSecurityConfig securityConfig;
+    private final JwtConfig securityConfig;
 
-    public AuthSuccessHandler(JwtTokenComponent jwtTokenComponent, WebSecurityConfig securityConfig) {
+    public AuthSuccessHandler(JwtTokenComponent jwtTokenComponent, JwtConfig securityConfig) {
         this.jwtTokenComponent = jwtTokenComponent;
         this.securityConfig = securityConfig;
     }

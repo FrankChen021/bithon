@@ -3,9 +3,14 @@ bithon:
     enabled: true
     port: 9899
     permission:
-      rules:
-        - application:
-            type: startwith
-            pattern: bithon-
-          authorizations:
-            - "525"
+      # The following define a global rule to ALLOW any operation from any user.
+      # Refer to the PermissionConfig to know more about the configuration
+      enabled: true
+      rbac:
+        users:
+          - name: "anonymousUser"
+            permissions:
+              - operation: RW
+                resource: "*"
+                application: "*"
+

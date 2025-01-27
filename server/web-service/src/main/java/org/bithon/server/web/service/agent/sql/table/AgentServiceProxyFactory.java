@@ -30,6 +30,7 @@ import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
@@ -38,6 +39,7 @@ import org.bithon.server.discovery.client.ErrorResponseDecoder;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -47,14 +49,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A factory that creates a proxy to call Agent side BRPC service over an HTTP-based proxy server
@@ -82,6 +82,9 @@ public class AgentServiceProxyFactory {
     public <T> T create(Map<String, Object> context,
                         Class<T> agentServiceDeclaration) {
         // instance is a mandatory parameter
+        String application = (String) context.get(IAgentControllerApi.PARAMETER_NAME_APP_NAME);
+        Preconditions.checkNotNull(application, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_APP_NAME);
+
         String instance = (String) context.get(IAgentControllerApi.PARAMETER_NAME_INSTANCE);
         Preconditions.checkNotNull(instance, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_INSTANCE);
 
@@ -96,26 +99,27 @@ public class AgentServiceProxyFactory {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
                                           new Class<?>[]{agentServiceDeclaration},
-                                          new AgentServiceBroadcastInvoker(IAgentControllerApi.class,
-                                                                           context,
-                                                                           invocationManager));
+                                          new AgentServiceInvoker(application, instance, context, invocationManager));
     }
 
     /**
-     * Invoke the agent service on ALL proxy servers,
+     * Invoke the agent service on a target proxy servers,
      * and the proxy server is responsible for invoking agent service on given agent
      */
-    private class AgentServiceBroadcastInvoker implements InvocationHandler {
+    private class AgentServiceInvoker implements InvocationHandler {
 
-        private final InvocationManager invocationManager;
-        private final Class<?> proxyService;
+        private final InvocationManager brpcInvocationManager;
         private final Map<String, Object> context;
+        private final String targetApplication;
+        private final String targetInstance;
 
-        private AgentServiceBroadcastInvoker(Class<?> proxyService,
-                                             Map<String, Object> context,
-                                             InvocationManager invocationManager) {
-            this.proxyService = proxyService;
-            this.invocationManager = invocationManager;
+        private AgentServiceInvoker(String targetApplication,
+                                    String targetInstance,
+                                    Map<String, Object> context,
+                                    InvocationManager brpcInvocationManager) {
+            this.brpcInvocationManager = brpcInvocationManager;
+            this.targetApplication = targetApplication;
+            this.targetInstance = targetInstance;
 
             // Make sure the context is modifiable because we're going to add token into the context
             this.context = new TreeMap<>(context);
@@ -124,7 +128,7 @@ public class AgentServiceProxyFactory {
         @Override
         public Object invoke(Object object,
                              Method agentServiceMethod,
-                             Object[] args) throws Throwable {
+                             Object[] args) {
             // Since the real invocation is issued from a dedicated thread-pool,
             // to make sure the task in that thread pool can access the security context, we have to explicitly
             Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
@@ -132,73 +136,81 @@ public class AgentServiceProxyFactory {
                 context.put("X-Bithon-Token", authentication.getCredentials());
             }
 
-            // Get all service provider instance from the service discovery center
-            List<DiscoveredServiceInstance> proxyServerList = discoveryServiceInvoker.getInstanceList(proxyService);
-
             //
-            // Invoke remote service on each proxy server
+            // Find given agent instance on each controller
             //
-            List<Future<Collection<?>>> futures = new ArrayList<>(proxyServerList.size());
-            for (DiscoveredServiceInstance proxyServer : proxyServerList) {
-                futures.add(discoveryServiceInvoker.getExecutor().submit(() -> {
-                    try {
-                        // The agent's Brpc services MUST return a type of Collection
-                        return (Collection<?>) invocationManager.invoke("bithon-webservice",
-                                                                        Headers.EMPTY,
-                                                                        new BrpcChannelOverHttp(proxyServer, context),
-                                                                        30_000,
-                                                                        agentServiceMethod,
-                                                                        args);
-                    } catch (HttpMappableException e) {
-                        if (SessionNotFoundException.class.getName().equals(e.getCauseExceptionClass())) {
-                            // We're issuing broadcast invocations on all proxy servers,
-                            // but there will be only one proxy server that connects to the target agent instance.
-                            // For any other proxy servers, a SessionNotFoundException is thrown which should be ignored.
-                            return Collections.emptyList();
-                        }
-                        throw e;
-                    } catch (RuntimeException e) {
-                        throw e;
-                    } catch (Throwable e) {
-                        throw new RuntimeException(e);
-                    }
-                }));
+            List<DiscoveredServiceInstance> connectedController = Collections.synchronizedList(new ArrayList<>());
+            List<DiscoveredServiceInstance> controllerList = discoveryServiceInvoker.getInstanceList(IAgentControllerApi.class);
+            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+            for (DiscoveredServiceInstance controller : controllerList) {
+                discoveryServiceInvoker.getExecutor()
+                                       .submit(() -> discoveryServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controller)
+                                                                            .getAgentInstanceList(targetApplication, targetInstance))
+                                       .thenAccept((returning) -> {
+                                           List<Object[]> applicationInstanceList = returning.stream()
+                                                                                             .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
+                                                                                             .toList();
+                                           if (CollectionUtils.isNotEmpty(applicationInstanceList)) {
+                                               connectedController.add(controller);
+                                           }
+                                       })
+                                       .whenComplete((ret, ex) -> countDownLatch.countDown());
+            }
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (connectedController.isEmpty()) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                                "Can't find target application instance [appName = %s, instance = %s] on any controller",
+                                                targetApplication,
+                                                targetInstance);
             }
 
-            // Since the deserialized rows object might be unmodifiable, we always create a new array to hold the final result
-            //noinspection rawtypes
-            List mergedResults = new ArrayList<>();
-
             //
-            // Merge the result
+            // Invoke agent service via an controller
             //
-            for (Future<Collection<?>> future : futures) {
-                try {
-                    Collection<?> response = future.get();
-
-                    // Merge response
-                    // noinspection unchecked
-                    mergedResults.addAll(response);
-                } catch (InterruptedException | ExecutionException e) {
-                    if (e.getCause() instanceof RuntimeException) {
-                        throw e.getCause();
-                    }
-                    throw new RuntimeException(e);
+            try {
+                return brpcInvocationManager.invoke("bithon-webservice",
+                                                    Headers.EMPTY,
+                                                    new BrpcChannelOverHttp(connectedController.get(0),
+                                                                            this.targetApplication,
+                                                                            this.targetInstance,
+                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
+                                                    30_000,
+                                                    agentServiceMethod,
+                                                    args);
+            } catch (HttpMappableException e) {
+                if (SessionNotFoundException.class.getName().equals(e.getCauseExceptionClass())) {
+                    // We're issuing broadcast invocations on all proxy servers,
+                    // but there will be only one proxy server that connects to the target agent instance.
+                    // For any other proxy servers, a SessionNotFoundException is thrown which should be ignored.
+                    return Collections.emptyList();
                 }
+                throw e;
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-
-            return mergedResults;
         }
     }
 
     class BrpcChannelOverHttp implements IBrpcChannel {
-        private final DiscoveredServiceInstance proxyHost;
-        private final Map<String, Object> context;
+        private final DiscoveredServiceInstance controller;
+        private final String targetApplication;
+        private final String targetInstance;
+        private final String token;
 
-        public BrpcChannelOverHttp(DiscoveredServiceInstance proxyHost,
-                                   Map<String, Object> context) {
-            this.proxyHost = proxyHost;
-            this.context = context;
+        public BrpcChannelOverHttp(DiscoveredServiceInstance controller,
+                                   String targetApplication,
+                                   String targetInstance,
+                                   String token) {
+            this.controller = controller;
+            this.targetApplication = targetApplication;
+            this.targetInstance = targetInstance;
+            this.token = token;
         }
 
         @Override
@@ -218,7 +230,7 @@ public class AgentServiceProxyFactory {
 
         @Override
         public EndPoint getRemoteAddress() {
-            return new EndPoint(proxyHost.getHost(), proxyHost.getPort());
+            return new EndPoint(controller.getHost(), controller.getPort());
         }
 
         @Override
@@ -237,17 +249,12 @@ public class AgentServiceProxyFactory {
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
-                                                                                  .requestInterceptor(template -> {
-                                                                                      Object token = context.get("X-Bithon-Token");
-                                                                                      if (token != null) {
-                                                                                          template.header("X-Bithon-Token", token.toString());
-                                                                                      }
-                                                                                  })
-                                                                                  .target(IAgentControllerApi.class, "http://" + proxyHost.getHost() + ":" + proxyHost.getPort());
+                                                                                  .target(IAgentControllerApi.class, "http://" + controller.getHost() + ":" + controller.getPort());
 
                                               try {
-                                                  return proxyApi.callAgentService((String) context.getOrDefault("_token", ""),
-                                                                                   (String) context.getOrDefault(IAgentControllerApi.PARAMETER_NAME_INSTANCE, ""),
+                                                  return proxyApi.callAgentService(token,
+                                                                                   targetApplication,
+                                                                                   targetInstance,
                                                                                    30_000,
                                                                                    message);
                                               } catch (IOException e) {

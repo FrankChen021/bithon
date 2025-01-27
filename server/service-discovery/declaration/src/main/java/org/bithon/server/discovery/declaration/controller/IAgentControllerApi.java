@@ -39,9 +39,8 @@ public interface IAgentControllerApi {
     /**
      * The two special parameters that will be extracted from the SQL and push down to the underlying query
      */
+    String PARAMETER_NAME_APP_NAME = "appName";
     String PARAMETER_NAME_INSTANCE = "instance";
-
-    String PARAMETER_NAME_TOKEN = "_token";
 
     /**
      * Declare all fields as public to treat it as a record
@@ -54,10 +53,12 @@ public interface IAgentControllerApi {
         public String endpoint;
         public String controller;
         public String agentVersion;
+        public String buildId;
+        public String buildTime;
         public LocalDateTime startAt;
 
         public Object[] toObjectArray() {
-            return new Object[]{appName, instance, endpoint, controller, agentVersion, startAt};
+            return new Object[]{appName, instance, endpoint, controller, agentVersion, buildId, buildTime, startAt};
         }
     }
 
@@ -67,7 +68,8 @@ public interface IAgentControllerApi {
      * @param instance The specific instance that callers want to get information about
      */
     @GetMapping("/api/agent/service/instances")
-    List<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
+    List<AgentInstanceRecord> getAgentInstanceList(@RequestParam(name = PARAMETER_NAME_APP_NAME, required = false) String application,
+                                                   @RequestParam(name = PARAMETER_NAME_INSTANCE, required = false) String instance);
 
     /**
      * Call Brpc services provided at agent side over HTTP.
@@ -75,10 +77,11 @@ public interface IAgentControllerApi {
      * @param instance the target client instance that the request will be sent to.
      * @param token    For WRITE operations (the method name does not start with 'get' or 'dump'), the token is required.
      * @param timeout  timeout value in milliseconds
-     * @param message message bytes serialized from ServiceRequestMessageOut
+     * @param message  message bytes serialized from ServiceRequestMessageOut
      */
     @PostMapping("/api/agent/service/proxy")
-    byte[] callAgentService(@RequestHeader(name = "token", required = false) String token,
+    byte[] callAgentService(@RequestHeader(name = "X-Bithon-Token", required = false) String token,
+                            @RequestParam(name = PARAMETER_NAME_APP_NAME) String application,
                             @RequestParam(name = PARAMETER_NAME_INSTANCE) String instance,
                             @RequestParam(name = "timeout", required = false) Integer timeout,
                             @RequestBody byte[] message) throws IOException;

@@ -16,13 +16,10 @@
 
 package org.bithon.server.agent.controller.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.server.agent.controller.rbac.Operation;
 import org.springframework.http.HttpStatus;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A simple permission control on SET/WRITE commands to agent to ensure safety.
@@ -33,23 +30,20 @@ import java.util.List;
 @Data
 public class PermissionConfig {
 
-    private List<PermissionRule> rules = Collections.emptyList();
+    private boolean enabled;
+    private RbacConfig rbac;
 
-    public void verifyPermission(ObjectMapper objectMapper, String application, String authorization) {
-        List<PermissionRule> applicationRules = this.rules.stream()
-                                                          .filter((rule) -> rule.getApplicationMatcher(objectMapper).matches(application))
-                                                          .toList();
-        if (applicationRules.isEmpty()) {
-            throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                            "No permission rule is defined for application [%s].",
-                                            application);
-        }
+    public void verifyPermission(Operation operation,
+                                 String user,
+                                 String application,
+                                 String resourceName) {
 
-        boolean permitted = applicationRules.stream().anyMatch((rule) -> rule.getAuthorizations() != null && rule.getAuthorizations().contains(authorization));
-        if (!permitted) {
+        if (rbac != null && !rbac.isPermitted(operation, user, application, resourceName)) {
             throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                            "Given authorization [%s] does not match existing permission rule for WRITE operation on application [%s]",
-                                            authorization,
+                                            "No permission rule defined for [%s] to perform [%s] on resource [%s] in application [%s]. Contact the ADMIN to grant permission.",
+                                            user,
+                                            operation,
+                                            resourceName,
                                             application);
         }
     }
