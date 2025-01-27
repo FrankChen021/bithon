@@ -39,7 +39,7 @@ bithon:
     setting:
       provider: h2-local
       enabled: true
-    web:
+    dashboard:
       provider: h2-local
 
     alerting:

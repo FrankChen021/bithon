@@ -32,7 +32,7 @@ bithon:
       provider: h2-1
       enabled: true
 
-    web:
+    dashboard:
       provider: mysql-1
 
     providers:

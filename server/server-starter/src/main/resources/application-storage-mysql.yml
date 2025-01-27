@@ -35,7 +35,7 @@ bithon:
     setting:
       provider: mysql-local
       enabled: true
-    web:
+    dashboard:
       provider: mysql-local
 
     alerting:

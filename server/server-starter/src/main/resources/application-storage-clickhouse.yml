@@ -34,9 +34,9 @@ bithon:
     setting:
       provider: clickhouse
       enabled: true
-    web:
+    dashboard:
       provider: clickhouse
-      type: clickhouse
+      enabled: true
 
     alerting:
       all:
