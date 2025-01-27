@@ -4,35 +4,39 @@
 bithon:
   storage:
     tracing:
-      provider: ck
       enabled: true
+      provider: ck
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     metric:
-      provider: ck
       enabled: true
+      provider: ck
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     event:
-      provider: ck
       enabled: true
+      provider: ck
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     meta:
-      provider: ck
       enabled: true
+      provider: ck
 
     setting:
-      provider: h2-1
       enabled: true
+      provider: h2-1
 
     dashboard:
+      enabled: true
       provider: mysql-1
 
     providers:

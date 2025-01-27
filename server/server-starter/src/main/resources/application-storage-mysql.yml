@@ -5,37 +5,43 @@
 bithon:
   storage:
     tracing:
-      provider: mysql-local
       enabled: true
+      provider: mysql-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+
     metric:
-      provider: mysql-local
       enabled: true
+      provider: mysql-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+
     event:
-      provider: mysql-local
       enabled: true
+      provider: mysql-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+
     meta:
-      provider: mysql-local
       enabled: true
+      provider: mysql-local
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
+
     setting:
-      provider: mysql-local
       enabled: true
+      provider: mysql-local
+
     dashboard:
+      enabled: true
       provider: mysql-local
 
     alerting:

@@ -5,8 +5,8 @@
 bithon:
   storage:
     tracing:
-      provider: h2-local
       enabled: true
+      provider: h2-local
       ttl:
         enabled: true
         ttl: P1D
@@ -16,30 +16,31 @@ bithon:
         map:
           "[http.method]": 1
     metric:
-      provider: h2-local
       enabled: true
+      provider: h2-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     event:
-      provider: h2-local
       enabled: true
+      provider: h2-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
     meta:
-      provider: h2-local
       enabled: true
+      provider: h2-local
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
     setting:
-      provider: h2-local
       enabled: true
+      provider: h2-local
     dashboard:
+      enabled: true
       provider: h2-local
 
     alerting:

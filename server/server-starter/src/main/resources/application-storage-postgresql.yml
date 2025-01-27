@@ -5,8 +5,8 @@
 bithon:
   storage:
     tracing:
-      provider: postgres-local
       enabled: true
+      provider: postgres-local
       ttl:
         enabled: true
         ttl: P1D
@@ -15,31 +15,37 @@ bithon:
         # A demo of how the index works, can be removed in production
         map:
           "[http.method]": 1
+
     metric:
-      provider: postgres-local
       enabled: true
+      provider: postgres-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+
     event:
-      provider: postgres-local
       enabled: true
+      provider: postgres-local
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT1M
+
     meta:
-      provider: postgres-local
       enabled: true
+      provider: postgres-local
       ttl:
         enabled: true
         ttl: PT5M
         cleanPeriod: PT1M
+
     setting:
-      provider: postgres-local
       enabled: true
+      provider: postgres-local
+
     dashboard:
+      enabled: true
       provider: postgres-local
 
     alerting:
