@@ -23,12 +23,6 @@
       <artifactId>spring-cloud-starter</artifactId>
     </dependency>
 
-    <!-- Feign, use feign to call remote service -->
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-openfeign</artifactId>
-    </dependency>
-
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
