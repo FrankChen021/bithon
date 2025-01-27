@@ -68,8 +68,11 @@ public class SecurityAutoConfiguration {
         // For simplicity, we just disable the frame option in global.
         httpSecurity.headers((c) -> c.frameOptions((HeadersConfigurer.FrameOptionsConfig::disable)));
 
+        //
+        // Since the Spring Security has been introduced,
+        // We have to configure the security to PERMIT all if the security is disabled by configuration
+        //
         if (!isSecurityEnabled) {
-            // Permit all
             return httpSecurity.csrf(c -> {
                 try {
                     c.disable().authorizeHttpRequests(r -> r.anyRequest().permitAll());

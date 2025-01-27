@@ -11,3 +11,4 @@ spring:
       - application-storage-h2.yml
       - application-webapp.yml
       - application-alerting.yml
+      - application-security.yml
