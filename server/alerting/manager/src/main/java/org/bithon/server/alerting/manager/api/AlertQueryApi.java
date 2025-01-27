@@ -45,8 +45,8 @@ import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRespons
 import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
 import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
-import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
 import org.bithon.server.commons.autocomplete.Suggestion;
+import org.bithon.server.commons.json.JsonPayloadFormatter;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;

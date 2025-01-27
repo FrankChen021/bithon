@@ -26,7 +26,9 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
+import org.bithon.server.agent.controller.config.PermissionConfig;
 import org.bithon.server.agent.controller.rbac.Operation;
+import org.bithon.server.commons.json.JsonPayloadFormatter;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.storage.setting.ISettingReader;
@@ -45,8 +47,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
+ * Manage agent configurations of target applications.
+ * These configuration are stored in a persistent storage and can be retrieved by agents via the {@link IAgentController} service.
+ *
  * @author Frank Chen
  * @date 26/1/24 1:03 pm
  */
@@ -56,16 +62,16 @@ import java.util.List;
 public class AgentConfigurationApi {
 
     private final ISettingStorage settingStorage;
-    private final ObjectMapper objectMapper;
     private final AgentControllerConfig agentControllerConfig;
     private final IAgentControllerApi agentControllerApi;
+    private final ObjectMapper objectMapper;
 
-    public AgentConfigurationApi(ISettingStorage settingStorage,
-                                 ObjectMapper objectMapper,
+    public AgentConfigurationApi(ObjectMapper objectMapper,
+                                 ISettingStorage settingStorage,
                                  AgentControllerConfig agentControllerConfig,
                                  DiscoveredServiceInvoker discoveredServiceInvoker) {
-        this.settingStorage = settingStorage;
         this.objectMapper = objectMapper;
+        this.settingStorage = settingStorage;
         this.agentControllerConfig = agentControllerConfig;
         this.agentControllerApi = discoveredServiceInvoker.createBroadcastApi(IAgentControllerApi.class);
     }
@@ -80,25 +86,49 @@ public class AgentConfigurationApi {
          */
         private String environment;
 
+        /**
+         * payload format. JSON or YAML
+         */
         private String format = "default";
     }
 
     @PostMapping("/api/agent/configuration/get")
     public List<ISettingReader.SettingEntry> getConfiguration(@RequestBody GetRequest request) {
-        List<ISettingReader.SettingEntry> perAppSetting = settingStorage.createReader()
-                                                                        .getSettings(request.getAppName().trim());
+        // Transform payload to request format
+        Function<List<ISettingReader.SettingEntry>, List<ISettingReader.SettingEntry>> formatTransformer =
+            request.getFormat() == null || "default".equals(request.getFormat()) ?
+                Function.identity() :
+                settings -> {
+                    for (ISettingReader.SettingEntry entry : settings) {
+                        if ("yaml".equals(request.getFormat())) {
+                            // request format is YAML, convert JSON to YAML if necessary
+                            if ("json".equals(entry.getFormat())) {
+                                entry.setValue(JsonPayloadFormatter.YAML.format(entry.getValue(), objectMapper, null));
+                                entry.setFormat("yaml");
+                            }
+                        } else {
+                            // request format is JSON, convert YAML to JSON if necessary
+                            if ("yaml".equals(entry.getFormat())) {
+                                entry.setValue(JsonPayloadFormatter.JSON.format(entry.getValue(), objectMapper, null));
+                                entry.setFormat("json");
+                            }
+                        }
+                    }
+                    return settings;
+                };
 
-        if (StringUtils.isBlank(request.getEnvironment())) {
-            return perAppSetting;
+        List<ISettingReader.SettingEntry> settings = settingStorage.createReader()
+                                                                   .getSettings(request.getAppName().trim());
+
+        if (!StringUtils.isBlank(request.getEnvironment())) {
+            List<ISettingReader.SettingEntry> perEnvSetting = settingStorage.createReader()
+                                                                            .getSettings(request.getAppName().trim(),
+                                                                                         request.getEnvironment().trim());
+
+            settings.addAll(perEnvSetting);
         }
 
-        List<ISettingReader.SettingEntry> perEnvSetting = settingStorage.createReader()
-                                                                        .getSettings(request.getAppName().trim(),
-                                                                                     request.getEnvironment().trim());
-
-        perAppSetting.addAll(perEnvSetting);
-
-        return perAppSetting;
+        return formatTransformer.apply(settings);
     }
 
     @Data
@@ -121,6 +151,10 @@ public class AgentConfigurationApi {
         private String format;
     }
 
+    /**
+     * @param token Optional. If it's given, it's the token that's created by /api/security/token/create API
+     *              If it's not given, current user is used for authorization
+     */
     @PostMapping("/api/agent/configuration/add")
     public void addConfiguration(@RequestHeader(value = "token", required = false) String token,
                                  @Validated @RequestBody AddRequest request) {
@@ -142,13 +176,12 @@ public class AgentConfigurationApi {
         }
 
         String application = request.getAppName().trim();
+
+        verifyPermission(application, token);
+
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-
-        this.agentControllerConfig.getPermission()
-                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), application, "agent.setting");
-
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
 
@@ -180,13 +213,11 @@ public class AgentConfigurationApi {
         }
 
         String application = request.getAppName().trim();
+        verifyPermission(application, token);
+
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-
-        this.agentControllerConfig.getPermission()
-                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), application, "agent.setting");
-
         Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
         Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
 
@@ -211,8 +242,7 @@ public class AgentConfigurationApi {
     @PostMapping("/api/agent/configuration/delete")
     public void deleteConfiguration(@RequestHeader(value = "token", required = false) String token,
                                     @Validated @RequestBody DeleteRequest request) {
-        this.agentControllerConfig.getPermission()
-                                  .verifyPermission(Operation.WRITE, getUserOrToken(token), request.getAppName(), "agent.setting");
+        verifyPermission(request.getAppName(), token);
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
@@ -225,20 +255,30 @@ public class AgentConfigurationApi {
         this.agentControllerApi.updateAgentSetting(appName, env);
     }
 
-    private String getUserOrToken(String token) {
-        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-        String principal = authentication == null ? null : (String) authentication.getPrincipal();
-        if (principal == null || "anonymousUser".equals(principal)) {
-            if (token == null) {
-                throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                "No user or token provided for authorization to perform this operation.");
-            }
-
-            // Use token-based authorization
-            return token;
+    private void verifyPermission(String application, String explicitGivenToken) {
+        PermissionConfig permissionConfig = this.agentControllerConfig.getPermission();
+        if (permissionConfig == null || !permissionConfig.isEnabled()) {
+            return;
         }
 
-        // Use user-based-authorization
-        return principal;
+        if (!StringUtils.isEmpty(explicitGivenToken)) {
+            this.agentControllerConfig.getPermission()
+                                      .verifyPermission(Operation.WRITE, explicitGivenToken, application, "agent.setting");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "No user or token provided for authorization to perform this operation.");
+        }
+        if ("anonymousUser".equals(authentication.getPrincipal())) {
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "No user or token provided for authorization to perform this operation.");
+        }
+        this.agentControllerConfig.getPermission()
+                                  .verifyPermission(Operation.WRITE,
+                                                    (String) authentication.getPrincipal(),
+                                                    application,
+                                                    "agent.setting");
     }
 }
