@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.security;
+package org.bithon.server.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.web.service.security.filter.JwtAuthenticationFilter;
-import org.bithon.server.web.service.security.jwt.JwtConfig;
-import org.bithon.server.web.service.security.jwt.JwtTokenComponent;
+import org.bithon.server.web.security.filter.JwtAuthenticationFilter;
+import org.bithon.server.web.security.jwt.JwtConfig;
+import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;

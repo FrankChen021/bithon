@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.security.cookie;
+package org.bithon.server.web.security.cookie;
 
 
 import jakarta.servlet.http.Cookie;

@@ -56,7 +56,7 @@
         <module>opentelemetry</module>
         <module>collector</module>
         <module>metric-expression</module>
-        <module>web-service-security</module>
+        <module>web-security</module>
         <module>web-service</module>
         <module>web-app</module>
 
@@ -206,7 +206,7 @@
             </dependency>
             <dependency>
                 <groupId>org.bithon.server</groupId>
-                <artifactId>server-web-service-security</artifactId>
+                <artifactId>server-web-security</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.security.jwt;
+package org.bithon.server.web.security.jwt;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

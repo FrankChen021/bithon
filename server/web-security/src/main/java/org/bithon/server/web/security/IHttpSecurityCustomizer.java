@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.security;
+package org.bithon.server.web.security;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 

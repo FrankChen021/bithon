@@ -19,7 +19,7 @@ package org.bithon.server.webapp.security.oauth2;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.web.service.security.cookie.CookieHelper;
+import org.bithon.server.web.security.cookie.CookieHelper;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;

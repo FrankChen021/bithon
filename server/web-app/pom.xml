@@ -45,17 +45,8 @@
 
     <!-- Security -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-oauth2-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.bithon.server</groupId>
-      <artifactId>server-web-service-security</artifactId>
+      <artifactId>server-web-security</artifactId>
     </dependency>
     <dependency>
       <groupId>org.bithon.server</groupId>

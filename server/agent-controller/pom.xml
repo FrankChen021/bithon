@@ -67,7 +67,7 @@
     -->
     <dependency>
       <groupId>org.bithon.server</groupId>
-      <artifactId>server-web-service-security</artifactId>
+      <artifactId>server-web-security</artifactId>
     </dependency>
 
     <dependency>
