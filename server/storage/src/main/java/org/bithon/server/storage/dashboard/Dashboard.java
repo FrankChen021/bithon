@@ -14,17 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.web;
+package org.bithon.server.storage.dashboard;
 
-import org.bithon.server.storage.common.StorageConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.sql.Timestamp;
 
 /**
  * @author Frank Chen
- * @date 22/1/24 2:22 pm
+ * @date 19/8/22 5:42 pm
  */
-@Configuration
-@ConfigurationProperties(prefix = "bithon.storage.web")
-public class WebAppStorageConfig extends StorageConfig {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Dashboard {
+    private String name;
+    private String payload;
+    private String signature;
+    private Timestamp timestamp;
+    private boolean deleted;
+
+    @Data
+    public static class Metadata {
+        private String title;
+        private String folder;
+    }
+
+    @JsonIgnore
+    private Metadata metadata;
 }

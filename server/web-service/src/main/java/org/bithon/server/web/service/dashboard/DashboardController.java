@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.web.Dashboard;
+import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;

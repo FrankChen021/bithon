@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.web.Dashboard;
-import org.bithon.server.storage.web.IDashboardStorage;
-import org.bithon.server.storage.web.WebAppStorageConfig;
+import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.IDashboardStorage;
+import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.dao.DuplicateKeyException;
@@ -39,15 +39,15 @@ import java.util.List;
 public class DashboardJdbcStorage implements IDashboardStorage {
 
     protected final DSLContext dslContext;
-    protected final WebAppStorageConfig storageConfig;
+    protected final DashboardStorageConfig storageConfig;
 
     @JsonCreator
     public DashboardJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
-                                @JacksonInject(useInput = OptBoolean.FALSE) WebAppStorageConfig storageConfig) {
+                                @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
         this(providerConfiguration.getDslContext(), storageConfig);
     }
 
-    public DashboardJdbcStorage(DSLContext dslContext, WebAppStorageConfig storageConfig) {
+    public DashboardJdbcStorage(DSLContext dslContext, DashboardStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.storageConfig = storageConfig;
     }

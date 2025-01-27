@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
-import org.bithon.server.storage.web.WebAppStorageConfig;
 import org.jooq.CreateTableElementListStep;
 import org.jooq.Field;
 import org.jooq.SQLDialect;
@@ -39,7 +39,7 @@ public class DashboardMySqlStorage extends DashboardJdbcStorage {
 
     @JsonCreator
     public DashboardMySqlStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration configuration,
-                                 @JacksonInject(useInput = OptBoolean.FALSE) WebAppStorageConfig storageConfig) {
+                                 @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
         super(configuration.getDslContext(), storageConfig);
     }
 
