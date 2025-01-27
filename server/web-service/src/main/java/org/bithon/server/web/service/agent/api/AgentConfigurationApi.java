@@ -267,17 +267,10 @@ public class AgentConfigurationApi {
         }
 
         Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                            "No user or token provided for authorization to perform this operation.");
-        }
-        if ("anonymousUser".equals(authentication.getPrincipal())) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                            "No user or token provided for authorization to perform this operation.");
-        }
+        String user = authentication == null ? "anonymousUser" : (String) authentication.getPrincipal();
         this.agentControllerConfig.getPermission()
                                   .verifyPermission(Operation.WRITE,
-                                                    (String) authentication.getPrincipal(),
+                                                    user,
                                                     application,
                                                     "agent.setting");
     }

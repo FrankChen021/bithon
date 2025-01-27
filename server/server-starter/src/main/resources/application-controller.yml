@@ -5,10 +5,10 @@ bithon:
     permission:
       # The following define a global rule to ALLOW any operation from any user.
       # Refer to the PermissionConfig to know more about the configuration
-      enabled: false
+      enabled: true
       rbac:
         users:
-          - name: "*"
+          - name: "anonymousUser"
             permissions:
               - operation: RW
                 resource: "*"

@@ -132,26 +132,23 @@ public class AgentControllerApi implements IAgentControllerApi {
 
         // Verify if the user has permission if the permission checking is ENABLE on this service
         if (permissionConfig != null && permissionConfig.isEnabled()) {
+
+            String user;
             if (StringUtils.isEmpty(token)) {
-                // Use HTTP 403 instead of 401
-                // because feign client is not able to read response body when 401 is returned.
-                // don't know why
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "The controller module has ENABLED authorization for operations on agent but there's NO token provided to authorize such operation.");
+                user = "anonymousUser";
+            } else {
+                Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);
+                if (parsedToken == null) {
+                    // Use HTTP 403 instead of 401
+                    // because feign client is not able to read response body when 401 is returned.
+                    // don't know why
+                    throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
+                                                    "Invalid token provided to perform the operation on the agent of target application.");
+
+                }
+                user = parsedToken.getBody().getSubject();
             }
 
-            Jws<Claims> parsedToken = jwtTokenComponent.tryParseToken(token);
-            if (parsedToken == null) {
-                // Use HTTP 403 instead of 401
-                // because feign client is not able to read response body when 401 is returned.
-                // don't know why
-                throw new HttpMappableException(HttpStatus.FORBIDDEN.value(),
-                                                "Invalid token provided to perform the operation on the agent of target application.");
-            }
-
-            // Verify if the given token matches
-            // By default if a method that starts with 'get' or 'dump' will be seen as a READ method that requires no permission check.
-            String user = parsedToken.getBody().getSubject();
             Operation operation = rawRequest.getMethodName().startsWith("get") || rawRequest.getMethodName().startsWith("dump") ? Operation.READ : Operation.WRITE;
             permissionConfig.verifyPermission(operation,
                                               user,
