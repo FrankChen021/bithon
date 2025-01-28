@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.InvalidConfigurationException;
 import org.bithon.server.web.security.IHttpSecurityCustomizer;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
@@ -84,10 +83,10 @@ public class OAuth2AutoConfiguration {
 
     private ClientRegistrationRepository newClientRegistrationRepo(OAuth2Config oauth2Config) {
         if (oauth2Config.getClient() == null) {
-            throw new InvalidConfigurationException("bithon.web.security.oauth2.client is not configured.");
+            throw new RuntimeException("bithon.web.security.oauth2.client is not configured.");
         }
         if (CollectionUtils.isEmpty(oauth2Config.getClient().getRegistration())) {
-            throw new InvalidConfigurationException("bithon.web.security.oauth2.client.registration is not configured.");
+            throw new RuntimeException("bithon.web.security.oauth2.client.registration is not configured.");
         }
 
         Map<String, ClientRegistration> registrationMap = new OAuth2ClientPropertiesMapper(oauth2Config.getClient()).asClientRegistrations();

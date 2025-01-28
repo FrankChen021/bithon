@@ -38,19 +38,11 @@
       <groupId>nz.net.ultraq.thymeleaf</groupId>
       <artifactId>thymeleaf-layout-dialect</artifactId>
     </dependency>
-    <dependency>
-      <groupId>jakarta.validation</groupId>
-      <artifactId>jakarta.validation-api</artifactId>
-    </dependency>
 
-    <!-- Security -->
+    <!-- Include to Enable OAuth2 -->
     <dependency>
       <groupId>org.bithon.server</groupId>
       <artifactId>server-web-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.server</groupId>
-      <artifactId>server-storage</artifactId>
     </dependency>
 
     <dependency>
