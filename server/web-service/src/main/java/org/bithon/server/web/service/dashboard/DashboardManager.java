@@ -26,6 +26,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.dashboard.Dashboard;
 import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @Conditional(WebServiceModuleEnabler.class)
+@ConditionalOnBean(IDashboardStorage.class)
 public class DashboardManager implements SmartLifecycle {
 
     public interface IDashboardChangedListener {

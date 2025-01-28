@@ -26,7 +26,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.dashboard.Dashboard;
+import org.bithon.server.storage.dashboard.IDashboardStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -55,6 +57,7 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
+@ConditionalOnBean(IDashboardStorage.class)
 public class DashboardController {
 
     private final DashboardManager dashboardManager;
