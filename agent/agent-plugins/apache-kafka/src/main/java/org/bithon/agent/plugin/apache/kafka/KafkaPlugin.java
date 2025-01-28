@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.apache.kafka;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
@@ -38,16 +37,13 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .whenSatisfy(IInterceptorPrecondition.and(
-                    IInterceptorPrecondition.not(
-                        // Since 3.7
-                        IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
-                    ),
-                    IInterceptorPrecondition.not(
-                        // Since 3.9
-                        IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer")
-                    )
-                ))
+                .whenSatisfy(
+                    // From 3.7.0, the KafkaConsumer class is delegated to LegacyKafkaConsumer internally
+                    // The instrumentation is moved to Kafka37Plugin and later
+                    new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                      "version",
+                                                      PropertyFileValuePrecondition.VersionLT.of("3.7.0"))
+                )
 
                 .onConstructor()
                 .andArgs("org.apache.kafka.clients.consumer.ConsumerConfig",

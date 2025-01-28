@@ -53,13 +53,16 @@ public class ListenerConsumer$Ctor extends AfterInterceptor {
             return;
         }
 
-        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
-        if (properties == null) {
-            return;
-        }
-
+        // For KafkaConsumer, the plugin context is injected by interceptors of its CTORs
+        // But the injected context might be NULL for Kafka starting from 3.7
+        // if the consumer is configured not using the legacy KafkaConsumer
         KafkaPluginContext pluginContext = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject());
-        {
+        if (pluginContext == null) {
+            ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
+            if (properties == null) {
+                return;
+            }
+
             String topicString = null;
             String[] topics = properties.getTopics();
             if (topics != null) {
