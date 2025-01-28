@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.commons.security;
+package org.bithon.server.web.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

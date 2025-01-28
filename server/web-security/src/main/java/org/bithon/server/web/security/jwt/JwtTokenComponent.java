@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.commons.security;
+package org.bithon.server.web.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -23,6 +23,7 @@ import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.crypto.SecretKey;
@@ -39,6 +40,8 @@ public class JwtTokenComponent {
 
     public static final String COOKIE_NAME_TOKEN = "token";
     private final SecretKey signKey;
+
+    @Getter
     private final long globalValidityMilliseconds;
 
     public JwtTokenComponent(JwtConfig jwtConfig) {

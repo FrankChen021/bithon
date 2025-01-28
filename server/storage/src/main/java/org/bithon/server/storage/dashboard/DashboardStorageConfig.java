@@ -14,18 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.commons.security;
+package org.bithon.server.storage.dashboard;
 
-import lombok.Data;
+import org.bithon.server.storage.common.StorageConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
-
-@Data
+/**
+ * @author Frank Chen
+ * @date 22/1/24 2:22 pm
+ */
 @Configuration
-@ConfigurationProperties("bithon.web.security")
-public class JwtConfig {
-    private String jwtTokenSignKey = "BithonIsAObservabilityPlatformThatMakesUEasy10";
-    private long jwtTokenValiditySeconds = Duration.ofDays(1).getSeconds();
+@ConfigurationProperties(prefix = "bithon.storage.dashboard")
+public class DashboardStorageConfig extends StorageConfig {
 }

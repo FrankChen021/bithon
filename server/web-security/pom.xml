@@ -9,18 +9,14 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>server-web-app</artifactId>
-  <name>server-web-app</name>
-  <description>Bithon Web App</description>
+  <artifactId>server-web-security</artifactId>
+  <name>server-web-security</name>
+  <description>Bithon Web Security</description>
 
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter</artifactId>
     </dependency>
 
     <!-- Lombok -->
@@ -29,20 +25,38 @@
       <artifactId>lombok</artifactId>
     </dependency>
 
-    <!-- Web MVC Pages-->
+    <!-- Security -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+      <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>nz.net.ultraq.thymeleaf</groupId>
-      <artifactId>thymeleaf-layout-dialect</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- Include to Enable OAuth2 -->
+    <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.11.5</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.server</groupId>
-      <artifactId>server-web-security</artifactId>
+      <artifactId>server-commons</artifactId>
     </dependency>
 
     <dependency>

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.web.security.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -25,7 +25,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.security.JwtTokenComponent;
+import org.bithon.server.web.security.cookie.CookieHelper;
+import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

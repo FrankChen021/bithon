@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.web;
+package org.bithon.server.storage.dashboard;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;

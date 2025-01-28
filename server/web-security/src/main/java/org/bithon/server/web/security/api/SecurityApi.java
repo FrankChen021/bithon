@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.web.security.api;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -24,10 +24,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.security.JwtConfig;
-import org.bithon.server.commons.security.JwtTokenComponent;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.commons.utils.HumanReadableDurationConstraint;
+import org.bithon.server.web.security.jwt.JwtConfig;
+import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

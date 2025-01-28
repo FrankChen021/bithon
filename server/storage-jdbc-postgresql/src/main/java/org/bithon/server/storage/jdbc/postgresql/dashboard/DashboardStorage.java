@@ -19,11 +19,11 @@ package org.bithon.server.storage.jdbc.postgresql.dashboard;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.dashboard.DashboardStorageConfig;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
+import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
 import org.bithon.server.storage.jdbc.postgresql.TableCreator;
-import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
-import org.bithon.server.storage.web.WebAppStorageConfig;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,7 +32,7 @@ import org.bithon.server.storage.web.WebAppStorageConfig;
 public class DashboardStorage extends DashboardJdbcStorage {
     @JsonCreator
     public DashboardStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
-                            @JacksonInject(useInput = OptBoolean.FALSE) WebAppStorageConfig storageConfig) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) DashboardStorageConfig storageConfig) {
         super(providerConfiguration.getDslContext(), storageConfig);
     }
 

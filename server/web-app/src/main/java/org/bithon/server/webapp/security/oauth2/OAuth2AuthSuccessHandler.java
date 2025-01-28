@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.webapp.security;
+package org.bithon.server.webapp.security.oauth2;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.commons.security.JwtConfig;
-import org.bithon.server.commons.security.JwtTokenComponent;
+import org.bithon.server.web.security.cookie.CookieHelper;
+import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -36,13 +36,11 @@ import java.util.Map;
  * @author Frank Chen
  * @date 8/9/23 5:08 pm
  */
-public class AuthSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2AuthSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenComponent jwtTokenComponent;
-    private final JwtConfig securityConfig;
 
-    public AuthSuccessHandler(JwtTokenComponent jwtTokenComponent, JwtConfig securityConfig) {
+    public OAuth2AuthSuccessHandler(JwtTokenComponent jwtTokenComponent) {
         this.jwtTokenComponent = jwtTokenComponent;
-        this.securityConfig = securityConfig;
     }
 
     @Override
@@ -66,16 +64,16 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
 
         // Store the JWT in a cookie
         CookieHelper.Builder.newCookie(JwtTokenComponent.COOKIE_NAME_TOKEN, newJwtToken)
-                            .expiration(securityConfig.getJwtTokenValiditySeconds())
+                            .expiration(jwtTokenComponent.getGlobalValidityMilliseconds() / 1000)
                             .path("/")
                             .addTo(response);
 
         // Redirect based on the value stored in cookie
-        String redirect = CookieHelper.get(request, LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
+        String redirect = CookieHelper.get(request, OAuth2LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
         if (StringUtils.isEmpty(redirect)) {
             redirect = "/web/home";
         }
-        CookieHelper.delete(request, response, LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
+        CookieHelper.delete(request, response, OAuth2LoginAuthenticationEntryPoint.LOGIN_REDIRECT);
         response.sendRedirect(redirect);
     }
 }
