@@ -53,29 +53,30 @@ public class ListenerConsumer$Ctor extends AfterInterceptor {
             return;
         }
 
-        ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
-        if (properties == null) {
-            return;
-        }
-
+        // For KafkaConsumer, the plugin context is injected by interceptors of its CTORs
+        // But the injected context might be NULL for Kafka starting from 3.7
+        // if the consumer is configured not using the legacy KafkaConsumer
         KafkaPluginContext pluginContext = ((KafkaPluginContext) ((IBithonObject) consumer).getInjectedObject());
-        {
-            String topicString = null;
-            String[] topics = properties.getTopics();
-            if (topics != null) {
-                topicString = String.join(",", topics);
-            } else if (properties.getTopicPattern() != null) {
-                topicString = properties.getTopicPattern().pattern();
-            } else {
-                TopicPartitionOffset[] partitions = properties.getTopicPartitions();
-                if (partitions != null) {
-                    topicString = Stream.of(partitions)
-                                        .map(TopicPartitionOffset::getTopic)
-                                        .collect(Collectors.joining(","));
+        if (pluginContext != null) {
+            ContainerProperties properties = (ContainerProperties) ReflectionUtils.getFieldValue(aopContext.getTarget(), "containerProperties");
+            if (properties != null) {
+                String topicString = null;
+                String[] topics = properties.getTopics();
+                if (topics != null) {
+                    topicString = String.join(",", topics);
+                } else if (properties.getTopicPattern() != null) {
+                    topicString = properties.getTopicPattern().pattern();
+                } else {
+                    TopicPartitionOffset[] partitions = properties.getTopicPartitions();
+                    if (partitions != null) {
+                        topicString = Stream.of(partitions)
+                                            .map(TopicPartitionOffset::getTopic)
+                                            .collect(Collectors.joining(","));
+                    }
                 }
+                pluginContext.uri = "kafka://" + pluginContext.broker + (topicString == null ? "" : "?topic=" + topicString);
+                pluginContext.topic = topicString;
             }
-            pluginContext.uri = "kafka://" + pluginContext.broker + (topicString == null ? "" : "?topic=" + topicString);
-            pluginContext.topic = topicString;
         }
 
         // Keep the uri for further use
