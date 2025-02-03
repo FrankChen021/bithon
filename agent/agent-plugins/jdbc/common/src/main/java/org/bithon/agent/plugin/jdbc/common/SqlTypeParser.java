@@ -50,7 +50,7 @@ public class SqlTypeParser {
                         state = State.STRING_LITERAL;
                     } else if (Character.isLetter(c)) {
                         state = State.READING_TYPE;
-                        sqlType.append(c);
+                        sqlType.append(Character.toUpperCase(c));
                     }
                     break;
 
@@ -77,12 +77,12 @@ public class SqlTypeParser {
                     if (Character.isLetter(c) && sqlType.length() < 10) {
                         sqlType.append(Character.toUpperCase(c));
                     } else {
-                        return sqlType.toString().toUpperCase();
+                        return sqlType.toString();
                     }
                     break;
             }
         }
 
-        return sqlType.toString().toUpperCase();
+        return sqlType.toString();
     }
 }

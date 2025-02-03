@@ -21,6 +21,7 @@ import com.mysql.jdbc.PreparedStatement;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -40,12 +41,12 @@ public class PreparedStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         PreparedStatement preparedStatement = aopContext.getTargetAs();
         try {
-            return preparedStatement.getPreparedSql();
+            return new StatementContext(preparedStatement.getPreparedSql());
         } catch (RuntimeException ignored) {
-            return null;
+            return StatementContext.EMTPY;
         }
     }
 }

@@ -19,7 +19,7 @@ package org.bithon.agent.observability.metric.domain.sql;
 import org.bithon.agent.observability.metric.collector.MetricRegistry;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * @author frankchen
@@ -30,7 +30,7 @@ public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
 
     protected SqlMetricRegistry() {
         super(NAME,
-              Collections.singletonList("connectionString"),
+              Arrays.asList("connectionString", "sqlType"),
               SQLMetrics.class,
               SQLMetrics::new,
               true);
@@ -40,7 +40,7 @@ public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
         return MetricRegistryFactory.getOrCreateRegistry(NAME, SqlMetricRegistry::new);
     }
 
-    public SQLMetrics getOrCreateMetrics(String connectionString) {
-        return super.getOrCreateMetrics(connectionString);
+    public SQLMetrics getOrCreateMetrics(String connectionString, String sqlType) {
+        return super.getOrCreateMetrics(connectionString, sqlType);
     }
 }

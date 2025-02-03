@@ -65,19 +65,23 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        StatementContext statement = getStatement(aopContext);
+
         ITraceSpan span = aopContext.getSpan();
         if (span != null) {
             fillSpan(aopContext, span);
 
             // the statement is injected in the ctor interceptor of PgPreparedStatement
-            span.tag(Tags.Database.STATEMENT, getStatement(aopContext))
+            span.tag(Tags.Database.STATEMENT, statement.getSql())
                 .finish();
         }
 
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
             ConnectionContext connectionContext = aopContext.getUserContext();
-            metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
-                          .update(true, aopContext.hasException(), aopContext.getExecutionTime());
+            metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString(),
+                                              statement.getSqlType())
+                          .update(true, aopContext.hasException(), aopContext.getExecutionTime())
+                          .getBytesOut().update(statement.getSql().length());
         }
     }
 
@@ -92,7 +96,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
         return (ConnectionContext) ((IBithonObject) connection).getInjectedObject();
     }
 
-    protected abstract String getStatement(AopContext aopContext);
+    protected abstract StatementContext getStatement(AopContext aopContext);
 
     protected void fillSpan(AopContext aopContext, ITraceSpan span) {
     }

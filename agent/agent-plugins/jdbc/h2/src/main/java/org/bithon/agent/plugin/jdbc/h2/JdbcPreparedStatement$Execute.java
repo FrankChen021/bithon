@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.h2;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link org.h2.jdbc.JdbcPreparedStatement#execute()}
@@ -33,8 +34,8 @@ public class JdbcPreparedStatement$Execute extends AbstractStatement$Execute {
      * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}
      */
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+        return (StatementContext) preparedStatement.getInjectedObject();
     }
 }

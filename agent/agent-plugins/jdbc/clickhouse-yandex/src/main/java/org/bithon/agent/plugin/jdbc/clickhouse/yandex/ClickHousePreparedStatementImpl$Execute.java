@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.clickhouse.yandex;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link ru.yandex.clickhouse.ClickHousePreparedStatementImpl#execute()}
@@ -31,8 +32,8 @@ public class ClickHousePreparedStatementImpl$Execute extends AbstractStatement$E
      * The executing statement is injected by {@link ClickHousePreparedStatementImpl$Ctor}
      */
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+        return (StatementContext) preparedStatement.getInjectedObject();
     }
 }

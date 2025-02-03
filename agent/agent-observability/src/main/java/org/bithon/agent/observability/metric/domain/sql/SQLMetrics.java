@@ -49,7 +49,7 @@ public class SQLMetrics implements IMetricSet {
         bytesOut
     };
 
-    public void update(Boolean isQuery, boolean failed, long responseTime) {
+    public SQLMetrics update(Boolean isQuery, boolean failed, long responseTime) {
         this.responseTime.update(responseTime);
         this.minResponseTime.update(responseTime);
         this.maxResponseTime.update(responseTime);
@@ -66,6 +66,8 @@ public class SQLMetrics implements IMetricSet {
         }
 
         this.callCount.incr();
+
+        return this;
     }
 
     public long peekTotalCount() {

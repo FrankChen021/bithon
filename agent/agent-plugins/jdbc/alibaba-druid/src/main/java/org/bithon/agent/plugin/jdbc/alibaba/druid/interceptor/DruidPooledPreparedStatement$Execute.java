@@ -21,13 +21,14 @@ import com.alibaba.druid.pool.DruidPooledStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Statement;
 
 /**
- *  {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#execute()}
- *  {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#executeQuery()}
- *  {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#executeUpdate()}
+ * {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#execute()}
+ * {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#executeQuery()}
+ * {@link com.alibaba.druid.pool.DruidPooledPreparedStatement#executeUpdate()}
  *
  * @author frankchen
  * @date 2022-07-27
@@ -44,7 +45,7 @@ public class DruidPooledPreparedStatement$Execute extends AbstractStatement$Exec
     }
 
     @Override
-    protected String getStatement(AopContext aopContext) {
-        return ((DruidPooledPreparedStatement) aopContext.getTarget()).getSql();
+    protected StatementContext getStatement(AopContext aopContext) {
+        return new StatementContext(((DruidPooledPreparedStatement) aopContext.getTarget()).getSql());
     }
 }

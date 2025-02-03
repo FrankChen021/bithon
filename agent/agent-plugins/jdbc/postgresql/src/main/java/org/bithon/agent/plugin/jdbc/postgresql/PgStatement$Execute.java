@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * Hook on execute methods implemented in {@link org.postgresql.jdbc.PgStatement} as
@@ -44,7 +45,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 public class PgStatement$Execute extends AbstractStatement$Execute {
 
     @Override
-    protected String getStatement(AopContext aopContext) {
-        return aopContext.getArgAs(0);
+    protected StatementContext getStatement(AopContext aopContext) {
+        return new StatementContext(aopContext.getArgAs(0));
     }
 }

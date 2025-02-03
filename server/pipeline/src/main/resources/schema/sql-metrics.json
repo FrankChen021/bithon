@@ -25,6 +25,9 @@
       "name": "database",
       "displayText": "database",
       "required": true
+    },
+    {
+      "name": "sqlType"
     }
   ],
   "metricsSpec": [
@@ -85,6 +88,14 @@
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesOut"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesIn"
     }
   ],
   "inputSourceSpec": {

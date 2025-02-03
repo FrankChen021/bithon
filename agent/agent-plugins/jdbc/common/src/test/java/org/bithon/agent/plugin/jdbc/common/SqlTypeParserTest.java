@@ -83,4 +83,16 @@ public class SqlTypeParserTest {
         String sql = "SELECT * FROM users WHERE name = 'John'";
         Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
+
+    @Test
+    public void test_ParseLowerCase() {
+        String sql = " select * FROM users WHERE name = 'John'";
+        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+    }
+
+    @Test
+    public void test_MaxCharacter() {
+        String sql = " ABCDEFGHIJK";
+        Assert.assertEquals("ABCDEFGHIJ", SqlTypeParser.parse(sql));
+    }
 }

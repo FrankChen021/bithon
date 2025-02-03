@@ -63,30 +63,7 @@ public class MySql5Plugin implements IPlugin {
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.mysql5.StatementImpl$ExecuteBatch")
 
-                .build(),
-
-            // IO
-            forClass("com.mysql.jdbc.MysqlIO")
-                .onMethod(METHOD_SEND_COMMAND)
-                .andArgs("int",
-                         "java.lang.String",
-                         "com.mysql.jdbc.Buffer",
-                         "boolean",
-                         "java.lang.String",
-                         "int")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql5.MySqlIO$SendCommand")
-
-                /*
-                .onMethod("readAllResults")
-                .andArgs("com.mysql.jdbc.StatementImpl",
-                         "int", "int", "int", "boolean",
-                         "java.lang.String",
-                         "com.mysql.jdbc.Buffer",
-                         "boolean", "long",
-                         "[Lcom.mysql.jdbc.Field;")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql5.metrics.MySqlIOInterceptor")
-                */
                 .build()
-            );
+        );
     }
 }

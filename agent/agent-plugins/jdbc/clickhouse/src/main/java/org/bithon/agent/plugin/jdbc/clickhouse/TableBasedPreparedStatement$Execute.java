@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.clickhouse;
 import com.clickhouse.jdbc.internal.TableBasedPreparedStatement;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link com.clickhouse.jdbc.internal.TableBasedPreparedStatement}
@@ -27,10 +28,10 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
  */
 public class TableBasedPreparedStatement$Execute extends AbstractStatement$Execute {
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         TableBasedPreparedStatement preparedStatement = aopContext.getTargetAs();
-        return preparedStatement.getRequest()
-                                .getPreparedQuery()
-                                .getOriginalQuery();
+        return new StatementContext(preparedStatement.getRequest()
+                                                     .getPreparedQuery()
+                                                     .getOriginalQuery());
     }
 }

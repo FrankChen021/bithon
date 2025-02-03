@@ -61,21 +61,6 @@ public class MySql8Plugin implements IPlugin {
                 .andNoArgs()
                 .interceptedBy("org.bithon.agent.plugin.jdbc.mysql8.StatementImpl$ExecuteBatch")
 
-                .build(),
-
-            // IO
-            forClass("com.mysql.cj.protocol.a.NativeProtocol")
-                .onMethod("sendCommand")
-                .andArgs("com.mysql.cj.protocol.Message", "boolean", "int")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql8.NativeProtocol$SendCommand")
-
-                /*
-                .onMethod("readAllResults")
-                .andArgs("int", "boolean", "com.mysql.cj.protocol.a.NativePacketPayload", "boolean",
-                         "com.mysql.cj.protocol.ColumnDefinition",
-                         "com.mysql.cj.protocol.ProtocolEntityFactory")
-                .interceptedBy("org.bithon.agent.plugin.jdbc.mysql8.NativeProtocolInterceptor")
-                */
                 .build()
         );
     }

@@ -16,10 +16,10 @@
 
 package org.bithon.agent.plugin.jdbc.clickhouse;
 
-import com.clickhouse.jdbc.parser.ClickHouseSqlStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link com.clickhouse.jdbc.internal.SqlBasedPreparedStatement}
@@ -32,11 +32,10 @@ public class SqlBasedPreparedStatement$Execute extends AbstractStatement$Execute
      * The executing statement is injected by {@link SqlBasedPrepareStatement$Ctor}
      */
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
 
         // Injected by SqlBasedPrepareStatement$Ctor
-        ClickHouseSqlStatement sqlStatement = (ClickHouseSqlStatement) preparedStatement.getInjectedObject();
-        return sqlStatement.getSQL();
+        return (StatementContext) preparedStatement.getInjectedObject();
     }
 }

@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.apache.derby;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link org.apache.derby.client.am.ClientPreparedStatement#execute()}
@@ -33,8 +34,8 @@ public class ClientPreparedStatement$Execute extends AbstractStatement$Execute {
      * The executing statement is injected by {@link ClientPreparedStatement$Ctor}
      */
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatement(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+        return (StatementContext) preparedStatement.getInjectedObject();
     }
 }

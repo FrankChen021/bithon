@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.apache.derby;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * Hook on execute methods implemented in {@link org.apache.derby.client.am.ClientStatement} as
@@ -43,7 +44,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
  */
 public class ClientStatement$Execute extends AbstractStatement$Execute {
     @Override
-    protected String getStatement(AopContext aopContext) {
-        return aopContext.getArgAs(0);
+    protected StatementContext getStatement(AopContext aopContext) {
+        return new StatementContext(aopContext.getArgAs(0));
     }
 }
