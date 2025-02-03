@@ -73,6 +73,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
             // the statement is injected in the ctor interceptor of PgPreparedStatement
             span.tag(Tags.Database.STATEMENT, statement.getSql())
+                .tag(Tags.Database.OPERATION, statement.getSqlType())
                 .finish();
         }
 
