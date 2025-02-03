@@ -132,8 +132,12 @@ public class Tags {
 
         /**
          * database name
+         * Use {@link #NAMESPACE} for mongodb
          */
+        @Deprecated
         public static final String NAME = "db.name";
+        
+        public static final String NAMESPACE = "db.namespace";
 
         /**
          * The statement(SQL) that is being executed

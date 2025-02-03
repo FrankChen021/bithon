@@ -58,6 +58,12 @@
             "name": "callCount",
             "order": "desc"
           }
+        },
+        "tracing": {
+          "mappings": {
+            "sqlType": "tags['db.operation.name']"
+          },
+          "filter": "kind = 'CLIENT'"
         }
       }
     },
