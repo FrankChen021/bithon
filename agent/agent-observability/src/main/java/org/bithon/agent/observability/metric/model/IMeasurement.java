@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.observability.metric.model;
 
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
 

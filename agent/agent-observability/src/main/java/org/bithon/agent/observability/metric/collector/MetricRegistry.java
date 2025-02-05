@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.collector;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.IMetricSet;
 import org.bithon.agent.observability.metric.model.IMetricValueProvider;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
