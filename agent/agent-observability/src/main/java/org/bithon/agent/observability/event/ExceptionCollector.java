@@ -42,7 +42,7 @@ public class ExceptionCollector {
     public static void collect(ExceptionBuilder builder) {
         EventMessage exceptionEvent = new EventMessage("exception", builder.build());
         Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
-        exporter.send(exporter.getMessageConverter().from(exceptionEvent));
+        exporter.export(exporter.getMessageConverter().from(exceptionEvent));
     }
 
 }

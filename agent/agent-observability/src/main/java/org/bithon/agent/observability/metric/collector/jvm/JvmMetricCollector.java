@@ -22,10 +22,10 @@ import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class JvmMetricCollector {
 
         GcMetricRegistry gcMetricRegistry = MetricRegistryFactory.getOrCreateRegistry("jvm-gc-metrics", GcMetricRegistry::new);
         for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
-            gcMetricRegistry.createMetrics(Arrays.asList(gcBean.getName(), GcMetricRegistry.getGeneration(gcBean.getName())),
+            gcMetricRegistry.createMetrics(Dimensions.of(gcBean.getName(), GcMetricRegistry.getGeneration(gcBean.getName())),
                                            new GcMetrics(gcBean));
         }
     }

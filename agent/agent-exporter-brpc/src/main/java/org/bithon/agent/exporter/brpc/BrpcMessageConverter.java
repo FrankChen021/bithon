@@ -200,10 +200,10 @@ public class BrpcMessageConverter implements IMessageConverter {
             try {
                 BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
                 // although dimensions are defined as List<String>
-                // but it could also store an object,
+                // it could also store an object,
                 // we use Object.toString here to get the right value
-                for (Object dimension : metricSet.getDimensions()) {
-                    measurement.addDimension(dimension.toString());
+                for (String dimension : metricSet.getDimensions().values()) {
+                    measurement.addDimension(dimension);
                 }
                 for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
                     measurement.addMetric(metricSet.getMetricValue(i));
@@ -233,10 +233,10 @@ public class BrpcMessageConverter implements IMessageConverter {
             try {
                 BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
                 // although dimensions are defined as List<String>
-                // but it could also store Object,
+                // it could also store Object,
                 // we use Object.toString here to get the right value
-                for (Object dimension : measurement.getDimensions()) {
-                    measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
+                for (String dimension : measurement.getDimensions().values()) {
+                    measurementBuilder.addDimension(dimension == null ? "" : dimension);
                 }
                 for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
                     measurementBuilder.addMetric(measurement.getMetricValue(i));

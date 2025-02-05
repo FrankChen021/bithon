@@ -16,15 +16,16 @@
 
 package org.bithon.agent.observability.metric.collector;
 
-import java.util.List;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 3/10/21 11:40
  */
 public interface IMeasurement {
-    List<String> getDimensions();
+    Dimensions getDimensions();
 
     int getMetricCount();
+
     long getMetricValue(int index);
 }

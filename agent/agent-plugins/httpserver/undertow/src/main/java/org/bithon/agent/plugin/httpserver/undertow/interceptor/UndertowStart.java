@@ -25,12 +25,12 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.xnio.XnioWorker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,7 +54,7 @@ public class UndertowStart extends AfterInterceptor {
         TaskPoolAccessor accessor = new TaskPoolAccessor(ReflectionUtils.getFieldValue(worker, "taskPool"));
 
         HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
-                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                         .getOrCreateMetrics(Dimensions.of(HttpServerType.UNDERTOW.type()),
                                                                              HttpServerMetrics::new);
         metrics.activeThreads.setProvider(accessor.getActiveCount::getValue);
         metrics.maxThreads.setProvider(accessor.getMaximumPoolSize::getValue);
@@ -63,7 +63,7 @@ public class UndertowStart extends AfterInterceptor {
     }
 
     /**
-     * Implementations of TaskPool in different version(3.3.8 used by Undertow 1.x vs 3.8 used by Undertow 2.x) differ from each other
+     * Implementations of TaskPool in different version(3.3.8 used by Undertow 1.x vs 3.8 used by Undertow 2.x) differ from each other,
      * Fortunately, they have same method name so that we could use reflect to unify the code together.
      * <p>
      * For undertow 1.x, the method is provided by the parent of TaskPool, however, on 2.x, the TaskPool is defined as an interface as XnioWorker$TaskPool

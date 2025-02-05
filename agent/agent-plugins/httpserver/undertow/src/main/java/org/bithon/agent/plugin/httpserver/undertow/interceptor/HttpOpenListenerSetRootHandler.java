@@ -25,9 +25,8 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.xnio.OptionMap;
-
-import java.util.Collections;
 
 /**
  * @author frankchen
@@ -42,7 +41,7 @@ public class HttpOpenListenerSetRootHandler extends AfterInterceptor {
                                                  .getMap());
 
         HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
-                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                         .getOrCreateMetrics(Dimensions.of(HttpServerType.UNDERTOW.type()),
                                                                              HttpServerMetrics::new);
 
         ConnectorStatistics connectorStatistics = openListener.getConnectorStatistics();

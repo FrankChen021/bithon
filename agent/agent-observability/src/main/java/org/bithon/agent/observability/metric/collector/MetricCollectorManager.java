@@ -174,7 +174,7 @@ public class MetricCollectorManager {
                 try {
                     Object message = managedCollector.collect(exporter.getMessageConverter());
                     if (message != null) {
-                        exporter.send(message);
+                        exporter.export(message);
                     }
                 } catch (Throwable e) {
                     LOG.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
