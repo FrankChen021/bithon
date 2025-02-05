@@ -103,7 +103,7 @@ public class MetricCollectorManager {
         this.scheduler = new ScheduledThreadPoolExecutor(2,
                                                          NamedThreadFactory.daemonThreadFactory("bithon-metric-collector"),
                                                          new ThreadPoolExecutor.CallerRunsPolicy());
-        this.scheduler.scheduleWithFixedDelay(this::collectAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
+        this.scheduler.scheduleWithFixedDelay(this::export, 0, INTERVAL, TimeUnit.SECONDS);
     }
 
     /**
@@ -160,7 +160,7 @@ public class MetricCollectorManager {
         collectors.remove(name);
     }
 
-    private void collectAndDispatch() {
+    private void export() {
         if (!exporter.isReady()) {
             return;
         }

@@ -1,0 +1,44 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.observability.metric.domain.sql;
+
+import org.bithon.agent.observability.metric.model.AggregatableMetricStorage;
+
+import java.util.Arrays;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 2025/2/5 20:22
+ */
+public class SqlMetricStorage extends AggregatableMetricStorage<SqlLog> {
+    public SqlMetricStorage() {
+        super("sql-metrics",
+              Arrays.asList("connectionString", "sqlType", "traceId"),
+              SqlLog.class,
+              (metrics) -> metrics.getResponseTime() > 1000,
+              (prev, now) -> {
+                  prev.bytesIn += now.bytesIn;
+                  prev.bytesOut += now.bytesOut;
+                  prev.callCount += now.callCount;
+                  prev.responseTime += now.responseTime;
+                  prev.minResponseTime = Math.min(prev.minResponseTime, now.minResponseTime);
+                  prev.maxResponseTime = Math.max(prev.maxResponseTime, now.maxResponseTime);
+                  return prev;
+              }
+        );
+    }
+}
