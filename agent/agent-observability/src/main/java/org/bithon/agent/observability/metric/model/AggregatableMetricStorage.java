@@ -51,6 +51,13 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
     public AggregatableMetricStorage(String name,
                                      List<String> dimensionSpec,
                                      Class<T> metricClass,
+                                     Predicate<T> aggreatePredicate) {
+        this(name, dimensionSpec, metricClass, aggreatePredicate, createAggregateFn(metricClass));
+    }
+
+    public AggregatableMetricStorage(String name,
+                                     List<String> dimensionSpec,
+                                     Class<T> metricClass,
                                      Predicate<T> aggreatePredicate,
                                      BiFunction<T, T, T> aggregateFn) {
         this.aggreatePredicate = aggreatePredicate;
@@ -134,6 +141,40 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
         }
     }
 
+    static <T extends IMetricSet2> BiFunction<T, T, T> createAggregateFn(Class<T> clazz) {
+        List<IAggregateFunction<T>> aggregateFunctions = new ArrayList<>();
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Sum.class)) {
+                aggregateFunctions.add(new SumAggregateFunction<>(field));
+            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Max.class)) {
+                aggregateFunctions.add(new MaxAggregateFunction<>(field));
+            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Min.class)) {
+                aggregateFunctions.add(new MinAggregateFunction<>(field));
+            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Last.class)) {
+                aggregateFunctions.add(new LastAggregateFunction<>(field));
+            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.First.class)) {
+                aggregateFunctions.add(new FirstAggregateFunction<>(field));
+            }
+        }
+        if (aggregateFunctions.isEmpty()) {
+            throw new IllegalArgumentException("No aggregation annotation defined in class " + clazz.getName());
+        }
+        for (IAggregateFunction<T> aggregateFunction : aggregateFunctions) {
+            aggregateFunction.getField().setAccessible(true);
+        }
+        return (prev, now) -> {
+            for (IAggregateFunction<T> aggregateFunction : aggregateFunctions) {
+                Field f = aggregateFunction.getField();
+                try {
+                    f.set(prev, aggregateFunction.aggregate(prev, now));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return prev;
+        };
+    }
+
     static <T> Schema2 createSchema(String name, List<String> dimensions, Class<T> clazz) {
         List<String> metrics = new ArrayList<>();
 
@@ -149,5 +190,102 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
         }
 
         return new Schema2(name, dimensions, metrics);
+    }
+
+    interface IAggregateFunction<T> {
+        Field getField();
+
+        long aggregate(T prev, T now) throws Exception;
+    }
+
+    static class SumAggregateFunction<T> implements IAggregateFunction<T> {
+        private final Field field;
+
+        public SumAggregateFunction(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Field getField() {
+            return field;
+        }
+
+        @Override
+        public long aggregate(T prev, T now) throws Exception {
+            return (long) field.get(prev) + (long) field.get(now);
+        }
+    }
+
+    static class MinAggregateFunction<T> implements IAggregateFunction<T> {
+        private final Field field;
+
+        public MinAggregateFunction(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Field getField() {
+            return field;
+        }
+
+        @Override
+        public long aggregate(T prev, T now) throws Exception {
+            return Math.min((long) field.get(prev), (long) field.get(now));
+        }
+    }
+
+    static class MaxAggregateFunction<T> implements IAggregateFunction<T> {
+        private final Field field;
+
+        public MaxAggregateFunction(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Field getField() {
+            return field;
+        }
+
+        @Override
+        public long aggregate(T prev, T now) throws Exception {
+            return Math.max((long) field.get(prev), (long) field.get(now));
+        }
+    }
+
+    static class LastAggregateFunction<T> implements IAggregateFunction<T> {
+        private final Field field;
+
+        public LastAggregateFunction(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Field getField() {
+            return field;
+        }
+
+        @Override
+        public long aggregate(T prev, T now) throws Exception {
+            return (long) field.get(now);
+
+        }
+    }
+
+    static class FirstAggregateFunction<T> implements IAggregateFunction<T> {
+        private final Field field;
+
+        public FirstAggregateFunction(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Field getField() {
+            return field;
+        }
+
+        @Override
+        public long aggregate(T prev, T now) throws Exception {
+            return (long) field.get(prev);
+        }
     }
 }
