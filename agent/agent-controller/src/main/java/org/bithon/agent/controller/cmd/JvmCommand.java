@@ -20,14 +20,11 @@ import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import org.bithon.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.management.AttributeNotFoundException;
 import javax.management.Descriptor;
 import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
-import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -178,30 +175,20 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                              jmxBeanAttribute.description = attr.getDescription();
                              jmxBeanAttribute.writable = attr.isWritable();
                              jmxBeanAttribute.readable = attr.isReadable();
-                             jmxBeanAttribute.is = attr.isIs();
                              jmxBeanAttribute.descriptor = toDescriptor(attr.getDescriptor());
 
-                             try {
-                                 if (attr.isReadable()) {
-                                     Object value = mbs.getAttribute(objectName, attr.getName());
 
-                                     if (value instanceof CompositeData) {
-                                         jmxBeanAttribute.type = ((CompositeData) value).getCompositeType().getTypeName();
-                                         value = convertCompositeData(((CompositeData) value));
-                                     } else if (value instanceof TabularData) {
-                                         jmxBeanAttribute.type = ((TabularData) value).getTabularType().getTypeName();
+                             if (attr.isReadable()) {
+                                 AttributeValue value = getAttributeValue(mbs, objectName, attr.getName());
 
-                                         value = convertTabularData(((TabularData) value));
-                                         if (value instanceof List) {
-                                             jmxBeanAttribute.type = jmxBeanAttribute.type + "[]";
-                                         }
-                                     }
-
-                                     jmxBeanAttribute.value = value == null ? null : new ObjectMapper().writeValueAsString(value);
+                                 jmxBeanAttribute.value = value.jsonValue;
+                                 if (value.compositeType != null) {
+                                     jmxBeanAttribute.type = value.compositeType;
                                  }
-                             } catch (Exception e) {
+                             } else {
                                  jmxBeanAttribute.value = "[Unreadable]";
                              }
+
                              return jmxBeanAttribute;
                          })
                          .sorted(Comparator.comparing(a -> a.name))
@@ -211,6 +198,53 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
             throw new IllegalArgumentException("Malformed object beanName: " + beanName);
         } catch (ReflectionException | IntrospectionException | InstanceNotFoundException e) {
             throw new RuntimeException("Unable to get MBeanInfo for " + beanName, e);
+        }
+    }
+
+    @Override
+    public String getBeanAttribute(String beanName, String attributeName) {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+        try {
+            // Find bean first
+            ObjectName objectName = new ObjectName(beanName);
+
+            // Find attribute
+            return getAttributeValue(mbs, objectName, attributeName).jsonValue;
+        } catch (MalformedObjectNameException e) {
+            throw new IllegalArgumentException("Malformed object beanName: " + beanName);
+        }
+    }
+
+    static class AttributeValue {
+        String compositeType;
+        String jsonValue;
+
+        public AttributeValue(String compositeType, String jsonValue) {
+            this.compositeType = compositeType;
+            this.jsonValue = jsonValue;
+        }
+    }
+
+    private AttributeValue getAttributeValue(MBeanServer mbs, ObjectName objectName, String attributeName) {
+        String type = null;
+        try {
+            Object value = mbs.getAttribute(objectName, attributeName);
+
+            if (value instanceof CompositeData) {
+                type = ((CompositeData) value).getCompositeType().getTypeName();
+                value = convertCompositeData(((CompositeData) value));
+            } else if (value instanceof TabularData) {
+                type = ((TabularData) value).getTabularType().getTypeName();
+                value = convertTabularData(((TabularData) value));
+                if (value instanceof List) {
+                    type = type + "[]";
+                }
+            }
+
+            return new AttributeValue(type, value == null ? null : new ObjectMapper().writeValueAsString(value));
+        } catch (Exception e) {
+            return new AttributeValue(null, "[Unreadable]");
         }
     }
 
@@ -232,28 +266,6 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
             list.add(convertCompositeData((CompositeData) value));
         }
         return data.getTabularType().isArray() ? list : list.get(0);
-    }
-
-    @Override
-    public String getBeanAttribute(String beanName, String attributeName) {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-
-        try {
-            // Find bean first
-            ObjectName objectName = new ObjectName(beanName);
-
-            // Find attribute
-            Object value = mbs.getAttribute(objectName, attributeName);
-            return value == null ? null : new ObjectMapper().writeValueAsString(value);
-        } catch (MalformedObjectNameException e) {
-            throw new IllegalArgumentException("Malformed object beanName: " + beanName);
-        } catch (ReflectionException | InstanceNotFoundException e) {
-            throw new RuntimeException("Unable to get MBeanInfo for " + beanName, e);
-        } catch (AttributeNotFoundException | MBeanException e) {
-            throw new RuntimeException("Unable to get attribute " + attributeName + " for " + beanName, e);
-        } catch (JsonProcessingException e) {
-            return new RuntimeException("Unable to serialize attribute value to JSON", e).toString();
-        }
     }
 
     private Map<String, String> toDescriptor(Descriptor descriptor) {

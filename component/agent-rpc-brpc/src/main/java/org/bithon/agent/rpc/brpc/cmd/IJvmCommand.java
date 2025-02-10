@@ -154,14 +154,13 @@ public interface IJvmCommand {
         public String description;
         public boolean writable;
         public boolean readable;
-        public boolean is;
         public Map<String, String> descriptor;
 
         // The value of the attribute serialized in JSON format
         public String value;
 
         public Object[] getObjects() {
-            return new Object[]{name, type, description, writable, readable, is, descriptor, value};
+            return new Object[]{name, type, description, writable, readable, descriptor, value};
         }
     }
 
