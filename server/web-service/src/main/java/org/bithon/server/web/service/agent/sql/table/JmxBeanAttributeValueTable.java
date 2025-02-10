@@ -21,7 +21,6 @@ import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
-import javax.management.openmbean.CompositeData;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
