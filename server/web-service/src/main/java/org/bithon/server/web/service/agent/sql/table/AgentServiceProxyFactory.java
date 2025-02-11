@@ -24,6 +24,7 @@ import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.exception.SessionNotFoundException;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.message.Headers;
@@ -189,6 +190,12 @@ public class AgentServiceProxyFactory {
                     return Collections.emptyList();
                 }
                 throw e;
+            } catch (ServiceNotFoundException e) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                                "Can't find service [%s] on target application [appName = %s, instance = %s]. You may need to upgrade the agent of the target application.",
+                                                e.getServiceName(),
+                                                targetApplication,
+                                                targetInstance);
             } catch (RuntimeException e) {
                 throw e;
             } catch (Throwable e) {

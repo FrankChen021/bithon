@@ -48,8 +48,8 @@ public class BrpcRpcTest {
     @BeforeClass
     public static void setup() {
         brpcServer = new BrpcServer("test")
-                .bindService(new ExampleServiceImpl())
-                .start(8070, idleSeconds);
+            .bindService(new ExampleServiceImpl())
+            .start(8070, idleSeconds);
     }
 
     @AfterClass
@@ -80,8 +80,8 @@ public class BrpcRpcTest {
 
             // test map
             Assert.assertEquals(
-                    ImmutableMap.of("k1", "v1", "k2", "v2"),
-                    exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
+                ImmutableMap.of("k1", "v1", "k2", "v2"),
+                exampleService.mergeMap(ImmutableMap.of("k1", "v1"), ImmutableMap.of("k2", "v2"))
             );
         }
     }
@@ -93,14 +93,14 @@ public class BrpcRpcTest {
 
             // test the 2nd argument is null
             Assert.assertEquals(
-                    ImmutableMap.of("k1", "v1"),
-                    service.mergeMap(ImmutableMap.of("k1", "v1"), null)
+                ImmutableMap.of("k1", "v1"),
+                service.mergeMap(ImmutableMap.of("k1", "v1"), null)
             );
 
             // test the 1st argument is null
             Assert.assertEquals(
-                    ImmutableMap.of("k2", "v2"),
-                    service.mergeMap(null, ImmutableMap.of("k2", "v2"))
+                ImmutableMap.of("k2", "v2"),
+                service.mergeMap(null, ImmutableMap.of("k2", "v2"))
             );
 
             // test both arguments are null
@@ -124,18 +124,18 @@ public class BrpcRpcTest {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
-                    WebRequestMetrics.newBuilder().setUri("/1").build(),
-                    WebRequestMetrics.newBuilder().setUri("/2").build()
+                WebRequestMetrics.newBuilder().setUri("/1").build(),
+                WebRequestMetrics.newBuilder().setUri("/2").build()
             ));
 
             Assert.assertEquals("/2-/3", exampleService.sendWebMetrics2(
-                    "/2",
-                    WebRequestMetrics.newBuilder().setUri("/3").build()
+                "/2",
+                WebRequestMetrics.newBuilder().setUri("/3").build()
             ));
 
             Assert.assertEquals("/4-/5", exampleService.sendWebMetrics3(
-                    WebRequestMetrics.newBuilder().setUri("/4").build(),
-                    "/5"
+                WebRequestMetrics.newBuilder().setUri("/4").build(),
+                "/5"
             ));
         }
     }
@@ -352,8 +352,8 @@ public class BrpcRpcTest {
                                                                                  IExampleService.class);
             Assert.assertEquals(2, client1Services.size());
             Assert.assertEquals(ImmutableSet.of("pong1", "pong2"), ImmutableSet.of(
-                    client1Services.get(0).ping(),
-                    client1Services.get(1).ping()
+                client1Services.get(0).ping(),
+                client1Services.get(1).ping()
             ));
 
             //
@@ -385,10 +385,10 @@ public class BrpcRpcTest {
 
             // test map
             Assert.assertEquals(
-                    ImmutableMap.of("k1", "v1", "k2", "v2"),
-                    exampleService.mergeWithJson(
-                            ImmutableMap.of("k1", "v1"),
-                            ImmutableMap.of("k2", "v2"))
+                ImmutableMap.of("k1", "v1", "k2", "v2"),
+                exampleService.mergeWithJson(
+                    ImmutableMap.of("k1", "v1"),
+                    ImmutableMap.of("k2", "v2"))
             );
         }
     }
@@ -466,6 +466,53 @@ public class BrpcRpcTest {
             // after the connection closed, the client will re-connect to the server once it founds that the connection is closed
             Assert.assertEquals(5, exampleService.createList(5).size());
             Assert.assertEquals(1, brpcServer.getSessions().size());
+        }
+    }
+
+    interface INotRegisteredService {
+        void empty();
+    }
+
+    @Test(expected = ServiceNotFoundException.class)
+    public void testServiceNotFoundException() {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+            INotRegisteredService exampleService = ch.getRemoteService(INotRegisteredService.class);
+        }
+    }
+
+    @BrpcService(name = "not_found_test")
+    interface IServiceNotFoundTest1 {
+        void empty();
+    }
+
+    @BrpcService(name = "not_found_test")
+    interface IServiceNotFoundTest2 {
+        void empty2();
+    }
+
+    @Test
+    public void testServiceNotFoundException_2() {
+        // Bind service 1
+        brpcServer.bindService(new IServiceNotFoundTest1() {
+            @Override
+            public void empty() {
+            }
+        });
+
+        try (BrpcClient ch = BrpcClientBuilder.builder()
+                                              .server("127.0.0.1", 8070)
+                                              .build()) {
+
+            // Use IServiceNotFoundTest2,
+            // since the method name is 'empty2' does not exist in the IServiceNotFoundTest1,
+            // calling on 'empty2' result in ServiceNotFoundException
+            IServiceNotFoundTest2 service = ch.getRemoteService(IServiceNotFoundTest2.class);
+
+            try {
+                service.empty2();
+                Assert.fail("SHOULD NOT GO TO HERE");
+            } catch (ServiceNotFoundException ignored) {
+            }
         }
     }
 }

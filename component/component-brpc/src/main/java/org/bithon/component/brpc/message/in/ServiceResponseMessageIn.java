@@ -17,6 +17,10 @@
 package org.bithon.component.brpc.message.in;
 
 import org.bithon.component.brpc.exception.BadRequestException;
+import org.bithon.component.brpc.exception.CalleeSideException;
+import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.serializer.Serializer;
@@ -32,7 +36,7 @@ import java.lang.reflect.Type;
 public class ServiceResponseMessageIn extends ServiceMessageIn {
     private long serverResponseAt;
     private CodedInputStream returning;
-    private String exception;
+    private Throwable exception;
 
     @Override
     public int getMessageType() {
@@ -45,10 +49,7 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
 
         this.serverResponseAt = in.readInt64();
 
-        boolean hasException = in.readRawByte() == 1;
-        if (hasException) {
-            this.exception = in.readString();
-        }
+        this.exception = deserializeException(in);
 
         boolean hasReturning = in.readRawByte() == 1;
         if (hasReturning) {
@@ -76,8 +77,51 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
         return new byte[0];
     }
 
-    public String getException() {
+    public Throwable getException() {
         return exception;
+    }
+
+    private Throwable deserializeException(CodedInputStream in) throws IOException {
+        boolean hasException = in.readRawByte() == 1;
+        if (!hasException) {
+            return null;
+        }
+
+        String exceptionMessage = in.readString();
+        int separator = exceptionMessage.indexOf(' ');
+        if (separator <= 0) {
+            return new CallerSideException("", exceptionMessage);
+        }
+
+        String exceptionType = exceptionMessage.substring(0, separator);
+        exceptionMessage = exceptionMessage.substring(separator + 1);
+
+        if (!exceptionType.endsWith("Exception")) {
+            // According to exception class name convention, it MUST end with 'Exception',
+            // Clears the invalid name
+            exceptionType = "";
+        }
+
+        //
+        // Create exception instance
+        //
+        if (exceptionType.equals(BadRequestException.class.getName())) {
+            // Compatibility with old clients
+            // Turn BadRequestException into ServiceNotFoundException for more accurate exception handling
+            String template = "Can't find service provider ";
+            int index = exceptionMessage.indexOf(template);
+            if (index >= 0) {
+                return new ServiceNotFoundException(exceptionMessage.substring(template.length()));
+            }
+
+            return new BadRequestException(exceptionMessage);
+        } else if (exceptionType.equals(ServiceInvocationException.class.getName())) {
+            return new ServiceInvocationException(exceptionMessage);
+        } else if (exceptionType.equals(ServiceNotFoundException.class.getName())) {
+            return new ServiceNotFoundException(exceptionMessage);
+        } else {
+            return new CalleeSideException(exceptionType, exceptionMessage);
+        }
     }
 
     public static ServiceResponseMessageIn from(InputStream inputStream) throws IOException {

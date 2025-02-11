@@ -65,8 +65,6 @@ public class ErrorResponseDecoder implements ErrorDecoder {
                 if (errorResponse.getException() != null) {
                     return new HttpMappableException(errorResponse.getException(),
                                                      response.status(),
-                                                     "Error when requesting [%s]: %s",
-                                                     path,
                                                      errorResponse.getMessage());
                 }
             }

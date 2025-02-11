@@ -53,7 +53,8 @@ public class ServiceResponseMessageOut extends ServiceMessageOut {
             out.writeRawByte(0);
         } else {
             out.writeRawByte(1);
-            out.writeStringNoTag(StringUtils.format("%s %s", this.throwable.getClass().getName(),
+            out.writeStringNoTag(StringUtils.format("%s %s",
+                                                    this.throwable.getClass().getName(),
                                                     this.throwable.getMessage()));
         }
 

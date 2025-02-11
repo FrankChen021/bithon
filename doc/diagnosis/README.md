@@ -58,6 +58,8 @@ The following table shows all the built-in tables that Bithon supports now.
 | [agent.thread](#agentthread)                           | &check; |         | Snapshot of threads  running in the target application when the SQL is executed |
 | [agent.vm_option](#agentvm_option)                     | &check; |         | Diagnostic VM options of target Java application.                               |
 | [agent.assembly](#agentassembly)                       | &check; |         | Disassembly a given class                                                       |
+| [agent.jmx_bean](#agentjmx_bean)                       | &check; |         | JMX beans of target Java application.                                           |
+| [agent.jmx_bean_attribute](#agentjmx_bean_attribute)   | &check; |         | JMX bean attributes of a given JMX bean in a target Java application.           |
 
 
 ## agent.instance
@@ -290,4 +292,51 @@ SELECT * FROM agent.assembly WHERE instance = '<THE TARGET INSTANCE>' AND class 
 ### Example
 ![img.png](assembly.png)
 
+## agent.jmx_bean
 
+This table reflects all the beans registered in the JMX(Java Managed Extensions) of a target application.
+
+```sql
+SELECT * FROM agent.jmx_bean WHERE appName = '<THE TARGET APP NAME>' AND instance = '<THE TARGET INSTANCE>'
+```
+
+### Example output
+
+| domain                    | name                                                    | className                                                    | description                                | descriptor       |
+|---------------------------|---------------------------------------------------------|--------------------------------------------------------------|--------------------------------------------|------------------|
+| org.springframework.boot	 | org.springframework.boot:name=Configprops,type=Endpoint | 	org.springframework.boot.actuate.endpoint.jmx.EndpointMBean | 	MBean operations for endpoint configprops | 	[object Object] |
+
+
+### Field Explanation
+
+| Field       | Explanation                                                  |
+|-------------|--------------------------------------------------------------|
+| domain      | The name of VM option                                        |
+| name        | The ObjectName of a JMX bean                                 |
+| className   | The Java implementation class that the JMX bean is belong to |
+| description | JMX bean description                                         |
+| descriptor  | The descriptor of JMX bean                                   |
+
+## agent.jmx_bean_attribute
+
+This table reflects all the attributes of a JMX bean.
+
+```sql
+-- appName/instance/beanName are required
+SELECT * FROM agent.jmx_bean_attribute 
+WHERE appName= '<THE TARGET APP NAME>' 
+AND instance = '<THE TARGET APP NAME>' 
+AND beanName = '<THE ObjectName of the JMX bean, the "name" column of agent.jmx_bean table>'
+```
+
+### Field Explanation
+
+| Field       | Explanation                                         |
+|-------------|-----------------------------------------------------|
+| name        | Attribute name                                      |
+| type        | The Java implementation type of the attribute value |
+| description | JMX bean description                                |
+| descriptor  | The descriptor of JMX bean                          |
+| value       | The value of the attribute in JSON string notation  |
+| readable    | Whether the attribute is readable                   |
+| writable    | Whether the attribute is writable                   |
