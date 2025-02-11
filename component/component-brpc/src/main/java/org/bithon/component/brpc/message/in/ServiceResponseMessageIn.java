@@ -87,16 +87,13 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
             return null;
         }
 
-        String exception = in.readString();
-
-        String exceptionType = "";
-        String exceptionMessage = exception;
+        String exceptionMessage = in.readString();
         int separator = exceptionMessage.indexOf(' ');
         if (separator <= 0) {
             return new CallerSideException("", exceptionMessage);
         }
 
-        exceptionType = exceptionMessage.substring(0, separator);
+        String exceptionType = exceptionMessage.substring(0, separator);
         exceptionMessage = exceptionMessage.substring(separator + 1);
 
         if (!exceptionType.endsWith("Exception")) {
@@ -104,7 +101,19 @@ public class ServiceResponseMessageIn extends ServiceMessageIn {
             // Clears the invalid name
             exceptionType = "";
         }
+
+        //
+        // Create exception instance
+        //
         if (exceptionType.equals(BadRequestException.class.getName())) {
+            // Compatibility with old clients
+            // Turn BadRequestException into ServiceNotFoundException for more accurate exception handling
+            String template = "Can't find service provider ";
+            int index = exceptionMessage.indexOf(template);
+            if (index >= 0) {
+                return new ServiceNotFoundException(exceptionMessage.substring(template.length()));
+            }
+
             return new BadRequestException(exceptionMessage);
         } else if (exceptionType.equals(ServiceInvocationException.class.getName())) {
             return new ServiceInvocationException(exceptionMessage);
