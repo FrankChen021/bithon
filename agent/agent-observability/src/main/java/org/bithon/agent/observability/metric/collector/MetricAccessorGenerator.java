@@ -21,7 +21,6 @@ import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
-import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.InstrumentedType;
 import org.bithon.shaded.net.bytebuddy.implementation.Implementation;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Label;
@@ -40,7 +39,7 @@ import java.util.List;
 
 public class MetricAccessorGenerator {
 
-    public interface IndexedGetter {
+    public interface IMetricAccessor {
         long getMetricValue(int i);
 
         long getMetricCount();
@@ -54,24 +53,31 @@ public class MetricAccessorGenerator {
         // Use ByteBuddy to generate a subclass implementing IndexedGetter
         DynamicType.Builder<?> builder = new ByteBuddy()
             .subclass(metricSetClass)
-            .implement(IndexedGetter.class);
+            .implement(IMetricAccessor.class);
 
         try (DynamicType.Unloaded<?> type = builder
+            // Create 'getMetricValue' method
             .defineMethod("getMetricValue", long.class, Visibility.PUBLIC)
             .withParameters(int.class)
-            .intercept(new Implementation() {
-                @Override
-                public ByteCodeAppender appender(Target implementationTarget) {
-                    return new GetMetricValueByteCodeGenerator(className, fields);
-                }
+            .intercept(new Implementation.Simple(new GetMetricValueByteCodeGenerator(className, fields)))
+            // Create 'getMetricCount' method
+            .defineMethod("getMetricCount", long.class, Visibility.PUBLIC)
+            .intercept(new Implementation.Simple((mv, context, method) -> {
+                mv.visitCode();
+                mv.visitLdcInsn((long) fields.size());
+                mv.visitInsn(Opcodes.LRETURN);
+                mv.visitMaxs(2, 1);
+                mv.visitEnd();
 
-                @Override
-                public InstrumentedType prepare(InstrumentedType instrumentedType) {
-                    return instrumentedType;
-                }
-            })
+                /*
+                 * Operand Stack Size (2): The maximum stack size needed is 2 because the method loads a constant long value (which takes 2 slots on the operand stack) and then returns it.
+                 * Local Variables (1): The method uses 1 local variable, which is the this reference.
+                 */
+                return new ByteCodeAppender.Size(2, 1);
+            }))
             .make()) {
 
+            //noinspection unchecked
             return (Class<T>) type.load(metricSetClass.getClassLoader())
                                   .getLoaded();
         }

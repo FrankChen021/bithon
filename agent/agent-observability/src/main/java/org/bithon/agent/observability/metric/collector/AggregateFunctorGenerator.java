@@ -25,7 +25,6 @@ import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 import org.bithon.shaded.net.bytebuddy.dynamic.DynamicType;
-import org.bithon.shaded.net.bytebuddy.dynamic.scaffold.InstrumentedType;
 import org.bithon.shaded.net.bytebuddy.implementation.Implementation;
 import org.bithon.shaded.net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Label;
@@ -86,20 +85,10 @@ public class AggregateFunctorGenerator {
 
         try (DynamicType.Unloaded<?> dynamicType = new ByteBuddy()
             .subclass(targetClass)
+            // Create 'aggregate' method
             .defineMethod("aggregate", void.class, Visibility.PUBLIC)
             .withParameters(targetClass, targetClass)
-            .intercept(new Implementation() {
-
-                @Override
-                public ByteCodeAppender appender(Target implementationTarget) {
-                    return new AggregateMethodByteCodeGenerator(targetClass, fields);
-                }
-
-                @Override
-                public InstrumentedType prepare(InstrumentedType instrumentedType) {
-                    return instrumentedType;
-                }
-            })
+            .intercept(new Implementation.Simple(new AggregateMethodByteCodeGenerator(targetClass, fields)))
             .make()) {
 
             // Load and return the generated class

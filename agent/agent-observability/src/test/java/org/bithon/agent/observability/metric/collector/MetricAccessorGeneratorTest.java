@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.metric.collector;
 
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,20 +31,22 @@ public class MetricAccessorGeneratorTest {
         public long field2 = 3;
     }
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void testClassGenerator() throws Exception {
         SampleData sampleData = MetricAccessorGenerator.generate(SampleData.class).getDeclaredConstructor().newInstance();
 
-        MetricAccessorGenerator.IndexedGetter getter = (MetricAccessorGenerator.IndexedGetter) sampleData;
+        MetricAccessorGenerator.IMetricAccessor metricAccessor = (MetricAccessorGenerator.IMetricAccessor) sampleData;
 
-        Assert.assertEquals(1, getter.getMetricValue(0));
-        Assert.assertEquals(2, getter.getMetricValue(1));
-        Assert.assertEquals(3, getter.getMetricValue(2));
+        Assert.assertEquals(3, metricAccessor.getMetricCount());
+        Assert.assertEquals(1, metricAccessor.getMetricValue(0));
+        Assert.assertEquals(2, metricAccessor.getMetricValue(1));
+        Assert.assertEquals(3, metricAccessor.getMetricValue(2));
 
         sampleData.field0 = 0;
         sampleData.field1 = 11;
         sampleData.field2 = 22;
-        Assert.assertEquals(0, getter.getMetricValue(0));
-        Assert.assertEquals(11, getter.getMetricValue(1));
-        Assert.assertEquals(22, getter.getMetricValue(2));
+        Assert.assertEquals(0, metricAccessor.getMetricValue(0));
+        Assert.assertEquals(11, metricAccessor.getMetricValue(1));
+        Assert.assertEquals(22, metricAccessor.getMetricValue(2));
     }
 }
