@@ -35,15 +35,15 @@ public class MetricAccessorGeneratorTest {
 
         MetricAccessorGenerator.IndexedGetter getter = (MetricAccessorGenerator.IndexedGetter) sampleData;
 
-        Assert.assertEquals(1, getter.get(0));
-        Assert.assertEquals(2, getter.get(1));
-        Assert.assertEquals(3, getter.get(2));
+        Assert.assertEquals(1, getter.getMetricValue(0));
+        Assert.assertEquals(2, getter.getMetricValue(1));
+        Assert.assertEquals(3, getter.getMetricValue(2));
 
         sampleData.field0 = 0;
         sampleData.field1 = 11;
         sampleData.field2 = 22;
-        Assert.assertEquals(0, getter.get(0));
-        Assert.assertEquals(11, getter.get(1));
-        Assert.assertEquals(22, getter.get(2));
+        Assert.assertEquals(0, getter.getMetricValue(0));
+        Assert.assertEquals(11, getter.getMetricValue(1));
+        Assert.assertEquals(22, getter.getMetricValue(2));
     }
 }
