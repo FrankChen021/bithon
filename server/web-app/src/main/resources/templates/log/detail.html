@@ -163,26 +163,7 @@
                 new DashboardApi().getDashboardConfig(g_logStore,
                     (boardConfig) => {
                         // Initialize log store filter
-                        logStoreDisplayName = bordConfig.title;
-                        logStoreFilter.append(`<option value=${g_logStore}>${logStoreDisplayName}</option>`).change();
-                        logStoreFilter.on('change', (event) => {
-                            if (event.target.selectedIndex !== null && event.target.selectedIndex >= 0) {
-                                const selectedStore = event.target.selectedOptions[0].value;
-
-                                if (selectedStore === g_logStore) {
-                                    return;
-                                }
-
-                                // Check if the log store exists because the current select2 allows to edit,
-                                // use might key in a valid log store name
-                                if (g_storeList.results !== undefined) {
-                                    const foundStore = g_storeList.results.filter((store) => store.id === selectedStore);
-                                    if (foundStore.length > 0) {
-                                        window.location.href = '/web/log/' + selectedStore;
-                                    }
-                                }
-                            }
-                        });
+                        logStoreFilter.append(`<option value=${g_logStore}>${boardConfig.title}</option>`).change();
 
                         // Initialize dashboard
                         const dashboard = new Dashboard('logContainer',
@@ -198,6 +179,25 @@
                     });
             });
         }
+
+        logStoreFilter.on('change', (event) => {
+            if (event.target.selectedIndex !== null && event.target.selectedIndex >= 0) {
+                const selectedStore = event.target.selectedOptions[0].value;
+
+                if (selectedStore === g_logStore) {
+                    return;
+                }
+
+                // Check if the log store exists because the current select2 allows to edit,
+                // use might key in a valid log store name
+                if (g_storeList.results !== undefined) {
+                    const foundStore = g_storeList.results.filter((store) => store.id === selectedStore);
+                    if (foundStore.length > 0) {
+                        window.location.href = '/web/log/' + selectedStore;
+                    }
+                }
+            }
+        });
     </script>
 </div>
 </body>
