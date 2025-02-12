@@ -45,7 +45,7 @@ public class MetricAccessorGenerator {
         long getMetricCount();
     }
 
-    public static <T> Class<T> generate(Class<T> metricSetClass) {
+    public static <T> Class<T> createAccessor(Class<T> metricSetClass) {
 
         List<Field> fields = Arrays.asList(metricSetClass.getDeclaredFields());
         String className = metricSetClass.getName().replace('.', '/');

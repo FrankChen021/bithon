@@ -32,26 +32,25 @@ public class AggregateFunctorGeneratorTest {
 
     public static class SampleDataLong {
         @Sum
-        public long sumField = 100L;
+        public long sumField =0;
 
         @Min
-        public long minField = 200L;
+        public long minField = 0;
 
         @Max
-        public long maxField = 300L;
+        public long maxField = 0;
 
         @First
-        public long firstField = 400L;
+        public long firstField = 0;
 
         @Last
-        public long lastField = 500L;
+        public long lastField = 0;
     }
 
     @Test
     public void test() throws Exception {
         // Create two instances
         SampleDataLong prev = new SampleDataLong();
-        SampleDataLong now = new SampleDataLong();
 
         // Set test values
         prev.sumField = 100L;    // @Sum
@@ -60,26 +59,37 @@ public class AggregateFunctorGeneratorTest {
         prev.firstField = 400L;  // @First
         prev.lastField = 500L;   // @Last
 
-        now.sumField = 150L;     // @Sum -> expected 250 (sum)
-        now.minField = 100L;     // @Min -> expected 100 (min)
-        now.maxField = 400L;     // @Max -> expected 400 (max)
-        now.firstField = 500L;   // @First -> expected 400 (keep prev)
-        now.lastField = 600L;    // @Last -> expected 600 (take now)
-
         // Generate the merger class
-        Class<?> aggregateFunctor = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
+        Class<SampleDataLong> aggregateFunctorClass = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
 
         // Create aggregate function instance
-        Object merger = aggregateFunctor.getDeclaredConstructor().newInstance();
+        //noinspection unchecked
+        AggregateFunctorGenerator.IAggregate<SampleDataLong> aggregateFunctor = (AggregateFunctorGenerator.IAggregate<SampleDataLong>) aggregateFunctorClass.getDeclaredConstructor().newInstance();
 
         // Perform Aggregation
-        aggregateFunctor.getMethod("aggregate", SampleDataLong.class, SampleDataLong.class)
-                        .invoke(merger, prev, now);
+        {
+            SampleDataLong now = new SampleDataLong();
+            now.sumField = 150L;     // @Sum -> expected 250 (sum)
+            now.minField = 100L;     // @Min -> expected 100 (min)
+            now.maxField = 400L;     // @Max -> expected 400 (max)
+            now.firstField = 500L;   // @First -> expected 400 (keep prev)
+            now.lastField = 600L;    // @Last -> expected 600 (take now)
+            aggregateFunctor.aggregate(prev, now);
+            Assert.assertEquals(250L, prev.sumField);
+            Assert.assertEquals(100L, prev.minField);
+            Assert.assertEquals(400L, prev.maxField);
+            Assert.assertEquals(400L, prev.firstField);
+            Assert.assertEquals(600L, prev.lastField);
+        }
+        {
+            SampleDataLong now = new SampleDataLong();
+            now.minField = Long.MAX_VALUE;
+            now.maxField = Long.MIN_VALUE;
+            aggregateFunctor.aggregate(prev, now);
 
-        Assert.assertEquals(250L, prev.sumField);
-        Assert.assertEquals(100L, prev.minField);
-        Assert.assertEquals(400L, prev.maxField);
-        Assert.assertEquals(400L, prev.firstField);
-        Assert.assertEquals(600L, prev.lastField);
+            // The MIN and MAX should be the same as previous
+            Assert.assertEquals(100L, prev.minField);
+            Assert.assertEquals(400L, prev.maxField);
+        }
     }
 }
