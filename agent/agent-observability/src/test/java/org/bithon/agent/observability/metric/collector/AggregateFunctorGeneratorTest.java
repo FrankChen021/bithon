@@ -23,7 +23,6 @@ import org.bithon.agent.observability.metric.model.annotation.Min;
 import org.bithon.agent.observability.metric.model.annotation.Sum;
 import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
 import org.bithon.agent.observability.metric.model.generator.IAggregate;
-import org.bithon.agent.observability.metric.model.generator.IAggregateInstanceSupplier;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,12 +61,8 @@ public class AggregateFunctorGeneratorTest {
         prev.firstField = 400L;  // @First
         prev.lastField = 500L;   // @Last
 
-        // Generate the merger class
-        IAggregateInstanceSupplier<SampleDataLong> supplier = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
-
         // Create aggregate function instance
-        //noinspection unchecked
-        IAggregate<SampleDataLong> aggregateFunctor = (IAggregate<SampleDataLong>) supplier.createInstance();
+        IAggregate<SampleDataLong> aggregateFunctor = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
 
         // Perform Aggregation
         {

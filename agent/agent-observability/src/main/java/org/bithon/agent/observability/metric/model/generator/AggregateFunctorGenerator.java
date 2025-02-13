@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class AggregateFunctorGenerator {
 
-    public static <T> IAggregateInstanceSupplier<T> createAggregateFunctor(Class<T> targetClass) {
+    public static <T> IAggregate<T> createAggregateFunctor(Class<T> targetClass) {
         // Collect all fields
         List<FieldInfo> fields = new ArrayList<>();
         for (Field field : targetClass.getDeclaredFields()) {
@@ -79,19 +79,18 @@ public class AggregateFunctorGenerator {
             .intercept(new Implementation.Simple(new AggregateMethodByteCodeGenerator(targetClass, fields)))
             .make()) {
 
-            //noinspection unchecked
-            Class<T> clazz = (Class<T>) dynamicType.load(AggregateFunctorGenerator.class.getClassLoader())
-                                                   .getLoaded();
-            return () -> {
-                try {
-                    return clazz.getDeclaredConstructor().newInstance();
-                } catch (InstantiationException | NoSuchMethodException |
-                         IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
-                }
-            };
+            //noinspection unchecked,rawtypes
+            Class<IAggregate> clazz = (Class<IAggregate>) dynamicType.load(AggregateFunctorGenerator.class.getClassLoader())
+                                                                     .getLoaded();
+            try {
+                //noinspection unchecked
+                return (IAggregate<T>) clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | NoSuchMethodException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
+            }
         }
     }
 

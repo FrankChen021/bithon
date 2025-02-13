@@ -16,6 +16,7 @@
 
 package org.bithon.agent.observability.metric.collector;
 
+import org.bithon.agent.observability.metric.model.IMetricAccessor;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -48,7 +49,7 @@ public class MetricAccessorBenchmark {
         public long field2 = 3;
     }
 
-    static class ReflectionBasedMetricAccessor implements MetricAccessorGenerator.IMetricAccessor {
+    static class ReflectionBasedMetricAccessor implements IMetricAccessor {
         private final Object metricObject;
         public List<Field> metricFields;
 
@@ -72,18 +73,18 @@ public class MetricAccessorBenchmark {
         }
 
         @Override
-        public long getMetricCount() {
+        public int getMetricCount() {
             return this.metricFields.size();
         }
     }
 
-    private MetricAccessorGenerator.IMetricAccessor generatedAccessor;
+    private IMetricAccessor generatedAccessor;
     private ReflectionBasedMetricAccessor reflectionAccessor;
 
     @Setup
     public void setup() throws Exception {
-        SampleData sampleData = MetricAccessorGenerator.createAccessor(SampleData.class).getDeclaredConstructor().newInstance();
-        generatedAccessor = (MetricAccessorGenerator.IMetricAccessor) sampleData;
+        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).get();
+        generatedAccessor = (IMetricAccessor) sampleData;
         reflectionAccessor = new ReflectionBasedMetricAccessor(sampleData);
     }
 

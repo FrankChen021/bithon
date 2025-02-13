@@ -29,16 +29,7 @@ public class SqlMetricStorage extends AggregatableMetricStorage<SqlLog> {
         super("sql-metrics",
               Arrays.asList("connectionString", "sqlType", "traceId"),
               SqlLog.class,
-              (metrics) -> metrics.getResponseTime() > 1000,
-              (prev, now) -> {
-                  prev.bytesIn += now.bytesIn;
-                  prev.bytesOut += now.bytesOut;
-                  prev.callCount += now.callCount;
-                  prev.responseTime += now.responseTime;
-                  prev.minResponseTime = Math.min(prev.minResponseTime, now.minResponseTime);
-                  prev.maxResponseTime = Math.max(prev.maxResponseTime, now.maxResponseTime);
-                  return prev;
-              }
+              (metrics) -> metrics.responseTime > 1_000_000_000
         );
     }
 }

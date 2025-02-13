@@ -16,6 +16,7 @@
 
 package org.bithon.agent.observability.metric.collector;
 
+import org.bithon.agent.observability.metric.model.IMetricAccessor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,9 +34,9 @@ public class MetricAccessorGeneratorTest {
 
     @Test
     public void testClassGenerator() throws Exception {
-        SampleData sampleData = MetricAccessorGenerator.createAccessor(SampleData.class).getDeclaredConstructor().newInstance();
+        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).get();
 
-        MetricAccessorGenerator.IMetricAccessor metricAccessor = (MetricAccessorGenerator.IMetricAccessor) sampleData;
+        IMetricAccessor metricAccessor = (IMetricAccessor) sampleData;
 
         Assert.assertEquals(3, metricAccessor.getMetricCount());
         Assert.assertEquals(1, metricAccessor.getMetricValue(0));

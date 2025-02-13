@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.metric.collector;
 
 
+import org.bithon.agent.observability.metric.model.IMetricAccessor;
 import org.bithon.shaded.net.bytebuddy.ByteBuddy;
 import org.bithon.shaded.net.bytebuddy.description.method.MethodDescription;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
@@ -27,9 +28,12 @@ import org.bithon.shaded.net.bytebuddy.jar.asm.Label;
 import org.bithon.shaded.net.bytebuddy.jar.asm.MethodVisitor;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 // Interface for field access
 
@@ -39,13 +43,7 @@ import java.util.List;
 
 public class MetricAccessorGenerator {
 
-    public interface IMetricAccessor {
-        long getMetricValue(int i);
-
-        long getMetricCount();
-    }
-
-    public static <T> Class<T> createAccessor(Class<T> metricSetClass) {
+    public static <T> Supplier<T> createInstantiator(Class<T> metricSetClass) {
 
         List<Field> fields = Arrays.asList(metricSetClass.getDeclaredFields());
         String className = metricSetClass.getName().replace('.', '/');
@@ -59,35 +57,51 @@ public class MetricAccessorGenerator {
             // Create 'getMetricValue' method
             .defineMethod("getMetricValue", long.class, Visibility.PUBLIC)
             .withParameters(int.class)
-            .intercept(new Implementation.Simple(new GetMetricValueByteCodeGenerator(className, fields)))
+            .intercept(new Implementation.Simple(new GetMetricValueMethodGenerator(className, fields)))
             // Create 'getMetricCount' method
-            .defineMethod("getMetricCount", long.class, Visibility.PUBLIC)
+            .defineMethod("getMetricCount", int.class, Visibility.PUBLIC)
             .intercept(new Implementation.Simple((mv, context, method) -> {
                 mv.visitCode();
-                mv.visitLdcInsn((long) fields.size());
-                mv.visitInsn(Opcodes.LRETURN);
-                mv.visitMaxs(2, 1);
+                mv.visitLdcInsn(fields.size());
+                mv.visitInsn(Opcodes.IRETURN);
+                mv.visitMaxs(1, 1);
                 mv.visitEnd();
 
                 /*
-                 * Operand Stack Size (2): The maximum stack size needed is 2 because the method loads a constant long value (which takes 2 slots on the operand stack) and then returns it.
+                 * Operand Stack Size (1): The maximum stack size needed is 1 because the method loads a constant int value (which takes 1 slots on the operand stack) and then returns it.
                  * Local Variables (1): The method uses 1 local variable, which is the this reference.
                  */
-                return new ByteCodeAppender.Size(2, 1);
+                return new ByteCodeAppender.Size(1, 1);
             }))
             .make()) {
 
             //noinspection unchecked
-            return (Class<T>) type.load(metricSetClass.getClassLoader())
-                                  .getLoaded();
+            Class<T> clazz = (Class<T>) type.load(metricSetClass.getClassLoader())
+                                            .getLoaded();
+
+            try {
+                final Constructor<T> ctor = clazz.getDeclaredConstructor();
+                return () -> {
+                    try {
+                        //noinspection
+                        return (T) ctor.newInstance();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
+                    }
+                };
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    private static class GetMetricValueByteCodeGenerator implements ByteCodeAppender {
+    private static class GetMetricValueMethodGenerator implements ByteCodeAppender {
         private final List<Field> fields;
         private final String baseClassName;
 
-        private GetMetricValueByteCodeGenerator(String baseClassName, List<Field> fields) {
+        private GetMetricValueMethodGenerator(String baseClassName, List<Field> fields) {
             this.baseClassName = baseClassName;
             this.fields = fields;
         }

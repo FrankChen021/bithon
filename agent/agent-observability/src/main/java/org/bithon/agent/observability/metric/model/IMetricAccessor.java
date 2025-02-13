@@ -18,10 +18,10 @@ package org.bithon.agent.observability.metric.model;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/2/5 22:24
+ * @date 2025/2/13 21:53
  */
-public interface IMetricSet2 {
-    int getMetricCount();
+public interface IMetricAccessor {
+    long getMetricValue(int i);
 
-    long getMetricValue(int index);
+    int getMetricCount();
 }

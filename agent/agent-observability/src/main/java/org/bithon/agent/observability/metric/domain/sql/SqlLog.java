@@ -16,7 +16,6 @@
 
 package org.bithon.agent.observability.metric.domain.sql;
 
-import org.bithon.agent.observability.metric.model.IMetricSet2;
 import org.bithon.agent.observability.metric.model.annotation.Max;
 import org.bithon.agent.observability.metric.model.annotation.Min;
 import org.bithon.agent.observability.metric.model.annotation.Sum;
@@ -25,12 +24,14 @@ import org.bithon.agent.observability.metric.model.annotation.Sum;
  * @author frank.chen021@outlook.com
  * @date 2025/2/5 20:19
  */
-public class SqlLog implements IMetricSet2 {
-    private long timestamp;
+public class SqlLog {
 
     @Min
     public long minResponseTime;
 
+    /**
+     * nano seconds
+     */
     @Sum
     public long responseTime;
 
@@ -46,37 +47,4 @@ public class SqlLog implements IMetricSet2 {
     @Max
     public long bytesOut;
 
-    public long getMinResponseTime() {
-        return minResponseTime;
-    }
-
-    public long getResponseTime() {
-        return responseTime;
-    }
-
-    public long getMaxResponseTime() {
-        return maxResponseTime;
-    }
-
-    public long getCallCount() {
-        return callCount;
-    }
-
-    public long getBytesIn() {
-        return bytesIn;
-    }
-
-    public long getBytesOut() {
-        return bytesOut;
-    }
-
-    @Override
-    public int getMetricCount() {
-        return 0;
-    }
-
-    @Override
-    public long getMetricValue(int index) {
-        return 0;
-    }
 }

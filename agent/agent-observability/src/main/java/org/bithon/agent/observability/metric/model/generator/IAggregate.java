@@ -16,10 +16,21 @@
 
 package org.bithon.agent.observability.metric.model.generator;
 
+import java.util.function.BiFunction;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/2/13 20:23
  */
 public interface IAggregate<T> {
+    /**
+     * TODO:
+     * change the return type to T
+     * so that it matches the BiFunction<T,T,T> signature which can be directly used as the 3nd parameter of
+     * {@link java.util.Map#merge(Object, Object, BiFunction)}
+     *
+     * @param prev
+     * @param now
+     */
     void aggregate(T prev, T now);
 }

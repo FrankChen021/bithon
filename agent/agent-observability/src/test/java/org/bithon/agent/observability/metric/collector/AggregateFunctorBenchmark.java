@@ -19,7 +19,6 @@ package org.bithon.agent.observability.metric.collector;
 import org.bithon.agent.observability.metric.model.annotation.Sum;
 import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
 import org.bithon.agent.observability.metric.model.generator.IAggregate;
-import org.bithon.agent.observability.metric.model.generator.IAggregateInstanceSupplier;
 import org.bithon.agent.observability.metric.model.generator.ReflectionBaseAggregateMethodGenerator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -65,11 +64,7 @@ public class AggregateFunctorBenchmark {
 
     @Setup
     public void setup() {
-        // Generate the merger class
-        IAggregateInstanceSupplier<SampleData> supplier = AggregateFunctorGenerator.createAggregateFunctor(SampleData.class);
-
-        //noinspection unchecked,rawtypes
-        generatedAggregator = (IAggregate) supplier.createInstance();
+        generatedAggregator = AggregateFunctorGenerator.createAggregateFunctor(SampleData.class);
 
         codedAggregator = (prev, next) -> prev.field0 += next.field0;
 

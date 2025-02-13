@@ -20,6 +20,9 @@ import org.bithon.agent.observability.exporter.Exporter;
 import org.bithon.agent.observability.exporter.Exporters;
 import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
+import org.bithon.agent.observability.metric.collector.MetricAccessorGenerator;
+import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
+import org.bithon.agent.observability.metric.model.generator.IAggregate;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.metric.model.schema.Schema2;
 
@@ -31,14 +34,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/2/5 20:22
  */
-public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetricCollector2 {
+public class AggregatableMetricStorage<T> implements IMetricCollector2 {
     private final Exporter exporter;
+    private final Supplier<T> metricInstanceInitiator;
     private Map<Dimensions, T> aggregatedStorage = new ConcurrentHashMap<>();
 
     private List<IMeasurement> rawStorage = new ArrayList<>();
@@ -52,7 +57,26 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
                                      List<String> dimensionSpec,
                                      Class<T> metricClass,
                                      Predicate<T> aggreatePredicate) {
-        this(name, dimensionSpec, metricClass, aggreatePredicate, createAggregateFn(metricClass));
+        this(name,
+             dimensionSpec,
+             metricClass,
+             aggreatePredicate,
+             AggregateFunctorGenerator.createAggregateFunctor(metricClass));
+    }
+
+    public AggregatableMetricStorage(String name,
+                                     List<String> dimensionSpec,
+                                     Class<T> metricClass,
+                                     Predicate<T> aggreatePredicate,
+                                     IAggregate<T> aggregator) {
+        this(name,
+             dimensionSpec,
+             metricClass,
+             aggreatePredicate,
+             (T prev, T now) -> {
+                 aggregator.aggregate(prev, now);
+                 return prev;
+             });
     }
 
     public AggregatableMetricStorage(String name,
@@ -63,12 +87,21 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
         this.aggreatePredicate = aggreatePredicate;
         this.aggregateFn = aggregateFn;
         this.schema = createSchema(name, dimensionSpec, metricClass);
-
+        this.metricInstanceInitiator = MetricAccessorGenerator.createInstantiator(metricClass);
         this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
     }
 
+    public T createMetrics() {
+        return this.metricInstanceInitiator.get();
+    }
+
     public void add(Dimensions dimensions, T metrics) {
+        if (!(metrics instanceof IMetricAccessor)) {
+            throw new IllegalArgumentException("Please use #createMetrics() method to instantiate a metrics class.");
+        }
+
         if (aggreatePredicate.test(metrics)) {
+            // If current metrics is predicated to be aggregated, then merge the metrics with the existing one
             aggregatedStorage.merge(dimensions,
                                     metrics,
                                     this.aggregateFn);
@@ -76,11 +109,12 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
             return;
         }
 
-        // Add to raw storage and
+        // Add to raw storage
+        // TODO: handling timestamp for raw storage
         List<IMeasurement> batch = null;
         lock.lock();
         try {
-            rawStorage.add(new Measurement(dimensions, metrics));
+            rawStorage.add(new Measurement(dimensions, (IMetricAccessor) metrics));
             if (rawStorage.size() >= 10_000) {
                 batch = rawStorage;
                 rawStorage = new ArrayList<>();
@@ -118,11 +152,11 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
 
     static class Measurement implements IMeasurement {
         private final Dimensions dimensions;
-        private final IMetricSet2 metricSet;
+        private final IMetricAccessor metricAccessor;
 
-        public Measurement(Dimensions dimensions, IMetricSet2 metrics) {
+        public Measurement(Dimensions dimensions, IMetricAccessor metrics) {
             this.dimensions = dimensions;
-            this.metricSet = metrics;
+            this.metricAccessor = metrics;
         }
 
         @Override
@@ -132,47 +166,13 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
 
         @Override
         public int getMetricCount() {
-            return metricSet.getMetricCount();
+            return metricAccessor.getMetricCount();
         }
 
         @Override
         public long getMetricValue(int index) {
-            return metricSet.getMetricValue(index);
+            return metricAccessor.getMetricValue(index);
         }
-    }
-
-    static <T extends IMetricSet2> BiFunction<T, T, T> createAggregateFn(Class<T> clazz) {
-        List<IAggregateFunction<T>> aggregateFunctions = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Sum.class)) {
-                aggregateFunctions.add(new SumAggregateFunction<>(field));
-            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Max.class)) {
-                aggregateFunctions.add(new MaxAggregateFunction<>(field));
-            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Min.class)) {
-                aggregateFunctions.add(new MinAggregateFunction<>(field));
-            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Last.class)) {
-                aggregateFunctions.add(new LastAggregateFunction<>(field));
-            } else if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.First.class)) {
-                aggregateFunctions.add(new FirstAggregateFunction<>(field));
-            }
-        }
-        if (aggregateFunctions.isEmpty()) {
-            throw new IllegalArgumentException("No aggregation annotation defined in class " + clazz.getName());
-        }
-        for (IAggregateFunction<T> aggregateFunction : aggregateFunctions) {
-            aggregateFunction.getField().setAccessible(true);
-        }
-        return (prev, now) -> {
-            for (IAggregateFunction<T> aggregateFunction : aggregateFunctions) {
-                Field f = aggregateFunction.getField();
-                try {
-                    f.set(prev, aggregateFunction.aggregate(prev, now));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return prev;
-        };
     }
 
     static <T> Schema2 createSchema(String name, List<String> dimensions, Class<T> clazz) {
@@ -190,102 +190,5 @@ public class AggregatableMetricStorage<T extends IMetricSet2> implements IMetric
         }
 
         return new Schema2(name, dimensions, metrics);
-    }
-
-    interface IAggregateFunction<T> {
-        Field getField();
-
-        long aggregate(T prev, T now) throws Exception;
-    }
-
-    static class SumAggregateFunction<T> implements IAggregateFunction<T> {
-        private final Field field;
-
-        public SumAggregateFunction(Field field) {
-            this.field = field;
-        }
-
-        @Override
-        public Field getField() {
-            return field;
-        }
-
-        @Override
-        public long aggregate(T prev, T now) throws Exception {
-            return (long) field.get(prev) + (long) field.get(now);
-        }
-    }
-
-    static class MinAggregateFunction<T> implements IAggregateFunction<T> {
-        private final Field field;
-
-        public MinAggregateFunction(Field field) {
-            this.field = field;
-        }
-
-        @Override
-        public Field getField() {
-            return field;
-        }
-
-        @Override
-        public long aggregate(T prev, T now) throws Exception {
-            return Math.min((long) field.get(prev), (long) field.get(now));
-        }
-    }
-
-    static class MaxAggregateFunction<T> implements IAggregateFunction<T> {
-        private final Field field;
-
-        public MaxAggregateFunction(Field field) {
-            this.field = field;
-        }
-
-        @Override
-        public Field getField() {
-            return field;
-        }
-
-        @Override
-        public long aggregate(T prev, T now) throws Exception {
-            return Math.max((long) field.get(prev), (long) field.get(now));
-        }
-    }
-
-    static class LastAggregateFunction<T> implements IAggregateFunction<T> {
-        private final Field field;
-
-        public LastAggregateFunction(Field field) {
-            this.field = field;
-        }
-
-        @Override
-        public Field getField() {
-            return field;
-        }
-
-        @Override
-        public long aggregate(T prev, T now) throws Exception {
-            return (long) field.get(now);
-
-        }
-    }
-
-    static class FirstAggregateFunction<T> implements IAggregateFunction<T> {
-        private final Field field;
-
-        public FirstAggregateFunction(Field field) {
-            this.field = field;
-        }
-
-        @Override
-        public Field getField() {
-            return field;
-        }
-
-        @Override
-        public long aggregate(T prev, T now) throws Exception {
-            return (long) field.get(prev);
-        }
     }
 }
