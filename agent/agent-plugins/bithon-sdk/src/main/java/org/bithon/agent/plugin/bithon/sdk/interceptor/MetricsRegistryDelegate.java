@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
 import org.bithon.agent.observability.exporter.IMessageConverter;
-import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
+import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.metric.model.schema.IDimensionSpec;
 import org.bithon.agent.observability.metric.model.schema.IMetricSpec;

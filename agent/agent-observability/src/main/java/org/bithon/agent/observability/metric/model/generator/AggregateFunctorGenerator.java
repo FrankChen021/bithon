@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.observability.metric.model.generator;
 
 import org.bithon.agent.observability.metric.model.annotation.First;
 import org.bithon.agent.observability.metric.model.annotation.Last;
@@ -31,17 +31,106 @@ import org.bithon.shaded.net.bytebuddy.jar.asm.MethodVisitor;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Generates a class that extends a given class and implements {@link IAggregate} interface.
+ * The fields of the given class must be annotated by {@link Sum}, {@link Min}, {@link Max}, {@link First}, or {@link Last}
+ * and declared as PUBLIC and of type long.
+ *
  * @author frank.chen021@outlook.com
  * @date 2025/2/6 23:44
  */
 public class AggregateFunctorGenerator {
 
-    public interface IAggregate<T> {
-        void aggregate(T prev, T now);
+    public static <T> IAggregateInstanceSupplier<T> createAggregateFunctor(Class<T> targetClass) {
+        // Collect all fields
+        List<FieldInfo> fields = new ArrayList<>();
+        for (Field field : targetClass.getDeclaredFields()) {
+            if (field.getType() != long.class) {
+                continue;
+            }
+            if (!Modifier.isPublic(field.getModifiers())) {
+                continue;
+            }
+
+            if (field.isAnnotationPresent(Sum.class)) {
+                fields.add(new FieldInfo(field, AggregationType.SUM));
+            } else if (field.isAnnotationPresent(Min.class)) {
+                fields.add(new FieldInfo(field, AggregationType.MIN));
+            } else if (field.isAnnotationPresent(Max.class)) {
+                fields.add(new FieldInfo(field, AggregationType.MAX));
+            } else if (field.isAnnotationPresent(First.class)) {
+                fields.add(new FieldInfo(field, AggregationType.FIRST));
+            } else if (field.isAnnotationPresent(Last.class)) {
+                fields.add(new FieldInfo(field, AggregationType.LAST));
+            }
+        }
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException("Given class does not have any PUBLIC fields annotated with aggregation annotations");
+        }
+
+        try (DynamicType.Unloaded<?> dynamicType = new ByteBuddy()
+            .subclass(Object.class)
+            .implement(IAggregate.class)
+            .intercept(new Implementation.Simple(new AggregateMethodByteCodeGenerator(targetClass, fields)))
+            .make()) {
+
+            //noinspection unchecked
+            Class<T> clazz = (Class<T>) dynamicType.load(AggregateFunctorGenerator.class.getClassLoader())
+                                                   .getLoaded();
+            return () -> {
+                try {
+                    return clazz.getDeclaredConstructor().newInstance();
+                } catch (InstantiationException | NoSuchMethodException |
+                         IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e.getTargetException() == null ? e : e.getTargetException());
+                }
+            };
+        }
+    }
+
+    private static class FieldInfo {
+        final String name;
+        final AggregationType aggregationType;
+
+        FieldInfo(Field field, AggregationType aggregationType) {
+            this.name = field.getName();
+            this.aggregationType = aggregationType;
+        }
+    }
+
+    private static class AggregateMethodByteCodeGenerator implements ByteCodeAppender {
+        private final String className;
+        private final List<FieldInfo> fields;
+
+        public AggregateMethodByteCodeGenerator(Class<?> targetClass, List<FieldInfo> fields) {
+            this.className = targetClass.getName().replace('.', '/');
+            this.fields = fields;
+        }
+
+        @Override
+        public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription method) {
+            mv.visitCode();
+
+            // Process each field
+            for (FieldInfo field : fields) {
+                field.aggregationType.generateCode(mv, className, field.name);
+            }
+
+            mv.visitInsn(Opcodes.RETURN);
+
+            // The maximum stack size needed is 4:
+            // - 2 slots for long values
+            // - 1 slot for object reference
+            // - 1 slot for comparison/arithmetic
+            return new Size(4, 3);  // 3 locals: this + prev + now
+        }
     }
 
     private enum AggregationType {
@@ -177,80 +266,16 @@ public class AggregateFunctorGenerator {
             }
         };
 
+        /**
+         * <pre>
+         * Generate byte code for the {@link IAggregate#aggregate(Object, Object)} for a given aggregate type.
+         * For {@link #SUM}, it generates code as: <code>prev.field += now.field</code>
+         * For {@link #MIN}, it generates code as: <code>prev.field = prev.field < now.field ? prev.field : now.field</code>
+         * For {@link #MAX}, it generates code as: <code>prev.field = prev.field > now.field ? prev.field : now.field</code>
+         * For {@link #FIRST}, it does nothing.
+         * For {@link #LAST}, it generates code as: <code>prev.field = now.field</code>
+         * </pre>
+         */
         public abstract void generateCode(MethodVisitor mv, String className, String fieldName);
-    }
-
-    private static class FieldInfo {
-        final String name;
-        final AggregationType aggregationType;
-
-        FieldInfo(Field field) {
-            this.name = field.getName();
-
-            if (field.isAnnotationPresent(Sum.class)) {
-                this.aggregationType = AggregationType.SUM;
-            } else if (field.isAnnotationPresent(Min.class)) {
-                this.aggregationType = AggregationType.MIN;
-            } else if (field.isAnnotationPresent(Max.class)) {
-                this.aggregationType = AggregationType.MAX;
-            } else if (field.isAnnotationPresent(First.class)) {
-                this.aggregationType = AggregationType.FIRST;
-            } else if (field.isAnnotationPresent(Last.class)) {
-                this.aggregationType = AggregationType.LAST;
-            } else {
-                throw new IllegalArgumentException("Field " + field.getName() +
-                                                   " must have either @Sum, @Min, @Max, @First, or @Last annotation");
-            }
-        }
-    }
-
-    public static <T> Class<T> createAggregateFunctor(Class<T> targetClass) {
-        // Collect all fields
-        List<FieldInfo> fields = new ArrayList<>();
-        for (Field field : targetClass.getDeclaredFields()) {
-            if (field.getType() != long.class) {
-                throw new IllegalArgumentException("Field " + field.getName() + " is not of type long");
-            }
-            fields.add(new FieldInfo(field));
-        }
-
-        try (DynamicType.Unloaded<?> dynamicType = new ByteBuddy()
-            .subclass(targetClass)
-            .implement(IAggregate.class)
-            .intercept(new Implementation.Simple(new AggregateMethodByteCodeGenerator(targetClass, fields)))
-            .make()) {
-
-            //noinspection unchecked
-            return (Class<T>) dynamicType.load(AggregateFunctorGenerator.class.getClassLoader())
-                                         .getLoaded();
-        }
-    }
-
-    private static class AggregateMethodByteCodeGenerator implements ByteCodeAppender {
-        private final String className;
-        private final List<FieldInfo> fields;
-
-        public AggregateMethodByteCodeGenerator(Class<?> targetClass, List<FieldInfo> fields) {
-            this.className = targetClass.getName().replace('.', '/');
-            this.fields = fields;
-        }
-
-        @Override
-        public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription method) {
-            mv.visitCode();
-
-            // Process each field
-            for (FieldInfo field : fields) {
-                field.aggregationType.generateCode(mv, className, field.name);
-            }
-
-            mv.visitInsn(Opcodes.RETURN);
-
-            // The maximum stack size needed is 4:
-            // - 2 slots for long values
-            // - 1 slot for object reference
-            // - 1 slot for comparison/arithmetic
-            return new Size(4, 3);  // 3 locals: this + prev + now
-        }
     }
 }

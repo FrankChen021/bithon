@@ -17,6 +17,10 @@
 package org.bithon.agent.observability.metric.collector;
 
 import org.bithon.agent.observability.metric.model.annotation.Sum;
+import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
+import org.bithon.agent.observability.metric.model.generator.IAggregate;
+import org.bithon.agent.observability.metric.model.generator.IAggregateInstanceSupplier;
+import org.bithon.agent.observability.metric.model.generator.ReflectionBaseAggregateMethodGenerator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -33,6 +37,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 /**
+ * The benchmark below running on a MacBookPro M1 shows
+ * that the generated aggregator has the same performance as the coded one,
+ * while it improves performance by 25x over the traditional reflection based one.
+ * <pre>
+ * Benchmark                                                      Mode  Cnt   Score   Error  Units
+ * AggregateFunctorBenchmark.aggregate_CodedAggregator            avgt    5   0.674 ± 0.088  ns/op
+ * AggregateFunctorBenchmark.aggregate_GeneratedAggregator        avgt    5   0.667 ± 0.013  ns/op
+ * AggregateFunctorBenchmark.aggregate_ReflectionCodedAggregator  avgt    5  15.880 ± 0.515  ns/op
+ * </pre>
+ *
  * @author frank.chen021@outlook.com
  * @date 2025/2/12 21:05
  */
@@ -45,22 +59,25 @@ public class AggregateFunctorBenchmark {
         public long field0 = 1;
     }
 
-    private AggregateFunctorGenerator.IAggregate<SampleData> generatedAggregator;
+    private IAggregate<SampleData> generatedAggregator;
     private BiConsumer<SampleData, SampleData> codedAggregator;
+    private IAggregate<SampleData> reflectionBasedAggregator;
 
     @Setup
-    public void setup() throws Exception {
+    public void setup() {
         // Generate the merger class
-        Class<SampleData> aggregateFunctorClass = AggregateFunctorGenerator.createAggregateFunctor(SampleData.class);
+        IAggregateInstanceSupplier<SampleData> supplier = AggregateFunctorGenerator.createAggregateFunctor(SampleData.class);
 
         //noinspection unchecked,rawtypes
-        generatedAggregator = (AggregateFunctorGenerator.IAggregate) aggregateFunctorClass.getDeclaredConstructor().newInstance();
+        generatedAggregator = (IAggregate) supplier.createInstance();
 
         codedAggregator = (prev, next) -> prev.field0 += next.field0;
+
+        reflectionBasedAggregator = ReflectionBaseAggregateMethodGenerator.createAggregateFn(SampleData.class);
     }
 
     @Benchmark
-    public void testGeneratedAggregator() {
+    public void aggregate_GeneratedAggregator() {
         // Perform Aggregation
         // Set test values
         SampleData prev = new SampleData();
@@ -73,7 +90,7 @@ public class AggregateFunctorBenchmark {
     }
 
     @Benchmark
-    public void testCodedAggregator() {
+    public void aggregate_CodedAggregator() {
         // Perform Aggregation
         // Set test values
         SampleData prev = new SampleData();
@@ -83,6 +100,19 @@ public class AggregateFunctorBenchmark {
         next.field0 = 200L;    // @Sum
 
         codedAggregator.accept(prev, next);
+    }
+
+    @Benchmark
+    public void aggregate_ReflectionCodedAggregator() {
+        // Perform Aggregation
+        // Set test values
+        SampleData prev = new SampleData();
+        prev.field0 = 100L;    // @Sum
+
+        SampleData next = new SampleData();
+        next.field0 = 200L;    // @Sum
+
+        reflectionBasedAggregator.aggregate(prev, next);
     }
 
     public static void main(String[] args) throws RunnerException {

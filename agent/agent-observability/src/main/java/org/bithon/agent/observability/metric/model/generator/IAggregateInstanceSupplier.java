@@ -14,15 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.model.annotation;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.bithon.agent.observability.metric.model.generator;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/2/5 23:04
+ * @date 2025/2/13 20:31
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Max {
+@FunctionalInterface
+public interface IAggregateInstanceSupplier<T> {
+    T createInstance();
 }

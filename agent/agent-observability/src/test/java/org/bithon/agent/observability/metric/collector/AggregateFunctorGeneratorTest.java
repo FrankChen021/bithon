@@ -21,6 +21,9 @@ import org.bithon.agent.observability.metric.model.annotation.Last;
 import org.bithon.agent.observability.metric.model.annotation.Max;
 import org.bithon.agent.observability.metric.model.annotation.Min;
 import org.bithon.agent.observability.metric.model.annotation.Sum;
+import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
+import org.bithon.agent.observability.metric.model.generator.IAggregate;
+import org.bithon.agent.observability.metric.model.generator.IAggregateInstanceSupplier;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,7 +35,7 @@ public class AggregateFunctorGeneratorTest {
 
     public static class SampleDataLong {
         @Sum
-        public long sumField =0;
+        public long sumField = 0;
 
         @Min
         public long minField = 0;
@@ -48,7 +51,7 @@ public class AggregateFunctorGeneratorTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void test() {
         // Create two instances
         SampleDataLong prev = new SampleDataLong();
 
@@ -60,11 +63,11 @@ public class AggregateFunctorGeneratorTest {
         prev.lastField = 500L;   // @Last
 
         // Generate the merger class
-        Class<SampleDataLong> aggregateFunctorClass = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
+        IAggregateInstanceSupplier<SampleDataLong> supplier = AggregateFunctorGenerator.createAggregateFunctor(SampleDataLong.class);
 
         // Create aggregate function instance
         //noinspection unchecked
-        AggregateFunctorGenerator.IAggregate<SampleDataLong> aggregateFunctor = (AggregateFunctorGenerator.IAggregate<SampleDataLong>) aggregateFunctorClass.getDeclaredConstructor().newInstance();
+        IAggregate<SampleDataLong> aggregateFunctor = (IAggregate<SampleDataLong>) supplier.createInstance();
 
         // Perform Aggregation
         {
