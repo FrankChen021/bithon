@@ -16,7 +16,6 @@
 
 package org.bithon.server.pipeline.common.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -41,7 +40,6 @@ import java.util.Map;
  */
 @Slf4j
 public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMessageListener<String, byte[]> {
-    protected final ObjectMapper objectMapper;
     private final ApplicationContext applicationContext;
 
     private ConcurrentMessageListenerContainer<String, String> consumerContainer;
@@ -49,9 +47,8 @@ public abstract class AbstractKafkaConsumer implements IKafkaConsumer, BatchMess
     @Getter
     private String topic;
 
-    public AbstractKafkaConsumer(ObjectMapper objectMapper, ApplicationContext applicationContext) {
+    public AbstractKafkaConsumer(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-        this.objectMapper = objectMapper;
     }
 
     @Override
