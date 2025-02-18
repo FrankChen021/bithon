@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.metric.domain.sql;
 
-import org.bithon.agent.observability.metric.model.AggregatableMetricStorage;
+import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 
 import java.util.Arrays;
 
@@ -24,7 +24,7 @@ import java.util.Arrays;
  * @author frank.chen021@outlook.com
  * @date 2025/2/5 20:22
  */
-public class SqlMetricStorage extends AggregatableMetricStorage<SqlLog> {
+public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
     public SqlMetricStorage() {
         super("sql-metrics",
               Arrays.asList("connectionString", "sqlType", "traceId"),

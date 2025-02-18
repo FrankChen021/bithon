@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2025/2/5 20:22
  */
-public class AggregatableMetricStorage<T> implements IMetricCollector2 {
+public class AbstractMetricStorage<T> implements IMetricCollector2 {
     private final Exporter exporter;
     private final Supplier<T> metricInstanceInitiator;
     private Map<Dimensions, T> aggregatedStorage = new ConcurrentHashMap<>();
@@ -53,10 +53,10 @@ public class AggregatableMetricStorage<T> implements IMetricCollector2 {
     private final BiFunction<T, T, T> aggregateFn;
     private final Schema2 schema;
 
-    public AggregatableMetricStorage(String name,
-                                     List<String> dimensionSpec,
-                                     Class<T> metricClass,
-                                     Predicate<T> aggreatePredicate) {
+    public AbstractMetricStorage(String name,
+                                 List<String> dimensionSpec,
+                                 Class<T> metricClass,
+                                 Predicate<T> aggreatePredicate) {
         this(name,
              dimensionSpec,
              metricClass,
@@ -64,11 +64,11 @@ public class AggregatableMetricStorage<T> implements IMetricCollector2 {
              AggregateFunctorGenerator.createAggregateFunctor(metricClass));
     }
 
-    public AggregatableMetricStorage(String name,
-                                     List<String> dimensionSpec,
-                                     Class<T> metricClass,
-                                     Predicate<T> aggreatePredicate,
-                                     IAggregate<T> aggregator) {
+    public AbstractMetricStorage(String name,
+                                 List<String> dimensionSpec,
+                                 Class<T> metricClass,
+                                 Predicate<T> aggreatePredicate,
+                                 IAggregate<T> aggregator) {
         this(name,
              dimensionSpec,
              metricClass,
@@ -79,11 +79,11 @@ public class AggregatableMetricStorage<T> implements IMetricCollector2 {
              });
     }
 
-    public AggregatableMetricStorage(String name,
-                                     List<String> dimensionSpec,
-                                     Class<T> metricClass,
-                                     Predicate<T> aggreatePredicate,
-                                     BiFunction<T, T, T> aggregateFn) {
+    public AbstractMetricStorage(String name,
+                                 List<String> dimensionSpec,
+                                 Class<T> metricClass,
+                                 Predicate<T> aggreatePredicate,
+                                 BiFunction<T, T, T> aggregateFn) {
         this.aggreatePredicate = aggreatePredicate;
         this.aggregateFn = aggregateFn;
         this.schema = createSchema(name, dimensionSpec, metricClass);
