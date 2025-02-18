@@ -18,6 +18,7 @@ package org.bithon.agent.observability.metric.domain.sql;
 
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
+import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 import org.bithon.component.commons.utils.Preconditions;
 
@@ -70,6 +71,7 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
             synchronized (SqlMetricStorage.class) {
                 if (INSTANCE == null) {
                     INSTANCE = new SqlMetricStorage();
+                    MetricCollectorManager.getInstance().register("sql-metrics", INSTANCE);
                 }
             }
         }
