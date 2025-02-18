@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.server.commons.logging.RateLimitLogger;
@@ -47,16 +47,16 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
     private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
 
     private final Map<String, Object> props;
-    private final JavaType spanJavaType;
+    private final ObjectReader objectReader;
     private ITraceProcessor processor;
 
     public KafkaTraceReceiver(@JsonProperty("props") Map<String, Object> props,
                               @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(objectMapper, applicationContext);
+        super(applicationContext);
         this.props = props;
 
-        this.spanJavaType = objectMapper.getTypeFactory().constructType(TraceSpan.class);
+        this.objectReader = objectMapper.readerFor(TraceSpan.class);
     }
 
     @Override
@@ -88,17 +88,17 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
         List<TraceSpan> spans = new LinkedList<>();
 
         for (ConsumerRecord<String, byte[]> record : records) {
-            try (JsonParser jsonParser = this.objectMapper.createParser(record.value())) {
+            try (JsonParser jsonParser = this.objectReader.createParser(record.value())) {
                 JsonToken token = jsonParser.nextToken();
                 if (token == JsonToken.START_ARRAY) {
                     // JSONArray format
                     while (jsonParser.nextToken() == JsonToken.START_OBJECT) {
-                        TraceSpan span = objectMapper.readValue(jsonParser, this.spanJavaType);
+                        TraceSpan span = this.objectReader.readValue(jsonParser);
                         spans.add(span);
                     }
                 } else if (token == JsonToken.START_OBJECT) {
                     // JSONEachRow format
-                    Iterator<TraceSpan> iterator = objectMapper.readValues(jsonParser, this.spanJavaType);
+                    Iterator<TraceSpan> iterator = this.objectReader.readValues(jsonParser);
                     iterator.forEachRemaining(spans::add);
                 }
             } catch (IOException e) {

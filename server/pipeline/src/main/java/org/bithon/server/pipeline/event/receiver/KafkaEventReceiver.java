@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.bithon.server.commons.logging.RateLimitLogger;
@@ -47,14 +48,16 @@ public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventR
 
     private IEventProcessor processor;
     private final Map<String, Object> props;
+    private final ObjectReader objectReader;
 
     @JsonCreator
     public KafkaEventReceiver(@JsonProperty("props") Map<String, Object> props,
                               @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(objectMapper, applicationContext);
+        super(applicationContext);
 
         this.props = props;
+        this.objectReader = objectMapper.readerFor(EventMessage.class);
     }
 
     @Override
@@ -86,18 +89,18 @@ public class KafkaEventReceiver extends AbstractKafkaConsumer implements IEventR
         List<EventMessage> events = new ArrayList<>(16);
 
         for (ConsumerRecord<String, byte[]> record : records) {
-            try (JsonParser jsonParser = this.objectMapper.createParser(record.value())) {
+            try (JsonParser jsonParser = this.objectReader.createParser(record.value())) {
                 JsonToken token = jsonParser.nextToken();
                 if (token == JsonToken.START_ARRAY) {
                     // JSONArray format
                     while (jsonParser.nextToken() == JsonToken.START_OBJECT) {
-                        EventMessage event = objectMapper.readValue(jsonParser, EventMessage.class);
+                        EventMessage event = this.objectReader.readValue(jsonParser);
                         events.add(event);
                     }
                 } else if (token == JsonToken.START_OBJECT) {
                     // JSONEachRow format
-                    objectMapper.readValues(jsonParser, EventMessage.class)
-                                .forEachRemaining(events::add);
+                    this.objectReader.readValues(jsonParser, EventMessage.class)
+                                     .forEachRemaining(events::add);
                 }
             } catch (IOException e) {
                 LOG.error("Failed to process tracing message", e);
