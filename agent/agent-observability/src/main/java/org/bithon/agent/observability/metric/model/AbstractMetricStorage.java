@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -42,8 +41,9 @@ import java.util.stream.Collectors;
  * @date 2025/2/5 20:22
  */
 public class AbstractMetricStorage<T> implements IMetricCollector2 {
+
     private final Exporter exporter;
-    private final Supplier<T> metricInstanceCreator;
+    private final MetricAccessorGenerator.IMetricsInstantiator<T> metricsInstantiator;
     private Map<Dimensions, T> aggregatedStorage = new ConcurrentHashMap<>();
 
     private List<IMeasurement> rawStorage = new ArrayList<>();
@@ -55,13 +55,13 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
     public AbstractMetricStorage(String name,
                                  List<String> dimensionSpec,
-                                 Class<T> metricClass,
+                                 Class<T> metricsClass,
                                  IMetricAggregatePredicate<T> aggregatePredicate) {
         this(name,
              dimensionSpec,
-             metricClass,
+             metricsClass,
              aggregatePredicate,
-             AggregateFunctorGenerator.createAggregateFunctor(metricClass));
+             AggregateFunctorGenerator.createAggregateFunctor(metricsClass));
     }
 
     public AbstractMetricStorage(String name,
@@ -87,7 +87,7 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         this.aggregatePredicate = aggregatePredicate;
         this.aggregateFn = aggregateFn;
         this.schema = createSchema(name, dimensionSpec, metricClass);
-        this.metricInstanceCreator = MetricAccessorGenerator.createInstantiator(metricClass);
+        this.metricsInstantiator = MetricAccessorGenerator.createInstantiator(metricClass);
         this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
     }
 
@@ -95,7 +95,7 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
      * @param metricProvider fill the metric instance
      */
     public void add(Dimensions dimensions, Consumer<T> metricProvider) {
-        T metrics = this.metricInstanceCreator.get();
+        T metrics = this.metricsInstantiator.newInstance();
         metricProvider.accept(metrics);
 
         if (aggregatePredicate.isAggregatable(dimensions, metrics)) {

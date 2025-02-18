@@ -33,8 +33,8 @@ public class MetricAccessorGeneratorTest {
     }
 
     @Test
-    public void testClassGenerator() throws Exception {
-        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).get();
+    public void testClassGenerator() {
+        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).newInstance();
 
         IMetricAccessor metricAccessor = (IMetricAccessor) sampleData;
 

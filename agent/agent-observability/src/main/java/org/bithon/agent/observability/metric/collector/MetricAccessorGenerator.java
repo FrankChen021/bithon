@@ -33,17 +33,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 
-// Interface for field access
-
-
-// Original class with Long fields
-
-
+/**
+ * Generates a subclass of {@link IMetricAccessor} that provides access to fields of a given metric set class.
+ */
 public class MetricAccessorGenerator {
 
-    public static <T> Supplier<T> createInstantiator(Class<T> metricSetClass) {
+    @FunctionalInterface
+    public interface IMetricsInstantiator<T> {
+        T newInstance();
+    }
+
+    public static <T> IMetricsInstantiator<T> createInstantiator(Class<T> metricSetClass) {
 
         List<Field> fields = Arrays.asList(metricSetClass.getDeclaredFields());
         String className = metricSetClass.getName().replace('.', '/');

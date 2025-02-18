@@ -82,8 +82,8 @@ public class MetricAccessorBenchmark {
     private ReflectionBasedMetricAccessor reflectionAccessor;
 
     @Setup
-    public void setup() throws Exception {
-        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).get();
+    public void setup() {
+        SampleData sampleData = MetricAccessorGenerator.createInstantiator(SampleData.class).newInstance();
         generatedAccessor = (IMetricAccessor) sampleData;
         reflectionAccessor = new ReflectionBasedMetricAccessor(sampleData);
     }
