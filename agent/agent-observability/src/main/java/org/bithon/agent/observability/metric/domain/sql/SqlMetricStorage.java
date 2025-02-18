@@ -17,6 +17,7 @@
 package org.bithon.agent.observability.metric.domain.sql;
 
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.Arrays;
 
@@ -27,9 +28,30 @@ import java.util.Arrays;
 public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
     public SqlMetricStorage() {
         super("sql-metrics",
-              Arrays.asList("connectionString", "sqlType", "traceId"),
+              Arrays.asList("connectionString", "sqlType", "traceId", "statement"),
               SqlLog.class,
-              (metrics) -> metrics.responseTime > 1_000_000_000
+              (dimensions, metrics) -> {
+                  Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
+
+                  if (metrics.responseTime < 1_000_000_000) {
+                      // Clear dimensions so that they can be merged
+                      dimensions.setValue(3, "");
+                      dimensions.setValue(4, "");
+                      return true;
+                  }
+
+                  return false;
+              }
         );
+    }
+
+    /**
+     * TODO: FIX
+     * TODO: check if the sqlType is correct assigned
+     * TODO: check if the aggregated list and raw list is collected correctly
+     * TODO: check if the timestamp of raw list is assigned correctly
+     */
+    public static SqlMetricStorage get() {
+        return new SqlMetricStorage();
     }
 }

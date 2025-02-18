@@ -20,7 +20,8 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.metric.domain.sql.SqlMetricStorage;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -34,8 +35,6 @@ import java.sql.Statement;
  * @author frankchen
  */
 public abstract class AbstractStatement$Execute extends AroundInterceptor {
-
-    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
@@ -79,10 +78,20 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
             ConnectionContext connectionContext = aopContext.getUserContext();
-            metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString(),
-                                              statement.getSqlType())
-                          .update(true, aopContext.hasException(), aopContext.getExecutionTime())
-                          .getBytesOut().update(statement.getSql().length());
+
+            SqlMetricStorage.get()
+                            .add(Dimensions.of(connectionContext.getConnectionString(),
+                                               statement.getSqlType(),
+                                               span != null ? span.traceId() : "",
+                                               statement.getSql()),
+                                 (metrics) -> {
+                                     metrics.callCount = 1;
+                                     metrics.responseTime = aopContext.getExecutionTime();
+                                     metrics.maxResponseTime = aopContext.getExecutionTime();
+                                     metrics.minResponseTime = aopContext.getExecutionTime();
+                                     metrics.bytesOut = statement.getSql().length();
+                                     metrics.errorCount = aopContext.hasException() ? 1 : 0;
+                                 });
         }
     }
 

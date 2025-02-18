@@ -14,39 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.domain.sql;
+package org.bithon.agent.observability.metric.model;
 
-import org.bithon.agent.observability.metric.model.annotation.Max;
-import org.bithon.agent.observability.metric.model.annotation.Min;
-import org.bithon.agent.observability.metric.model.annotation.Sum;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/2/5 20:19
+ * @date 2025/2/5 20:22
  */
-public class SqlLog {
-
-    @Min
-    public long minResponseTime;
-
-    /**
-     * nano seconds
-     */
-    @Sum
-    public long responseTime;
-
-    @Max
-    public long maxResponseTime;
-
-    @Sum
-    public long callCount;
-
-    @Sum
-    public long errorCount;
-
-    @Max
-    public long bytesIn;
-
-    @Max
-    public long bytesOut;
+public interface IMetricAggregatePredicate<T> {
+    boolean isAggregatable(Dimensions dimensions, T metric);
 }

@@ -128,7 +128,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                                                                    .setClazz(span.clazz())
                                                                    .setMethod(span.method());
 
-        // The 'putllAllTags' on the Builder internally checks the NULL of each k-v pair.
+        // The 'putAllTags' on the Builder internally checks the NULL of each k-v pair.
         // To avoid unexpected exception, we do the check by ourselves so that we know which tag has the NULL value.
         for (Map.Entry<String, String> entry : span.tags().entrySet()) {
             String k = entry.getKey();
@@ -202,15 +202,17 @@ public class BrpcMessageConverter implements IMessageConverter {
                 // although dimensions are defined as List<String>
                 // it could also store an object,
                 // we use Object.toString here to get the right value
-                for (String dimension : metricSet.getDimensions().values()) {
-                    measurement.addDimension(dimension);
+                for (int i = 0, size = metricSet.getDimensions().length(); i < size; i++) {
+                    measurement.addDimension(metricSet.getDimensions().value(i));
                 }
                 for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
                     measurement.addMetric(metricSet.getMetricValue(i));
                 }
                 messageBuilder.addMeasurement(measurement.build());
             } catch (RuntimeException e) {
-                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s", schema.getName(), metricSet.getDimensions()), e);
+                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s",
+                                                schema.getName(),
+                                                metricSet.getDimensions()), e);
             }
         });
 
@@ -235,7 +237,8 @@ public class BrpcMessageConverter implements IMessageConverter {
                 // although dimensions are defined as List<String>
                 // it could also store Object,
                 // we use Object.toString here to get the right value
-                for (String dimension : measurement.getDimensions().values()) {
+                for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
+                    String dimension = measurement.getDimensions().value(i);
                     measurementBuilder.addDimension(dimension == null ? "" : dimension);
                 }
                 for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {

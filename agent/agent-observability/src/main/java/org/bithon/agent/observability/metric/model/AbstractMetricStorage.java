@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -43,36 +43,36 @@ import java.util.stream.Collectors;
  */
 public class AbstractMetricStorage<T> implements IMetricCollector2 {
     private final Exporter exporter;
-    private final Supplier<T> metricInstanceInitiator;
+    private final Supplier<T> metricInstanceCreator;
     private Map<Dimensions, T> aggregatedStorage = new ConcurrentHashMap<>();
 
     private List<IMeasurement> rawStorage = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final Predicate<T> aggreatePredicate;
+    private final IMetricAggregatePredicate<T> aggregatePredicate;
     private final BiFunction<T, T, T> aggregateFn;
     private final Schema2 schema;
 
     public AbstractMetricStorage(String name,
                                  List<String> dimensionSpec,
                                  Class<T> metricClass,
-                                 Predicate<T> aggreatePredicate) {
+                                 IMetricAggregatePredicate<T> aggregatePredicate) {
         this(name,
              dimensionSpec,
              metricClass,
-             aggreatePredicate,
+             aggregatePredicate,
              AggregateFunctorGenerator.createAggregateFunctor(metricClass));
     }
 
     public AbstractMetricStorage(String name,
                                  List<String> dimensionSpec,
                                  Class<T> metricClass,
-                                 Predicate<T> aggreatePredicate,
+                                 IMetricAggregatePredicate<T> aggregatePredicate,
                                  IAggregate<T> aggregator) {
         this(name,
              dimensionSpec,
              metricClass,
-             aggreatePredicate,
+             aggregatePredicate,
              (T prev, T now) -> {
                  aggregator.aggregate(prev, now);
                  return prev;
@@ -82,26 +82,24 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
     public AbstractMetricStorage(String name,
                                  List<String> dimensionSpec,
                                  Class<T> metricClass,
-                                 Predicate<T> aggreatePredicate,
+                                 IMetricAggregatePredicate<T> aggregatePredicate,
                                  BiFunction<T, T, T> aggregateFn) {
-        this.aggreatePredicate = aggreatePredicate;
+        this.aggregatePredicate = aggregatePredicate;
         this.aggregateFn = aggregateFn;
         this.schema = createSchema(name, dimensionSpec, metricClass);
-        this.metricInstanceInitiator = MetricAccessorGenerator.createInstantiator(metricClass);
+        this.metricInstanceCreator = MetricAccessorGenerator.createInstantiator(metricClass);
         this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
     }
 
-    public T createMetrics() {
-        return this.metricInstanceInitiator.get();
-    }
+    /**
+     * @param metricProvider fill the metric instance
+     */
+    public void add(Dimensions dimensions, Consumer<T> metricProvider) {
+        T metrics = this.metricInstanceCreator.get();
+        metricProvider.accept(metrics);
 
-    public void add(Dimensions dimensions, T metrics) {
-        if (!(metrics instanceof IMetricAccessor)) {
-            throw new IllegalArgumentException("Please use #createMetrics() method to instantiate a metrics class.");
-        }
-
-        if (aggreatePredicate.test(metrics)) {
-            // If current metrics is predicated to be aggregated, then merge the metrics with the existing one
+        if (aggregatePredicate.isAggregatable(dimensions, metrics)) {
+            // If current metricSet is predicated to be aggregated, then merge the metrics with the existing one
             aggregatedStorage.merge(dimensions,
                                     metrics,
                                     this.aggregateFn);

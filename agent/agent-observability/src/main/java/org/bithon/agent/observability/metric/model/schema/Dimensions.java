@@ -24,19 +24,34 @@ import java.util.Arrays;
  */
 public final class Dimensions {
     private final String[] values;
-    private final int hash;
+    private volatile int hash;
 
     private Dimensions(String[] values) {
         this.values = values;
-        this.hash = Arrays.hashCode(values);
     }
 
     public int length() {
         return values.length;
     }
 
-    public String[] values() {
-        return values;
+    public String value(int index) {
+        return values[index];
+    }
+
+    public void setValue(int index, String value) {
+        values[index] = value;
+    }
+
+    @Override
+    public int hashCode() {
+        if (hash == 0) {
+            synchronized (this) {
+                if (hash == 0) {
+                    hash = Arrays.hashCode(values);
+                }
+            }
+        }
+        return hash;
     }
 
     @Override
@@ -49,11 +64,6 @@ public final class Dimensions {
         }
         Dimensions that = (Dimensions) o;
         return this.hash == that.hash && Arrays.equals(this.values, that.values);
-    }
-
-    @Override
-    public int hashCode() {
-        return hash;
     }
 
     public static Dimensions of(String... values) {
