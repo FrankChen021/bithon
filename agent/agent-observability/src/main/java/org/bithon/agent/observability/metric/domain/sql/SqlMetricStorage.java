@@ -16,9 +16,12 @@
 
 package org.bithon.agent.observability.metric.domain.sql;
 
+import org.bithon.agent.configuration.ConfigurationManager;
+import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
 import org.bithon.component.commons.utils.Preconditions;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 /**
@@ -26,6 +29,19 @@ import java.util.Arrays;
  * @date 2025/2/5 20:22
  */
 public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
+
+    @ConfigurationProperties(path = "agent.metrics.sql")
+    public static class SqlMetricConfig {
+        public Duration slowSqlThreshold = Duration.ofMillis(500);
+    }
+
+    private static final SqlMetricConfig CONFIG;
+    private static volatile SqlMetricStorage INSTANCE;
+
+    static {
+        CONFIG = ConfigurationManager.getInstance().getConfig(SqlMetricConfig.class);
+    }
+
     public SqlMetricStorage() {
         super("sql-metrics",
               Arrays.asList("connectionString", "sqlType", "traceId", "statement"),
@@ -33,7 +49,7 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
               (dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
 
-                  if (metrics.responseTime < 1_000_000_000) {
+                  if (metrics.responseTime < CONFIG.slowSqlThreshold.toNanos()) {
                       // Clear dimensions so that they can be merged
                       dimensions.setValue(3, "");
                       dimensions.setValue(4, "");
@@ -46,11 +62,17 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
     }
 
     /**
-     * TODO: FIX
      * TODO: check if the sqlType is correct assigned
      * TODO: check if the timestamp of raw list is assigned correctly
      */
     public static SqlMetricStorage get() {
-        return new SqlMetricStorage();
+        if (INSTANCE == null) {
+            synchronized (SqlMetricStorage.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new SqlMetricStorage();
+                }
+            }
+        }
+        return INSTANCE;
     }
 }
