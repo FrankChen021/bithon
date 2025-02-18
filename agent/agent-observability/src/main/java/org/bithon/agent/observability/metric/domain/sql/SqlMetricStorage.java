@@ -48,7 +48,6 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
     /**
      * TODO: FIX
      * TODO: check if the sqlType is correct assigned
-     * TODO: check if the aggregated list and raw list is collected correctly
      * TODO: check if the timestamp of raw list is assigned correctly
      */
     public static SqlMetricStorage get() {

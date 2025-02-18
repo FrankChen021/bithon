@@ -135,10 +135,23 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         Map<Dimensions, T> currAggregatedStorage = this.aggregatedStorage;
         this.aggregatedStorage = newAggregatedStorage;
 
+        List<IMeasurement> batch = currAggregatedStorage.values()
+                                                        .stream()
+                                                        .map((s) -> (IMeasurement) s)
+                                                        .collect(Collectors.toList());
+
+        lock.lock();
+        try {
+            if (!rawStorage.isEmpty()) {
+                batch.addAll(rawStorage);
+                rawStorage.clear();
+            }
+        } finally {
+            lock.unlock();
+        }
+
         return messageConverter.from(schema,
-                                     currAggregatedStorage.values()
-                                                          .stream()
-                                                          .map((s) -> (IMeasurement) s).collect(Collectors.toList()),
+                                     batch,
                                      timestamp,
                                      interval);
     }
