@@ -58,7 +58,7 @@ public class DruidPooledStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         return new StatementContext(aopContext.getArgAs(0));
     }
 }

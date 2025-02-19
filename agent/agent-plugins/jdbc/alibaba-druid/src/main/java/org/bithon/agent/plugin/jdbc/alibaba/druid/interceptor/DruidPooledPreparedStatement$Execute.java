@@ -45,7 +45,7 @@ public class DruidPooledPreparedStatement$Execute extends AbstractStatement$Exec
     }
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         return new StatementContext(((DruidPooledPreparedStatement) aopContext.getTarget()).getSql());
     }
 }

@@ -41,12 +41,12 @@ public class PreparedStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         PreparedStatement preparedStatement = aopContext.getTargetAs();
         try {
             return new StatementContext(preparedStatement.getPreparedSql());
         } catch (RuntimeException ignored) {
-            return StatementContext.EMTPY;
+            return StatementContext.EMPTY;
         }
     }
 }

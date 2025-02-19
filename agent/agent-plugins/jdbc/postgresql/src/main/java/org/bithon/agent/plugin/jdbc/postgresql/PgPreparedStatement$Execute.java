@@ -42,7 +42,7 @@ public class PgPreparedStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
         return (StatementContext) preparedStatement.getInjectedObject();
     }

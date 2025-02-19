@@ -28,7 +28,7 @@ import org.bithon.agent.plugin.jdbc.common.StatementContext;
  */
 public class StreamBasedPreparedStatement$Execute extends AbstractStatement$Execute {
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         StreamBasedPreparedStatement preparedStatement = aopContext.getTargetAs();
         return new StatementContext(preparedStatement.getRequest()
                                                      .getPreparedQuery()

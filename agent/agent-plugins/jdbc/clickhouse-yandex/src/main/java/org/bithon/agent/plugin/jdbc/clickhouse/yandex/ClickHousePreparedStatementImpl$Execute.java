@@ -32,7 +32,7 @@ public class ClickHousePreparedStatementImpl$Execute extends AbstractStatement$E
      * The executing statement is injected by {@link ClickHousePreparedStatementImpl$Ctor}
      */
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
         return (StatementContext) preparedStatement.getInjectedObject();
     }

@@ -72,9 +72,6 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
         );
     }
 
-    /**
-     * TODO: check if the sqlType is correct assigned
-     */
     public static SqlMetricStorage get() {
         if (INSTANCE == null) {
             synchronized (SqlMetricStorage.class) {

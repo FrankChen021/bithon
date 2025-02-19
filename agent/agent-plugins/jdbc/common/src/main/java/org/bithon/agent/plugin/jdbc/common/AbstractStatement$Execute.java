@@ -64,7 +64,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        StatementContext statement = getStatement(aopContext);
+        StatementContext statement = getStatementContext(aopContext);
 
         ITraceSpan span = aopContext.getSpan();
         if (span != null) {
@@ -106,7 +106,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
         return (ConnectionContext) ((IBithonObject) connection).getInjectedObject();
     }
 
-    protected abstract StatementContext getStatement(AopContext aopContext);
+    protected abstract StatementContext getStatementContext(AopContext aopContext);
 
     protected void fillSpan(AopContext aopContext, ITraceSpan span) {
     }

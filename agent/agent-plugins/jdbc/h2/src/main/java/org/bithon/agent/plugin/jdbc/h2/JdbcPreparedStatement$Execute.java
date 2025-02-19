@@ -34,7 +34,7 @@ public class JdbcPreparedStatement$Execute extends AbstractStatement$Execute {
      * The executing statement is injected by {@link JdbcPreparedStatement$Ctor}
      */
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
         return (StatementContext) preparedStatement.getInjectedObject();
     }

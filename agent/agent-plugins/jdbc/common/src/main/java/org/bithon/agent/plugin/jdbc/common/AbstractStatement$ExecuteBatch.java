@@ -30,8 +30,8 @@ import org.bithon.component.commons.tracing.Tags;
 public class AbstractStatement$ExecuteBatch extends AbstractStatement$Execute {
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
-        return StatementContext.EMTPY;
+    protected StatementContext getStatementContext(AopContext aopContext) {
+        return StatementContext.EMPTY;
     }
 
     @Override

@@ -32,7 +32,7 @@ public class SqlBasedPreparedStatement$Execute extends AbstractStatement$Execute
      * The executing statement is injected by {@link SqlBasedPrepareStatement$Ctor}
      */
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
 
         // Injected by SqlBasedPrepareStatement$Ctor

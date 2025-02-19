@@ -44,7 +44,7 @@ public class ClientPreparedStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected StatementContext getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         String sql = ((PreparedQuery) ((JdbcStatement) aopContext.getTarget()).getQuery()).getOriginalSql();
         return new StatementContext(sql);
     }
