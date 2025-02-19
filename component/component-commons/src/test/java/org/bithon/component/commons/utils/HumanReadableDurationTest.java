@@ -26,6 +26,31 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/2/11 11:54
  */
 public class HumanReadableDurationTest {
+
+    @Test
+    public void testNanoSeconds() {
+        HumanReadableDuration duration = HumanReadableDuration.parse("5ns");
+        Assert.assertEquals(5, duration.getDuration().getNano());
+        Assert.assertEquals(TimeUnit.NANOSECONDS, duration.getUnit());
+        Assert.assertEquals("5ns", duration.toString());
+    }
+
+    @Test
+    public void testMicroSeconds() {
+        HumanReadableDuration duration = HumanReadableDuration.parse("5us");
+        Assert.assertEquals(5000, duration.getDuration().getNano());
+        Assert.assertEquals(TimeUnit.MICROSECONDS, duration.getUnit());
+        Assert.assertEquals("5us", duration.toString());
+    }
+
+    @Test
+    public void testMilliSeconds() {
+        HumanReadableDuration duration = HumanReadableDuration.parse("56ms");
+        Assert.assertEquals(56, duration.getDuration().toMillis());
+        Assert.assertEquals(TimeUnit.MILLISECONDS, duration.getUnit());
+        Assert.assertEquals("56ms", duration.toString());
+    }
+
     @Test
     public void testSecond() {
         HumanReadableDuration duration = HumanReadableDuration.parse("5s");
@@ -68,8 +93,13 @@ public class HumanReadableDurationTest {
         Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("6"));
         Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("7a"));
         Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("dd"));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("ns"));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("ms"));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("us"));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse(" us "));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("-us"));
+        Assert.assertThrows(RuntimeException.class, () -> HumanReadableDuration.parse("-s"));
     }
-
 
     @Test
     public void testNegative() {
