@@ -137,9 +137,8 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
     @Override
     public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
-        Map<Dimensions, T> newAggregatedStorage = new ConcurrentHashMap<>(aggregatedStorage);
         Map<Dimensions, T> currAggregatedStorage = this.aggregatedStorage;
-        this.aggregatedStorage = newAggregatedStorage;
+        this.aggregatedStorage = new ConcurrentHashMap<>();
 
         List<IMeasurement> batch = currAggregatedStorage.entrySet()
                                                         .stream()
