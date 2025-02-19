@@ -34,7 +34,15 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
 
     @ConfigurationProperties(path = "agent.metrics.sql")
     public static class SqlMetricConfig {
-        public HumanReadableDuration slowSqlThreshold = HumanReadableDuration.of(5, TimeUnit.SECONDS);
+        private HumanReadableDuration slowSqlThreshold = HumanReadableDuration.of(5, TimeUnit.SECONDS);
+
+        public HumanReadableDuration getSlowSqlThreshold() {
+            return slowSqlThreshold;
+        }
+
+        public void setSlowSqlThreshold(HumanReadableDuration slowSqlThreshold) {
+            this.slowSqlThreshold = slowSqlThreshold;
+        }
     }
 
     private static final SqlMetricConfig CONFIG;
@@ -51,7 +59,7 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
               (dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
 
-                  if (metrics.responseTime < CONFIG.slowSqlThreshold.getDuration().toNanos()) {
+                  if (metrics.responseTime < CONFIG.getSlowSqlThreshold().getDuration().toNanos()) {
                       // Aggregate metrics if response time is less than the threshold
                       // Before that, we need to clear 'traceId' and 'statement' dimensions
                       dimensions.setValue(2, "");
