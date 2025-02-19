@@ -97,35 +97,36 @@ public class AgentConfigurationApi {
         // Transform payload to request format
         Function<List<ISettingReader.SettingEntry>, List<ISettingReader.SettingEntry>> formatTransformer =
             request.getFormat() == null || "default".equals(request.getFormat()) ?
-                Function.identity() :
-                settings -> {
-                    for (ISettingReader.SettingEntry entry : settings) {
-                        if ("yaml".equals(request.getFormat())) {
-                            // request format is YAML, convert JSON to YAML if necessary
-                            if ("json".equals(entry.getFormat())) {
-                                entry.setValue(JsonPayloadFormatter.YAML.format(entry.getValue(), objectMapper, null));
-                                entry.setFormat("yaml");
-                            }
-                        } else {
-                            // request format is JSON, convert YAML to JSON if necessary
-                            if ("yaml".equals(entry.getFormat())) {
-                                entry.setValue(JsonPayloadFormatter.JSON.format(entry.getValue(), objectMapper, null));
-                                entry.setFormat("json");
-                            }
+            Function.identity() :
+            settings -> {
+                for (ISettingReader.SettingEntry entry : settings) {
+                    if ("yaml".equals(request.getFormat())) {
+                        // request format is YAML, convert JSON to YAML if necessary
+                        if ("json".equals(entry.getFormat())) {
+                            entry.setValue(JsonPayloadFormatter.YAML.format(entry.getValue(), objectMapper, null));
+                            entry.setFormat("yaml");
+                        }
+                    } else {
+                        // request format is JSON, convert YAML to JSON if necessary
+                        if ("yaml".equals(entry.getFormat())) {
+                            entry.setValue(JsonPayloadFormatter.JSON.format(entry.getValue(), objectMapper, null));
+                            entry.setFormat("json");
                         }
                     }
-                    return settings;
-                };
+                }
+                return settings;
+            };
 
-        List<ISettingReader.SettingEntry> settings = settingStorage.createReader()
-                                                                   .getSettings(request.getAppName().trim());
 
-        if (!StringUtils.isBlank(request.getEnvironment())) {
-            List<ISettingReader.SettingEntry> perEnvSetting = settingStorage.createReader()
-                                                                            .getSettings(request.getAppName().trim(),
-                                                                                         request.getEnvironment().trim());
+        List<ISettingReader.SettingEntry> settings;
+        if (StringUtils.isEmpty(request.getEnvironment())) {
+            settings = settingStorage.createReader()
+                                     .getSettings(request.getAppName().trim());
+        } else {
+            settings = settingStorage.createReader()
+                                     .getSettings(request.getAppName().trim(),
+                                                  request.getEnvironment().trim());
 
-            settings.addAll(perEnvSetting);
         }
 
         return formatTransformer.apply(settings);
@@ -172,7 +173,9 @@ public class AgentConfigurationApi {
         try {
             mapper.readTree(request.getValue());
         } catch (JsonProcessingException e) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "The 'value' is not valid format of %s",
+                                            format);
         }
 
         String application = request.getAppName().trim();
@@ -182,8 +185,8 @@ public class AgentConfigurationApi {
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-        Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
-        Preconditions.checkIfTrue(existingSetting == null, "Setting already exist.");
+        boolean settingExists = settingStorage.createReader().IsSettingExists(application, environment, settingName);
+        Preconditions.checkIfTrue(!settingExists, "Setting already exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.addSetting(application, environment, settingName, settingVal, format);
@@ -209,7 +212,9 @@ public class AgentConfigurationApi {
         try {
             mapper.readTree(request.getValue());
         } catch (JsonProcessingException e) {
-            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "The 'value' is not valid format of %s", format);
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "The 'value' is not valid format of %s",
+                                            format);
         }
 
         String application = request.getAppName().trim();
@@ -218,8 +223,8 @@ public class AgentConfigurationApi {
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-        Object existingSetting = settingStorage.createReader().getSetting(application, environment, settingName);
-        Preconditions.checkIfTrue(existingSetting != null, "Setting does not exist.");
+        boolean settingExists = settingStorage.createReader().IsSettingExists(application, environment, settingName);
+        Preconditions.checkIfTrue(settingExists, "Setting does not exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
         writer.updateSetting(application, environment, settingName, settingVal, format);
@@ -245,7 +250,9 @@ public class AgentConfigurationApi {
         verifyPermission(request.getAppName(), token);
 
         ISettingWriter writer = settingStorage.createWriter();
-        writer.deleteSetting(request.getAppName(), request.getEnvironment() == null ? "" : request.getEnvironment().trim(), request.getName());
+        writer.deleteSetting(request.getAppName(),
+                             request.getEnvironment() == null ? "" : request.getEnvironment().trim(),
+                             request.getName());
 
         // Notify agent controller about the change
         notifyConfigurationChange(request.appName, request.environment);
@@ -263,10 +270,15 @@ public class AgentConfigurationApi {
 
         if (!StringUtils.isEmpty(explicitGivenToken)) {
             this.agentControllerConfig.getPermission()
-                                      .verifyPermission(Operation.WRITE, explicitGivenToken, application, "agent.setting");
+                                      .verifyPermission(Operation.WRITE,
+                                                        explicitGivenToken,
+                                                        application,
+                                                        "agent.setting");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext() == null
+                                        ? null
+                                        : SecurityContextHolder.getContext().getAuthentication();
         String user = authentication == null ? "anonymousUser" : (String) authentication.getPrincipal();
         this.agentControllerConfig.getPermission()
                                   .verifyPermission(Operation.WRITE,

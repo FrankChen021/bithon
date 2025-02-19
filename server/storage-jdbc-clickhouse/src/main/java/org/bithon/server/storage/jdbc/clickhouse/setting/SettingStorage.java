@@ -97,7 +97,7 @@ public class SettingStorage extends SettingJdbcStorage {
             }
 
             @Override
-            public SettingEntry getSetting(String appName, String env, String setting) {
+            public boolean IsSettingExists(String appName, String env, String setting) {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
@@ -105,7 +105,7 @@ public class SettingStorage extends SettingJdbcStorage {
                                                                                    .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
                                                                                    .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting)));
 
-                return super.toSettingEntry(dslContext.fetchOne(sql));
+                return dslContext.fetch(sql).isNotEmpty();
             }
         };
     }

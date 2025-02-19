@@ -42,5 +42,5 @@ public interface ISettingReader {
     List<SettingEntry> getSettings(String appName);
     List<SettingEntry> getSettings(String appName, String env);
 
-    SettingEntry getSetting(String appName, String env, String setting);
+    boolean IsSettingExists(String appName, String env, String setting);
 }

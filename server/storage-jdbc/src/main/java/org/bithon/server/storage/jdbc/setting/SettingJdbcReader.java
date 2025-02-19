@@ -49,7 +49,6 @@ public class SettingJdbcReader implements ISettingReader {
     public List<SettingEntry> getSettings(String appName) {
         return dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
-                         .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(""))
                          .fetch()
                          .map(this::toSettingEntry);
     }
@@ -64,13 +63,11 @@ public class SettingJdbcReader implements ISettingReader {
     }
 
     @Override
-    public SettingEntry getSetting(String appName, String env, String setting) {
-        Record record = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
-                                  .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
-                                  .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                                  .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting))
-                                  .fetchOne();
-        return toSettingEntry(record);
+    public boolean IsSettingExists(String appName, String env, String setting) {
+        return dslContext.fetchExists(Tables.BITHON_AGENT_SETTING
+                                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
+                                                                                    .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
+                                                                                    .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting))));
     }
 
     protected SettingEntry toSettingEntry(Record record) {
