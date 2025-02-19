@@ -43,6 +43,10 @@ import java.util.stream.Collectors;
 public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
     private final Exporter exporter;
+
+    /**
+     * Generate an instantiator that create an instance of given type {@link T}.
+     */
     private final MetricAccessorGenerator.IMetricsInstantiator<T> metricsInstantiator;
     private Map<Dimensions, T> aggregatedStorage = new ConcurrentHashMap<>();
 
@@ -95,11 +99,14 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
      * @param metricProvider fill the metric instance
      */
     public void add(Dimensions dimensions, Consumer<T> metricProvider) {
+        // Create a new metric instance
         T metrics = this.metricsInstantiator.newInstance();
+
+        // Call the consumer interface to fill metrics
         metricProvider.accept(metrics);
 
+        // Aggregate the metrics if possible
         if (aggregatePredicate.isAggregatable(dimensions, metrics)) {
-            // If current metricSet is predicated to be aggregated, then merge the metrics with the existing one
             aggregatedStorage.merge(dimensions,
                                     metrics,
                                     this.aggregateFn);
@@ -108,7 +115,6 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         }
 
         // Add to raw storage
-        // TODO: handling timestamp for raw storage
         List<IMeasurement> batch = null;
         lock.lock();
         try {
@@ -135,9 +141,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         Map<Dimensions, T> currAggregatedStorage = this.aggregatedStorage;
         this.aggregatedStorage = newAggregatedStorage;
 
-        List<IMeasurement> batch = currAggregatedStorage.values()
+        List<IMeasurement> batch = currAggregatedStorage.entrySet()
                                                         .stream()
-                                                        .map((s) -> (IMeasurement) s)
+                                                        .map((e) -> new Measurement(e.getKey(),
+                                                                                    (IMetricAccessor) e.getValue()))
                                                         .collect(Collectors.toList());
 
         lock.lock();
@@ -162,12 +169,19 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
     }
 
     static class Measurement implements IMeasurement {
+        private final long timestamp;
         private final Dimensions dimensions;
         private final IMetricAccessor metricAccessor;
 
         public Measurement(Dimensions dimensions, IMetricAccessor metrics) {
+            this.timestamp = System.currentTimeMillis();
             this.dimensions = dimensions;
             this.metricAccessor = metrics;
+        }
+
+        @Override
+        public long getTimestamp() {
+            return timestamp;
         }
 
         @Override

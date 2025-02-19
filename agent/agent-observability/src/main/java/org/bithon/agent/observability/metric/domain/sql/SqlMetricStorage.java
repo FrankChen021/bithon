@@ -20,10 +20,11 @@ import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.model.AbstractMetricStorage;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 
-import java.time.Duration;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,7 +34,7 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
 
     @ConfigurationProperties(path = "agent.metrics.sql")
     public static class SqlMetricConfig {
-        public Duration slowSqlThreshold = Duration.ofMillis(500);
+        public HumanReadableDuration slowSqlThreshold = HumanReadableDuration.of(5, TimeUnit.SECONDS);
     }
 
     private static final SqlMetricConfig CONFIG;
@@ -50,10 +51,11 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
               (dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
 
-                  if (metrics.responseTime < CONFIG.slowSqlThreshold.toNanos()) {
-                      // Clear dimensions so that they can be merged
+                  if (metrics.responseTime < CONFIG.slowSqlThreshold.getDuration().toNanos()) {
+                      // Aggregate metrics if response time is less than the threshold
+                      // Before that, we need to clear 'traceId' and 'statement' dimensions
+                      dimensions.setValue(2, "");
                       dimensions.setValue(3, "");
-                      dimensions.setValue(4, "");
                       return true;
                   }
 
@@ -64,7 +66,6 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
 
     /**
      * TODO: check if the sqlType is correct assigned
-     * TODO: check if the timestamp of raw list is assigned correctly
      */
     public static SqlMetricStorage get() {
         if (INSTANCE == null) {

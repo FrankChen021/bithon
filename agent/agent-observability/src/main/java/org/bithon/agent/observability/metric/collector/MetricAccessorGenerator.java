@@ -44,6 +44,14 @@ public class MetricAccessorGenerator {
         T newInstance();
     }
 
+    /**
+     * Generate an instantiator that create an instance of given type {@link T}.
+     * The instance returned by the initiator is type of T1, where T1 is a generated class that have the following signature
+     * <pre><code>
+     * class T1 extends T implements IMetricAccessor {
+     * }
+     * </code></pre>
+     */
     public static <T> IMetricsInstantiator<T> createInstantiator(Class<T> metricSetClass) {
 
         List<Field> fields = Arrays.asList(metricSetClass.getDeclaredFields());

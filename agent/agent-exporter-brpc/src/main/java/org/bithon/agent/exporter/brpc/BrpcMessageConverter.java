@@ -196,23 +196,25 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setInterval(interval);
         messageBuilder.setTimestamp(timestamp);
 
-        measurementList.forEach(metricSet -> {
+        measurementList.forEach(measurement -> {
             try {
-                BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
+                BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
+                measurementBuilder.setTimestamp(measurement.getTimestamp());
+
                 // although dimensions are defined as List<String>
                 // it could also store an object,
                 // we use Object.toString here to get the right value
-                for (int i = 0, size = metricSet.getDimensions().length(); i < size; i++) {
-                    measurement.addDimension(metricSet.getDimensions().value(i));
+                for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
+                    measurementBuilder.addDimension(measurement.getDimensions().value(i));
                 }
-                for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                    measurement.addMetric(metricSet.getMetricValue(i));
+                for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
+                    measurementBuilder.addMetric(measurement.getMetricValue(i));
                 }
-                messageBuilder.addMeasurement(measurement.build());
+                messageBuilder.addMeasurement(measurementBuilder.build());
             } catch (RuntimeException e) {
                 logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s",
                                                 schema.getName(),
-                                                metricSet.getDimensions()), e);
+                                                measurement.getDimensions()), e);
             }
         });
 

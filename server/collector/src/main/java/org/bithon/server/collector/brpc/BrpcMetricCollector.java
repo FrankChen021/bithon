@@ -69,10 +69,13 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
     public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.metrics.brpc", BrpcCollectorConfig.class).get();
+        BrpcCollectorConfig config = Binder.get(environment)
+                                           .bind("bithon.receivers.metrics.brpc", BrpcCollectorConfig.class)
+                                           .get();
         Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
         Preconditions.checkNotNull(config.getPort(), "The port for the metrics collector is not configured.");
-        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
+        Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535,
+                                  "The port for the event collector must be in the range of (1000, 65535).");
 
         this.port = config.getPort();
         this.applicationContext = applicationContext;
@@ -110,7 +113,9 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
         this.processor.process("jvm-metrics",
                                SchemaMetricMessage.builder()
-                                                  .metrics(messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()))
+                                                  .metrics(messages.stream()
+                                                                   .map((m) -> toMetricMessage(header, m))
+                                                                   .collect(Collectors.toList()))
                                                   .build());
     }
 
@@ -135,16 +140,20 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
                                                  dimensionSpecs,
                                                  message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
                                                      if ("longMax".equals(metricSpec.getType())) {
-                                                         return new AggregateLongMaxColumn(metricSpec.getName(), metricSpec.getName());
+                                                         return new AggregateLongMaxColumn(metricSpec.getName(),
+                                                                                           metricSpec.getName());
                                                      }
                                                      if ("longMin".equals(metricSpec.getType())) {
-                                                         return new AggregateLongMinColumn(metricSpec.getName(), metricSpec.getName());
+                                                         return new AggregateLongMinColumn(metricSpec.getName(),
+                                                                                           metricSpec.getName());
                                                      }
                                                      if ("longSum".equals(metricSpec.getType())) {
-                                                         return new AggregateLongSumColumn(metricSpec.getName(), metricSpec.getName());
+                                                         return new AggregateLongSumColumn(metricSpec.getName(),
+                                                                                           metricSpec.getName());
                                                      }
                                                      if ("longLast".equals(metricSpec.getType())) {
-                                                         return new AggregateLongLastColumn(metricSpec.getName(), metricSpec.getName());
+                                                         return new AggregateLongLastColumn(metricSpec.getName(),
+                                                                                            metricSpec.getName());
                                                      }
 
                                                      return null;
@@ -170,7 +179,8 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
             }
 
             metricMessage.put("interval", message.getInterval());
-            metricMessage.put("timestamp", message.getTimestamp());
+            metricMessage.put("timestamp",
+                              measurement.getTimestamp() == 0 ? message.getTimestamp() : measurement.getTimestamp());
             metricMessage.put("instance", header.getInstanceName());
             ReflectionUtils.getFields(header, metricMessage);
             return metricMessage;
@@ -196,7 +206,8 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
             }
 
             metricMessage.put("interval", message.getInterval());
-            metricMessage.put("timestamp", message.getTimestamp());
+            metricMessage.put("timestamp",
+                              measurement.getTimestamp() == 0 ? message.getTimestamp() : measurement.getTimestamp());
             ReflectionUtils.getFields(header, metricMessage);
             return metricMessage;
         }).collect(Collectors.toList());

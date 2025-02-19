@@ -109,6 +109,11 @@ public class MetricRegistry<T extends IMetricSet> {
         }
 
         @Override
+        public long getTimestamp() {
+            return 0;
+        }
+
+        @Override
         public Dimensions getDimensions() {
             return dimensions;
         }

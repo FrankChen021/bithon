@@ -23,6 +23,9 @@ import org.bithon.agent.observability.metric.model.schema.Dimensions;
  * @date 3/10/21 11:40
  */
 public interface IMeasurement {
+
+    long getTimestamp();
+
     Dimensions getDimensions();
 
     int getMetricCount();

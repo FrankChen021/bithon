@@ -186,6 +186,11 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
 
         @Override
+        public long getTimestamp() {
+            return 0;
+        }
+
+        @Override
         public Dimensions getDimensions() {
             return dimensions;
         }
