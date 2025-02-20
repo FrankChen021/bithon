@@ -20,8 +20,6 @@ import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.schema.Schema;
 import org.bithon.agent.observability.metric.model.schema.Schema2;
@@ -71,11 +69,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics) {
-        return null;
-    }
-
-    @Override
     public Object from(long timestamp, int interval, JvmMetrics metrics) {
         BrpcJvmMetricMessage.Builder builder = BrpcJvmMetricMessage.newBuilder();
         builder.setInterval(interval);
@@ -109,11 +102,6 @@ public class BrpcMessageConverter implements IMessageConverter {
         builder.setDirectMax(metrics.directMemory.max);
         builder.setDirectUsed(metrics.directMemory.used);
         return builder.build();
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, SQLStatementMetrics metrics) {
-        return null;
     }
 
     @Override

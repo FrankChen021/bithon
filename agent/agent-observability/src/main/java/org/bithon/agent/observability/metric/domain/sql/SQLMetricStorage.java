@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 2025/2/5 20:22
  */
-public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
+public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
 
-    @ConfigurationProperties(path = "agent.metrics.sql")
-    public static class SqlMetricConfig {
+    @ConfigurationProperties(path = "agent.observability.metric.sql")
+    public static class SQLMetricsConfig {
         private HumanReadableDuration slowSqlThreshold = HumanReadableDuration.of(5, TimeUnit.SECONDS);
 
         public HumanReadableDuration getSlowSqlThreshold() {
@@ -45,21 +45,16 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
         }
     }
 
-    private static final SqlMetricConfig CONFIG;
-    private static volatile SqlMetricStorage INSTANCE;
+    private static volatile SQLMetricStorage INSTANCE;
 
-    static {
-        CONFIG = ConfigurationManager.getInstance().getConfig(SqlMetricConfig.class);
-    }
-
-    public SqlMetricStorage() {
+    public SQLMetricStorage(SQLMetricsConfig config) {
         super("sql-metrics",
               Arrays.asList("connectionString", "sqlType", "traceId", "statement"),
-              SqlLog.class,
+              SQLMetrics.class,
               (dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
 
-                  if (metrics.responseTime < CONFIG.getSlowSqlThreshold().getDuration().toNanos()) {
+                  if (metrics.responseTime < config.getSlowSqlThreshold().getDuration().toNanos()) {
                       // Aggregate metrics if response time is less than the threshold
                       // Before that, we need to clear 'traceId' and 'statement' dimensions
                       dimensions.setValue(2, "");
@@ -72,11 +67,13 @@ public class SqlMetricStorage extends AbstractMetricStorage<SqlLog> {
         );
     }
 
-    public static SqlMetricStorage get() {
+    public static SQLMetricStorage get() {
         if (INSTANCE == null) {
-            synchronized (SqlMetricStorage.class) {
+            synchronized (SQLMetricStorage.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new SqlMetricStorage();
+                    SQLMetricsConfig config = ConfigurationManager.getInstance().getConfig(SQLMetricsConfig.class);
+                    INSTANCE = new SQLMetricStorage(config);
+
                     MetricCollectorManager.getInstance().register("sql-metrics", INSTANCE);
                 }
             }

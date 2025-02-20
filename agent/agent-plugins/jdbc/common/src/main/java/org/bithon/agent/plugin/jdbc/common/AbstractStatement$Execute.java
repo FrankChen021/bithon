@@ -20,7 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.sql.SqlMetricStorage;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetricStorage;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
@@ -79,7 +79,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
             ConnectionContext connectionContext = aopContext.getUserContext();
 
-            SqlMetricStorage.get()
+            SQLMetricStorage.get()
                             .add(Dimensions.of(connectionContext.getConnectionString(),
                                                statement.getSqlType(),
                                                span != null ? span.traceId() : "",

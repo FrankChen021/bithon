@@ -28,7 +28,7 @@ public class SqlTypeParserTest {
 
     @Test
     public void test_ParseSelect() {
-        String sql = "SELECT * FROM users";
+        String sql = "select * FROM users";
         Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 

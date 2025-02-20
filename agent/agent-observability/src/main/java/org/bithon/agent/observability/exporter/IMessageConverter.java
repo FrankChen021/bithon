@@ -18,8 +18,6 @@ package org.bithon.agent.observability.exporter;
 
 import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.schema.Schema;
 import org.bithon.agent.observability.metric.model.schema.Schema2;
@@ -36,11 +34,7 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics);
-
     Object from(long timestamp, int interval, JvmMetrics metrics);
-
-    Object from(long timestamp, int interval, SQLStatementMetrics metrics);
 
     Object from(ITraceSpan span);
 

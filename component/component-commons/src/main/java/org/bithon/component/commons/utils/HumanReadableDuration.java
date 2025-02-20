@@ -138,7 +138,7 @@ public class HumanReadableDuration extends Number {
         Preconditions.checkIfTrue(start < lastIndex, "Invalid duration format: " + durationText);
 
         int val = 0;
-        for (int i = start, len = lastIndex; i < len; i++) {
+        for (int i = start; i < lastIndex; i++) {
             char chr = durationText.charAt(i);
             if (!Character.isDigit(chr)) {
                 throw new RuntimeException(StringUtils.format("Invalid character [%c] found in the duration formatted text: ", chr, durationText));
