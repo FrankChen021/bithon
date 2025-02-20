@@ -25,7 +25,9 @@ import org.apache.zookeeper.proto.RequestHeader;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricRegistry;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
+import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricStorage;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
  * For version below 3.5, only the first is defined while these two are defined for 3.5+
@@ -44,7 +46,7 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
-        String status = "";
+        String status;
         if (aopContext.hasException()) {
             status = aopContext.getException().getClass().getName();
         } else {
@@ -76,12 +78,31 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
         IBithonObject requestHeader = aopContext.getArgAs(0);
         IOMetrics ioMetrics = (IOMetrics) requestHeader.getInjectedObject();
 
-        ZKClientMetricRegistry.getInstance()
-                              .getOrCreateMetrics(ctx.getServerAddress(),
-                                                  operation,
-                                                  status)
-                              .add(aopContext.getExecutionTime(),
-                                   ioMetrics.bytesReceived,
-                                   ioMetrics.bytesSent);
+        ZKClientMetricStorage.getInstance()
+                             .add(Dimensions.of(ctx.getServerAddress(),
+                                                 operation,
+                                                 status,
+                                                 getPath(request),
+                                                 ""),
+                                   (metrics) -> {
+                                       metrics.minResponseTime = aopContext.getExecutionTime();
+                                       metrics.maxResponseTime = aopContext.getExecutionTime();
+                                       metrics.responseTime = aopContext.getExecutionTime();
+                                       metrics.bytesReceived = ioMetrics.bytesReceived;
+                                       metrics.bytesSent = ioMetrics.bytesSent;
+                                       metrics.totalCount = 1;
+                                   });
+    }
+
+    /**
+     * @param request Like {@link org.apache.zookeeper.proto.CreateRequest} path is a field of the request
+     */
+    private String getPath(Record request) {
+        // Use reflection to get the path field
+        // Although it is not recommended to use reflection,
+        // but it's more robust to adapt to different versions of zookeeper compared to the hard coded way like: instanceOf CreateRequest
+        // because if the target application's zookeeper client has different package name of the hard coded one, ClassNotFound or NoClassDefFound error will be thrown
+        Object path = ReflectionUtils.getFieldValue(request, "path");
+        return path instanceof String ? (String) path : null;
     }
 }
