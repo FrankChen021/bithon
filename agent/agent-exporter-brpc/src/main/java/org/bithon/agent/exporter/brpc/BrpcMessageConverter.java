@@ -193,7 +193,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                 // it could also store an object,
                 // we use Object.toString here to get the right value
                 for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
-                    measurementBuilder.addDimension(measurement.getDimensions().value(i));
+                    measurementBuilder.addDimension(measurement.getDimensions().getValue(i));
                 }
                 for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
                     measurementBuilder.addMetric(measurement.getMetricValue(i));
@@ -228,7 +228,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                 // it could also store Object,
                 // we use Object.toString here to get the right value
                 for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
-                    String dimension = measurement.getDimensions().value(i);
+                    String dimension = measurement.getDimensions().getValue(i);
                     measurementBuilder.addDimension(dimension == null ? "" : dimension);
                 }
                 for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {

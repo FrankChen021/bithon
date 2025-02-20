@@ -79,7 +79,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
             ConnectionContext connectionContext = aopContext.getUserContext();
 
-            SQLMetricStorage.get()
+            SQLMetricStorage.getInstance()
                             .add(Dimensions.of(connectionContext.getConnectionString(),
                                                statement.getSqlType(),
                                                span != null ? span.traceId() : "",

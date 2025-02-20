@@ -164,7 +164,7 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return this.aggregatedStorage.isEmpty() && this.rawStorage.isEmpty();
     }
 
     static class Measurement implements IMeasurement {

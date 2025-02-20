@@ -34,7 +34,7 @@ public final class Dimensions {
         return values.length;
     }
 
-    public String value(int index) {
+    public String getValue(int index) {
         return values[index];
     }
 

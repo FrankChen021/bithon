@@ -52,7 +52,7 @@ public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
               Arrays.asList("connectionString", "sqlType", "traceId", "statement"),
               SQLMetrics.class,
               (dimensions, metrics) -> {
-                  Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 3");
+                  Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() must be 4");
 
                   if (metrics.responseTime < config.getSlowSqlThreshold().getDuration().toNanos()) {
                       // Aggregate metrics if response time is less than the threshold
@@ -67,7 +67,7 @@ public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
         );
     }
 
-    public static SQLMetricStorage get() {
+    public static SQLMetricStorage getInstance() {
         if (INSTANCE == null) {
             synchronized (SQLMetricStorage.class) {
                 if (INSTANCE == null) {
