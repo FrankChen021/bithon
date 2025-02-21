@@ -37,6 +37,7 @@
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
       <version>5.7.1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>

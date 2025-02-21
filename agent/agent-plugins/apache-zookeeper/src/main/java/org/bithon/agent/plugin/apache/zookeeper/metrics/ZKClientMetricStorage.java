@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.apache.zookeeper.metrics;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
@@ -48,7 +47,9 @@ public class ZKClientMetricStorage extends AbstractMetricStorage<ZKClientMetrics
         }
     }
 
-    @VisibleForTesting
+    /**
+     * Visible for testing
+     */
     ZKClientMetricStorage(ZKClientMetricsConfig config) {
         super(NAME,
               Arrays.asList("operation", "status", "server", "path", "traceId"),
