@@ -62,10 +62,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
                                  Class<T> metricsClass,
                                  IMetricAggregatePredicate<T> aggregatePredicate) {
         this(name,
-             dimensionSpec,
-             metricsClass,
-             aggregatePredicate,
-             AggregateFunctorGenerator.createAggregateFunctor(metricsClass));
+                dimensionSpec,
+                metricsClass,
+                aggregatePredicate,
+                AggregateFunctorGenerator.createAggregateFunctor(metricsClass));
     }
 
     public AbstractMetricStorage(String name,
@@ -74,13 +74,13 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
                                  IMetricAggregatePredicate<T> aggregatePredicate,
                                  IAggregate<T> aggregator) {
         this(name,
-             dimensionSpec,
-             metricClass,
-             aggregatePredicate,
-             (T prev, T now) -> {
-                 aggregator.aggregate(prev, now);
-                 return prev;
-             });
+                dimensionSpec,
+                metricClass,
+                aggregatePredicate,
+                (T prev, T now) -> {
+                    aggregator.aggregate(prev, now);
+                    return prev;
+                });
     }
 
     public AbstractMetricStorage(String name,
@@ -106,13 +106,11 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
         // Aggregate the metrics if possible
         if (aggregatePredicate.isAggregatable(dimensions, metrics)) {
-            try {
-                aggregatedStorage.merge(dimensions,
-                                        metrics,
-                                        this.aggregateFn);
-            } catch (Throwable t) {
-                this.metricsInstantiator.newInstance();
-            }
+
+            aggregatedStorage.merge(dimensions,
+                    metrics,
+                    this.aggregateFn);
+
             // will be collected periodically
             return;
         }
@@ -134,9 +132,9 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
                 this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
             }
             Object messages = this.exporter.getMessageConverter().from(schema,
-                                                                       batch,
-                                                                       System.currentTimeMillis(),
-                                                                       0);
+                    batch,
+                    System.currentTimeMillis(),
+                    0);
             this.exporter.export(messages);
         }
     }
@@ -147,10 +145,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         this.aggregatedStorage = new ConcurrentHashMap<>();
 
         List<IMeasurement> batch = currAggregatedStorage.entrySet()
-                                                        .stream()
-                                                        .map((e) -> new Measurement(e.getKey(),
-                                                                                    (IMetricAccessor) e.getValue()))
-                                                        .collect(Collectors.toList());
+                .stream()
+                .map((e) -> new Measurement(e.getKey(),
+                        (IMetricAccessor) e.getValue()))
+                .collect(Collectors.toList());
 
         lock.lock();
         try {
@@ -163,9 +161,9 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         }
 
         return messageConverter.from(schema,
-                                     batch,
-                                     timestamp,
-                                     interval);
+                batch,
+                timestamp,
+                interval);
     }
 
     @Override
@@ -215,10 +213,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Sum.class)
-                || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Max.class)
-                || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Min.class)
-                || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Last.class)
-                || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.First.class)
+                    || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Max.class)
+                    || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Min.class)
+                    || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.Last.class)
+                    || field.isAnnotationPresent(org.bithon.agent.observability.metric.model.annotation.First.class)
             ) {
                 metrics.add(field.getName());
             }
