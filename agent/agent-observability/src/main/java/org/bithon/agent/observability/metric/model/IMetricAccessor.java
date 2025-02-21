@@ -24,4 +24,8 @@ public interface IMetricAccessor {
     long getMetricValue(int i);
 
     int getMetricCount();
+
+    default long getMetricValue(String name) {
+        throw new UnsupportedOperationException();
+    }
 }

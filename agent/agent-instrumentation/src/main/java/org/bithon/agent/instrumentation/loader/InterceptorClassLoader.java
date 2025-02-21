@@ -17,6 +17,7 @@
 package org.bithon.agent.instrumentation.loader;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -26,14 +27,14 @@ import java.util.Locale;
  * @date 28/12/21 10:31 AM
  */
 public class InterceptorClassLoader extends ClassLoader {
-    private final JarClassLoader pluginClassLoader;
+    private final ClassLoader pluginClassLoader;
     private final ClassLoader applicationClassLoader;
 
-    public InterceptorClassLoader(JarClassLoader pluginClassLoader) {
+    public InterceptorClassLoader(ClassLoader pluginClassLoader) {
         this(pluginClassLoader, null);
     }
 
-    public InterceptorClassLoader(JarClassLoader pluginClassLoader, ClassLoader applicationClassLoader) {
+    public InterceptorClassLoader(ClassLoader pluginClassLoader, ClassLoader applicationClassLoader) {
         // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
@@ -52,8 +53,9 @@ public class InterceptorClassLoader extends ClassLoader {
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         if (name.startsWith("org.bithon.agent.plugin.")) {
             try {
-                byte[] classBytes = pluginClassLoader.getClassByteCode(name);
-                if (classBytes != null) {
+                String path = name.replace('.', '/').concat(".class");
+                URL classFileURL = pluginClassLoader.getResource(path);
+                if (classFileURL != null) {
                     // define the package object for customer-loaded classes,
                     // so that getPackage could work
                     int lastIndex = name.lastIndexOf(".");
@@ -63,7 +65,10 @@ public class InterceptorClassLoader extends ClassLoader {
                             definePackage(pkg, null, null, null, null, null, null, null);
                         }
                     }
-                    return defineClass(name, classBytes, 0, classBytes.length);
+                    try (InputStream is = classFileURL.openStream()) {
+                        byte[] byteCode = JarUtils.toByte(is);
+                        return defineClass(name, byteCode, 0, byteCode.length);
+                    }
                 }
             } catch (IOException ignored) {
             }

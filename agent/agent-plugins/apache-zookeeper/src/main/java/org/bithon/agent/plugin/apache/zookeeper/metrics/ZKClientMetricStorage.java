@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.apache.zookeeper.metrics;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.bithon.agent.configuration.ConfigurationManager;
 import org.bithon.agent.configuration.ConfigurationProperties;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
@@ -34,27 +35,28 @@ import java.util.concurrent.TimeUnit;
 public class ZKClientMetricStorage extends AbstractMetricStorage<ZKClientMetrics> {
     public static final String NAME = "zookeeper-client-metrics";
 
-    @ConfigurationProperties(path = "agent.observability.metric.zookeeper-client")
+    @ConfigurationProperties(path = "agent.observability.metrics.zookeeper-client-metrics")
     public static class ZKClientMetricsConfig {
-        private HumanReadableDuration slowOperationThreshold = HumanReadableDuration.of(3, TimeUnit.SECONDS);
+        private HumanReadableDuration responseTime = HumanReadableDuration.of(3, TimeUnit.SECONDS);
 
-        public HumanReadableDuration getSlowOperationThreshold() {
-            return slowOperationThreshold;
+        public HumanReadableDuration getResponseTime() {
+            return responseTime;
         }
 
-        public void setSlowOperationThreshold(HumanReadableDuration slowOperationThreshold) {
-            this.slowOperationThreshold = slowOperationThreshold;
+        public void setResponseTime(HumanReadableDuration responseTime) {
+            this.responseTime = responseTime;
         }
     }
 
-    public ZKClientMetricStorage(ZKClientMetricsConfig config) {
+    @VisibleForTesting
+    ZKClientMetricStorage(ZKClientMetricsConfig config) {
         super(NAME,
               Arrays.asList("operation", "status", "server", "path", "traceId"),
               ZKClientMetrics.class,
               ((dimensions, metrics) -> {
-                  Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() == 4");
+                  Preconditions.checkIfTrue(dimensions.length() == 5, "Required 5 dimensions, but got %d", 5, dimensions.length());
 
-                  if (metrics.responseTime < config.getSlowOperationThreshold().getDuration().toNanos()) {
+                  if (metrics.responseTime < config.getResponseTime().getDuration().toNanos()) {
                       // Aggregate metrics if response time is less than the threshold
                       // Before that, we need to clear 'traceId' and 'path' dimensions
                       dimensions.setValue(3, "");

@@ -67,7 +67,7 @@ public class InterceptorInstaller {
     public void installOn(Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
-        new AgentBuilder.Default()
+        AgentBuilder agentBuilder = new AgentBuilder.Default()
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy.").or(ElementMatchers.isSynthetic())))
@@ -115,10 +115,15 @@ public class InterceptorInstaller {
                 }
 
                 return builder;
-            })
+            });
+
+        // Under UT mode, the debugger might be NULL
+        if (InstrumentationHelper.getAopDebugger() != null) {
             // Listener is always installed to catch ERRORS even if the debugger is not enabled
-            .with(InstrumentationHelper.getAopDebugger().withTypes(types))
-            .installOn(inst);
+            agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger().withTypes(types));
+        }
+
+        agentBuilder.installOn(inst);
     }
 
     public static class Installer {
@@ -172,7 +177,7 @@ public class InterceptorInstaller {
                     break;
                 case AFTER: {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AfterAdvice.class : ConstructorAfterAdvice.class;
+                                           AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
@@ -184,7 +189,7 @@ public class InterceptorInstaller {
 
                 case AROUND: {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AroundAdvice.class : AroundConstructorAdvice.class;
+                                           AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)

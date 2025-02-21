@@ -63,11 +63,22 @@ public class MetricAccessorGenerator {
             .implement(IMetricAccessor.class);
 
         try (DynamicType.Unloaded<?> type = builder
-            // Create 'getMetricValue' method
+            //
+            // Create 'getMetricValue' by index method
+            //
             .defineMethod("getMetricValue", long.class, Visibility.PUBLIC)
-            .withParameters(int.class)
-            .intercept(new Implementation.Simple(new GetMetricValueMethodGenerator(className, fields)))
+            .withParameter(int.class)
+            .intercept(new Implementation.Simple(new GetMetricValueMethodGenerator(fields)))
+            //
+            // Create 'getMetricValue' by name method
+            //
+            .defineMethod("getMetricValue", long.class, Visibility.PUBLIC)
+            .withParameter(String.class)
+            .intercept(new Implementation.Simple(new GetMetricValueByNameMethodGenerator(fields)))
+
+            //
             // Create 'getMetricCount' method
+            //
             .defineMethod("getMetricCount", int.class, Visibility.PUBLIC)
             .intercept(new Implementation.Simple((mv, context, method) -> {
                 mv.visitCode();
@@ -108,10 +119,8 @@ public class MetricAccessorGenerator {
 
     private static class GetMetricValueMethodGenerator implements ByteCodeAppender {
         private final List<Field> fields;
-        private final String baseClassName;
 
-        private GetMetricValueMethodGenerator(String baseClassName, List<Field> fields) {
-            this.baseClassName = baseClassName;
+        private GetMetricValueMethodGenerator(List<Field> fields) {
             this.fields = fields;
         }
 
@@ -140,7 +149,7 @@ public class MetricAccessorGenerator {
                     mv.visitFrame(Opcodes.F_FULL,
                                   2,
                                   new Object[]{
-                                      baseClassName,
+                                      context.getInstrumentedType().getInternalName(),
                                       Opcodes.INTEGER
                                   }, 0, new Object[]{});
                 } else {
@@ -153,7 +162,7 @@ public class MetricAccessorGenerator {
                 // Get field value (using GETFIELD for long)
                 mv.visitFieldInsn(
                     Opcodes.GETFIELD,
-                    baseClassName,
+                    context.getInstrumentedType().getInternalName(),
                     field.getName(),
                     "J"  // descriptor for long
                 );
@@ -180,6 +189,89 @@ public class MetricAccessorGenerator {
             // - 3 slots for exception creation (NEW, DUP, LDC)
             // Local variables are 2 (this + index parameter)
             return new Size(3, 2);
+        }
+    }
+
+    /**
+     * Generate method implementation for {@link IMetricAccessor#getMetricValue(String)}.
+     * It generates codes as following pattern:
+     * <pre><code>
+     *     if ("field".equals(fieldName)) {
+     *          return this.field;
+     *     }
+     *     if ("field2".equals(fieldName)) {
+     *          return this.field2;
+     *     }
+     *     throw new IllegalArgumentException("Unknown metric name: " + fieldName);
+     * </code></pre>
+     */
+    private static class GetMetricValueByNameMethodGenerator implements ByteCodeAppender {
+        private final List<Field> fields;
+
+        private GetMetricValueByNameMethodGenerator(List<Field> fields) {
+            this.fields = fields;
+        }
+
+        @Override
+        public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription method) {
+            mv.visitCode();
+            String internalName = context.getInstrumentedType().getInternalName();
+
+            for (Field field : fields) {
+                // if ("field".equals(fieldName))
+                mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the method argument 'fieldName'
+                mv.visitLdcInsn(field.getName());            // Load the literal field name
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                                   "java/lang/String",
+                                   "equals",
+                                   "(Ljava/lang/Object;)Z",
+                                   false);
+                Label notEqual = new Label();
+                mv.visitJumpInsn(Opcodes.IFEQ, notEqual);
+
+                // If equal, return this.field
+                mv.visitVarInsn(Opcodes.ALOAD, 0); // Load 'this'
+                mv.visitFieldInsn(Opcodes.GETFIELD,
+                                  internalName,
+                                  field.getName(),
+                                  "J");          // Get field (descriptor "J" for long)
+                mv.visitInsn(Opcodes.LRETURN);
+
+                mv.visitLabel(notEqual);
+                mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null); // Ensure stack frame is updated
+            }
+
+            // throw new IllegalArgumentException("Unknown metric name: " + fieldName)
+            mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalArgumentException");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitLdcInsn("Unknown metric name: ");
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                               "java/lang/StringBuilder",
+                               "<init>",
+                               "(Ljava/lang/String;)V",
+                               false);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                               "java/lang/StringBuilder",
+                               "append",
+                               "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+                               false);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                               "java/lang/StringBuilder",
+                               "toString",
+                               "()Ljava/lang/String;",
+                               false);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                               "java/lang/IllegalArgumentException",
+                               "<init>",
+                               "(Ljava/lang/String;)V",
+                               false);
+            mv.visitInsn(Opcodes.ATHROW);
+
+            // Return size: maxStack = 6, maxLocals = 2 (this + fieldName)
+            return new Size(6, 2);
         }
     }
 }

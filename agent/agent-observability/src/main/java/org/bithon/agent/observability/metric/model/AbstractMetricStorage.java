@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
-    private final Exporter exporter;
+    private Exporter exporter;
 
     /**
      * Generate an instantiator that create an instance of given type {@link T}.
@@ -92,7 +92,6 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         this.aggregateFn = aggregateFn;
         this.schema = createSchema(name, dimensionSpec, metricClass);
         this.metricsInstantiator = MetricAccessorGenerator.createInstantiator(metricClass);
-        this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
     }
 
     /**
@@ -107,9 +106,13 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
 
         // Aggregate the metrics if possible
         if (aggregatePredicate.isAggregatable(dimensions, metrics)) {
-            aggregatedStorage.merge(dimensions,
-                                    metrics,
-                                    this.aggregateFn);
+            try {
+                aggregatedStorage.merge(dimensions,
+                                        metrics,
+                                        this.aggregateFn);
+            } catch (Throwable t) {
+                this.metricsInstantiator.newInstance();
+            }
             // will be collected periodically
             return;
         }
@@ -127,6 +130,9 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
             lock.unlock();
         }
         if (batch != null) {
+            if (this.exporter == null) {
+                this.exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_METRIC);
+            }
             Object messages = this.exporter.getMessageConverter().from(schema,
                                                                        batch,
                                                                        System.currentTimeMillis(),
@@ -196,6 +202,11 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         @Override
         public long getMetricValue(int index) {
             return metricAccessor.getMetricValue(index);
+        }
+
+        @Override
+        public long getMetricValue(String name) {
+            return metricAccessor.getMetricValue(name);
         }
     }
 

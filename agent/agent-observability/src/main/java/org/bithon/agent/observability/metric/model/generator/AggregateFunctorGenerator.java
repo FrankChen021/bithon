@@ -75,12 +75,13 @@ public class AggregateFunctorGenerator {
 
         try (DynamicType.Unloaded<?> dynamicType = new ByteBuddy()
             .subclass(Object.class)
+            .name(targetClass.getName() + "$GeneratedAggregateFunctor")
             .implement(IAggregate.class)
             .intercept(new Implementation.Simple(new AggregateMethodByteCodeGenerator(targetClass, fields)))
             .make()) {
 
             //noinspection unchecked,rawtypes
-            Class<IAggregate> clazz = (Class<IAggregate>) dynamicType.load(AggregateFunctorGenerator.class.getClassLoader())
+            Class<IAggregate> clazz = (Class<IAggregate>) dynamicType.load(targetClass.getClassLoader())
                                                                      .getLoaded();
             try {
                 //noinspection unchecked

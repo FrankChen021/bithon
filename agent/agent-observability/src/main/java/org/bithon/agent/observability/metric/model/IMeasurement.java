@@ -31,4 +31,11 @@ public interface IMeasurement {
     int getMetricCount();
 
     long getMetricValue(int index);
+
+    /**
+     * Mainly for testing purpose
+     */
+    default long getMetricValue(String name) {
+        throw new UnsupportedOperationException();
+    }
 }

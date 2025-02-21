@@ -43,6 +43,11 @@ public class MetricAccessorGeneratorTest {
         Assert.assertEquals(2, metricAccessor.getMetricValue(1));
         Assert.assertEquals(3, metricAccessor.getMetricValue(2));
 
+        Assert.assertEquals(1, metricAccessor.getMetricValue("field0"));
+        Assert.assertEquals(2, metricAccessor.getMetricValue("field1"));
+        Assert.assertEquals(3, metricAccessor.getMetricValue("field2"));
+        Assert.assertThrows(IllegalArgumentException.class, () -> metricAccessor.getMetricValue("non_exists_field"));
+
         sampleData.field0 = 0;
         sampleData.field1 = 11;
         sampleData.field2 = 22;

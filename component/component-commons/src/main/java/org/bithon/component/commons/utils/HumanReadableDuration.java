@@ -65,6 +65,15 @@ public class HumanReadableDuration extends Number {
     }
 
     public static HumanReadableDuration of(int duration, TimeUnit timeUnit) {
+        if (timeUnit == TimeUnit.NANOSECONDS) {
+            return new HumanReadableDuration(duration + "ns", Duration.ofNanos(duration), timeUnit);
+        }
+        if (timeUnit == TimeUnit.MICROSECONDS) {
+            return new HumanReadableDuration(duration + "us", Duration.ofNanos(timeUnit.toNanos(duration * 1000L)), timeUnit);
+        }
+        if (timeUnit == TimeUnit.MILLISECONDS) {
+            return new HumanReadableDuration(duration + "ms", Duration.ofMillis(duration), timeUnit);
+        }
         if (timeUnit == TimeUnit.SECONDS) {
             return new HumanReadableDuration(duration + "s", Duration.ofSeconds(duration), timeUnit);
         }

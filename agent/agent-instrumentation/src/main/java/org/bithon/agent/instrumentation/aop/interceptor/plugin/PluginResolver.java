@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public abstract class PluginResolver {
 
-    private final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
 
     public PluginResolver() {
         // create plugin class loader first
@@ -70,7 +70,7 @@ public abstract class PluginResolver {
     /**
      * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
      */
-    private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
+    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
         LOG.info("Resolving interceptor type from all enabled plugins...");
         InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
 
@@ -92,7 +92,7 @@ public abstract class PluginResolver {
     }
 
     private List<IPlugin> loadPlugins() {
-        JarClassLoader pluginClassLoader = PluginClassLoader.getClassLoader();
+        JarClassLoader pluginClassLoader = (JarClassLoader) PluginClassLoader.getClassLoader();
         return pluginClassLoader.getJars()
                                 .stream()
                                 .flatMap(JarFile::stream)

@@ -79,19 +79,19 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
         IOMetrics ioMetrics = (IOMetrics) requestHeader.getInjectedObject();
 
         ZKClientMetricStorage.getInstance()
-                             .add(Dimensions.of(ctx.getServerAddress(),
-                                                 operation,
-                                                 status,
-                                                 getPath(request),
-                                                 ""),
-                                   (metrics) -> {
-                                       metrics.minResponseTime = aopContext.getExecutionTime();
-                                       metrics.maxResponseTime = aopContext.getExecutionTime();
-                                       metrics.responseTime = aopContext.getExecutionTime();
-                                       metrics.bytesReceived = ioMetrics.bytesReceived;
-                                       metrics.bytesSent = ioMetrics.bytesSent;
-                                       metrics.totalCount = 1;
-                                   });
+                             .add(Dimensions.of(operation,
+                                                status,
+                                                ctx.getServerAddress(),
+                                                getPath(request),
+                                                ""),
+                                  (metrics) -> {
+                                      metrics.minResponseTime = aopContext.getExecutionTime();
+                                      metrics.maxResponseTime = aopContext.getExecutionTime();
+                                      metrics.responseTime = aopContext.getExecutionTime();
+                                      metrics.bytesReceived = ioMetrics.bytesReceived;
+                                      metrics.bytesSent = ioMetrics.bytesSent;
+                                      metrics.totalCount = 1;
+                                  });
     }
 
     /**

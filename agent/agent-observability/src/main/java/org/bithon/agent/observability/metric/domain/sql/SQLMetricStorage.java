@@ -31,34 +31,45 @@ import java.util.concurrent.TimeUnit;
  * @date 2025/2/5 20:22
  */
 public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
+    private static final String NAME = "sql-metrics";
 
-    @ConfigurationProperties(path = "agent.observability.metric.sql")
+    /**
+     * Note:
+     * 1. The property path must be under 'agent.observability.metrics'
+     * 2. The property name must be the same as the metric name
+     */
+    @ConfigurationProperties(path = "agent.observability.metrics." + NAME)
     public static class SQLMetricsConfig {
-        private HumanReadableDuration slowSqlThreshold = HumanReadableDuration.of(5, TimeUnit.SECONDS);
+        private HumanReadableDuration responseTime = HumanReadableDuration.of(5, TimeUnit.SECONDS);
 
-        public HumanReadableDuration getSlowSqlThreshold() {
-            return slowSqlThreshold;
+        public HumanReadableDuration getResponseTime() {
+            return responseTime;
         }
 
-        public void setSlowSqlThreshold(HumanReadableDuration slowSqlThreshold) {
-            this.slowSqlThreshold = slowSqlThreshold;
+        public void setResponseTime(HumanReadableDuration responseTime) {
+            this.responseTime = responseTime;
         }
     }
 
     private static volatile SQLMetricStorage INSTANCE;
 
     public SQLMetricStorage(SQLMetricsConfig config) {
-        super("sql-metrics",
+        super(NAME,
               Arrays.asList("connectionString", "sqlType", "traceId", "statement"),
               SQLMetrics.class,
               (dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 4, "dimensions.length() must be 4");
 
-                  if (metrics.responseTime < config.getSlowSqlThreshold().getDuration().toNanos()) {
+                  if (metrics.responseTime < config.getResponseTime().getDuration().toNanos()) {
                       // Aggregate metrics if response time is less than the threshold
                       // Before that, we need to clear 'traceId' and 'statement' dimensions
                       dimensions.setValue(2, "");
                       dimensions.setValue(3, "");
+                      return true;
+                  }
+
+                  if (dimensions.getValue(2).isEmpty() && dimensions.getValue(3).isEmpty()) {
+                      // If both traceId and statement are not provided, the metrics can be aggregated
                       return true;
                   }
 
@@ -74,10 +85,11 @@ public class SQLMetricStorage extends AbstractMetricStorage<SQLMetrics> {
                     SQLMetricsConfig config = ConfigurationManager.getInstance().getConfig(SQLMetricsConfig.class);
                     INSTANCE = new SQLMetricStorage(config);
 
-                    MetricCollectorManager.getInstance().register("sql-metrics", INSTANCE);
+                    MetricCollectorManager.getInstance().register(NAME, INSTANCE);
                 }
             }
         }
+
         return INSTANCE;
     }
 }
