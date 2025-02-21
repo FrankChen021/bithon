@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @author frank.chen021@outlook.com
  * @date 15/1/25 4:32 pm
  */
-public class ZKClientMetricStorage extends AbstractMetricStorage<ZKClientMetrics> {
+public class ZooKeeperClientMetricStorage extends AbstractMetricStorage<ZooKeeperClientMetrics> {
     public static final String NAME = "zookeeper-client-metrics";
 
     @ConfigurationProperties(path = "agent.observability.metrics.zookeeper-client-metrics")
@@ -50,10 +50,10 @@ public class ZKClientMetricStorage extends AbstractMetricStorage<ZKClientMetrics
     /**
      * Visible for testing
      */
-    ZKClientMetricStorage(ZKClientMetricsConfig config) {
+    ZooKeeperClientMetricStorage(ZKClientMetricsConfig config) {
         super(NAME,
               Arrays.asList("operation", "status", "server", "path", "traceId"),
-              ZKClientMetrics.class,
+              ZooKeeperClientMetrics.class,
               ((dimensions, metrics) -> {
                   Preconditions.checkIfTrue(dimensions.length() == 5, "Required 5 dimensions, but got %d", 5, dimensions.length());
 
@@ -74,14 +74,14 @@ public class ZKClientMetricStorage extends AbstractMetricStorage<ZKClientMetrics
               }));
     }
 
-    private static volatile ZKClientMetricStorage INSTANCE;
+    private static volatile ZooKeeperClientMetricStorage INSTANCE;
 
-    public static ZKClientMetricStorage getInstance() {
+    public static ZooKeeperClientMetricStorage getInstance() {
         if (INSTANCE == null) {
-            synchronized (ZKClientMetricStorage.class) {
+            synchronized (ZooKeeperClientMetricStorage.class) {
                 if (INSTANCE == null) {
                     ZKClientMetricsConfig config = ConfigurationManager.getInstance().getConfig(ZKClientMetricsConfig.class);
-                    INSTANCE = new ZKClientMetricStorage(config);
+                    INSTANCE = new ZooKeeperClientMetricStorage(config);
 
                     MetricCollectorManager.getInstance().register(NAME, INSTANCE);
                 }

@@ -24,7 +24,7 @@ import org.bithon.agent.observability.metric.model.annotation.Sum;
  * @author frank.chen021@outlook.com
  * @date 15/1/25 4:33 pm
  */
-public class ZKClientMetrics {
+public class ZooKeeperClientMetrics {
     @Min
     public long minResponseTime;
 

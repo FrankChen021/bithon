@@ -26,7 +26,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
 import org.bithon.agent.observability.metric.model.schema.Dimensions;
-import org.bithon.agent.plugin.apache.zookeeper.metrics.ZKClientMetricStorage;
+import org.bithon.agent.plugin.apache.zookeeper.metrics.ZooKeeperClientMetricStorage;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 /**
@@ -78,7 +78,7 @@ public class ClientCnxn$SubmitRequest extends AroundInterceptor {
         IBithonObject requestHeader = aopContext.getArgAs(0);
         IOMetrics ioMetrics = (IOMetrics) requestHeader.getInjectedObject();
 
-        ZKClientMetricStorage.getInstance()
+        ZooKeeperClientMetricStorage.getInstance()
                              .add(Dimensions.of(operation,
                                                 status,
                                                 ctx.getServerAddress(),

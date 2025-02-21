@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ZKClientMetricStorageTest {
+public class ZooKeeperClientMetricStorageTest {
 
     private final IMessageConverter converter = new IMessageConverter() {
         @Override
@@ -77,8 +77,8 @@ public class ZKClientMetricStorageTest {
 
     @Test
     public void test_MetricAggregation() {
-        ZKClientMetricStorage.ZKClientMetricsConfig config = new ZKClientMetricStorage.ZKClientMetricsConfig();
-        ZKClientMetricStorage storage = new ZKClientMetricStorage(config);
+        ZooKeeperClientMetricStorage.ZKClientMetricsConfig config = new ZooKeeperClientMetricStorage.ZKClientMetricsConfig();
+        ZooKeeperClientMetricStorage storage = new ZooKeeperClientMetricStorage(config);
         storage.add(Dimensions.of("operation", "status", "server", "path", "traceId"),
                     (metric) -> {
                         metric.responseTime = 1000;
@@ -143,10 +143,10 @@ public class ZKClientMetricStorageTest {
 
     @Test
     public void test_RawMetrics() {
-        ZKClientMetricStorage.ZKClientMetricsConfig config = new ZKClientMetricStorage.ZKClientMetricsConfig();
+        ZooKeeperClientMetricStorage.ZKClientMetricsConfig config = new ZooKeeperClientMetricStorage.ZKClientMetricsConfig();
         config.setResponseTime(HumanReadableDuration.of(3, TimeUnit.SECONDS));
 
-        ZKClientMetricStorage storage = new ZKClientMetricStorage(config);
+        ZooKeeperClientMetricStorage storage = new ZooKeeperClientMetricStorage(config);
 
         // Should be aggregated
         storage.add(Dimensions.of("operation", "status", "server", "path", "traceId"),
