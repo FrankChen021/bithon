@@ -121,7 +121,7 @@ public class AgentControllerApi implements IAgentControllerApi {
                                                                .filter((session) -> application.equals(session.getRemoteApplicationName())
                                                                                     && instance.equals(session.getRemoteAttribute(Headers.HEADER_APP_ID)))
                                                                .findFirst()
-                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%d] ", application, instance));
+                                                               .orElseThrow(() -> new SessionNotFoundException("No session found for target application [app=%s, instance=%s] ", application, instance));
 
         //
         // Parse input request stream so that we get the request object that the user is going to access
