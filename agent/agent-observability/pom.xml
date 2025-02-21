@@ -71,7 +71,7 @@
       <artifactId>jmh-generator-annprocess</artifactId>
       <version>1.36</version>
       <scope>provided</scope>
-<!--      <scope>test</scope>-->
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
