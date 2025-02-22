@@ -21,7 +21,6 @@ import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class ExampleServiceImpl implements IExampleService {
@@ -41,7 +40,6 @@ public class ExampleServiceImpl implements IExampleService {
 
     @Override
     public void sendOneway(String msg) {
-        System.out.println("Got message:" + msg);
         try {
             Thread.sleep(3000);
         } catch (InterruptedException ignored) {
@@ -82,7 +80,6 @@ public class ExampleServiceImpl implements IExampleService {
 
     @Override
     public String sendWebMetrics(WebRequestMetrics metrics) {
-        System.out.printf(Locale.ENGLISH, "Receiving metrics: %s\n", metrics);
         return metrics.getUri();
     }
 

@@ -20,9 +20,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import org.bithon.server.commons.time.TimeSpan;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -34,7 +34,7 @@ import java.util.Collections;
 public class JwtTokenComponentTest {
     private JwtTokenComponent component;
 
-    @Before
+    @BeforeEach
     public void before() {
         component = new JwtTokenComponent(new JwtConfig());
     }
@@ -47,12 +47,12 @@ public class JwtTokenComponentTest {
                                            "frankchen@apache.org",
                                            Duration.ofDays(2));
         Jws<Claims> token = component.parseToken(jwt);
-        Assert.assertTrue(component.isValidToken(token));
+        Assertions.assertTrue(component.isValidToken(token));
 
         long expiration = component.getExpirationTimestamp(token);
         long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
         long hours = diff / 1000 / 3600;
-        Assert.assertTrue(hours == 47 || hours == 48);
+        Assertions.assertTrue(hours == 47 || hours == 48);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class JwtTokenComponentTest {
         // Wait for the token expired
         Thread.sleep(1200);
 
-        Assert.assertThrows(ExpiredJwtException.class, () -> component.parseToken(jwt));
+        Assertions.assertThrows(ExpiredJwtException.class, () -> component.parseToken(jwt));
     }
 
     @Test
@@ -76,12 +76,12 @@ public class JwtTokenComponentTest {
                                            "frankchen@apache.org",
                                            Duration.ZERO);
         Jws<Claims> token = component.parseToken(jwt);
-        Assert.assertTrue(component.isValidToken(token));
+        Assertions.assertTrue(component.isValidToken(token));
 
         long expiration = component.getExpirationTimestamp(token);
         long diff = TimeSpan.of(expiration).diff(TimeSpan.now());
         long hours = diff / 1000 / 3600;
-        Assert.assertTrue(hours == 23 || hours == 24);
+        Assertions.assertTrue(hours == 23 || hours == 24);
     }
 
 }

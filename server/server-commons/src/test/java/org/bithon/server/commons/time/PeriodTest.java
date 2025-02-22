@@ -16,8 +16,9 @@
 
 package org.bithon.server.commons.time;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,12 +30,12 @@ public class PeriodTest {
     public void testZeroDay() {
         Period period = new Period("P0D");
 
-        Assert.assertEquals(0, period.getMilliseconds());
+        Assertions.assertEquals(0, period.getMilliseconds());
     }
 
     @Test
     public void testZeroHour() {
-        Assert.assertThrows(IllegalArgumentException.class, () -> new Period("P0H"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new Period("P0H"));
     }
 
 }

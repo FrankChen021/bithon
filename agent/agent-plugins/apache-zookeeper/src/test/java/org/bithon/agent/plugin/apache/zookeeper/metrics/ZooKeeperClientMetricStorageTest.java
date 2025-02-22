@@ -27,8 +27,9 @@ import org.bithon.agent.observability.metric.model.schema.Schema2;
 import org.bithon.agent.observability.metric.model.schema.Schema3;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.time.Duration;
 import java.util.Collection;
@@ -123,22 +124,22 @@ public class ZooKeeperClientMetricStorageTest {
 
         //noinspection unchecked
         List<IMeasurement> measurementList = (List<IMeasurement>) storage.collect(converter, 1, System.currentTimeMillis());
-        Assert.assertEquals(2, measurementList.size());
+        Assertions.assertEquals(2, measurementList.size());
 
         // First aggregate entry
-        Assert.assertEquals(2, measurementList.get(0).getMetricValue("totalCount"));
-        Assert.assertEquals(4000, measurementList.get(0).getMetricValue("responseTime"));
-        Assert.assertEquals(1000, measurementList.get(0).getMetricValue("minResponseTime"));
-        Assert.assertEquals(3000, measurementList.get(0).getMetricValue("maxResponseTime"));
-        Assert.assertEquals(500, measurementList.get(0).getMetricValue("bytesReceived"));
-        Assert.assertEquals(700, measurementList.get(0).getMetricValue("bytesSent"));
+        Assertions.assertEquals(2, measurementList.get(0).getMetricValue("totalCount"));
+        Assertions.assertEquals(4000, measurementList.get(0).getMetricValue("responseTime"));
+        Assertions.assertEquals(1000, measurementList.get(0).getMetricValue("minResponseTime"));
+        Assertions.assertEquals(3000, measurementList.get(0).getMetricValue("maxResponseTime"));
+        Assertions.assertEquals(500, measurementList.get(0).getMetricValue("bytesReceived"));
+        Assertions.assertEquals(700, measurementList.get(0).getMetricValue("bytesSent"));
 
-        Assert.assertEquals(2, measurementList.get(1).getMetricValue("totalCount"));
-        Assert.assertEquals(8000, measurementList.get(1).getMetricValue("responseTime"));
-        Assert.assertEquals(3000, measurementList.get(1).getMetricValue("minResponseTime"));
-        Assert.assertEquals(5000, measurementList.get(1).getMetricValue("maxResponseTime"));
-        Assert.assertEquals(303, measurementList.get(1).getMetricValue("bytesReceived"));
-        Assert.assertEquals(404, measurementList.get(1).getMetricValue("bytesSent"));
+        Assertions.assertEquals(2, measurementList.get(1).getMetricValue("totalCount"));
+        Assertions.assertEquals(8000, measurementList.get(1).getMetricValue("responseTime"));
+        Assertions.assertEquals(3000, measurementList.get(1).getMetricValue("minResponseTime"));
+        Assertions.assertEquals(5000, measurementList.get(1).getMetricValue("maxResponseTime"));
+        Assertions.assertEquals(303, measurementList.get(1).getMetricValue("bytesReceived"));
+        Assertions.assertEquals(404, measurementList.get(1).getMetricValue("bytesSent"));
     }
 
     @Test
@@ -194,29 +195,29 @@ public class ZooKeeperClientMetricStorageTest {
 
         //noinspection unchecked
         List<IMeasurement> measurementList = (List<IMeasurement>) storage.collect(converter, 1, System.currentTimeMillis());
-        Assert.assertEquals(3, measurementList.size());
+        Assertions.assertEquals(3, measurementList.size());
 
         // First is the aggregated one
-        Assert.assertEquals(2, measurementList.get(0).getMetricValue("totalCount"));
-        Assert.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(0).getMetricValue("responseTime"));
-        Assert.assertEquals(Duration.ofSeconds(1).toNanos(), measurementList.get(0).getMetricValue("minResponseTime"));
-        Assert.assertEquals(Duration.ofSeconds(2).toNanos(), measurementList.get(0).getMetricValue("maxResponseTime"));
-        Assert.assertEquals(500, measurementList.get(0).getMetricValue("bytesReceived"));
-        Assert.assertEquals(700, measurementList.get(0).getMetricValue("bytesSent"));
+        Assertions.assertEquals(2, measurementList.get(0).getMetricValue("totalCount"));
+        Assertions.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(0).getMetricValue("responseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(1).toNanos(), measurementList.get(0).getMetricValue("minResponseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(2).toNanos(), measurementList.get(0).getMetricValue("maxResponseTime"));
+        Assertions.assertEquals(500, measurementList.get(0).getMetricValue("bytesReceived"));
+        Assertions.assertEquals(700, measurementList.get(0).getMetricValue("bytesSent"));
 
         // Raw metrics
-        Assert.assertEquals(1, measurementList.get(1).getMetricValue("totalCount"));
-        Assert.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("responseTime"));
-        Assert.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("minResponseTime"));
-        Assert.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("maxResponseTime"));
-        Assert.assertEquals(2, measurementList.get(1).getMetricValue("bytesReceived"));
-        Assert.assertEquals(3, measurementList.get(1).getMetricValue("bytesSent"));
+        Assertions.assertEquals(1, measurementList.get(1).getMetricValue("totalCount"));
+        Assertions.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("responseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("minResponseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(3).toNanos(), measurementList.get(1).getMetricValue("maxResponseTime"));
+        Assertions.assertEquals(2, measurementList.get(1).getMetricValue("bytesReceived"));
+        Assertions.assertEquals(3, measurementList.get(1).getMetricValue("bytesSent"));
 
-        Assert.assertEquals(1, measurementList.get(2).getMetricValue("totalCount"));
-        Assert.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("responseTime"));
-        Assert.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("minResponseTime"));
-        Assert.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("maxResponseTime"));
-        Assert.assertEquals(4, measurementList.get(2).getMetricValue("bytesReceived"));
-        Assert.assertEquals(5, measurementList.get(2).getMetricValue("bytesSent"));
+        Assertions.assertEquals(1, measurementList.get(2).getMetricValue("totalCount"));
+        Assertions.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("responseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("minResponseTime"));
+        Assertions.assertEquals(Duration.ofSeconds(4).toNanos(), measurementList.get(2).getMetricValue("maxResponseTime"));
+        Assertions.assertEquals(4, measurementList.get(2).getMetricValue("bytesReceived"));
+        Assertions.assertEquals(5, measurementList.get(2).getMetricValue("bytesSent"));
     }
 }

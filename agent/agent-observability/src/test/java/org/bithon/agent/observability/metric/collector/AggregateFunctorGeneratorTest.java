@@ -23,8 +23,9 @@ import org.bithon.agent.observability.metric.model.annotation.Min;
 import org.bithon.agent.observability.metric.model.annotation.Sum;
 import org.bithon.agent.observability.metric.model.generator.AggregateFunctorGenerator;
 import org.bithon.agent.observability.metric.model.generator.IAggregate;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -73,11 +74,11 @@ public class AggregateFunctorGeneratorTest {
             now.firstField = 500L;   // @First -> expected 400 (keep prev)
             now.lastField = 600L;    // @Last -> expected 600 (take now)
             aggregateFunctor.aggregate(prev, now);
-            Assert.assertEquals(250L, prev.sumField);
-            Assert.assertEquals(100L, prev.minField);
-            Assert.assertEquals(400L, prev.maxField);
-            Assert.assertEquals(400L, prev.firstField);
-            Assert.assertEquals(600L, prev.lastField);
+            Assertions.assertEquals(250L, prev.sumField);
+            Assertions.assertEquals(100L, prev.minField);
+            Assertions.assertEquals(400L, prev.maxField);
+            Assertions.assertEquals(400L, prev.firstField);
+            Assertions.assertEquals(600L, prev.lastField);
         }
         {
             SampleDataLong now = new SampleDataLong();
@@ -86,8 +87,8 @@ public class AggregateFunctorGeneratorTest {
             aggregateFunctor.aggregate(prev, now);
 
             // The MIN and MAX should be the same as previous
-            Assert.assertEquals(100L, prev.minField);
-            Assert.assertEquals(400L, prev.maxField);
+            Assertions.assertEquals(100L, prev.minField);
+            Assertions.assertEquals(400L, prev.maxField);
         }
     }
 }

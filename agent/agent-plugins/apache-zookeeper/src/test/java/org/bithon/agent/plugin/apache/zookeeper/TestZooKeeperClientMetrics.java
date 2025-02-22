@@ -41,10 +41,10 @@ import org.bithon.agent.observability.metric.model.schema.Schema2;
 import org.bithon.agent.observability.metric.model.schema.Schema3;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.shaded.net.bytebuddy.agent.ByteBuddyAgent;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -119,12 +119,18 @@ public class TestZooKeeperClientMetrics {
                 }
 
                 @Override
-                public Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
+                public Object from(Schema schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
                     return measurementList;
                 }
 
                 @Override
-                public Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
+                public Object from(Schema2 schema,
+                                   Collection<IMeasurement> measurementList,
+                                   long timestamp,
+                                   int interval) {
                     return measurementList;
                 }
 
@@ -136,7 +142,7 @@ public class TestZooKeeperClientMetrics {
         }
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         // Initialize configuration for testing
         try (MockedStatic<Helper> configurationMock = Mockito.mockStatic(Helper.class)) {
@@ -144,9 +150,12 @@ public class TestZooKeeperClientMetrics {
                              .thenReturn(Arrays.asList("-Dbithon.application.name=test",
                                                        "-Dbithon.application.env=local",
                                                        "-Dbithon.application.port=9897",
-                                                       "-Dbithon.exporters.metric.client.factory=" + TestExporterFactory.class.getName(),
-                                                       "-Dbithon.exporters.tracing.client.factory=" + TestExporterFactory.class.getName(),
-                                                       "-Dbithon.exporters.event.client.factory=" + TestExporterFactory.class.getName()
+                                                       "-Dbithon.exporters.metric.client.factory="
+                                                       + TestExporterFactory.class.getName(),
+                                                       "-Dbithon.exporters.tracing.client.factory="
+                                                       + TestExporterFactory.class.getName(),
+                                                       "-Dbithon.exporters.event.client.factory="
+                                                       + TestExporterFactory.class.getName()
                              ));
 
             configurationMock.when(Helper::getEnvironmentVariables)
@@ -174,7 +183,7 @@ public class TestZooKeeperClientMetrics {
             .installOn(ByteBuddyAgent.getInstrumentation());
     }
 
-    @Before
+    @BeforeEach
     public void beforeEachTest() {
         METRIC_MESSAGE_LIST.clear();
     }
@@ -183,7 +192,9 @@ public class TestZooKeeperClientMetrics {
     public void test_AggregatedMetrics() throws Exception {
         // Set the threshold to 1h which is large enough for test case to enable aggregation
         ConfigurationManager.getInstance()
-                            .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "agent.observability.metrics.zookeeper-client-metrics.responseTime=1h"));
+                            .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC,
+                                                                   "d1",
+                                                                   "agent.observability.metrics.zookeeper-client-metrics.responseTime=1h"));
 
         // Start a zookeeper server
         try (TestingServer server = new TestingServer()) {
@@ -212,34 +223,36 @@ public class TestZooKeeperClientMetrics {
             Thread.sleep(1000);
         }
 
-        Assert.assertFalse(METRIC_MESSAGE_LIST.isEmpty());
+        Assertions.assertFalse(METRIC_MESSAGE_LIST.isEmpty());
 
         List<IMeasurement> createLog = METRIC_MESSAGE_LIST.stream()
-                                                          .filter((measurement) -> "Create".equals(measurement.getDimensions().getValue(0)))
+                                                          .filter((measurement) -> "Create".equals(measurement.getDimensions()
+                                                                                                              .getValue(
+                                                                                                                  0)))
                                                           .collect(Collectors.toList());
-        Assert.assertEquals(1, createLog.size());
-        Assert.assertEquals(5, createLog.get(0).getDimensions().length());
-        Assert.assertEquals("OK", createLog.get(0)
-                                           .getDimensions()
-                                           .getValue(1));
+        Assertions.assertEquals(1, createLog.size());
+        Assertions.assertEquals(5, createLog.get(0).getDimensions().length());
+        Assertions.assertEquals("OK", createLog.get(0)
+                                               .getDimensions()
+                                               .getValue(1));
 
         // path
-        Assert.assertEquals("", createLog.get(0)
-                                         .getDimensions()
-                                         .getValue(3));
+        Assertions.assertEquals("", createLog.get(0)
+                                             .getDimensions()
+                                             .getValue(3));
 
         // traceId
-        Assert.assertEquals("", createLog.get(0)
-                                         .getDimensions()
-                                         .getValue(4));
+        Assertions.assertEquals("", createLog.get(0)
+                                             .getDimensions()
+                                             .getValue(4));
 
         // responseTime
-        Assert.assertNotEquals(0, createLog.get(0).getMetricValue(0));
-        Assert.assertNotEquals(0, createLog.get(0).getMetricValue(1));
-        Assert.assertNotEquals(0, createLog.get(0).getMetricValue(2));
+        Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(0));
+        Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(1));
+        Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(2));
 
         // totalCount
-        Assert.assertEquals(2, createLog.get(0).getMetricValue("totalCount"));
+        Assertions.assertEquals(2, createLog.get(0).getMetricValue("totalCount"));
 
         METRIC_MESSAGE_LIST.clear();
     }
@@ -248,7 +261,9 @@ public class TestZooKeeperClientMetrics {
     public void test_DetailLog() throws Exception {
         // Update responseTime threshold to 1ns which is small enough to DISABLE aggregation
         ConfigurationManager.getInstance()
-                            .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "agent.observability.metrics.zookeeper-client-metrics.responseTime=1ns"));
+                            .addPropertySource(PropertySource.from(PropertySourceType.DYNAMIC,
+                                                                   "d1",
+                                                                   "agent.observability.metrics.zookeeper-client-metrics.responseTime=1ns"));
 
         String zkServer;
 
@@ -281,76 +296,78 @@ public class TestZooKeeperClientMetrics {
         }
 
         List<IMeasurement> createLog = METRIC_MESSAGE_LIST.stream()
-                                                          .filter((measurement) -> "Create".equals(measurement.getDimensions().getValue(0)))
+                                                          .filter((measurement) -> "Create".equals(measurement.getDimensions()
+                                                                                                              .getValue(
+                                                                                                                  0)))
                                                           .collect(Collectors.toList());
-        Assert.assertEquals(2, createLog.size());
+        Assertions.assertEquals(2, createLog.size());
 
         // First metric entry
         {
-            Assert.assertEquals(5, createLog.get(0).getDimensions().length());
-            Assert.assertEquals("Create", createLog.get(0)
-                                                   .getDimensions()
-                                                   .getValue(0));
+            Assertions.assertEquals(5, createLog.get(0).getDimensions().length());
+            Assertions.assertEquals("Create", createLog.get(0)
+                                                       .getDimensions()
+                                                       .getValue(0));
 
-            Assert.assertEquals("OK", createLog.get(0)
-                                               .getDimensions()
-                                               .getValue(1));
-
-            Assert.assertEquals(zkServer, createLog.get(0)
+            Assertions.assertEquals("OK", createLog.get(0)
                                                    .getDimensions()
-                                                   .getValue(2));
+                                                   .getValue(1));
+
+            Assertions.assertEquals(zkServer, createLog.get(0)
+                                                       .getDimensions()
+                                                       .getValue(2));
 
             // path
-            Assert.assertEquals("/test1", createLog.get(0)
-                                                   .getDimensions()
-                                                   .getValue(3));
+            Assertions.assertEquals("/test1", createLog.get(0)
+                                                       .getDimensions()
+                                                       .getValue(3));
 
             // traceId
-            Assert.assertEquals("", createLog.get(0)
-                                             .getDimensions()
-                                             .getValue(4));
+            Assertions.assertEquals("", createLog.get(0)
+                                                 .getDimensions()
+                                                 .getValue(4));
 
             // responseTime
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(0));
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(1));
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(2));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(0));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(1));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(2));
 
             // totalCount
-            Assert.assertEquals(1, createLog.get(0).getMetricValue("totalCount"));
+            Assertions.assertEquals(1, createLog.get(0).getMetricValue("totalCount"));
         }
 
         // Second metric entry
         {
-            Assert.assertEquals(5, createLog.get(1).getDimensions().length());
-            Assert.assertEquals("Create", createLog.get(0)
-                                                   .getDimensions()
-                                                   .getValue(0));
+            Assertions.assertEquals(5, createLog.get(1).getDimensions().length());
+            Assertions.assertEquals("Create", createLog.get(0)
+                                                       .getDimensions()
+                                                       .getValue(0));
 
-            Assert.assertEquals("OK", createLog.get(1)
-                                               .getDimensions()
-                                               .getValue(1));
-
-            Assert.assertEquals(zkServer, createLog.get(0)
+            Assertions.assertEquals("OK", createLog.get(1)
                                                    .getDimensions()
-                                                   .getValue(2));
+                                                   .getValue(1));
+
+            Assertions.assertEquals(zkServer, createLog.get(0)
+                                                       .getDimensions()
+                                                       .getValue(2));
 
             // path
-            Assert.assertEquals("/test2", createLog.get(1)
-                                                   .getDimensions()
-                                                   .getValue(3));
+            Assertions.assertEquals("/test2", createLog.get(1)
+                                                       .getDimensions()
+                                                       .getValue(3));
 
             // traceId
-            Assert.assertEquals("", createLog.get(1)
-                                             .getDimensions()
-                                             .getValue(4));
+            Assertions.assertEquals("", createLog.get(1)
+                                                 .getDimensions()
+                                                 .getValue(4));
 
             // responseTime
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(0));
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(1));
-            Assert.assertNotEquals(0, createLog.get(0).getMetricValue(2));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(0));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(1));
+            Assertions.assertNotEquals(0, createLog.get(0).getMetricValue(2));
 
             // totalCount
-            Assert.assertEquals(1, createLog.get(1).getMetricValue("totalCount"));
+            Assertions.assertEquals(1, createLog.get(1).getMetricValue("totalCount"));
         }
     }
 }

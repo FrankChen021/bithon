@@ -21,8 +21,9 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Frank Chen
@@ -35,7 +36,7 @@ public class H2SqlDialectTest {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.StartsWith.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
-        Assert.assertEquals("a like '1231%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '1231%'", expr.serializeToText(null));
     }
 
     @Test
@@ -43,7 +44,7 @@ public class H2SqlDialectTest {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.EndsWith.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
-        Assert.assertEquals("a like '%1231'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%1231'", expr.serializeToText(null));
     }
 
     @Test
@@ -51,6 +52,6 @@ public class H2SqlDialectTest {
         IExpression expr = new H2SqlDialect().transform(new FunctionExpression(StringFunction.HasToken.INSTANCE,
                                                                                new IdentifierExpression("a"),
                                                                                LiteralExpression.ofString("1231")));
-        Assert.assertEquals("a like '%1231%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%1231%'", expr.serializeToText(null));
     }
 }

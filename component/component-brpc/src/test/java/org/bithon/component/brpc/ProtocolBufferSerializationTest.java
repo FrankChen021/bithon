@@ -20,8 +20,9 @@ import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import org.bithon.component.brpc.message.serializer.ProtocolBufferSerializer;
 import org.bithon.shaded.com.google.protobuf.CodedInputStream;
 import org.bithon.shaded.com.google.protobuf.CodedOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -67,23 +68,23 @@ public class ProtocolBufferSerializationTest {
         }
 
         CodedInputStream is = CodedInputStream.newInstance(bytes);
-        Assert.assertEquals(true, serializer.deserialize(is, boolean.class));
-        Assert.assertEquals(false, serializer.deserialize(is, boolean.class));
-        Assert.assertEquals((long) 'a', (long) serializer.deserialize(is, char.class));
-        Assert.assertEquals((long) 0xFFFF, (long) serializer.deserialize(is, char.class));
-        Assert.assertEquals(0xb, (long) serializer.deserialize(is, byte.class));
-        Assert.assertEquals(0xbb, (long) serializer.deserialize(is, short.class));
-        Assert.assertEquals(5, (long) serializer.deserialize(is, int.class));
-        Assert.assertEquals((Object) 50L, serializer.deserialize(is, Long.class));
-        Assert.assertEquals((Object) 5.9f, serializer.deserialize(is, float.class));
-        Assert.assertEquals((Object) 6.9d, serializer.deserialize(is, double.class));
-        Assert.assertArrayEquals(new int[]{1, 3, 5}, serializer.deserialize(is, int[].class));
-        Assert.assertArrayEquals(new byte[]{9, 11, 13}, serializer.deserialize(is, byte[].class));
-        Assert.assertArrayEquals(new short[]{119, 111, 113}, serializer.deserialize(is, short[].class));
-        Assert.assertArrayEquals(new long[]{1119, 1111, 1113}, serializer.deserialize(is, long[].class));
-        Assert.assertArrayEquals(new float[]{2119, 2111, 2113}, serializer.deserialize(is, float[].class), 0.000001f);
-        Assert.assertArrayEquals(new double[]{3119, 3111, 3113}, serializer.deserialize(is, double[].class), 0.00001d);
-        Assert.assertTrue(is.isAtEnd());
+        Assertions.assertEquals(true, serializer.deserialize(is, boolean.class));
+        Assertions.assertEquals(false, serializer.deserialize(is, boolean.class));
+        Assertions.assertEquals((long) 'a', (long) serializer.deserialize(is, char.class));
+        Assertions.assertEquals((long) 0xFFFF, (long) serializer.deserialize(is, char.class));
+        Assertions.assertEquals(0xb, (long) serializer.deserialize(is, byte.class));
+        Assertions.assertEquals(0xbb, (long) serializer.deserialize(is, short.class));
+        Assertions.assertEquals(5, (long) serializer.deserialize(is, int.class));
+        Assertions.assertEquals((Object) 50L, serializer.deserialize(is, Long.class));
+        Assertions.assertEquals((Object) 5.9f, serializer.deserialize(is, float.class));
+        Assertions.assertEquals((Object) 6.9d, serializer.deserialize(is, double.class));
+        Assertions.assertArrayEquals(new int[]{1, 3, 5}, serializer.deserialize(is, int[].class));
+        Assertions.assertArrayEquals(new byte[]{9, 11, 13}, serializer.deserialize(is, byte[].class));
+        Assertions.assertArrayEquals(new short[]{119, 111, 113}, serializer.deserialize(is, short[].class));
+        Assertions.assertArrayEquals(new long[]{1119, 1111, 1113}, serializer.deserialize(is, long[].class));
+        Assertions.assertArrayEquals(new float[]{2119, 2111, 2113}, serializer.deserialize(is, float[].class), 0.000001f);
+        Assertions.assertArrayEquals(new double[]{3119, 3111, 3113}, serializer.deserialize(is, double[].class), 0.00001d);
+        Assertions.assertTrue(is.isAtEnd());
     }
 
     @Test
@@ -113,13 +114,13 @@ public class ProtocolBufferSerializationTest {
 
         {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
-            Assert.assertEquals(i, serializer.deserialize(is, int.class));
-            Assert.assertEquals(f, serializer.deserialize(is, float.class));
-            Assert.assertEquals(d, serializer.deserialize(is, Double.class));
-            Assert.assertEquals(l, serializer.deserialize(is, Long.class));
-            Assert.assertEquals(s, serializer.deserialize(is, Short.class));
-            Assert.assertEquals(b, serializer.deserialize(is, Byte.class));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(i, serializer.deserialize(is, int.class));
+            Assertions.assertEquals(f, serializer.deserialize(is, float.class));
+            Assertions.assertEquals(d, serializer.deserialize(is, Double.class));
+            Assertions.assertEquals(l, serializer.deserialize(is, Long.class));
+            Assertions.assertEquals(s, serializer.deserialize(is, Short.class));
+            Assertions.assertEquals(b, serializer.deserialize(is, Byte.class));
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -142,11 +143,11 @@ public class ProtocolBufferSerializationTest {
 
         CodedInputStream is = CodedInputStream.newInstance(bytes);
         WebRequestMetrics metrics = serializer.deserialize(is, WebRequestMetrics.class);
-        Assert.assertEquals(4, metrics.getCount4Xx());
-        Assert.assertEquals(5, metrics.getCount5Xx());
-        Assert.assertEquals(9, metrics.getRequests());
-        Assert.assertEquals("/info", metrics.getUri());
-        Assert.assertTrue(is.isAtEnd());
+        Assertions.assertEquals(4, metrics.getCount4Xx());
+        Assertions.assertEquals(5, metrics.getCount5Xx());
+        Assertions.assertEquals(9, metrics.getRequests());
+        Assertions.assertEquals("/info", metrics.getUri());
+        Assertions.assertTrue(is.isAtEnd());
     }
 
     @Test
@@ -172,8 +173,8 @@ public class ProtocolBufferSerializationTest {
         {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
             RequestMetrics metrics = serializer.deserialize(is, RequestMetrics.class);
-            Assert.assertEquals(mapObject, metrics);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(mapObject, metrics);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Map
@@ -182,8 +183,8 @@ public class ProtocolBufferSerializationTest {
             Map<String, WebRequestMetrics> metrics = serializer.deserialize(is,
                                                                             new ProtocolBufferSerializer.TypeReference<Map<String, WebRequestMetrics>>() {
                                                                             });
-            Assert.assertEquals(mapObject, metrics);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(mapObject, metrics);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Hash Map
@@ -192,8 +193,8 @@ public class ProtocolBufferSerializationTest {
             Map<String, WebRequestMetrics> metrics = serializer.deserialize(is,
                                                                             new ProtocolBufferSerializer.TypeReference<HashMap<String, WebRequestMetrics>>() {
                                                                             });
-            Assert.assertEquals(mapObject, metrics);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(mapObject, metrics);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // ConcurrentHashMap
@@ -202,8 +203,8 @@ public class ProtocolBufferSerializationTest {
             Map<String, WebRequestMetrics> metrics = serializer.deserialize(is,
                                                                             new ProtocolBufferSerializer.TypeReference<ConcurrentHashMap<String, WebRequestMetrics>>() {
                                                                             });
-            Assert.assertEquals(mapObject, metrics);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(mapObject, metrics);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Hashtable
@@ -212,8 +213,8 @@ public class ProtocolBufferSerializationTest {
             Map<String, WebRequestMetrics> metrics = serializer.deserialize(is,
                                                                             new ProtocolBufferSerializer.TypeReference<Hashtable<String, WebRequestMetrics>>() {
                                                                             });
-            Assert.assertEquals(mapObject, metrics);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(mapObject, metrics);
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -241,8 +242,8 @@ public class ProtocolBufferSerializationTest {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
             CustomerList metrics2 = serializer.deserialize(is,
                                                            CustomerList.class);
-            Assert.assertEquals(metrics1.get(0), metrics2.get(0));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(metrics1.get(0), metrics2.get(0));
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // List
@@ -251,8 +252,8 @@ public class ProtocolBufferSerializationTest {
             List<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                       new ProtocolBufferSerializer.TypeReference<List<WebRequestMetrics>>() {
                                                                       });
-            Assert.assertEquals(metrics1, metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(metrics1, metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // ArrayList
@@ -261,8 +262,8 @@ public class ProtocolBufferSerializationTest {
             List<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                       new ProtocolBufferSerializer.TypeReference<ArrayList<WebRequestMetrics>>() {
                                                                       });
-            Assert.assertEquals(metrics1, metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(metrics1, metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Set
@@ -271,8 +272,8 @@ public class ProtocolBufferSerializationTest {
             Set<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                      new ProtocolBufferSerializer.TypeReference<Set<WebRequestMetrics>>() {
                                                                      });
-            Assert.assertEquals(new HashSet<>(metrics1), metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(new HashSet<>(metrics1), metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // LinkedList
@@ -281,8 +282,8 @@ public class ProtocolBufferSerializationTest {
             LinkedList<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                             new ProtocolBufferSerializer.TypeReference<LinkedList<WebRequestMetrics>>() {
                                                                             });
-            Assert.assertEquals(metrics1, metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(metrics1, metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Queue
@@ -291,8 +292,8 @@ public class ProtocolBufferSerializationTest {
             Queue<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                        new ProtocolBufferSerializer.TypeReference<Queue<WebRequestMetrics>>() {
                                                                        });
-            Assert.assertEquals(new LinkedList<>(metrics1), metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(new LinkedList<>(metrics1), metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Array
@@ -300,8 +301,8 @@ public class ProtocolBufferSerializationTest {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
             WebRequestMetrics[] metrics2 = serializer.deserialize(is,
                                                                   WebRequestMetrics[].class);
-            Assert.assertEquals(metrics1, Arrays.asList(metrics2));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(metrics1, Arrays.asList(metrics2));
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -330,8 +331,8 @@ public class ProtocolBufferSerializationTest {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
             WebRequestMetrics[] metrics2 = serializer.deserialize(is,
                                                                   WebRequestMetrics[].class);
-            Assert.assertArrayEquals(metrics1, metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertArrayEquals(metrics1, metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Queue
@@ -340,8 +341,8 @@ public class ProtocolBufferSerializationTest {
             Queue<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                        new ProtocolBufferSerializer.TypeReference<Queue<WebRequestMetrics>>() {
                                                                        });
-            Assert.assertEquals(Arrays.asList(metrics1), metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(Arrays.asList(metrics1), metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -361,17 +362,17 @@ public class ProtocolBufferSerializationTest {
 
         {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
-            Assert.assertArrayEquals(new char[]{0xFFFF, 0xABCD}, serializer.deserialize(is, char[].class));
-            Assert.assertArrayEquals(new int[]{1, 3, 5}, serializer.deserialize(is, int[].class));
-            Assert.assertArrayEquals(new int[]{11, 13, 15}, serializer.deserialize(is, int[].class));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertArrayEquals(new char[]{0xFFFF, 0xABCD}, serializer.deserialize(is, char[].class));
+            Assertions.assertArrayEquals(new int[]{1, 3, 5}, serializer.deserialize(is, int[].class));
+            Assertions.assertArrayEquals(new int[]{11, 13, 15}, serializer.deserialize(is, int[].class));
+            Assertions.assertTrue(is.isAtEnd());
         }
         {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
-            Assert.assertArrayEquals(new Character[]{0xFFFF, 0xABCD}, serializer.deserialize(is, Character[].class));
-            Assert.assertArrayEquals(new Integer[]{1, 3, 5}, serializer.deserialize(is, Integer[].class));
-            Assert.assertArrayEquals(new Integer[]{11, 13, 15}, serializer.deserialize(is, Integer[].class));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertArrayEquals(new Character[]{0xFFFF, 0xABCD}, serializer.deserialize(is, Character[].class));
+            Assertions.assertArrayEquals(new Integer[]{1, 3, 5}, serializer.deserialize(is, Integer[].class));
+            Assertions.assertArrayEquals(new Integer[]{11, 13, 15}, serializer.deserialize(is, Integer[].class));
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -394,8 +395,8 @@ public class ProtocolBufferSerializationTest {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
             WebRequestMetrics[] metrics2 = serializer.deserialize(is,
                                                                   WebRequestMetrics[].class);
-            Assert.assertArrayEquals(metrics1, metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertArrayEquals(metrics1, metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
 
         // Queue
@@ -404,8 +405,8 @@ public class ProtocolBufferSerializationTest {
             Queue<WebRequestMetrics> metrics2 = serializer.deserialize(is,
                                                                        new ProtocolBufferSerializer.TypeReference<Queue<WebRequestMetrics>>() {
                                                                        });
-            Assert.assertEquals(Arrays.asList(metrics1), metrics2);
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertEquals(Arrays.asList(metrics1), metrics2);
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 
@@ -425,10 +426,10 @@ public class ProtocolBufferSerializationTest {
         // Array
         {
             CodedInputStream is = CodedInputStream.newInstance(bytes);
-            Assert.assertEquals("123456", serializer.deserialize(is,
+            Assertions.assertEquals("123456", serializer.deserialize(is,
                                                                  String.class));
-            Assert.assertArrayEquals(new String[]{"123456", "54321"}, serializer.deserialize(is, String[].class));
-            Assert.assertTrue(is.isAtEnd());
+            Assertions.assertArrayEquals(new String[]{"123456", "54321"}, serializer.deserialize(is, String[].class));
+            Assertions.assertTrue(is.isAtEnd());
         }
     }
 

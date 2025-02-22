@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.jdbc.common;
 
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,45 +29,45 @@ public class SqlTypeParserTest {
     @Test
     public void test_ParseSelect() {
         String sql = "select * FROM users";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseInsert() {
         String sql = "INSERT INTO users (id, name) VALUES (1, 'John')";
-        Assert.assertEquals("INSERT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("INSERT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseUpdate() {
         String sql = "UPDATE users SET name = 'John' WHERE id = 1";
-        Assert.assertEquals("UPDATE", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("UPDATE", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseDelete() {
         String sql = "DELETE FROM users WHERE id = 1";
-        Assert.assertEquals("DELETE", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("DELETE", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseWithSingleLineComment() {
         String sql = "-- This is a comment\nSELECT * FROM users";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseWithMultiLineComment_1() {
         String sql = "/* This is a\n" +
                      "multi-line comment */SELECT * FROM users";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseWithMultiLineComment_2() {
         String sql = "/* This is a\n" +
                      "multi-line comment */--SELECT * FROM users\nSELECT * FROM user";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
@@ -75,24 +75,24 @@ public class SqlTypeParserTest {
         String sql = "/* This is a\n" +
                      "multi-line comment */\n" +
                      "SELECT * FROM user";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseWithStringLiteral() {
         String sql = "SELECT * FROM users WHERE name = 'John'";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_ParseLowerCase() {
         String sql = " select * FROM users WHERE name = 'John'";
-        Assert.assertEquals("SELECT", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("SELECT", SqlTypeParser.parse(sql));
     }
 
     @Test
     public void test_MaxCharacter() {
         String sql = " ABCDEFGHIJK";
-        Assert.assertEquals("ABCDEFGHIJ", SqlTypeParser.parse(sql));
+        Assertions.assertEquals("ABCDEFGHIJ", SqlTypeParser.parse(sql));
     }
 }

@@ -18,15 +18,15 @@ package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.MacroExpression;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class MacroExpressionTest {
 
     @Test
     public void testVariableExpression() {
         String expression = "1000/{interval}";
-        Assert.assertEquals("1000 / {interval}", ExpressionASTBuilder.builder().build(expression).serializeToText());
+        Assertions.assertEquals("1000 / {interval}", ExpressionASTBuilder.builder().build(expression).serializeToText());
     }
 
     /**
@@ -35,15 +35,15 @@ public class MacroExpressionTest {
     @Test
     public void testParenthesesAroundExpression() {
         String expression = "({interval}*100)";
-        Assert.assertEquals("{interval} * 100", ExpressionASTBuilder.builder().build(expression).serializeToText());
+        Assertions.assertEquals("{interval} * 100", ExpressionASTBuilder.builder().build(expression).serializeToText());
     }
 
     @Test
     public void testMacroExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("{a}");
-        Assert.assertTrue(expr instanceof MacroExpression);
-        Assert.assertEquals("a", ((MacroExpression) expr).getMacro());
+        Assertions.assertInstanceOf(MacroExpression.class, expr);
+        Assertions.assertEquals("a", ((MacroExpression) expr).getMacro());
 
-        Assert.assertEquals("1", expr.evaluate(name -> "a".equals(name) ? "1" : null));
+        Assertions.assertEquals("1", expr.evaluate(name -> "a".equals(name) ? "1" : null));
     }
 }

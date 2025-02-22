@@ -17,8 +17,8 @@
 package org.bithon.agent.observability.metric.collector;
 
 import org.bithon.agent.observability.metric.model.IMetricAccessor;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,21 +38,22 @@ public class MetricAccessorGeneratorTest {
 
         IMetricAccessor metricAccessor = (IMetricAccessor) sampleData;
 
-        Assert.assertEquals(3, metricAccessor.getMetricCount());
-        Assert.assertEquals(1, metricAccessor.getMetricValue(0));
-        Assert.assertEquals(2, metricAccessor.getMetricValue(1));
-        Assert.assertEquals(3, metricAccessor.getMetricValue(2));
+        Assertions.assertEquals(3, metricAccessor.getMetricCount());
+        Assertions.assertEquals(1, metricAccessor.getMetricValue(0));
+        Assertions.assertEquals(2, metricAccessor.getMetricValue(1));
+        Assertions.assertEquals(3, metricAccessor.getMetricValue(2));
 
-        Assert.assertEquals(1, metricAccessor.getMetricValue("field0"));
-        Assert.assertEquals(2, metricAccessor.getMetricValue("field1"));
-        Assert.assertEquals(3, metricAccessor.getMetricValue("field2"));
-        Assert.assertThrows(IllegalArgumentException.class, () -> metricAccessor.getMetricValue("non_exists_field"));
+        Assertions.assertEquals(1, metricAccessor.getMetricValue("field0"));
+        Assertions.assertEquals(2, metricAccessor.getMetricValue("field1"));
+        Assertions.assertEquals(3, metricAccessor.getMetricValue("field2"));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                                () -> metricAccessor.getMetricValue("non_exists_field"));
 
         sampleData.field0 = 0;
         sampleData.field1 = 11;
         sampleData.field2 = 22;
-        Assert.assertEquals(0, metricAccessor.getMetricValue(0));
-        Assert.assertEquals(11, metricAccessor.getMetricValue(1));
-        Assert.assertEquals(22, metricAccessor.getMetricValue(2));
+        Assertions.assertEquals(0, metricAccessor.getMetricValue(0));
+        Assertions.assertEquals(11, metricAccessor.getMetricValue(1));
+        Assertions.assertEquals(22, metricAccessor.getMetricValue(2));
     }
 }
