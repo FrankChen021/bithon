@@ -70,8 +70,8 @@ public class ProtocolBufferSerializationTest {
         CodedInputStream is = CodedInputStream.newInstance(bytes);
         Assertions.assertEquals(true, serializer.deserialize(is, boolean.class));
         Assertions.assertEquals(false, serializer.deserialize(is, boolean.class));
-        Assertions.assertEquals((long) 'a', (long) serializer.deserialize(is, char.class));
-        Assertions.assertEquals((long) 0xFFFF, (long) serializer.deserialize(is, char.class));
+        Assertions.assertEquals('a', (long) serializer.deserialize(is, char.class));
+        Assertions.assertEquals(0xFFFF, (long) serializer.deserialize(is, char.class));
         Assertions.assertEquals(0xb, (long) serializer.deserialize(is, byte.class));
         Assertions.assertEquals(0xbb, (long) serializer.deserialize(is, short.class));
         Assertions.assertEquals(5, (long) serializer.deserialize(is, int.class));

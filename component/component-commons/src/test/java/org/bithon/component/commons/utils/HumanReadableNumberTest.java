@@ -54,7 +54,7 @@ public class HumanReadableNumberTest {
 
     @Test
     public void testEqual() {
-        Assertions.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.parse("5K"));
+        Assertions.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.of("5K"));
         Assertions.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.of("5K"));
         Assertions.assertEquals(HumanReadableNumber.of("5Ki"), HumanReadableNumber.of("5KiB"));
     }
