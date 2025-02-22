@@ -474,4 +474,51 @@ public class BrpcRpcTest {
             Assertions.assertEquals(1, brpcServer.getSessions().size());
         }
     }
+
+    interface INotRegisteredService {
+        void empty();
+    }
+
+    @Test
+    public void testServiceNotFoundException() {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+            Assertions.assertThrows(ServiceNotFoundException.class, () -> ch.getRemoteService(INotRegisteredService.class));
+        }
+    }
+
+    @BrpcService(name = "not_found_test")
+    interface IServiceNotFoundTest1 {
+        void empty();
+    }
+
+    @BrpcService(name = "not_found_test")
+    interface IServiceNotFoundTest2 {
+        void empty2();
+    }
+
+    @Test
+    public void testServiceNotFoundException_2() {
+        // Bind service 1
+        brpcServer.bindService(new IServiceNotFoundTest1() {
+            @Override
+            public void empty() {
+            }
+        });
+
+        try (BrpcClient ch = BrpcClientBuilder.builder()
+                                              .server("127.0.0.1", 8070)
+                                              .build()) {
+
+            // Use IServiceNotFoundTest2,
+            // since the method name is 'empty2' does not exist in the IServiceNotFoundTest1,
+            // calling on 'empty2' result in ServiceNotFoundException
+            IServiceNotFoundTest2 service = ch.getRemoteService(IServiceNotFoundTest2.class);
+
+            try {
+                service.empty2();
+                Assertions.fail("SHOULD NOT GO TO HERE");
+            } catch (ServiceNotFoundException ignored) {
+            }
+        }
+    }
 }

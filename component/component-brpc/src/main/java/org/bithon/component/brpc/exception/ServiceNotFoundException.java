@@ -16,14 +16,17 @@
 
 package org.bithon.component.brpc.exception;
 
-import org.bithon.component.commons.utils.StringUtils;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 20/10/21 9:23 pm
  */
 public class ServiceNotFoundException extends CallerSideException {
+
     public ServiceNotFoundException(String serviceName) {
-        super(StringUtils.format("Service [%s] not found", serviceName));
+        super(serviceName);
+    }
+
+    public String getServiceName() {
+        return getMessage();
     }
 }

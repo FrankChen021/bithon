@@ -19,13 +19,15 @@ package org.bithon.agent.rpc.brpc.cmd;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
+import javax.management.MBeanAttributeInfo;
 import java.util.List;
+import java.util.Map;
 
 /**
  * NOTE:
  * 1. the server side will automatically check if the user has permission to call methods defined in this service.
  * if the method does not start with 'get', then the WRITE permission is required.
- *
+ * <p>
  * 2. The return type of this interface should be defined as List
  *
  * @author frank.chen021@outlook.com
@@ -69,23 +71,23 @@ public interface IJvmCommand {
 
         public Object[] toObjects() {
             return new Object[]{
-                    threadId,
-                    name,
-                    isDaemon,
-                    priority,
-                    state,
-                    cpuTime,
-                    userTime,
-                    blockedTime,
-                    blockedCount,
-                    waitedTime,
-                    waitedCount,
-                    lockName,
-                    lockOwnerId,
-                    lockOwnerName,
-                    inNative,
-                    suspended,
-                    stack
+                threadId,
+                name,
+                isDaemon,
+                priority,
+                state,
+                cpuTime,
+                userTime,
+                blockedTime,
+                blockedCount,
+                waitedTime,
+                waitedCount,
+                lockName,
+                lockOwnerId,
+                lockOwnerName,
+                inNative,
+                suspended,
+                stack
             };
         }
     }
@@ -121,8 +123,51 @@ public interface IJvmCommand {
     List<VMOption> getVMOptions();
 
     /**
-     *
      * @param clazz the qualified class name
      */
     List<String> getAssemblyCode(String clazz);
+
+    /**
+     * get all JMX bean names
+     */
+    class JmxBean {
+        public String domain;
+        public String name;
+        public String className;
+        public String description;
+        public Map<String, String> descriptor;
+
+        public Object[] getObjects() {
+            return new Object[]{domain, name, className, description, descriptor};
+        }
+    }
+
+    List<JmxBean> getBeans();
+
+    /**
+     * get attributes of a JMX bean
+     * Can be seen as a wrapper of {@link MBeanAttributeInfo}
+     */
+    class JmxBeanAttribute {
+        public String name;
+        public String type;
+        public String description;
+        public boolean writable;
+        public boolean readable;
+        public Map<String, String> descriptor;
+
+        // The value of the attribute serialized in JSON format
+        public String value;
+
+        public Object[] getObjects() {
+            return new Object[]{name, type, description, writable, readable, descriptor, value};
+        }
+    }
+
+    List<JmxBeanAttribute> getBeanAttributes(String beanName);
+
+    /**
+     * @return value in JSON format
+     */
+    String getBeanAttribute(String beanName, String attributeName);
 }

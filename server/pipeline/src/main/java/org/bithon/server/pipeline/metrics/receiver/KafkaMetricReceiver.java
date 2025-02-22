@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
@@ -49,7 +50,7 @@ import java.util.Map;
 public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetricReceiver {
 
     private IMetricProcessor processor;
-    private final TypeReference<SchemaMetricMessage> typeReference;
+    private final ObjectReader objectReader;
     private final Map<String, Object> props;
 
     private static final RateLimitLogger LOG = new RateLimitLogger(log).config(Level.ERROR, 1);
@@ -58,10 +59,10 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
     public KafkaMetricReceiver(@JsonProperty("props") Map<String, Object> props,
                                @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(objectMapper, applicationContext);
+        super(applicationContext);
 
-        this.typeReference = new TypeReference<SchemaMetricMessage>() {
-        };
+        this.objectReader = objectMapper.readerFor(new TypeReference<SchemaMetricMessage>() {
+        });
         this.props = props;
     }
 
@@ -102,7 +103,7 @@ public class KafkaMetricReceiver extends AbstractKafkaConsumer implements IMetri
             String messageType = new String(type.value(), StandardCharsets.UTF_8);
 
             try {
-                SchemaMetricMessage msg = objectMapper.readValue(record.value(), typeReference);
+                SchemaMetricMessage msg = this.objectReader.readValue(record.value());
                 messages.computeIfAbsent(messageType, (v) -> new SchemaMetricMessage(msg.getSchema(), new ArrayList<>()))
                         .getMetrics().addAll(msg.getMetrics());
             } catch (IOException e) {

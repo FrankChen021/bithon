@@ -57,11 +57,11 @@
     <module>httpserver/jetty</module>
     <module>httpserver/netty</module>
     <module>openfeign</module>
-    <module>redis-jedis-2.x</module>
-    <module>redis-jedis-3.x</module>
-    <module>redis-jedis-4.x</module>
-    <module>redis-lettuce-5.x</module>
-    <module>redis-redisson</module>
+    <module>redis/jedis-2.x</module>
+    <module>redis/jedis-3.x</module>
+    <module>redis/jedis-4.x</module>
+    <module>redis/lettuce-5.x</module>
+    <module>redis/redisson</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
     <module>logging/log4j2</module>

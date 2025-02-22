@@ -141,7 +141,7 @@ public class AgentDiagnosisApi {
                 pushdownPredicates.forEach((predicate, required) -> {
                     if (required && queryContext.get(predicate) == null) {
                         throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                        "The filter '%s' is required but not provided",
+                                                        "Missing filter on '%s' in the given SQL. Please update your SQL to continue.",
                                                         predicate);
                     }
                 });

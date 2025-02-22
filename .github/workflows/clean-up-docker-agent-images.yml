@@ -1,0 +1,34 @@
+name: Clean Up Stale Agent Images
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every Monday
+    - cron: '0 0 * * 1'
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  scheduled-task:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Access Token To DockerHub
+        run: |
+          echo "DOCKER_TOKEN=$(curl -X POST -H 'Content-Type: application/json' \
+            -d '{"identifier": "bithon", "secret": "${{ secrets.DOCKER_ACCESS_CODE }}"}' \
+            https://hub.docker.com/v2/auth/token | jq -r '.access_token')" >> $GITHUB_ENV
+
+      - name: Get Docker Stale Agent Images
+        run: |
+          curl -H "Authorization: Bearer ${{ env.DOCKER_TOKEN }}"  https://hub.docker.com/v2/namespaces/bithon/repositories/agent/manifests |  jq -r ".manifests | map(select(.tags | length == 0) ) | .[].manifest_digest" >  stale.txt
+
+      - name: Clean up Stale Docker Agent Images
+        run: |
+          cat stale.txt | while read line
+          do
+              json="{\"digests\": [\"$line\"], \"delete_references\": true}"
+              curl -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer ${{ env.DOCKER_TOKEN }}" -d "$json"  https://hub.docker.com/v2/namespaces/bithon/repositories/agent/manifests
+          done
