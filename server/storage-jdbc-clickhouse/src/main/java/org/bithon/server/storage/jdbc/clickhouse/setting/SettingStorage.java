@@ -97,7 +97,7 @@ public class SettingStorage extends SettingJdbcStorage {
             }
 
             @Override
-            public boolean IsSettingExists(String appName, String env, String setting) {
+            public boolean isSettingExists(String appName, String env, String setting) {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 

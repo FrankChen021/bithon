@@ -63,11 +63,12 @@ public class SettingJdbcReader implements ISettingReader {
     }
 
     @Override
-    public boolean IsSettingExists(String appName, String env, String setting) {
-        return dslContext.fetchExists(Tables.BITHON_AGENT_SETTING
+    public boolean isSettingExists(String appName, String env, String setting) {
+        return dslContext.fetchCount(Tables.BITHON_AGENT_SETTING
                                           .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
                                                                                     .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq(env).or(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")))
-                                                                                    .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting))));
+                                                                                    .and(Tables.BITHON_AGENT_SETTING.SETTINGNAME.eq(setting))))
+            > 0;
     }
 
     protected SettingEntry toSettingEntry(Record record) {

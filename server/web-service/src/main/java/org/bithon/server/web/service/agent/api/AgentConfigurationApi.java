@@ -185,7 +185,7 @@ public class AgentConfigurationApi {
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-        boolean settingExists = settingStorage.createReader().IsSettingExists(application, environment, settingName);
+        boolean settingExists = settingStorage.createReader().isSettingExists(application, environment, settingName);
         Preconditions.checkIfTrue(!settingExists, "Setting already exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
@@ -223,7 +223,7 @@ public class AgentConfigurationApi {
         String environment = request.getEnvironment() == null ? "" : request.getEnvironment().trim();
         String settingName = request.getName().trim();
         String settingVal = request.getValue().trim();
-        boolean settingExists = settingStorage.createReader().IsSettingExists(application, environment, settingName);
+        boolean settingExists = settingStorage.createReader().isSettingExists(application, environment, settingName);
         Preconditions.checkIfTrue(settingExists, "Setting does not exist.");
 
         ISettingWriter writer = settingStorage.createWriter();
