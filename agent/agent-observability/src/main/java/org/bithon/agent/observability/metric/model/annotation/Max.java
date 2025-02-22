@@ -14,17 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.observability.metric.collector;
+package org.bithon.agent.observability.metric.model.annotation;
 
-import java.util.List;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 3/10/21 11:40
+ * @date 2025/2/5 23:04
  */
-public interface IMeasurement {
-    List<String> getDimensions();
-
-    int getMetricCount();
-    long getMetricValue(int index);
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Max {
 }

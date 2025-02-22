@@ -17,8 +17,9 @@
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
 import org.bithon.agent.observability.exporter.IMessageConverter;
-import org.bithon.agent.observability.metric.collector.IMeasurement;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
+import org.bithon.agent.observability.metric.model.IMeasurement;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.metric.model.schema.IDimensionSpec;
 import org.bithon.agent.observability.metric.model.schema.IMetricSpec;
 import org.bithon.agent.observability.metric.model.schema.LongLastMetricSpec;
@@ -59,7 +60,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     /**
      * keep metrics that won't be cleared when they have been collected
      */
-    private final Map<List<String>, IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
+    private final Map<String[], IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
     private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
@@ -115,15 +116,13 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             throw new RuntimeException("dimensions not matched. Expected dimensions: " + schema.getDimensionsSpec());
         }
 
-        List<String> dimensionList = Arrays.asList(dimensions);
-
         //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
 
         //noinspection unchecked
-        return ((Measurement) map.computeIfAbsent(dimensionList, key -> {
+        return ((Measurement) map.computeIfAbsent(dimensions, key -> {
             Object metricObject = metricObjectCreator.get();
-            return new Measurement(metricObject, dimensionList, metricField);
+            return new Measurement(metricObject, Dimensions.of(dimensions), metricField);
         })).getMetricObject();
     }
 
@@ -133,7 +132,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     @Override
     public boolean isEmpty() {
-        // this make sure the schema will be sent to remote server even if the metric set is empty
+        // Make sure the schema will be sent to remote server even if the metric set is empty
         // so that remote server could show the data source
         return false;
     }
@@ -167,7 +166,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     }
 
     static class Measurement implements IMeasurement {
-        private final List<String> dimensions;
+        private final Dimensions dimensions;
 
         /**
          * The user object that defines metrics
@@ -176,7 +175,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         private final List<Field> metricFields;
 
-        Measurement(Object metricObject, List<String> dimensions, List<Field> metricFields) {
+        Measurement(Object metricObject, Dimensions dimensions, List<Field> metricFields) {
             this.dimensions = dimensions;
             this.metricObject = metricObject;
             this.metricFields = metricFields;
@@ -187,7 +186,12 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
 
         @Override
-        public List<String> getDimensions() {
+        public long getTimestamp() {
+            return 0;
+        }
+
+        @Override
+        public Dimensions getDimensions() {
             return dimensions;
         }
 

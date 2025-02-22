@@ -19,6 +19,7 @@ package org.bithon.agent.instrumentation.loader;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.jar.JarFile;
 
@@ -34,7 +35,13 @@ public final class JarUtils {
 
     public static byte[] openClassFile(JarFile jar, String className) throws IOException {
         URL classURL = getClassURL(jar, className);
-        try (BufferedInputStream inputStream = new BufferedInputStream(classURL.openStream());
+        try (InputStream inputStream = classURL.openStream()) {
+            return toByte(inputStream);
+        }
+    }
+
+    public static byte[] toByte(InputStream input) throws IOException {
+        try (BufferedInputStream inputStream = new BufferedInputStream(input);
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             int len;

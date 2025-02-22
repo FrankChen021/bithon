@@ -25,49 +25,39 @@
       "name": "database",
       "displayText": "database",
       "required": true
+    },
+    {
+      "name": "sqlType"
+    },
+    {
+      "name": "traceId"
+    },
+    {
+      "name": "statement"
     }
   ],
   "metricsSpec": [
     {
       "type": "longSum",
-      "name": "callCount",
-      "displayText": "Call Count",
-      "unit": ""
+      "name": "errorCount"
     },
     {
       "type": "longSum",
-      "name": "errorCount",
-      "displayText": "error count",
-      "unit": ""
-    },
-    {
-      "type": "longSum",
-      "name": "queryCount",
-      "displayText": "query count",
-      "unit": ""
-    },
-    {
-      "type": "longSum",
-      "name": "updateCount",
-      "displayText": "update count",
-      "unit": ""
+      "name": "callCount"
     },
     {
       "type": "longSum",
       "name": "responseTime",
-      "displayText": "Response Time",
       "unit": "nanosecond"
     },
     {
       "type": "longMin",
       "name": "minResponseTime",
-      "displayText": "Min Response Time",
       "unit": "nanosecond"
     },
     {
-      "type": "longLast",
+      "type": "longMax",
       "name": "maxResponseTime",
-      "displayText": "Max Response Time",
       "unit": "nanosecond"
     },
     {
@@ -85,6 +75,14 @@
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesOut"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesIn"
     }
   ],
   "inputSourceSpec": {

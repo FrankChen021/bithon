@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.clickhouse;
 
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * Hook on execute methods implemented in {@link com.clickhouse.jdbc.internal.ClickHouseStatementImpl} as
@@ -43,7 +44,7 @@ import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
  */
 public class ClickHouseStatementImpl$Execute extends AbstractStatement$Execute {
     @Override
-    protected String getStatement(AopContext aopContext) {
-        return aopContext.getArgAs(0);
+    protected StatementContext getStatementContext(AopContext aopContext) {
+        return new StatementContext(aopContext.getArgAs(0));
     }
 }

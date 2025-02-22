@@ -20,6 +20,12 @@
     },
     {
       "name": "server"
+    },
+    {
+      "name": "path"
+    },
+    {
+      "name": "traceId"
     }
   ],
   "metricsSpec": [

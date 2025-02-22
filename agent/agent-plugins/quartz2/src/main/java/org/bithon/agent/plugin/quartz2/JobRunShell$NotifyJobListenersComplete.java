@@ -56,7 +56,7 @@ public class JobRunShell$NotifyJobListenersComplete extends BeforeInterceptor {
             quartzLog.put("duration", jec.getJobRunTime());
             quartzLog.put("successfulCount", isExceptionOccurred ? 0 : 1);
             quartzLog.put("exceptionCount", isExceptionOccurred ? 1 : 0);
-            exporter.send(exporter.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
+            exporter.export(exporter.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
         }
 
         // save the object on the current target,

@@ -19,8 +19,9 @@ package org.bithon.server.storage.jdbc.clickhouse.common.optimizer;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,7 +35,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, '-ab-')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("a like '%-ab-%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%-ab-%'", expr.serializeToText(null));
     }
 
     @Test
@@ -44,7 +45,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, '_ab_')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("a like '%\\_ab\\_%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%\\_ab\\_%'", expr.serializeToText(null));
     }
 
     @Test
@@ -54,8 +55,8 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'SERVER-ERROR')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER-ERROR%')",
-                            expr.serializeToText(null));
+        Assertions.assertEquals("hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER-ERROR%')",
+                                expr.serializeToText(null));
     }
 
     @Test
@@ -65,7 +66,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, '_SERVER')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("hasToken(a, 'SERVER') AND (a like '%\\_SERVER%')", expr.serializeToText(null));
+        Assertions.assertEquals("hasToken(a, 'SERVER') AND (a like '%\\_SERVER%')", expr.serializeToText(null));
     }
 
     @Test
@@ -75,7 +76,7 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'ERROR_')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("hasToken(a, 'ERROR') AND (a like '%ERROR\\_%')", expr.serializeToText(null));
+        Assertions.assertEquals("hasToken(a, 'ERROR') AND (a like '%ERROR\\_%')", expr.serializeToText(null));
     }
 
     @Test
@@ -85,6 +86,8 @@ public class ClickHouseExpressionOptimizerTest {
                                                .build("hasToken(a, 'SERVER_ERROR') AND hasToken(a, 'EXCEPTION_CODE')")
                                                .accept(new ClickHouseExpressionOptimizer());
 
-        Assert.assertEquals("hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER\\_ERROR%') AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND (a like '%EXCEPTION\\_CODE%')", expr.serializeToText(null));
+        Assertions.assertEquals(
+            "hasToken(a, 'SERVER') AND hasToken(a, 'ERROR') AND (a like '%SERVER\\_ERROR%') AND hasToken(a, 'EXCEPTION') AND hasToken(a, 'CODE') AND (a like '%EXCEPTION\\_CODE%')",
+            expr.serializeToText(null));
     }
 }

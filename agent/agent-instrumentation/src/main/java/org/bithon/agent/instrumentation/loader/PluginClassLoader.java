@@ -23,9 +23,9 @@ import org.bithon.agent.instrumentation.utils.AgentDirectory;
  * @date 2024/11/2 14:21
  */
 public class PluginClassLoader {
-    private static JarClassLoader instance;
+    private static ClassLoader instance;
 
-    public static JarClassLoader getClassLoader() {
+    public static ClassLoader getClassLoader() {
         return instance;
     }
 
@@ -35,5 +35,12 @@ public class PluginClassLoader {
                                           AgentDirectory.getSubDirectory("plugins"),
                                           AgentClassLoader.getClassLoader());
         }
+    }
+
+    /**
+     * Only for testing
+     */
+    public static void setClassLoader(ClassLoader classLoader) {
+        instance = classLoader;
     }
 }

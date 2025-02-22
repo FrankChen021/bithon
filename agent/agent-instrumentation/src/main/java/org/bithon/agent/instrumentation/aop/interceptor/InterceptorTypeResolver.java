@@ -21,7 +21,6 @@ import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterc
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.BeforeInterceptor;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
 import org.bithon.agent.instrumentation.expt.AgentException;
-import org.bithon.agent.instrumentation.loader.JarClassLoader;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassReader;
 import org.bithon.shaded.net.bytebuddy.jar.asm.ClassVisitor;
 import org.bithon.shaded.net.bytebuddy.jar.asm.Opcodes;
@@ -44,10 +43,10 @@ public class InterceptorTypeResolver {
     private final String AFTER = AfterInterceptor.class.getName().replace('.', '/');
     private final String REPLACE = ReplaceInterceptor.class.getName().replace('.', '/');
 
-    private final JarClassLoader classLoader;
+    private final ClassLoader classLoader;
     private final Map<String, InterceptorType> superType = new HashMap<>();
 
-    public InterceptorTypeResolver(JarClassLoader classLoader) {
+    public InterceptorTypeResolver(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -58,7 +57,11 @@ public class InterceptorTypeResolver {
     public InterceptorType resolve(String interceptorClassName) {
         SuperNameExtractor extractor = new SuperNameExtractor();
 
-        try (InputStream is = classLoader.getClassStream(interceptorClassName)) {
+        String path = interceptorClassName.replace('.', '/').concat(".class");
+        try (InputStream is = classLoader.getResourceAsStream(path)) {
+            if (is == null) {
+                throw new AgentException("Can't find class [%s]", interceptorClassName);
+            }
             ClassReader cr = new ClassReader(is);
             cr.accept(extractor, ClassReader.SKIP_FRAMES);
         } catch (IOException ignored) {

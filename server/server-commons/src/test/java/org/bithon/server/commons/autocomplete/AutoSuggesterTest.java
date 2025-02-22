@@ -16,7 +16,8 @@
 
 package org.bithon.server.commons.autocomplete;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com

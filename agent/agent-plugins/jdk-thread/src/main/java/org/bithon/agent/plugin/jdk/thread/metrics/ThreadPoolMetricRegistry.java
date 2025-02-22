@@ -20,9 +20,9 @@ import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
 import org.bithon.agent.observability.metric.collector.MetricRegistry;
 import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.AbstractExecutorService;
@@ -40,7 +40,7 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
         "org.springframework.cloud.commons.util.InetUtils"
     };
     static volatile ThreadPoolMetricRegistry INSTANCE;
-    private final Map<AbstractExecutorService, List<String>> executors = new ConcurrentHashMap<>();
+    private final Map<AbstractExecutorService, Dimensions> executors = new ConcurrentHashMap<>();
 
     public ThreadPoolMetricRegistry() {
         super("thread-pool-metrics",
@@ -69,13 +69,13 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
             }
         }
 
-        List<String> dimensions = Arrays.asList(executorClassName, poolName);
+        Dimensions dimensions = Dimensions.of(executorClassName, poolName);
         this.getOrCreateMetrics(dimensions, metricsSupplier).add(pool);
         executors.put(pool, dimensions);
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
-        List<String> dimensions = executors.remove(executor);
+        Dimensions dimensions = executors.remove(executor);
         if (dimensions == null) {
             return;
         }
@@ -86,7 +86,7 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
     }
 
     private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {
-        List<String> dimensions = executors.get(executor);
+        Dimensions dimensions = executors.get(executor);
         if (dimensions == null) {
             return Optional.empty();
         }

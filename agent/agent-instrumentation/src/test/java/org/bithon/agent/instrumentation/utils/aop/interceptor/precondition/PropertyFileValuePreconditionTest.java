@@ -17,8 +17,9 @@
 package org.bithon.agent.instrumentation.utils.aop.interceptor.precondition;
 
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,7 +32,7 @@ public class PropertyFileValuePreconditionTest {
                                                             "v1",
                                                             PropertyFileValuePrecondition.StringEQ.of("1.0.0"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-        Assert.assertTrue(matches);
+        Assertions.assertTrue(matches);
     }
 
     @Test
@@ -40,7 +41,7 @@ public class PropertyFileValuePreconditionTest {
                                                             "v1",
                                                             PropertyFileValuePrecondition.VersionGT.of("0.1.0"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-        Assert.assertTrue(matches);
+        Assertions.assertTrue(matches);
     }
 
     @Test
@@ -49,13 +50,13 @@ public class PropertyFileValuePreconditionTest {
                                                             "v1",
                                                             PropertyFileValuePrecondition.VersionGT.of("1.0.0"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-        Assert.assertTrue(matches);
+        Assertions.assertTrue(matches);
 
         matches = new PropertyFileValuePrecondition("version.properties",
                                                     "v1",
                                                     PropertyFileValuePrecondition.VersionGT.of("0.0.9"))
             .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-        Assert.assertTrue(matches);
+        Assertions.assertTrue(matches);
     }
 
     @Test
@@ -66,7 +67,7 @@ public class PropertyFileValuePreconditionTest {
                                                                 "v1",
                                                                 PropertyFileValuePrecondition.VersionLT.of("2.0.0"))
                 .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-            Assert.assertTrue(matches);
+            Assertions.assertTrue(matches);
         }
         {
             // Same value
@@ -74,7 +75,7 @@ public class PropertyFileValuePreconditionTest {
                                                                 "v1",
                                                                 PropertyFileValuePrecondition.VersionLT.of("1.0.0"))
                 .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-            Assert.assertFalse(matches);
+            Assertions.assertFalse(matches);
         }
         {
             // Same value
@@ -82,7 +83,7 @@ public class PropertyFileValuePreconditionTest {
                                                                 "v1",
                                                                 PropertyFileValuePrecondition.VersionLT.of("0.0.9"))
                 .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-            Assert.assertFalse(matches);
+            Assertions.assertFalse(matches);
         }
     }
 
@@ -96,7 +97,7 @@ public class PropertyFileValuePreconditionTest {
                                                                     PropertyFileValuePrecondition.VersionLT.of("0.11.0.0")
                                                                 ))
                 .matches(PropertyFileValuePreconditionTest.class.getClassLoader(), null);
-            Assert.assertTrue(matches);
+            Assertions.assertTrue(matches);
         }
     }
 }

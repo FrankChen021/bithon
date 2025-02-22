@@ -93,6 +93,11 @@ message BrpcGenericMetricSchema {
 message BrpcGenericMeasurement {
   repeated string dimension = 3;
   repeated int64  metric = 4;
+
+  /**
+   * If the timestamp is NOT given, then the timestamp defined at the message level will be used
+   */
+  int64 timestamp = 5;
 }
 
 message BrpcGenericMetricMessage {

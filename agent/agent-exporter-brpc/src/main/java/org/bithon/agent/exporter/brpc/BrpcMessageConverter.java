@@ -19,10 +19,8 @@ package org.bithon.agent.exporter.brpc;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.observability.event.EventMessage;
 import org.bithon.agent.observability.exporter.IMessageConverter;
-import org.bithon.agent.observability.metric.collector.IMeasurement;
 import org.bithon.agent.observability.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.observability.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.schema.Schema;
 import org.bithon.agent.observability.metric.model.schema.Schema2;
 import org.bithon.agent.observability.metric.model.schema.Schema3;
@@ -71,11 +69,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics) {
-        return null;
-    }
-
-    @Override
     public Object from(long timestamp, int interval, JvmMetrics metrics) {
         BrpcJvmMetricMessage.Builder builder = BrpcJvmMetricMessage.newBuilder();
         builder.setInterval(interval);
@@ -112,11 +105,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, SQLStatementMetrics metrics) {
-        return null;
-    }
-
-    @Override
     public Object from(ITraceSpan span) {
         BrpcTraceSpanMessage.Builder builder = BrpcTraceSpanMessage.newBuilder()
                                                                    .setTraceId(span.traceId())
@@ -128,7 +116,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                                                                    .setClazz(span.clazz())
                                                                    .setMethod(span.method());
 
-        // The 'putllAllTags' on the Builder internally checks the NULL of each k-v pair.
+        // The 'putAllTags' on the Builder internally checks the NULL of each k-v pair.
         // To avoid unexpected exception, we do the check by ourselves so that we know which tag has the NULL value.
         for (Map.Entry<String, String> entry : span.tags().entrySet()) {
             String k = entry.getKey();
@@ -196,21 +184,25 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setInterval(interval);
         messageBuilder.setTimestamp(timestamp);
 
-        measurementList.forEach(metricSet -> {
+        measurementList.forEach(measurement -> {
             try {
-                BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
+                BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
+                measurementBuilder.setTimestamp(measurement.getTimestamp());
+
                 // although dimensions are defined as List<String>
-                // but it could also store an object,
+                // it could also store an object,
                 // we use Object.toString here to get the right value
-                for (Object dimension : metricSet.getDimensions()) {
-                    measurement.addDimension(dimension.toString());
+                for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
+                    measurementBuilder.addDimension(measurement.getDimensions().getValue(i));
                 }
-                for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                    measurement.addMetric(metricSet.getMetricValue(i));
+                for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
+                    measurementBuilder.addMetric(measurement.getMetricValue(i));
                 }
-                messageBuilder.addMeasurement(measurement.build());
+                messageBuilder.addMeasurement(measurementBuilder.build());
             } catch (RuntimeException e) {
-                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s", schema.getName(), metricSet.getDimensions()), e);
+                logger.error(StringUtils.format("Invalid measurement: %s, dimensions=%s",
+                                                schema.getName(),
+                                                measurement.getDimensions()), e);
             }
         });
 
@@ -233,10 +225,11 @@ public class BrpcMessageConverter implements IMessageConverter {
             try {
                 BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
                 // although dimensions are defined as List<String>
-                // but it could also store Object,
+                // it could also store Object,
                 // we use Object.toString here to get the right value
-                for (Object dimension : measurement.getDimensions()) {
-                    measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
+                for (int i = 0, size = measurement.getDimensions().length(); i < size; i++) {
+                    String dimension = measurement.getDimensions().getValue(i);
+                    measurementBuilder.addDimension(dimension == null ? "" : dimension);
                 }
                 for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
                     measurementBuilder.addMetric(measurement.getMetricValue(i));

@@ -154,7 +154,7 @@ public class Tracer {
                                               .filter(Objects::nonNull)
                                               .collect(Collectors.toList());
             try {
-                traceExporter.send(traceMessages);
+                traceExporter.export(traceMessages);
             } catch (Exception e) {
                 log.error("exception when sending trace messages.", e);
             }

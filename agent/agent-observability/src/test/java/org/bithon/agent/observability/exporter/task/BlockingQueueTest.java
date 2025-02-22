@@ -17,8 +17,9 @@
 package org.bithon.agent.observability.exporter.task;
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,8 +70,8 @@ public class BlockingQueueTest {
         // However, no elements are offered to the queue
         queue.take(2000);
 
-        Assert.assertTrue(queue.elapsed >= 2000);
-        Assert.assertTrue(CollectionUtils.isEmpty((Collection<?>) queue.takenObject));
+        Assertions.assertTrue(queue.elapsed >= 2000);
+        Assertions.assertTrue(CollectionUtils.isEmpty((Collection<?>) queue.takenObject));
     }
 
     @Test
@@ -91,10 +92,10 @@ public class BlockingQueueTest {
         Thread.sleep(timeout + 1000);
 
         // Since only one item is offered into the queue, we need to wait for timeout
-        Assert.assertTrue(queue.elapsed >= timeout);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(1, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(1, queue.takenObjectAsCollection().get(0));
+        Assertions.assertTrue(queue.elapsed >= timeout);
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(1, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(1, queue.takenObjectAsCollection().get(0));
     }
 
     @Test
@@ -110,12 +111,12 @@ public class BlockingQueueTest {
 
         // The 'take' above should return immediately,
         // the elapsed should be a very small value, and we think so that 500ms is a large enough value to compare with
-        Assert.assertTrue(queue.elapsed < 500);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(3, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(1, queue.takenObjectAsCollection().get(0));
-        Assert.assertEquals(2, queue.takenObjectAsCollection().get(1));
-        Assert.assertEquals(3, queue.takenObjectAsCollection().get(2));
+        Assertions.assertTrue(queue.elapsed < 500);
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(3, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(1, queue.takenObjectAsCollection().get(0));
+        Assertions.assertEquals(2, queue.takenObjectAsCollection().get(1));
+        Assertions.assertEquals(3, queue.takenObjectAsCollection().get(2));
     }
 
 
@@ -143,10 +144,10 @@ public class BlockingQueueTest {
         Thread.sleep(timeout + 1000);
 
         // Since we offer 1 element every 900ms, the take method should cost at least 4500ms
-        Assert.assertTrue(queue.elapsed >= 4500);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(5, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(0, queue.takenObjectAsCollection().get(0));
+        Assertions.assertTrue(queue.elapsed >= 4500);
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(5, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(0, queue.takenObjectAsCollection().get(0));
     }
 
     @Test
@@ -181,37 +182,37 @@ public class BlockingQueueTest {
         Thread.sleep(timeout + 1000);
 
         // It took at least 1500ms to offer 5 elements above
-        Assert.assertTrue(queue.elapsed >= 1500);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(5, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(1, queue.takenObjectAsCollection().get(0));
-        Assert.assertEquals(2, queue.takenObjectAsCollection().get(1));
-        Assert.assertEquals(3, queue.takenObjectAsCollection().get(2));
-        Assert.assertEquals(4, queue.takenObjectAsCollection().get(3));
-        Assert.assertEquals(5, queue.takenObjectAsCollection().get(4));
+        Assertions.assertTrue(queue.elapsed >= 1500);
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(5, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(1, queue.takenObjectAsCollection().get(0));
+        Assertions.assertEquals(2, queue.takenObjectAsCollection().get(1));
+        Assertions.assertEquals(3, queue.takenObjectAsCollection().get(2));
+        Assertions.assertEquals(4, queue.takenObjectAsCollection().get(3));
+        Assertions.assertEquals(5, queue.takenObjectAsCollection().get(4));
 
         // Take the 2nd batch
         // Since there are 10 items left, another 'take' call will take all these 5 items
         queue.take(timeout);
 
         // Verify the batch result
-        Assert.assertTrue(queue.elapsed < 100);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(5, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(6, queue.takenObjectAsCollection().get(0));
-        Assert.assertEquals(7, queue.takenObjectAsCollection().get(1));
-        Assert.assertEquals(8, queue.takenObjectAsCollection().get(2));
-        Assert.assertEquals(9, queue.takenObjectAsCollection().get(3));
-        Assert.assertEquals(10, queue.takenObjectAsCollection().get(4));
+        Assertions.assertTrue(queue.elapsed < 100);
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(5, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(6, queue.takenObjectAsCollection().get(0));
+        Assertions.assertEquals(7, queue.takenObjectAsCollection().get(1));
+        Assertions.assertEquals(8, queue.takenObjectAsCollection().get(2));
+        Assertions.assertEquals(9, queue.takenObjectAsCollection().get(3));
+        Assertions.assertEquals(10, queue.takenObjectAsCollection().get(4));
 
         // Only takes the last elements
         queue.take(100);
-        Assert.assertNotNull(queue.takenObject);
-        Assert.assertEquals(1, queue.takenObjectAsCollection().size());
-        Assert.assertEquals(11, queue.takenObjectAsCollection().get(0));
+        Assertions.assertNotNull(queue.takenObject);
+        Assertions.assertEquals(1, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(11, queue.takenObjectAsCollection().get(0));
 
         // No elements left to take
         queue.take(100);
-        Assert.assertEquals(0, queue.takenObjectAsCollection().size());
+        Assertions.assertEquals(0, queue.takenObjectAsCollection().size());
     }
 }

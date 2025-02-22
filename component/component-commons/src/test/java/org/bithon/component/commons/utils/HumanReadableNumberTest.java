@@ -16,8 +16,9 @@
 
 package org.bithon.component.commons.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,35 +27,35 @@ import org.junit.Test;
 public class HumanReadableNumberTest {
     @Test
     public void testBinaryFormat() {
-        Assert.assertEquals(5L * 1024, HumanReadableNumber.parse("5KiB"));
-        Assert.assertEquals(5L * 1024 * 1024, HumanReadableNumber.parse("5MiB"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024, HumanReadableNumber.parse("5GiB"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5TiB"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5PiB"));
+        Assertions.assertEquals(5L * 1024, HumanReadableNumber.parse("5KiB"));
+        Assertions.assertEquals(5L * 1024 * 1024, HumanReadableNumber.parse("5MiB"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024, HumanReadableNumber.parse("5GiB"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5TiB"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5PiB"));
     }
 
     @Test
     public void testSimplifiedBinaryFormat() {
-        Assert.assertEquals(5L * 1024, HumanReadableNumber.parse("5Ki"));
-        Assert.assertEquals(5L * 1024 * 1024, HumanReadableNumber.parse("5Mi"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Gi"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Ti"));
-        Assert.assertEquals(5L * 1024 * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Pi"));
+        Assertions.assertEquals(5L * 1024, HumanReadableNumber.parse("5Ki"));
+        Assertions.assertEquals(5L * 1024 * 1024, HumanReadableNumber.parse("5Mi"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Gi"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Ti"));
+        Assertions.assertEquals(5L * 1024 * 1024 * 1024 * 1024 * 1024, HumanReadableNumber.parse("5Pi"));
     }
 
     @Test
     public void testDecimalFormat() {
-        Assert.assertEquals(5L * 1000, HumanReadableNumber.parse("5K"));
-        Assert.assertEquals(5L * 1000 * 1000, HumanReadableNumber.parse("5M"));
-        Assert.assertEquals(5L * 1000 * 1000 * 1000, HumanReadableNumber.parse("5G"));
-        Assert.assertEquals(5L * 1000 * 1000 * 1000 * 1000, HumanReadableNumber.parse("5T"));
-        Assert.assertEquals(5L * 1000 * 1000 * 1000 * 1000 * 1000, HumanReadableNumber.parse("5P"));
+        Assertions.assertEquals(5L * 1000, HumanReadableNumber.parse("5K"));
+        Assertions.assertEquals(5L * 1000 * 1000, HumanReadableNumber.parse("5M"));
+        Assertions.assertEquals(5L * 1000 * 1000 * 1000, HumanReadableNumber.parse("5G"));
+        Assertions.assertEquals(5L * 1000 * 1000 * 1000 * 1000, HumanReadableNumber.parse("5T"));
+        Assertions.assertEquals(5L * 1000 * 1000 * 1000 * 1000 * 1000, HumanReadableNumber.parse("5P"));
     }
 
     @Test
     public void testEqual() {
-        Assert.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.parse("5K"));
-        Assert.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.of("5K"));
-        Assert.assertEquals(HumanReadableNumber.of("5Ki"), HumanReadableNumber.of("5KiB"));
+        Assertions.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.of("5K"));
+        Assertions.assertEquals(HumanReadableNumber.of("5K"), HumanReadableNumber.of("5K"));
+        Assertions.assertEquals(HumanReadableNumber.of("5Ki"), HumanReadableNumber.of("5KiB"));
     }
 }

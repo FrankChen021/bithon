@@ -16,8 +16,9 @@
 
 package org.bithon.component.commons.expression;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,10 +31,10 @@ public class ExpressionEvaluationTest {
         // a contains 'bison'
         IExpression expr = new ConditionalExpression.Contains(new IdentifierExpression("a"),
                                                               new LiteralExpression.StringLiteral("bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "american bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison_is_an_animal"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "one_kind of animal_is_bison_"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "american bison"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "bison"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "bison_is_an_animal"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "one_kind of animal_is_bison_"));
     }
 
     @Test
@@ -41,9 +42,9 @@ public class ExpressionEvaluationTest {
         // a startsWith 'bison'
         IExpression expr = new ConditionalExpression.StartsWith(new IdentifierExpression("a"),
                                                                 new LiteralExpression.StringLiteral("bison"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
-        Assert.assertFalse((boolean) expr.evaluate(name -> "i don't think bison is an animal"));
-        Assert.assertFalse((boolean) expr.evaluate(name -> "one kind of animal is bison"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "bison is an animal"));
+        Assertions.assertFalse((boolean) expr.evaluate(name -> "i don't think bison is an animal"));
+        Assertions.assertFalse((boolean) expr.evaluate(name -> "one kind of animal is bison"));
     }
 
     @Test
@@ -51,8 +52,8 @@ public class ExpressionEvaluationTest {
         // a endsWith 'bison'
         IExpression expr = new ConditionalExpression.EndsWith(new IdentifierExpression("a"),
                                                               new LiteralExpression.StringLiteral("bison"));
-        Assert.assertFalse((boolean) expr.evaluate(name -> "bison is an animal"));
-        Assert.assertFalse((boolean) expr.evaluate(name -> "i don't think bison is an animal"));
-        Assert.assertTrue((boolean) expr.evaluate(name -> "one kind of animal is bison"));
+        Assertions.assertFalse((boolean) expr.evaluate(name -> "bison is an animal"));
+        Assertions.assertFalse((boolean) expr.evaluate(name -> "i don't think bison is an animal"));
+        Assertions.assertTrue((boolean) expr.evaluate(name -> "one kind of animal is bison"));
     }
 }

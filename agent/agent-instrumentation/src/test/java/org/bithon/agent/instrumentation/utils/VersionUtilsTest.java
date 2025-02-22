@@ -16,8 +16,9 @@
 
 package org.bithon.agent.instrumentation.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,31 +28,31 @@ public class VersionUtilsTest {
 
     @Test
     public void test_EQ() {
-        Assert.assertEquals(0, VersionUtils.compare("1.0.0", "1.0.0"));
+        Assertions.assertEquals(0, VersionUtils.compare("1.0.0", "1.0.0"));
     }
 
     @Test
     public void test_LE() {
-        Assert.assertEquals(-1, VersionUtils.compare("1.0.0", "1.0.1"));
+        Assertions.assertEquals(-1, VersionUtils.compare("1.0.0", "1.0.1"));
     }
 
     @Test
     public void test_GE() {
-        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0"));
+        Assertions.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0"));
     }
 
     @Test
     public void test_GE_2() {
-        Assert.assertEquals(1, VersionUtils.compare("1.0.11", "1.0.1"));
+        Assertions.assertEquals(1, VersionUtils.compare("1.0.11", "1.0.1"));
     }
 
     @Test
     public void test_GE_3() {
-        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
+        Assertions.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
     }
 
     @Test
     public void test_GE_4() {
-        Assert.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
+        Assertions.assertEquals(1, VersionUtils.compare("1.0.1", "1.0.0.1"));
     }
 }

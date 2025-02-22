@@ -19,7 +19,10 @@ package org.bithon.agent.plugin.jdbc.postgresql;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.common.SqlTypeParser;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 import org.postgresql.core.CachedQuery;
+import org.postgresql.core.SqlCommandType;
 import org.postgresql.jdbc.PgConnection;
 
 /**
@@ -37,7 +40,15 @@ public class PgPreparedStatement$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         CachedQuery query = aopContext.getArgAs(1);
+
+        String sqlType = "";
+        String sql = query.query.toString();
+        if (query.query.getSqlCommand() != null && query.query.getSqlCommand().getType() != SqlCommandType.BLANK) {
+            sqlType = query.query.getSqlCommand().getType().name();
+        } else {
+            sqlType = SqlTypeParser.parse(sql);
+        }
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        preparedStatement.setInjectedObject(query.query.toString());
+        preparedStatement.setInjectedObject(new StatementContext(sql, sqlType));
     }
 }
