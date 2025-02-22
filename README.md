@@ -24,7 +24,7 @@ The above pic illustrates the main components of this project, including:
 
 - Around 200 built-in metrics for various JDK or various Java middlewares like Apache Http Components
 - Open Telemetry Tracing standard support and integration
-- Built-in debugging diagnosis commands for target application
+- Built-in debugging diagnosis commands, including JMX bean realtime monitoring for target application
 - Flexible deployment to adapt small data scale and huge data scale use cases
 - Fast queries and very low storage cost benefit from ClickHouse
 - PromQL style alerting expression support
@@ -35,44 +35,63 @@ Reference:
 - [What's the difference between Jaeger and Bithon?](doc/misc/comparison/jaeger/index.md) 
 - [What's the difference between OpenTelemetry and Bithon?](doc/misc/comparison/opentelemetry/index.md)
 
-# Demo
+# Preview
 
+You can use the docker images in the Docker Hub to get a preview.
+
+1. Start the backend service
+   ```bash
+   docker run --network=host -e bithon_application_env=local -e JAVA_OPTS="-Dspring.profiles.active=all-in-one" -it bithon/server:latest
+   ``` 
+
+   This starts the backend services with all-in-one profile, which includes all the services like tracing, event, metric, ctrl and alerting, using H2 database as back end storage.
+   And also the backend services is monitored by itself, you can see the metrics and tracing logs of the backend services itself.
+
+2. Start the front-end service
+
+   ```bash
+   docker run --network=host -e NEXT_PUBLIC_BITHON_API_SERVER_URL=http://localhost:9897 -itd bithon/web-app:latest
+   ```
+   Change the environment variable `NEXT_PUBLIC_BITHON_API_SERVER_URL` to point to your own backend server if needed.
+
+After the above steps, visit [http://localhost:3000](http://localhost:3000) to experience.
+
+## Demo
 A demo is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
 You can follow the README on that demo repo to start the demo within just 3 steps.
 
 # Build
 
-## 1. clone source code
+## 1. Clone source code
 
-After cloning this project, remember to clone the submodules by following command
+After cloning this project along with all submodules by following commands
 
 ```bash
-git submodule update --init
+git clone https://github.com/FrankChen021/bithon.git
+cd bithon && git submodule update --init
 ```
 
-## 2. choose a right JDK
+## 2. Configure JDK
 
-Since the project is built upon SpringBoot 3.0, a JDK 17 or higher is required to build this project.
-If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK.
-
-For example
+Since backend services are built upon SpringBoot 3.0, a JDK 17 or higher (like 21) is required to build this project.
+If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. For example
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
 ```
 
-## 3. build the project
+## 3. Build the project
 
 For the first time to build this project, use the following command to build dependencies first: 
 
 ```bash
-mvn clean install --activate-profiles shaded,jooq
+mvn clean install --activate-profiles shaded,jooq -T 1C
 ```
 
 and then execute the following command to build the project. 
 
 ```bash
-mvn clean install -DskipTests
+mvn clean install -DskipTests -T 1C
 ```
 
 After the first build, we don't need to build the dependencies anymore unless there are changes in these dependencies.
@@ -81,7 +100,7 @@ After the first build, we don't need to build the dependencies anymore unless th
 
 Once the project has been built, you could run the project in a standalone mode to evaluate this project.
 
-## 1. Launch the server all in one
+## 1. Launch the backend services all in one
 
 To launch server in evaluation mode, execute the following command:
 
@@ -99,8 +118,6 @@ By default, the application opens and listens on following ports at local
 | ctrl     | 9899 |
 | web      | 9897 |
 
-Once the application has started, visit [http://localhost:9897/web/home](http://localhost:9897/web/home) to view the monitor.
-
 > Note:
 > `-Dspring.profiles.include` parameter here is just for demo.
 > 
@@ -108,9 +125,10 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 > 
 > You can also use enable [Alibaba Nacos](doc/configuration/server/configuration-nacos.md) as your configuration storage center.
 
-## 2. Attach agent to your java application
+## 2. Attach agent to your target Java applications
 
-Attach agent to your java agent by adding the following VM arguments.
+Attach the agent to your java application so that your application can be managed the agent.
+Add the the following VM arguments to your target Java application.
 
 ```bash
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
