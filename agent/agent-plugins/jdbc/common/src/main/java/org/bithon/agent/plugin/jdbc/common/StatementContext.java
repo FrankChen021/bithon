@@ -21,7 +21,7 @@ package org.bithon.agent.plugin.jdbc.common;
  * @date 2025/2/3 20:26
  */
 public class StatementContext {
-    public static StatementContext EMPTY = new StatementContext("", "");
+    public static final StatementContext EMPTY = new StatementContext("", "");
 
     private final String sql;
     private final String sqlType;

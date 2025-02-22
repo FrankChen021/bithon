@@ -55,7 +55,6 @@ public class MetricAccessorGenerator {
     public static <T> IMetricsInstantiator<T> createInstantiator(Class<T> metricSetClass) {
 
         List<Field> fields = Arrays.asList(metricSetClass.getDeclaredFields());
-        String className = metricSetClass.getName().replace('.', '/');
 
         // Use ByteBuddy to generate a subclass implementing IndexedGetter
         DynamicType.Builder<?> builder = new ByteBuddy()
@@ -75,7 +74,6 @@ public class MetricAccessorGenerator {
             .defineMethod("getMetricValue", long.class, Visibility.PUBLIC)
             .withParameter(String.class)
             .intercept(new Implementation.Simple(new GetMetricValueByNameMethodGenerator(fields)))
-
             //
             // Create 'getMetricCount' method
             //
