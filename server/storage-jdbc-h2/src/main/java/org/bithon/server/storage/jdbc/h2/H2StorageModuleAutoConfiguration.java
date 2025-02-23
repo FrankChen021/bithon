@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
 import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
@@ -78,6 +79,7 @@ public class H2StorageModuleAutoConfiguration {
                                          new NamedType(EvaluationLogJdbcStorage.class, "h2"),
                                          new NamedType(AlertObjectJdbcStorage.class, "h2"),
                                          new NamedType(AlertRecordJdbcStorage.class, "h2"),
+                                         new NamedType(AlertStateJdbcStorage.class, "h2"),
                                          new NamedType(NotificationChannelJdbcStorage.class, "h2")
                 );
             }

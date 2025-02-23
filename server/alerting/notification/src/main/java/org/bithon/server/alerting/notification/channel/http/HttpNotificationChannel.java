@@ -147,10 +147,13 @@ public class HttpNotificationChannel implements INotificationChannel {
         if (message.getStatus() == AlertStatus.ALERTING) {
             if (message.getExpressions().size() == 1) {
                 ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-                evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
-                                                       result.getOutputs().getThreshold(),
-                                                       result.getOutputs().getCurrent(),
-                                                       result.getOutputs().getDelta());
+                evaluationMessage = result.getOutputs()
+                                          .stream()
+                                          .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
+                                                                              output.getThreshold(),
+                                                                              output.getCurrent(),
+                                                                              output.getDelta()))
+                                          .collect(Collectors.joining("\n"));
             } else {
                 evaluationMessage = message.getConditionEvaluation()
                                            .entrySet()
@@ -163,12 +166,13 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                                             .orElse(null);
 
                                                ExpressionEvaluationResult result = entry.getValue();
-                                               return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
-                                                                         evaluatedExpression.serializeToText(),
-                                                                         result.getOutputs().getThreshold(),
-                                                                         result.getOutputs().getCurrent(),
-                                                                         result.getOutputs().getDelta());
+                                               return result;
                                            })
+                                           .flatMap((result) -> result.getOutputs().stream())
+                                           .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
+                                                                               output.getThreshold(),
+                                                                               output.getCurrent(),
+                                                                               output.getDelta()))
                                            .collect(Collectors.joining("\n"));
             }
         }

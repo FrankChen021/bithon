@@ -14,11 +14,11 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function5;
+import org.jooq.Function6;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row5;
+import org.jooq.Row6;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -78,6 +78,12 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * updated
      */
     public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "when the record is updated");
+
+    /**
+     * The column <code>bithon_alert_state.payload</code>. JSON formatted
+     * runtime info. See AlertStateObject$Payload to know more
+     */
+    public final TableField<BithonAlertStateRecord, String> PAYLOAD = createField(DSL.name("payload"), SQLDataType.CLOB, this, "JSON formatted runtime info. See AlertStateObject$Payload to know more");
 
     private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased) {
         this(alias, aliased, null);
@@ -162,18 +168,18 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row6 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<String, Integer, LocalDateTime, String, LocalDateTime> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row6<String, Integer, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function6<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -181,7 +187,7 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

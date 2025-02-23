@@ -22,14 +22,13 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,8 +46,11 @@ public class AlertEvaluatorScheduler {
     private final AlertEvaluator alertEvaluator;
     private final AlertRepository alertRepository;
     private final ThreadPoolExecutor executor;
+    private final IAlertStateStorage alertStateStorage;
 
-    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator, AlertRepository alertRepository) {
+    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator,
+                                   AlertRepository alertRepository,
+                                   IAlertStateStorage alertStateStorage) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
         this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
@@ -58,6 +60,7 @@ public class AlertEvaluatorScheduler {
                                                new LinkedBlockingQueue<>(128),
                                                new ThreadFactoryBuilder().setDaemon(true).setNameFormat("alert-evaluator-%d").build(),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
+        this.alertStateStorage = alertStateStorage;
     }
 
     @Scheduled(cron = "${bithon.alerting.evaluator.scheduler.cron:15 0/1 * 1/1 * ?}")
@@ -72,27 +75,14 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Load states of all alert rules
-            Map<String, AlertStateObject> alertState = alertRepository.loadStates();
+            alertEvaluator.getStateManager().restoreAlertStates();
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
-                executor.execute(() -> alertEvaluator.evaluate(now,
-                                                               alertRule,
-                                                               alertState.get(alertRule.getId())
-                                                              ));
+                executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
             }
         } finally {
             Thread.currentThread().setName(name);
-        }
-    }
-
-    /**
-     * for debugging
-     */
-    private void evaluate(String alertId) {
-        AlertRule alertRule = alertRepository.getLoadedAlerts().get(alertId);
-        if (alertRule != null) {
-            alertEvaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)), alertRule, null);
         }
     }
 }
