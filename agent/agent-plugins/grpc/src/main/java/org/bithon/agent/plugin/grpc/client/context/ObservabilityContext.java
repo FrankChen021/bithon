@@ -98,6 +98,8 @@ public class ObservabilityContext {
         this.metrics.responseTime = System.nanoTime() - startTimeNs;
         this.metrics.maxResponseTime = this.metrics.responseTime;
         this.metrics.minResponseTime = this.metrics.responseTime;
+
+        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, this.metrics);
     }
 
     public void finish(String status, Throwable throwable) {
@@ -112,5 +114,7 @@ public class ObservabilityContext {
         this.metrics.responseTime = System.nanoTime() - startTimeNs;
         this.metrics.maxResponseTime = this.metrics.responseTime;
         this.metrics.minResponseTime = this.metrics.responseTime;
+
+        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, this.metrics);
     }
 }

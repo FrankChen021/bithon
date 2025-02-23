@@ -23,7 +23,6 @@ import org.bithon.agent.plugin.grpc.metrics.GrpcMetrics;
 import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,15 +38,16 @@ public class GrpcClientMetricStorage extends AbstractMetricStorage<GrpcMetrics> 
               Arrays.asList("service", "method", "status", "server"),
               GrpcMetrics.class,
               (dimensions, metric) -> {
-                  Preconditions.checkIfTrue(dimensions.length() == 3, "dimensions.length() == 2");
+                  Preconditions.checkIfTrue(dimensions.length() == 4, "Number of dimensions must be 4");
+
+                  // Always aggregate metrics
                   return true;
               });
     }
 
-    public void add(String service, String method, String server, Consumer<GrpcMetrics> metricProvider) {
-        super.add(Dimensions.of(service, method, server), metricProvider);
+    public void add(String service, String method, String server, GrpcMetrics metrics) {
+        super.add(Dimensions.of(service, method, server), metrics);
     }
-
 
     public static GrpcClientMetricStorage getInstance() {
         if (INSTANCE == null) {
