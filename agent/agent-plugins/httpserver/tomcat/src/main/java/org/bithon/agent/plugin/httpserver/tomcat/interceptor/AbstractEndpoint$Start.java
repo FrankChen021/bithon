@@ -25,9 +25,9 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetricRegistry;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerMetrics;
 import org.bithon.agent.observability.metric.domain.httpserver.HttpServerType;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
-import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -52,7 +52,7 @@ public class AbstractEndpoint$Start extends AfterInterceptor {
         AppInstance.getInstance().setPort(endpoint.getPort());
 
         HttpServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(HttpServerMetricRegistry.NAME, HttpServerMetricRegistry::new)
-                                                         .getOrCreateMetrics(Collections.singletonList(HttpServerType.UNDERTOW.type()),
+                                                         .getOrCreateMetrics(Dimensions.of(HttpServerType.UNDERTOW.type()),
                                                                              HttpServerMetrics::new);
         metrics.connectionCount.setProvider(endpoint::getConnectionCount);
         metrics.maxConnections.setProvider(endpoint::getMaxConnections);

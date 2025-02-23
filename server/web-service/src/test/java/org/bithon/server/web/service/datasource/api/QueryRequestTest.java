@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.datasource.query.Order;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Frank Chen
@@ -46,8 +46,8 @@ public class QueryRequestTest {
         QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                                                  .readValue(json, QueryRequest.class);
 
-        Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
+        Assertions.assertEquals("instanceUpTime", request.getOrderBy().getName());
+        Assertions.assertEquals(Order.desc, request.getOrderBy().getOrder());
     }
 
     @Test
@@ -68,9 +68,9 @@ public class QueryRequestTest {
         QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                                                  .readValue(json, QueryRequest.class);
 
-        Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
-        Assert.assertEquals(15, request.getLimit().getLimit());
+        Assertions.assertEquals("instanceUpTime", request.getOrderBy().getName());
+        Assertions.assertEquals(Order.desc, request.getOrderBy().getOrder());
+        Assertions.assertEquals(15, request.getLimit().getLimit());
     }
 
     @Test
@@ -91,9 +91,9 @@ public class QueryRequestTest {
         QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                                                  .readValue(json, QueryRequest.class);
 
-        Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
-        Assert.assertEquals(15, request.getLimit().getLimit());
+        Assertions.assertEquals("instanceUpTime", request.getOrderBy().getName());
+        Assertions.assertEquals(Order.desc, request.getOrderBy().getOrder());
+        Assertions.assertEquals(15, request.getLimit().getLimit());
     }
 
     @Test
@@ -114,9 +114,9 @@ public class QueryRequestTest {
         QueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                                                  .readValue(json, QueryRequest.class);
 
-        Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
-        Assert.assertEquals(Order.desc, request.getOrderBy().getOrder());
-        Assert.assertEquals(4, request.getLimit().getLimit());
-        Assert.assertEquals(6, request.getLimit().getOffset());
+        Assertions.assertEquals("instanceUpTime", request.getOrderBy().getName());
+        Assertions.assertEquals(Order.desc, request.getOrderBy().getOrder());
+        Assertions.assertEquals(4, request.getLimit().getLimit());
+        Assertions.assertEquals(6, request.getLimit().getOffset());
     }
 }

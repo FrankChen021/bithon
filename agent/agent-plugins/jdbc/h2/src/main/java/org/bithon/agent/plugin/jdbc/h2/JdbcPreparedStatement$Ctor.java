@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jdbc.h2;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 import org.h2.jdbc.JdbcConnection;
 
 /**
@@ -34,6 +35,6 @@ public class JdbcPreparedStatement$Ctor extends AfterInterceptor {
 
         // Inject context so that they can be accessed in statement interceptors
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        preparedStatement.setInjectedObject(sql);
+        preparedStatement.setInjectedObject(new StatementContext(sql));
     }
 }

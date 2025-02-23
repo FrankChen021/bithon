@@ -13,23 +13,29 @@ bithon:
       enabled: true
       port: 9899
       permission:
-         rules:
-            - application:
-                 type: startwith
-                 pattern: bithon-
-              authorization: ["525", "frankchen@apache.org"]
+        enabled: true
+        # The following define a global rule to ALLOW any operation from any user.
+        # Refer to the PermissionConfig to know more about the configuration
+        rbac:
+          users:
+            - name: "*"
+              permissions:
+                - operation: RW
+                  resource: "*"
+                  application: "*"
+   web:
+    security:
+      jwtTokenSignKey:
+      jwtTokenValiditySeconds:
 ```
 
 ## Permission Control
 
-The `permission` controls how a UPDATE command is authenticated. 
+To protect the target application from unauthorized access, the controller provides a permission control mechanism. The permission control is based on the RBAC model. 
+When the `bithon.agent-controller.permission.enabled` is set to `true`, the controller will check the permission for each request.
+To know more about the configuration, see the `org.bithon.server.agent.controller.rbac.Permission` class.
 
-- `application`
-
-  A matcher that how correspond authorization is applied if a given application matches this matcher.
-For more information of application matcher, see the source code [IMatcher.java](../../../server/server-commons/src/main/java/org/bithon/server/commons/matcher/IMatcher.java).
-
-- `authorization`
-
-  A list of authorizations, either a token or user name if current deployment is under OAuth2 authentication.
-
+And also, `bithon.web.security.jwtTokenSignKey`
+and `bithon.web.security.jwtTokenValiditySeconds` MUST be configured to the SAME configuration
+as they're configured at the web server module.
+See the `JwtConfig` to know more about it.

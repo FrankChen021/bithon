@@ -18,9 +18,7 @@ package org.bithon.agent.plugin.jdbc.alibaba.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.bithon.agent.observability.metric.domain.jdbc.JdbcPoolMetrics;
-
-import java.util.Arrays;
-import java.util.List;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,13 +26,14 @@ import java.util.List;
  */
 public class MonitoredSource {
     private final DruidDataSource dataSource;
-    private final List<String> dimensions;
+    private final Dimensions dimensions;
     // metrics
     private final JdbcPoolMetrics jdbcPoolMetrics;
 
     MonitoredSource(String driverClass, String connectionString, DruidDataSource dataSource) {
         this.dataSource = dataSource;
-        this.dimensions = Arrays.asList(connectionString, driverClass,
+        this.dimensions = Dimensions.of(connectionString,
+                                        driverClass,
                                         // support multiple data source for a same endpoint, typically read-write data sources
                                         String.valueOf(System.identityHashCode(dataSource)));
         this.jdbcPoolMetrics = new JdbcPoolMetrics(dataSource::getActiveCount,
@@ -43,7 +42,7 @@ public class MonitoredSource {
                                                    dataSource::getPoolingCount);
     }
 
-    public List<String> getDimensions() {
+    public Dimensions getDimensions() {
         return dimensions;
     }
 

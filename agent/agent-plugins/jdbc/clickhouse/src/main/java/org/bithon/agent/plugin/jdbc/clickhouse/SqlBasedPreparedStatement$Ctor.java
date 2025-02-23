@@ -22,10 +22,11 @@ import com.clickhouse.jdbc.parser.ClickHouseSqlStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 /**
  * {@link com.clickhouse.jdbc.internal.SqlBasedPreparedStatement#SqlBasedPreparedStatement(ClickHouseConnectionImpl, ClickHouseRequest, ClickHouseSqlStatement, int, int, int)}
- *
+ * <p>
  * Inject the {@link ClickHouseSqlStatement} so that {@link SqlBasedPreparedStatement$Execute} can access the statement
  *
  * @author frank.chen021@outlook.com
@@ -37,6 +38,6 @@ public class SqlBasedPreparedStatement$Ctor extends AfterInterceptor {
         IBithonObject preparedStatement = aopContext.getTargetAs();
 
         ClickHouseSqlStatement statement = aopContext.getArgAs(2);
-        preparedStatement.setInjectedObject(statement);
+        preparedStatement.setInjectedObject(new StatementContext(statement.getSQL()));
     }
 }

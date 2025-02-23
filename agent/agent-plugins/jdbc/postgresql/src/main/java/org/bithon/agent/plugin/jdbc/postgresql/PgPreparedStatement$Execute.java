@@ -20,6 +20,7 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
 import org.bithon.agent.plugin.jdbc.common.ConnectionContext;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Connection;
 
@@ -41,8 +42,8 @@ public class PgPreparedStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected String getStatement(AopContext aopContext) {
+    protected StatementContext getStatementContext(AopContext aopContext) {
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        return (String) preparedStatement.getInjectedObject();
+        return (StatementContext) preparedStatement.getInjectedObject();
     }
 }

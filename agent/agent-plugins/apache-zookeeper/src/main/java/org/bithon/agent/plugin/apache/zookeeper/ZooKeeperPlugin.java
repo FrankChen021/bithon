@@ -57,7 +57,6 @@ public class ZooKeeperPlugin implements IPlugin {
 
                 .onMethod("finishPacket")
                 .andArgs("org.apache.zookeeper.ClientCnxn$Packet")
-                .debug()
                 .interceptedBy("org.bithon.agent.plugin.apache.zookeeper.ClientCnxn$FinishPacket")
                 .build(),
 

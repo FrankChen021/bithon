@@ -20,6 +20,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 import ru.yandex.clickhouse.ClickHouseConnection;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
@@ -40,6 +41,6 @@ public class ClickHousePreparedStatementImpl$Ctor extends AfterInterceptor {
         String sql = aopContext.getArgAs(3);
 
         IBithonObject preparedStatement = aopContext.getTargetAs();
-        preparedStatement.setInjectedObject(sql);
+        preparedStatement.setInjectedObject(new StatementContext(sql));
     }
 }

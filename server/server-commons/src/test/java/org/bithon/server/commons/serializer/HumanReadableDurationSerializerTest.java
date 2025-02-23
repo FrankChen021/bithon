@@ -19,8 +19,9 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -41,9 +42,9 @@ public class HumanReadableDurationSerializerTest {
 
         {
             HumanReadableDuration d = om.readValue(om.writeValueAsBytes(HumanReadableDuration.parse("7m")), HumanReadableDuration.class);
-            Assert.assertEquals(7, d.getDuration().toMinutes());
-            Assert.assertEquals(TimeUnit.MINUTES, d.getUnit());
-            Assert.assertEquals("7m", d.toString());
+            Assertions.assertEquals(7, d.getDuration().toMinutes());
+            Assertions.assertEquals(TimeUnit.MINUTES, d.getUnit());
+            Assertions.assertEquals("7m", d.toString());
         }
     }
 }

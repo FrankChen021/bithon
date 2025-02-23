@@ -23,8 +23,9 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.IFunctionProvider;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -79,309 +80,309 @@ public class ExpressionOptimizerTest {
     @Test
     public void testConstantFolding_Function() {
         IExpression expr = expressionBuilder.build("sum(1,2)");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(3L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(3L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_RecursiveFunctionCall() {
         IExpression expr = expressionBuilder.build("sum(1,sum(2,3))");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(6L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(6L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_AddExpression() {
         IExpression expr = expressionBuilder.build("1 + sum(1,sum(2,3))");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(7L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(7L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_SubExpression() {
         IExpression expr = expressionBuilder.build("5 - 3");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(2L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(2L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_MulExpression() {
         IExpression expr = expressionBuilder.build("5 * 3");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(15L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(15L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_DivExpression() {
         IExpression expr = expressionBuilder.build("10 / 2");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals(5L, expr.evaluate(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals(5L, expr.evaluate(null));
     }
 
     @Test
     public void testConstantFolding_ANDExpression() {
         IExpression expr = expressionBuilder.build("1 AND 1");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_ANDExpression_Bool_Bool() {
         IExpression expr = expressionBuilder.build("true AND true");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_ANDExpression_Bool_Bool_2() {
         IExpression expr = expressionBuilder.build("true AND false");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("false", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("false", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_ANDExpression_Bool_Bool_3() {
         IExpression expr = expressionBuilder.build("false AND false");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("false", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("false", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_ORExpression() {
         IExpression expr = expressionBuilder.build("1 OR 0");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_Comparison_GT() {
         IExpression expr = expressionBuilder.build("1 = 1");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_Comparison_GTE() {
         IExpression expr = expressionBuilder.build("1 >= 1");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_Comparison_LT() {
         IExpression expr = expressionBuilder.build("1 < 2");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void testConstantFolding_Comparison_LTE() {
         IExpression expr = expressionBuilder.build("1 <= 1");
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText());
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText());
     }
 
     @Test
     public void test_NotReplaced() {
         IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("hasToken(a, 'ab')");
 
-        Assert.assertEquals("hasToken(a, 'ab')", expr.serializeToText(null));
+        Assertions.assertEquals("hasToken(a, 'ab')", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysTrueCondition() {
         IExpression expr = ExpressionASTBuilder.builder().build("1 AND a = 'Good'");
 
-        Assert.assertEquals("a = 'Good'", expr.serializeToText(null));
+        Assertions.assertEquals("a = 'Good'", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysTrueCondition_2() {
         IExpression expr = ExpressionASTBuilder.builder().build("1 = 1 AND a = 'Good'");
 
-        Assert.assertEquals("a = 'Good'", expr.serializeToText(null));
+        Assertions.assertEquals("a = 'Good'", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysTrueCondition_3() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'Good' AND 1 = 1");
 
-        Assert.assertEquals("a = 'Good'", expr.serializeToText(null));
+        Assertions.assertEquals("a = 'Good'", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysTrueCondition_4() {
         IExpression expr = ExpressionASTBuilder.builder().build("2 > 1 AND 1 = 1");
 
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysFalseCondition() {
         IExpression expr = ExpressionASTBuilder.builder().build("0 AND a = 'God'");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
     public void test_RemoveAlwaysFalseCondition_2() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'God' AND b = 'is' AND 'good' = 'bad'");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_1() {
         IExpression expr = ExpressionASTBuilder.builder().build("1 OR a = 'Good'");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_2() {
         IExpression expr = ExpressionASTBuilder.builder().build("1 = 1 OR a = 'Good'");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_3() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'Good' OR 1 = 1");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_4() {
         IExpression expr = ExpressionASTBuilder.builder().build("2 > 1 OR 1 = 1");
 
-        Assert.assertTrue(expr instanceof LiteralExpression.BooleanLiteral);
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.BooleanLiteral.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_5() {
         IExpression expr = ExpressionASTBuilder.builder().build("0 OR a = 'God'");
 
-        Assert.assertEquals("a = 'God'", expr.serializeToText(null));
+        Assertions.assertEquals("a = 'God'", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeOR_6() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'God' OR 1 > 2 OR b = 'c'");
 
-        Assert.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
+        Assertions.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
     }
 
     @Test
     public void test_OptimizeLogical() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 'God' OR 1 > 2 OR b = 'c' AND 1 = 1");
 
-        Assert.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
+        Assertions.assertEquals("(a = 'God') OR (b = 'c')", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 = 1");
 
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT_2() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 > 1");
 
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT_3() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT 1 >= 1");
 
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT_4() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT (a = 'God' AND 0)");
 
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT_IN() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT (1 in (1))");
 
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant_NOT_NOT_IN() {
         IExpression expr = ExpressionASTBuilder.builder().build("NOT (1 not in (1))");
 
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_Optimize_Constant() {
         IExpression expr = ExpressionASTBuilder.builder().build("1 AND 2");
 
-        Assert.assertTrue(expr instanceof LiteralExpression);
-        Assert.assertEquals("true", expr.serializeToText(null));
+        Assertions.assertInstanceOf(LiteralExpression.class, expr);
+        Assertions.assertEquals("true", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_NotIn() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a not in (1,2,3)");
-        Assert.assertEquals("a in (1, 2, 3)", expr.serializeToText(null));
+        Assertions.assertEquals("a in (1, 2, 3)", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_NotLike() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a not contains 'a'");
-        Assert.assertEquals("a contains 'a'", expr.serializeToText(null));
+        Assertions.assertEquals("a contains 'a'", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_EQ() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a = b");
-        Assert.assertEquals("a <> b", expr.serializeToText(null));
+        Assertions.assertEquals("a <> b", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_NE() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a <> b");
-        Assert.assertEquals("a = b", expr.serializeToText(null));
+        Assertions.assertEquals("a = b", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_GT() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a > b");
-        Assert.assertEquals("a <= b", expr.serializeToText(null));
+        Assertions.assertEquals("a <= b", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_GTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a >= b");
-        Assert.assertEquals("a < b", expr.serializeToText(null));
+        Assertions.assertEquals("a < b", expr.serializeToText(null));
 
     }
 
     @Test
     public void test_Not_LT() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a < b");
-        Assert.assertEquals("a >= b", expr.serializeToText(null));
+        Assertions.assertEquals("a >= b", expr.serializeToText(null));
     }
 
     @Test
     public void test_Not_LTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("not a <= b");
-        Assert.assertEquals("a > b", expr.serializeToText(null));
+        Assertions.assertEquals("a > b", expr.serializeToText(null));
     }
 
     @Test
@@ -391,12 +392,12 @@ public class ExpressionOptimizerTest {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .functions(Functions.getInstance())
                                                    .build("now() - 5s");
-            Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
+            Assertions.assertInstanceOf(LiteralExpression.LongLiteral.class, expr);
 
-            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+            long diff = Math.abs(((LiteralExpression.LongLiteral) expr).getValue() - prev);
 
             // To avoid flaky, we think that 3 seconds are enough for evaluation above code
-            Assert.assertTrue(diff < 3);
+            Assertions.assertTrue(diff < 3);
         }
 
         {
@@ -404,12 +405,12 @@ public class ExpressionOptimizerTest {
             IExpression expr = ExpressionASTBuilder.builder()
                                                    .functions(Functions.getInstance())
                                                    .build("now() - 5d");
-            Assert.assertTrue(expr instanceof LiteralExpression.LongLiteral);
+            Assertions.assertInstanceOf(LiteralExpression.LongLiteral.class, expr);
 
-            long diff = Math.abs(((long) ((LiteralExpression.LongLiteral) expr).getValue()) - prev);
+            long diff = Math.abs(((LiteralExpression.LongLiteral) expr).getValue() - prev);
 
             // To avoid flaky, we think that 3 seconds are enough for evaluation above code
-            Assert.assertTrue(diff < 3);
+            Assertions.assertTrue(diff < 3);
         }
     }
 }

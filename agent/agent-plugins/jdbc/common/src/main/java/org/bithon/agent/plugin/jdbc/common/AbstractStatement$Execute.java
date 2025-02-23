@@ -20,7 +20,8 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.InterceptionDecision;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AroundInterceptor;
-import org.bithon.agent.observability.metric.domain.sql.SqlMetricRegistry;
+import org.bithon.agent.observability.metric.domain.sql.SQLMetricStorage;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
 import org.bithon.component.commons.tracing.SpanKind;
@@ -34,8 +35,6 @@ import java.sql.Statement;
  * @author frankchen
  */
 public abstract class AbstractStatement$Execute extends AroundInterceptor {
-
-    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision before(AopContext aopContext) throws Exception {
@@ -65,19 +64,34 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
 
     @Override
     public void after(AopContext aopContext) {
+        StatementContext statement = getStatementContext(aopContext);
+
         ITraceSpan span = aopContext.getSpan();
         if (span != null) {
             fillSpan(aopContext, span);
 
             // the statement is injected in the ctor interceptor of PgPreparedStatement
-            span.tag(Tags.Database.STATEMENT, getStatement(aopContext))
+            span.tag(Tags.Database.STATEMENT, statement.getSql())
+                .tag(Tags.Database.OPERATION, statement.getSqlType())
                 .finish();
         }
 
         if (shouldRecordMetrics(aopContext.getTargetAs())) {
             ConnectionContext connectionContext = aopContext.getUserContext();
-            metricRegistry.getOrCreateMetrics(connectionContext.getConnectionString())
-                          .update(true, aopContext.hasException(), aopContext.getExecutionTime());
+
+            SQLMetricStorage.getInstance()
+                            .add(Dimensions.of(connectionContext.getConnectionString(),
+                                               statement.getSqlType(),
+                                               span != null ? span.traceId() : "",
+                                               statement.getSql()),
+                                 (metrics) -> {
+                                     metrics.callCount = 1;
+                                     metrics.responseTime = aopContext.getExecutionTime();
+                                     metrics.maxResponseTime = aopContext.getExecutionTime();
+                                     metrics.minResponseTime = aopContext.getExecutionTime();
+                                     metrics.bytesOut = statement.getSql().length();
+                                     metrics.errorCount = aopContext.hasException() ? 1 : 0;
+                                 });
         }
     }
 
@@ -92,7 +106,7 @@ public abstract class AbstractStatement$Execute extends AroundInterceptor {
         return (ConnectionContext) ((IBithonObject) connection).getInjectedObject();
     }
 
-    protected abstract String getStatement(AopContext aopContext);
+    protected abstract StatementContext getStatementContext(AopContext aopContext);
 
     protected void fillSpan(AopContext aopContext, ITraceSpan span) {
     }

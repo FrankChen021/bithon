@@ -16,8 +16,9 @@
 
 package org.bithon.agent.plugin.jdk.thread.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,15 +28,15 @@ public class ThreadPoolNameExtractorTest {
 
     @Test
     public void testStripSuffix() {
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task-", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task- ", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - ", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %d", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %d ", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %n ", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task . %s ", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("DiskUsage-/mnt/disk/9", ThreadPoolNameExtractor.stripSuffix("DiskUsage-/mnt/disk/9/%n", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("async-process-thread", ThreadPoolNameExtractor.stripSuffix("async-process-thread-%s", ThreadPoolNameExtractor.SUFFIX_LIST));
-        Assert.assertEquals("Datanode ReportManager Thread", ThreadPoolNameExtractor.stripSuffix("Datanode ReportManager Thread - %d", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task-", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task- ", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - ", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %d", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %d ", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task - %n ", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("task", ThreadPoolNameExtractor.stripSuffix("task . %s ", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("DiskUsage-/mnt/disk/9", ThreadPoolNameExtractor.stripSuffix("DiskUsage-/mnt/disk/9/%n", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("async-process-thread", ThreadPoolNameExtractor.stripSuffix("async-process-thread-%s", ThreadPoolNameExtractor.SUFFIX_LIST));
+        Assertions.assertEquals("Datanode ReportManager Thread", ThreadPoolNameExtractor.stripSuffix("Datanode ReportManager Thread - %d", ThreadPoolNameExtractor.SUFFIX_LIST));
     }
 }

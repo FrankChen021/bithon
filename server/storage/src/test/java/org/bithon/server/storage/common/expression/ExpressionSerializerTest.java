@@ -22,8 +22,9 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Frank Chen
@@ -35,37 +36,37 @@ public class ExpressionSerializerTest {
     public void testQuotedIdentifier() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1");
 
-        Assert.assertEquals("\"a\" = 1", expr.serializeToText());
+        Assertions.assertEquals("\"a\" = 1", expr.serializeToText());
     }
 
     @Test
     public void testUnQuotedIdentifier() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1");
 
-        Assert.assertEquals("a = 1", expr.serializeToText(null));
+        Assertions.assertEquals("a = 1", expr.serializeToText(null));
     }
 
     @Test
     public void testQualifiedIdentifier() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1");
 
-        Assert.assertEquals("default.a = 1", new ExpressionSerializer("default", null).serialize(expr));
-        Assert.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", (s) -> "\"" + s + "\"").serialize(expr));
+        Assertions.assertEquals("default.a = 1", new ExpressionSerializer("default", null).serialize(expr));
+        Assertions.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", (s) -> "\"" + s + "\"").serialize(expr));
     }
 
     @Test
     public void testMapAccessExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a ['b']");
-        Assert.assertEquals("a['b']", expr.serializeToText(null));
+        Assertions.assertEquals("a['b']", expr.serializeToText(null));
 
         expr = ExpressionASTBuilder.builder().build("i > 5 AND colors['today'] = 'red'");
-        Assert.assertTrue(expr instanceof LogicalExpression.AND);
+        Assertions.assertInstanceOf(LogicalExpression.AND.class, expr);
         IExpression right = ((LogicalExpression.AND) expr).getOperands().get(1);
-        Assert.assertTrue(right instanceof ComparisonExpression.EQ);
-        Assert.assertTrue(((ComparisonExpression.EQ) right).getLhs() instanceof MapAccessExpression);
+        Assertions.assertInstanceOf(ComparisonExpression.EQ.class, right);
+        Assertions.assertInstanceOf(MapAccessExpression.class, ((ComparisonExpression.EQ) right).getLhs());
 
         expr = ExpressionASTBuilder.builder().build("5 * colors['today']");
-        Assert.assertTrue(expr instanceof ArithmeticExpression);
-        Assert.assertTrue(((ArithmeticExpression) expr).getRhs() instanceof MapAccessExpression);
+        Assertions.assertInstanceOf(ArithmeticExpression.class, expr);
+        Assertions.assertInstanceOf(MapAccessExpression.class, ((ArithmeticExpression) expr).getRhs());
     }
 }

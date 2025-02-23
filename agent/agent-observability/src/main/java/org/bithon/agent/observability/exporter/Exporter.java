@@ -74,7 +74,7 @@ public class Exporter {
         return this.messageConverter;
     }
 
-    public void send(Object message) {
+    public void export(Object message) {
         if (task != null && message != null) {
             task.accept(message);
         }

@@ -4,7 +4,7 @@ class DashboardApi {
     getDashboardConfig(boardName, successCallback, errorCallback) {
         $.ajax({
             type: 'GET',
-            url: "/web/api/dashboard/get/" + boardName,
+            url: "/api/dashboard/get/" + boardName,
             async: true,
             dataType: "json",
             contentType: "application/json",
@@ -20,7 +20,7 @@ class DashboardApi {
     getDashboardList(folder, successCallback, errorCallback) {
         $.ajax({
             type: 'GET',
-            url: `/web/api/dashboard/names?folder=${folder}`,
+            url: `/api/dashboard/names?folder=${folder}`,
             async: true,
             dataType: "json",
             contentType: "application/json",

@@ -77,7 +77,6 @@
 
     <script th:inline="javascript">
         const g_logStore = [[${store}]];
-        const g_logStoreDisplayName = [[${storeDisplayName}]];
 
         /**
          * @param search keyword of the search
@@ -136,7 +135,7 @@
             ajax: {
                 cache: true,
                 type: 'GET',
-                url: apiHost + '/web/api/dashboard/names?folder=log',
+                url: apiHost + '/api/dashboard/names?folder=log',
                 dataType: "json",
                 contentType: "application/json",
 
@@ -158,9 +157,29 @@
             },
         });
 
-        if (g_logStoreDisplayName !== '') {
-            logStoreFilter.append(`<option value=${g_logStore}>${g_logStoreDisplayName}</option>`).change();
+        if (g_logStore !== '') {
+            $(document).ready(function () {
+
+                new DashboardApi().getDashboardConfig(g_logStore,
+                    (boardConfig) => {
+                        // Initialize log store filter
+                        logStoreFilter.append(`<option value=${g_logStore}>${boardConfig.title}</option>`).change();
+
+                        // Initialize dashboard
+                        const dashboard = new Dashboard('logContainer',
+                            g_logStore,
+                            window.queryParams['interval']);
+                        dashboard.load(boardConfig);
+
+                        $(window).bind('resize', () => {
+                            dashboard.resize();
+                        });
+                    }, (error) => {
+                        alert(error.responseText);
+                    });
+            });
         }
+
         logStoreFilter.on('change', (event) => {
             if (event.target.selectedIndex !== null && event.target.selectedIndex >= 0) {
                 const selectedStore = event.target.selectedOptions[0].value;
@@ -179,26 +198,6 @@
                 }
             }
         });
-
-        if (g_logStore !== '') {
-            $(document).ready(function () {
-
-                new DashboardApi().getDashboardConfig(g_logStore,
-                    (boardConfig) => {
-                        // Initialize dashboard
-                        const dashboard = new Dashboard('logContainer',
-                            g_logStore,
-                            window.queryParams['interval']);
-                        dashboard.load(boardConfig);
-
-                        $(window).bind('resize', () => {
-                            dashboard.resize();
-                        });
-                    }, (error) => {
-                        alert(error.responseText);
-                    });
-            });
-        }
     </script>
 </div>
 </body>

@@ -59,7 +59,8 @@ public class AssemblyTable extends AbstractBaseTable implements IPushdownPredica
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true,
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true,
                                "class", true);
     }
 

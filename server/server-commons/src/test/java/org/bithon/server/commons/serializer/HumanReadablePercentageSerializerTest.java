@@ -20,8 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Frank Chen
@@ -38,7 +39,7 @@ public class HumanReadablePercentageSerializerTest {
 
         String serialized = om.writeValueAsString(HumanReadablePercentage.of("50%"));
         HumanReadablePercentage percentage = om.readValue(serialized, HumanReadablePercentage.class);
-        Assert.assertEquals("50%", percentage.toString());
+        Assertions.assertEquals("50%", percentage.toString());
     }
 
     @Test
@@ -50,6 +51,6 @@ public class HumanReadablePercentageSerializerTest {
         om.registerModule(m);
 
         HumanReadablePercentage percentage = om.readValue("\"50%\"", HumanReadablePercentage.class);
-        Assert.assertEquals("50%", percentage.toString());
+        Assertions.assertEquals("50%", percentage.toString());
     }
 }

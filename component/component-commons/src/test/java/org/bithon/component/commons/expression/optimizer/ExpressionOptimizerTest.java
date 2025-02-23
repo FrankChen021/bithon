@@ -22,8 +22,8 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * NOTE:
@@ -52,8 +52,8 @@ public class ExpressionOptimizerTest {
 
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
-        Assert.assertEquals(5, expr.getOperands().size());
-        Assert.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4) AND (e = 5)", expr.serializeToText(null));
+        Assertions.assertEquals(5, expr.getOperands().size());
+        Assertions.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4) AND (e = 5)", expr.serializeToText(null));
     }
 
     @Test
@@ -69,8 +69,8 @@ public class ExpressionOptimizerTest {
 
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
-        Assert.assertEquals(3, expr.getOperands().size());
-        Assert.assertEquals("(a = 1) OR (b = 2) OR (c = 3)", expr.serializeToText(null));
+        Assertions.assertEquals(3, expr.getOperands().size());
+        Assertions.assertEquals("(a = 1) OR (b = 2) OR (c = 3)", expr.serializeToText(null));
     }
 
     @Test
@@ -86,8 +86,8 @@ public class ExpressionOptimizerTest {
 
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
-        Assert.assertEquals(2, expr.getOperands().size());
-        Assert.assertEquals("(a = 1) AND ((b = 2) OR (c = 3))", expr.serializeToText(null));
+        Assertions.assertEquals(2, expr.getOperands().size());
+        Assertions.assertEquals("(a = 1) AND ((b = 2) OR (c = 3))", expr.serializeToText(null));
     }
 
     @Test
@@ -110,8 +110,8 @@ public class ExpressionOptimizerTest {
 
         expr.accept(new ExpressionOptimizer.AbstractOptimizer());
 
-        Assert.assertEquals(4, expr.getOperands().size());
-        Assert.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4)", expr.serializeToText(null));
+        Assertions.assertEquals(4, expr.getOperands().size());
+        Assertions.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4)", expr.serializeToText(null));
     }
 
     @Test
@@ -133,7 +133,7 @@ public class ExpressionOptimizerTest {
         );
 
         expr = ExpressionOptimizer.optimize(expr);
-        Assert.assertEquals("NOT ((a = 1) AND (b = 2) AND (c = 3) AND (d = 4))", expr.serializeToText(null));
+        Assertions.assertEquals("NOT ((a = 1) AND (b = 2) AND (c = 3) AND (d = 4))", expr.serializeToText(null));
     }
 
     @Test
@@ -143,6 +143,6 @@ public class ExpressionOptimizerTest {
         );
 
         expr = ExpressionOptimizer.optimize(expr);
-        Assert.assertEquals("false", expr.serializeToText(null));
+        Assertions.assertEquals("false", expr.serializeToText(null));
     }
 }

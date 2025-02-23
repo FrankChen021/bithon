@@ -16,7 +16,7 @@
 
 ARG JDK_VERSION=21
 
-FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} as builder
+FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} AS builder
 
 ARG BUILD_FROM_SOURCE="true"
 
@@ -49,7 +49,6 @@ RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
     ; fi
 
 FROM eclipse-temurin:${JDK_VERSION}
-COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
@@ -73,4 +72,6 @@ ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so"
 VOLUME /opt/shared/conf
 
 WORKDIR /opt
+
+COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 ENTRYPOINT ["/startup.sh"]

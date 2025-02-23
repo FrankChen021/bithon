@@ -21,8 +21,8 @@ import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.configuration.source.PropertySource;
 import org.bithon.agent.configuration.source.PropertySourceType;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -90,9 +90,9 @@ public class TestConfigurationManager {
                                                       "test.percentage=8%"));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
-        Assert.assertEquals(1, testConfig.getA());
-        Assert.assertEquals(7, testConfig.getB());
-        Assert.assertEquals("8%", testConfig.getPercentage().toString());
+        Assertions.assertEquals(1, testConfig.getA());
+        Assertions.assertEquals(7, testConfig.getB());
+        Assertions.assertEquals("8%", testConfig.getPercentage().toString());
 
         //
         // Use new value to refresh the old one
@@ -101,13 +101,13 @@ public class TestConfigurationManager {
                                                       "2",
                                                       "test.a=2\ntest.b=8\ntest.percentage=500%"
         ));
-        Assert.assertEquals(2, testConfig.getA());
-        Assert.assertEquals(8, testConfig.getB());
-        Assert.assertEquals(5, testConfig.getPercentage().intValue());
+        Assertions.assertEquals(2, testConfig.getA());
+        Assertions.assertEquals(8, testConfig.getB());
+        Assertions.assertEquals(5, testConfig.getPercentage().intValue());
 
         // Get properties that do not exist in the configuration, a default value is returned
         Boolean v = manager.getConfig("do.not.exists", Boolean.class);
-        Assert.assertFalse(v);
+        Assertions.assertFalse(v);
     }
 
     @ConfigurationProperties(path = "test")
@@ -130,7 +130,7 @@ public class TestConfigurationManager {
     public void test_ConfigurationFromFile() {
         ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
         TestProp config = manager.getConfig(TestProp.class);
-        Assert.assertEquals("from default file", config.getProp());
+        Assertions.assertEquals("from default file", config.getProp());
     }
 
     @Test
@@ -147,7 +147,7 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
-            Assert.assertEquals("from external file", config.getProp());
+            Assertions.assertEquals("from external file", config.getProp());
         }
     }
 
@@ -169,7 +169,7 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
-            Assert.assertEquals("from_command_line", config.getProp());
+            Assertions.assertEquals("from_command_line", config.getProp());
         }
     }
 
@@ -198,7 +198,7 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TestProp config = manager.getConfig(TestProp.class);
-            Assert.assertEquals("from_env", config.getProp());
+            Assertions.assertEquals("from_env", config.getProp());
         }
     }
 
@@ -246,8 +246,8 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             TwoProps config = manager.getConfig("test", TwoProps.class);
-            Assert.assertEquals("from_command_line", config.getProp1());
-            Assert.assertEquals("from_env", config.getProp2());
+            Assertions.assertEquals("from_command_line", config.getProp1());
+            Assertions.assertEquals("from_env", config.getProp2());
         }
     }
 
@@ -313,7 +313,7 @@ public class TestConfigurationManager {
         ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
         ApplyChangeTestConfig bean = manager.getConfig("test", ApplyChangeTestConfig.class, true);
-        Assert.assertEquals("from default file", bean.getProp());
+        Assertions.assertEquals("from default file", bean.getProp());
 
         // Add two new configurations
         manager.applyChanges(Collections.emptyList(),
@@ -321,13 +321,13 @@ public class TestConfigurationManager {
                              Arrays.asList(PropertySource.from(PropertySourceType.DYNAMIC, "d1", "test.prop=a"),
                                            PropertySource.from(PropertySourceType.DYNAMIC, "d2", "test.prop1=from_d2")));
         HashMap<?, ?> map = manager.getConfig("test", HashMap.class);
-        Assert.assertEquals(2, map.size());
-        Assert.assertEquals("a", map.get("prop"));
-        Assert.assertEquals("from_d2", map.get("prop1"));
+        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals("a", map.get("prop"));
+        Assertions.assertEquals("from_d2", map.get("prop1"));
 
         // The bean Should be updated
-        Assert.assertEquals("a", bean.getProp());
-        Assert.assertEquals("from_d2", bean.getProp1());
+        Assertions.assertEquals("a", bean.getProp());
+        Assertions.assertEquals("from_d2", bean.getProp1());
 
         //
         // Remove 'd1'
@@ -336,13 +336,13 @@ public class TestConfigurationManager {
                              Collections.emptyMap(),
                              Collections.emptyList());
         map = manager.getConfig("test", HashMap.class);
-        Assert.assertEquals(2, map.size());
-        Assert.assertEquals("from default file", map.get("prop"));
-        Assert.assertEquals("from_d2", map.get("prop1"));
+        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals("from default file", map.get("prop"));
+        Assertions.assertEquals("from_d2", map.get("prop1"));
 
         // The bean Should be updated
-        Assert.assertEquals("from default file", bean.getProp());
-        Assert.assertEquals("from_d2", bean.getProp1());
+        Assertions.assertEquals("from default file", bean.getProp());
+        Assertions.assertEquals("from_d2", bean.getProp1());
 
         // Remove d2,
         // Add d3
@@ -350,12 +350,12 @@ public class TestConfigurationManager {
                              Collections.emptyMap(),
                              Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop1=from_d3")));
         map = manager.getConfig("test", HashMap.class);
-        Assert.assertEquals(2, map.size());
-        Assert.assertEquals("from default file", map.get("prop"));
-        Assert.assertEquals("from_d3", map.get("prop1"));
+        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals("from default file", map.get("prop"));
+        Assertions.assertEquals("from_d3", map.get("prop1"));
 
-        Assert.assertEquals("from default file", bean.getProp());
-        Assert.assertEquals("from_d3", bean.getProp1());
+        Assertions.assertEquals("from default file", bean.getProp());
+        Assertions.assertEquals("from_d3", bean.getProp1());
 
 
         // Replace d3, add d4
@@ -363,16 +363,16 @@ public class TestConfigurationManager {
                              ImmutableMap.of("d3", PropertySource.from(PropertySourceType.DYNAMIC, "d3", "test.prop3=from_d3")),
                              Collections.singletonList(PropertySource.from(PropertySourceType.DYNAMIC, "d4", "test.prop4=from_d4")));
         map = manager.getConfig("test", HashMap.class);
-        Assert.assertEquals(3, map.size());
-        Assert.assertEquals("from default file", map.get("prop"));
-        Assert.assertEquals("from_d3", map.get("prop3"));
-        Assert.assertEquals("from_d4", map.get("prop4"));
+        Assertions.assertEquals(3, map.size());
+        Assertions.assertEquals("from default file", map.get("prop"));
+        Assertions.assertEquals("from_d3", map.get("prop3"));
+        Assertions.assertEquals("from_d4", map.get("prop4"));
 
-        Assert.assertEquals("from default file", bean.getProp());
-        Assert.assertNull(bean.getProp1());
-        Assert.assertNull(bean.getProp2());
-        Assert.assertEquals("from_d3", bean.getProp3());
-        Assert.assertEquals("from_d4", bean.getProp4());
+        Assertions.assertEquals("from default file", bean.getProp());
+        Assertions.assertNull(bean.getProp1());
+        Assertions.assertNull(bean.getProp2());
+        Assertions.assertEquals("from_d3", bean.getProp3());
+        Assertions.assertEquals("from_d4", bean.getProp4());
     }
 
     @Test
@@ -390,10 +390,10 @@ public class TestConfigurationManager {
 
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
-            Assert.assertEquals("8%", manager.getConfig("test.percentage", String.class, true));
-            Assert.assertEquals("8%", manager.getConfig("test.percentage", HumanReadablePercentage.class).toString());
-            Assert.assertEquals(1, (int) manager.getConfig("test.a", Integer.class));
-            Assert.assertEquals(true, manager.getConfig("test.b", Boolean.class));
+            Assertions.assertEquals("8%", manager.getConfig("test.percentage", String.class, true));
+            Assertions.assertEquals("8%", manager.getConfig("test.percentage", HumanReadablePercentage.class).toString());
+            Assertions.assertEquals(1, (int) manager.getConfig("test.a", Integer.class));
+            Assertions.assertEquals(true, manager.getConfig("test.b", Boolean.class));
         }
     }
 
@@ -413,8 +413,8 @@ public class TestConfigurationManager {
 
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
-            Assert.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
-            Assert.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.of("8%"),
+            Assertions.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
+            Assertions.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.of("8%"),
                                          HumanReadablePercentage.of("9%"),
                                          HumanReadablePercentage.of("10%")},
                                      manager.getConfig("test.p", HumanReadablePercentage[].class, true));
@@ -431,7 +431,7 @@ public class TestConfigurationManager {
         {
             ConfigurationManager manager = ConfigurationManager.createForTesting(externalConfigLocation);
             StringListConfig config = manager.getConfig(StringListConfig.class);
-            Assert.assertEquals(Collections.singletonList("from file a"), config);
+            Assertions.assertEquals(Collections.singletonList("from file a"), config);
         }
 
         // When the property is given, the default one is overridden
@@ -445,7 +445,7 @@ public class TestConfigurationManager {
 
             ConfigurationManager manager = ConfigurationManager.createForTesting(externalConfigLocation);
             StringListConfig config = manager.getConfig(StringListConfig.class);
-            Assert.assertEquals(Arrays.asList("1", "2"), config);
+            Assertions.assertEquals(Arrays.asList("1", "2"), config);
         }
     }
 }

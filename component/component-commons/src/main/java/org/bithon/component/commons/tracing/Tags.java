@@ -132,8 +132,12 @@ public class Tags {
 
         /**
          * database name
+         * Use {@link #NAMESPACE} for mongodb
          */
+        @Deprecated
         public static final String NAME = "db.name";
+        
+        public static final String NAMESPACE = "db.namespace";
 
         /**
          * The statement(SQL) that is being executed
@@ -143,7 +147,7 @@ public class Tags {
         /**
          * The type of statement such as select/delete/update
          */
-        public static final String OPERATION = "db.operation";
+        public static final String OPERATION = "db.operation.name";
 
         public static final String REDIS_DB_INDEX = "db.redis.database_index";
         public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";

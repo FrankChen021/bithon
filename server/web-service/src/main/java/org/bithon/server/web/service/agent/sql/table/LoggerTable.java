@@ -49,13 +49,13 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   ILoggingCommand.class)
+        return proxyFactory.create(executionContext.getParameters(), ILoggingCommand.class)
                            .getLoggers()
                            .stream()
                            .map(LoggerConfiguration::toObjects)
@@ -97,9 +97,6 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
     public int update(SqlExecutionContext executionContext,
                       IExpression filterExpression,
                       Map<String, Object> newValues) {
-        String token = (String) executionContext.get("_token");
-        Preconditions.checkNotNull(token, "'_token' is missed in the WHERE clause.");
-
         Preconditions.checkNotNull(filterExpression, "'name' is missed in the WHERE clause.");
         Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
 

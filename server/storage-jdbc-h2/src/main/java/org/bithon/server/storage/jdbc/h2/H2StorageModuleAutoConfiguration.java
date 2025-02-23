@@ -25,13 +25,13 @@ import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
+import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -81,7 +81,7 @@ public class H2StorageModuleAutoConfiguration {
                                          new NamedType(AlertRecordJdbcStorage.class, "h2"),
                                          new NamedType(AlertStateJdbcStorage.class, "h2"),
                                          new NamedType(NotificationChannelJdbcStorage.class, "h2")
-                                         );
+                );
             }
         };
     }

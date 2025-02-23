@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-FROM maven:3.9.6-eclipse-temurin-8 as builder
+FROM maven:3.9.6-eclipse-temurin-8 AS builder
 
 ARG BUILD_FROM_SOURCE="true"
 

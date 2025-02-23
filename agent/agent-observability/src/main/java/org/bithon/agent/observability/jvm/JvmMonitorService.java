@@ -40,14 +40,14 @@ public class JvmMonitorService implements IAgentService {
         // dispatch started message once the exporter is ready
         //
         Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT)
-                 .onReady((exporter) -> exporter.send(exporter.getMessageConverter()
-                                                              .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
+                 .onReady((exporter) -> exporter.export(exporter.getMessageConverter()
+                                                                .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
     }
 
     @Override
     public void stop() {
         // dispatch jvm stopped message
         Exporter exporter = Exporters.getOrCreate(Exporters.EXPORTER_NAME_EVENT);
-        exporter.send(exporter.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
+        exporter.export(exporter.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
     }
 }

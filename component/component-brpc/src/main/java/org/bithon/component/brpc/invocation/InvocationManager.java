@@ -19,7 +19,6 @@ package org.bithon.component.brpc.invocation;
 import org.bithon.component.brpc.ServiceRegistryItem;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
-import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
@@ -27,7 +26,6 @@ import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -56,7 +54,7 @@ public class InvocationManager {
 
     private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
 
-    public Object invoke(String appName,
+    public Object invoke(String invokerName,
                          Headers headers,
                          IBrpcChannel channel,
                          long timeoutMillisecond,
@@ -72,7 +70,7 @@ public class InvocationManager {
                                                                           .serializer(serviceRegistryItem.getSerializer())
                                                                           .isOneway(serviceRegistryItem.isOneway())
                                                                           .messageType(serviceRegistryItem.getMessageType())
-                                                                          .applicationName(appName)
+                                                                          .applicationName(invokerName)
                                                                           .headers(headers)
                                                                           .args(args)
                                                                           .build();
@@ -181,24 +179,13 @@ public class InvocationManager {
             return;
         }
 
-        if (StringUtils.hasText(response.getException())) {
-            String exceptionClassName = "";
-            int separator = response.getException().indexOf(' ');
-            if (separator > 0) {
-                exceptionClassName = response.getException().substring(0, separator);
-                if (!exceptionClassName.endsWith("Exception")) {
-                    // According to exception class name convention, it MUST end with 'Exception',
-                    // Clears the invalid name
-                    exceptionClassName = "";
-                }
-            }
-
-            inflightRequest.exception = new CalleeSideException(exceptionClassName, response.getException());
+        if (response.getException() != null) {
+            inflightRequest.exception = response.getException();
         } else {
             try {
                 inflightRequest.returnObject = inflightRequest.returnObjectType == null ?
-                        response.getReturnAsRaw() :
-                        response.getReturningAsObject(inflightRequest.returnObjectType);
+                    response.getReturnAsRaw() :
+                    response.getReturningAsObject(inflightRequest.returnObjectType);
             } catch (IOException e) {
                 inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
             }

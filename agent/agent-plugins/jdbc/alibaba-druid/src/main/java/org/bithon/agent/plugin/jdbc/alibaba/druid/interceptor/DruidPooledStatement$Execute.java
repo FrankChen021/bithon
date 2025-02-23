@@ -20,6 +20,7 @@ import com.alibaba.druid.pool.DruidPooledStatement;
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.plugin.jdbc.common.AbstractStatement$Execute;
+import org.bithon.agent.plugin.jdbc.common.StatementContext;
 
 import java.sql.Statement;
 
@@ -57,7 +58,7 @@ public class DruidPooledStatement$Execute extends AbstractStatement$Execute {
     }
 
     @Override
-    protected String getStatement(AopContext aopContext) {
-        return aopContext.getArgAs(0);
+    protected StatementContext getStatementContext(AopContext aopContext) {
+        return new StatementContext(aopContext.getArgAs(0));
     }
 }

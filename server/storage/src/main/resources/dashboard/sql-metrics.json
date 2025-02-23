@@ -1,0 +1,158 @@
+{
+  "name": "sql-metrics",
+  "title": "SQL",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "sql-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "server",
+          "database",
+          "sqlType"
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "TPS",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        {
+          "name": "tps",
+          "yAxis": 0
+        },
+        {
+          "name": "callCount",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "sql-metrics",
+        "fields": [
+          "tps",
+          "callCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "database",
+          "sqlType",
+          "tps",
+          "callCount"
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "tps",
+            "callCount"
+          ],
+          "groupBy": ["database", "sqlType"],
+          "orderBy": {
+            "name": "callCount",
+            "order": "desc"
+          }
+        },
+        "tracing": {
+          "mappings": {
+            "sqlType": "tags['db.operation.name']"
+          },
+          "filter": "kind = 'CLIENT'"
+        }
+      }
+    },
+    {
+      "title": "Response Time",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "nanoFormatter"
+        }
+      ],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "sql-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      },
+      "details": {
+        "columns": [
+          "database",
+          "sqlType",
+          "callCount",
+          {"name":"minResponseTime", "format": "nanoFormatter"},
+          {"name":"avgResponseTime", "format": "nanoFormatter"},
+          {"name":"maxResponseTime", "format": "nanoFormatter"}
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "callCount",
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "groupBy": ["database", "sqlType"],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "title": "IO",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        "bytesOut"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "sql-metrics",
+        "fields": [
+          "bytesOut"
+        ]
+      },
+      "details": {
+        "columns": [
+          "database",
+          "sqlType",
+          {"name":"bytesOut", "format": "binary_byte"}
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "bytesOut"
+          ],
+          "groupBy": ["database", "sqlType"],
+          "orderBy": {
+            "name": "bytesOut",
+            "order": "desc"
+          }
+        }
+      }
+    }
+  ]
+}
+

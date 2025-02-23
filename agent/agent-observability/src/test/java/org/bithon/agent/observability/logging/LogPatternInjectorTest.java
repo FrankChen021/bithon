@@ -16,8 +16,9 @@
 
 package org.bithon.agent.observability.logging;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Frank Chen
@@ -26,30 +27,30 @@ import org.junit.Test;
 public class LogPatternInjectorTest {
     @Test
     public void test() {
-        Assert.assertEquals("[bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] %msg", LogPatternInjector.injectTracePattern("%msg"));
+        Assertions.assertEquals("[bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] %msg", LogPatternInjector.injectTracePattern("%msg"));
 
         // No injection due to no msg field found
-        Assert.assertEquals("%thread", LogPatternInjector.injectTracePattern("%thread"));
+        Assertions.assertEquals("%thread", LogPatternInjector.injectTracePattern("%thread"));
 
         // No injection due to bTxId variable defined
-        Assert.assertEquals("%X{bTxId}", LogPatternInjector.injectTracePattern("%X{bTxId}"));
+        Assertions.assertEquals("%X{bTxId}", LogPatternInjector.injectTracePattern("%X{bTxId}"));
     }
 
     @Test
     public void test_VariableDefined() {
         // No injection due to bTxId variable defined
-        Assert.assertEquals("%X{bTxId}", LogPatternInjector.injectTracePattern("%X{bTxId}"));
+        Assertions.assertEquals("%X{bTxId}", LogPatternInjector.injectTracePattern("%X{bTxId}"));
 
         // bTxIdd is not a valid variable, injection will be included
-        Assert.assertEquals("%X{bTxIdd} [bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] %msg",
+        Assertions.assertEquals("%X{bTxIdd} [bTxId: %X{bTxId}, bSpanId: %X{bSpanId}, bMode: %X{bMode}] %msg",
                             LogPatternInjector.injectTracePattern("%X{bTxIdd} %msg"));
 
         // bTxId included with default value, no injection involved
-        Assert.assertEquals("%X{bTxId: -null} %msg",
+        Assertions.assertEquals("%X{bTxId: -null} %msg",
                             LogPatternInjector.injectTracePattern("%X{bTxId: -null} %msg"));
 
         // No injection due to bTxId defined
-        Assert.assertEquals("%X{test} %X{bTxId: -null} %msg",
+        Assertions.assertEquals("%X{test} %X{bTxId: -null} %msg",
                             LogPatternInjector.injectTracePattern("%X{test} %X{bTxId: -null} %msg"));
     }
 }

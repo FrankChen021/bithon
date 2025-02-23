@@ -24,8 +24,9 @@ import org.bithon.server.storage.datasource.DefaultSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.LongColumn;
 import org.bithon.server.storage.datasource.column.StringColumn;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,7 +55,7 @@ public class ExpressionValidationTest {
                             .functions(Functions.getInstance())
                             .build("hasToken(a, 'a')");
 
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .functions(Functions.getInstance())
@@ -63,18 +64,18 @@ public class ExpressionValidationTest {
 
     @Test
     public void test_NumberToStringImplicitConversion() {
-        Assert.assertEquals("a > '5'",
-                            ExpressionASTBuilder.builder()
+        Assertions.assertEquals("a > '5'",
+                                ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("5 < a")
                                                 .serializeToText(null));
 
-        Assert.assertEquals("a > '5'", ExpressionASTBuilder.builder()
+        Assertions.assertEquals("a > '5'", ExpressionASTBuilder.builder()
                                                            .schema(schema)
                                                            .build("a > 5")
                                                            .serializeToText(null));
 
-        Assert.assertEquals("a > '5.3'",
+        Assertions.assertEquals("a > '5.3'",
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("5.3 < a")
@@ -84,12 +85,12 @@ public class ExpressionValidationTest {
     @Test
     public void test_StringToIntImplicitConversion() {
         // String ---> Int
-        Assert.assertEquals("intB > 5", ExpressionASTBuilder.builder()
+        Assertions.assertEquals("intB > 5", ExpressionASTBuilder.builder()
                                                             .schema(schema)
                                                             .build("intB > '5'")
                                                             .serializeToText(null));
 
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("intB > 'valid'")
@@ -102,20 +103,20 @@ public class ExpressionValidationTest {
         String dateTime = "2023-01-04 00:00:00";
         long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime).getTime();
 
-        Assert.assertEquals(StringUtils.format("timestamp > %d", timestamp),
+        Assertions.assertEquals(StringUtils.format("timestamp > %d", timestamp),
 
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("timestamp > '2023-01-04 00:00:00'")
                                                 .serializeToText(null));
 
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("timestamp > 'invalid'")
                                                       .serializeToText(null));
 
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("timestamp > not_defined")
@@ -126,7 +127,7 @@ public class ExpressionValidationTest {
     public void test_LongToDateTimeImplicitConversion() {
         // Long ---> DateTime
         TimeSpan timeSpan = TimeSpan.fromISO8601("2023-01-04T00:00:00.000+08:00");
-        Assert.assertEquals(StringUtils.format("timestamp > %d", timeSpan.getMilliseconds()),
+        Assertions.assertEquals(StringUtils.format("timestamp > %d", timeSpan.getMilliseconds()),
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("timestamp > " + timeSpan.getMilliseconds())
@@ -135,7 +136,7 @@ public class ExpressionValidationTest {
 
     @Test
     public void test_TypeMismatchForIdentifier() {
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () ->
                                 ExpressionASTBuilder.builder()
                                                     .schema(schema)
@@ -145,7 +146,7 @@ public class ExpressionValidationTest {
 
     @Test
     public void test_UncompletedLogicalExpression() {
-        Assert.assertThrows(ExpressionValidationException.class,
+        Assertions.assertThrows(ExpressionValidationException.class,
                             () ->
                                 ExpressionASTBuilder.builder()
                                                     .schema(schema)

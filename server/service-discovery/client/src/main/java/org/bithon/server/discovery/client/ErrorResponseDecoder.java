@@ -23,7 +23,6 @@ import feign.codec.ErrorDecoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.exception.ErrorResponse;
-import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -47,7 +46,7 @@ public class ErrorResponseDecoder implements ErrorDecoder {
     public Exception decode(String methodKey, Response response) {
 
         try {
-            String body = new String(Util.toByteArray(response.body().asInputStream()), StandardCharsets.UTF_8);
+            String body = response.body() == null ? null : new String(Util.toByteArray(response.body().asInputStream()), StandardCharsets.UTF_8);
 
             String path = response.request().url();
             try {
@@ -59,22 +58,21 @@ public class ErrorResponseDecoder implements ErrorDecoder {
             // Try to decode the message
             Collection<String> contentTypeHeaders = response.headers().get("Content-Type");
             if (contentTypeHeaders != null
+                && body != null
                 && !contentTypeHeaders.isEmpty()
                 && contentTypeHeaders.iterator().next().startsWith("application/json")) {
                 ErrorResponse errorResponse = this.objectMapper.readValue(body, ErrorResponse.class);
                 if (errorResponse.getException() != null) {
                     return new HttpMappableException(errorResponse.getException(),
                                                      response.status(),
-                                                     "Error when requesting [%s]: %s",
-                                                     path,
                                                      errorResponse.getMessage());
                 }
             }
 
-            return new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            return new HttpMappableException(response.status(),
                                              "Error from remote [%s]: %s, Status = %d",
                                              path,
-                                             body,
+                                             body == null ? "" : body,
                                              response.status());
 
         } catch (IOException e) {
