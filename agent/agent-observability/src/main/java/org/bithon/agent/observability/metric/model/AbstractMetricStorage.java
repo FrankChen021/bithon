@@ -94,6 +94,10 @@ public class AbstractMetricStorage<T> implements IMetricCollector2 {
         this.metricsInstantiator = MetricAccessorGenerator.createInstantiator(metricClass);
     }
 
+    public T newMetrics() {
+        return metricsInstantiator.newInstance();
+    }
+
     /**
      * @param metricProvider fill the metric instance
      */
