@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/2/25 8:49
+ * @date 2025/2/23 8:49
  */
 public class ObservabilityContext {
     private final String service;

@@ -22,7 +22,7 @@ import org.bithon.agent.observability.metric.model.annotation.Sum;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/2/25 8:49
+ * @date 2025/2/23 8:49
  */
 public class GrpcMetrics {
     /**
