@@ -22,6 +22,7 @@ import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.plugin.grpc.metrics.GrpcMetrics;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
@@ -84,6 +85,7 @@ public class ObservabilityContext {
             span.method(service, method)
                 .tag(Tags.Rpc.SYSTEM, "grpc")
                 .tag(Tags.Net.PEER, this.server)
+                .tag("uri", StringUtils.format("grpc://%s/%s/%s", this.server, this.service, this.method))
                 .kind(SpanKind.CLIENT)
                 .start();
         }
