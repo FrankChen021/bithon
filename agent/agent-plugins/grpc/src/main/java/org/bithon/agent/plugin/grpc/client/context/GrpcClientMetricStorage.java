@@ -45,8 +45,12 @@ public class GrpcClientMetricStorage extends AbstractMetricStorage<GrpcMetrics> 
               });
     }
 
-    public void add(String service, String method, String server, GrpcMetrics metrics) {
-        super.add(Dimensions.of(service, method, server), metrics);
+    public void add(String service,
+                    String method,
+                    String server,
+                    String status,
+                    GrpcMetrics metrics) {
+        super.add(Dimensions.of(service, method, status, server), metrics);
     }
 
     public static GrpcClientMetricStorage getInstance() {

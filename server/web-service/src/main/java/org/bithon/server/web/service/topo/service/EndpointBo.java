@@ -35,6 +35,4 @@ public class EndpointBo {
     private final String id = String.valueOf(ID.addAndGet(1));
     private String type;
     private String name;
-    private long x;
-    private long y;
 }

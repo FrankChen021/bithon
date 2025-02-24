@@ -121,8 +121,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         @Override
         public void onClose(Status status, Metadata trailers) {
             // TODO: Unify the status code
-            // Currently we use 200 to represent OK so that the code comply with HTTP Status
-            context.finish(status.equals(Status.OK) ? "200" : status.getCode().toString(),
+            context.finish(status.getCode().name(),
                            status.getCause());
 
             delegate.onClose(status, trailers);

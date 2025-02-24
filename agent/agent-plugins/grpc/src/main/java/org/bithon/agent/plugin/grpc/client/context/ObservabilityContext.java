@@ -82,6 +82,7 @@ public class ObservabilityContext {
     public void start() {
         if (span != null) {
             span.method(service, method)
+                .tag(Tags.Rpc.SYSTEM, "grpc")
                 .tag(Tags.Net.PEER, this.server)
                 .kind(SpanKind.CLIENT)
                 .start();
@@ -99,9 +100,12 @@ public class ObservabilityContext {
         this.metrics.maxResponseTime = this.metrics.responseTime;
         this.metrics.minResponseTime = this.metrics.responseTime;
 
-        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, this.metrics);
+        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, "Exception", this.metrics);
     }
 
+    /**
+     * @param status See {@link io.grpc.Status.Code}
+     */
     public void finish(String status, Throwable throwable) {
         if (span != null) {
             span.tag("status", status)
@@ -115,6 +119,6 @@ public class ObservabilityContext {
         this.metrics.maxResponseTime = this.metrics.responseTime;
         this.metrics.minResponseTime = this.metrics.responseTime;
 
-        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, this.metrics);
+        GrpcClientMetricStorage.getInstance().add(this.service, this.method, this.server, status, this.metrics);
     }
 }
