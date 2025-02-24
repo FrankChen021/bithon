@@ -116,7 +116,17 @@ public class TraceSpanTransformer implements ITransformer {
                 }
             }
         } else {
-            uri = tags.getOrDefault(Tags.Http.TARGET, "");
+            if (tags.containsKey(Tags.Rpc.SYSTEM)) {
+                // For old agent that does not record the 'uri' property
+                uri = StringUtils.format("%s://%s/%s/%s",
+                                         tags.get(Tags.Rpc.SYSTEM),
+                                         span.getTags().get(Tags.Net.PEER),
+                                         span.clazz,
+                                         span.method);
+                tags.put("uri", uri);
+            } else {
+                uri = tags.getOrDefault(Tags.Http.TARGET, "");
+            }
         }
 
         if (StringUtils.hasText(uri)) {

@@ -111,7 +111,7 @@ public class TraceTopoBuilder {
 
         TraceTopo.Link link = this.links.computeIfAbsent(srcNodeName + "->" + dstNodeName,
                                                          v -> new TraceTopo.Link(srcNodeName, dstNodeName));
-        link.incrCount(source.costTime, source.status.compareTo("400") >= 0);
+        link.incrCount(source.costTime, source.status.compareTo("400") >= 0 && !"OK".equals(source.status));
         return link;
     }
 
@@ -309,6 +309,9 @@ public class TraceTopoBuilder {
                         } else {
                             remoteInstance = childSpan.getTag(Tags.Net.PEER);
                         }
+                    } else if (childSpan.getTag(Tags.Rpc.SYSTEM) != null) {
+                        remoteApplication = childSpan.getTag(Tags.Rpc.SYSTEM);
+                        remoteInstance = childSpan.getTag(Tags.Net.PEER);
                     } else {
                         remoteApplication = "Unknown";
                     }
