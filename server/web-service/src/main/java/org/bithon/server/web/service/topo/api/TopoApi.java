@@ -42,6 +42,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +73,7 @@ public class TopoApi {
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
         TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
         TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
+        long durationSeconds = end.diff(start) / 1000;
 
         Query calleeQuery = Query.builder()
                                  .schema(topoSchema)
@@ -81,9 +84,9 @@ public class TopoApi {
                                                       "maxResponseTime",
                                                       "minResponseTime")
                                                   .map((column) -> {
-                                                          IColumn spec = topoSchema.getColumnByName(column);
-                                                          return spec.toSelector();
-                                                      })
+                                                      IColumn spec = topoSchema.getColumnByName(column);
+                                                      return spec.toSelector();
+                                                  })
                                                   .collect(Collectors.toList()))
                                  .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("srcEndpoint"),
                                                                                                LiteralExpression.ofString(request.getApplication())),
@@ -94,34 +97,32 @@ public class TopoApi {
                                  .build();
 
         try (IDataSourceReader dataSourceReader = topoSchema.getDataStoreSpec().createReader()) {
+            //noinspection unchecked,SpellCheckingInspection
             List<Map<String, Object>> callees = (List<Map<String, Object>>) dataSourceReader.groupBy(calleeQuery);
 
-            int x = 300;
-            int y = 300;
-            int nodeHeight = 50;
             Topo topo = new Topo();
-            EndpointBo thisApplication = new EndpointBo("application",
-                                                        request.getApplication(),
-                                                        x,
-                                                        y + callees.size() / 2L * nodeHeight);
+            EndpointBo thisApplication = new EndpointBo("application", request.getApplication());
             topo.addEndpoint(thisApplication);
 
             for (Map<String, Object> callee : callees) {
                 IInputRow inputRow = new InputRow(callee);
                 String dst = inputRow.getColAsString("dstEndpoint");
                 String dstType = inputRow.getColAsString("dstEndpointType");
-                EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
+                EndpointBo dstEndpoint = new EndpointBo(dstType, dst);
                 topo.addEndpoint(dstEndpoint);
+
+                long count = inputRow.getColAsLong("callCount", 0);
+
                 topo.addLink(Link.builder()
                                  .srcEndpoint(thisApplication.getId())
                                  .dstEndpoint(dstEndpoint.getId())
                                  .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                                  .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
                                  .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))
-                                 .callCount(inputRow.getColAsLong("callCount", 0))
+                                 .callCount(count)
                                  .errorCount(inputRow.getColAsLong("errorCount", 0))
+                                 .qps(BigDecimal.valueOf(count).divide(BigDecimal.valueOf(durationSeconds), 2, RoundingMode.HALF_UP).doubleValue())
                                  .build());
-                y += nodeHeight;
             }
 
             Query callerQuery = Query.builder()
@@ -133,9 +134,9 @@ public class TopoApi {
                                                           "maxResponseTime",
                                                           "minResponseTime")
                                                       .map((column) -> {
-                                                              IColumn spec = topoSchema.getColumnByName(column);
-                                                              return spec.toSelector();
-                                                          })
+                                                          IColumn spec = topoSchema.getColumnByName(column);
+                                                          return spec.toSelector();
+                                                      })
                                                       .collect(Collectors.toList()))
                                      .filter(new LogicalExpression.AND(new ComparisonExpression.EQ(new IdentifierExpression("dstEndpoint"),
                                                                                                    LiteralExpression.ofString(request.getApplication())),
@@ -143,25 +144,28 @@ public class TopoApi {
                                                                                                    LiteralExpression.ofString(EndPointType.APPLICATION.name()))))
                                      .interval(Interval.of(start, end))
                                      .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
+
+            //noinspection unchecked
             List<Map<String, Object>> callers = (List<Map<String, Object>>) dataSourceReader.groupBy(callerQuery);
 
-            y = 300;
             for (Map<String, Object> caller : callers) {
                 IInputRow inputRow = new InputRow(caller);
                 String src = inputRow.getColAsString("srcEndpoint");
                 String srcType = inputRow.getColAsString("srcEndpointType");
-                EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 100, y);
+                EndpointBo srcEndpoint = new EndpointBo(srcType, src);
                 topo.addEndpoint(srcEndpoint);
+
+                long count = inputRow.getColAsLong("callCount", 0);
                 topo.addLink(Link.builder()
                                  .srcEndpoint(srcEndpoint.getId())
                                  .dstEndpoint(thisApplication.getId())
                                  .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                                  .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
                                  .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))
-                                 .callCount(inputRow.getColAsLong("callCount", 0))
+                                 .callCount(count)
                                  .errorCount(inputRow.getColAsLong("errorCount", 0))
+                                 .qps(BigDecimal.valueOf(count).divide(BigDecimal.valueOf(durationSeconds), 2, RoundingMode.HALF_UP).doubleValue())
                                  .build());
-                y += nodeHeight;
             }
             return topo;
         }

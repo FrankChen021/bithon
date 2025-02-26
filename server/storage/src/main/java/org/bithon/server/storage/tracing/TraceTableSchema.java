@@ -138,6 +138,8 @@ public class TraceTableSchema implements ISchema {
                                                   new StringColumn("status",
                                                                    "status"),
                                                   new StringColumn("name", "name"),
+                                                  new StringColumn("clazz", "clazz"),
+                                                  new StringColumn("method", "method"),
                                                   new StringColumn("normalizedUrl",
                                                                    "url"),
                                                   new StringColumn("kind", "kind"),

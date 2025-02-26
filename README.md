@@ -184,7 +184,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Apache OZone                                                 | 1.3.0       |             |                                                | &check; |
 | Apache ZooKeeper Client                                      | 3.5         | 3.9         | &check;                                        |         |
 | Eclipse Glassfish                                            | 2.34        |             |                                                | &check; |
-| GRPC                                                         | 1.57.0      |             |                                                | &check; |
+| GRPC                                                         | 1.57.0      |             | &check;                                        | &check; |
 | Google Guice                                                 | 4.1.0       |             |                                                | &check; |
 | HTTP Client - Apache                                         | 4.5.2       | 5.x         | [&check;](doc/metrics/http-outgoing/README.md) | &check; |
 | HTTP Client - Jetty                                          | 9.4.6       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; |

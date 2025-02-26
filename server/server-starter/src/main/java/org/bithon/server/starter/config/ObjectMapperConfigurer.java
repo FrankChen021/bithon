@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
 import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
@@ -109,7 +108,6 @@ public class ObjectMapperConfigurer {
                               return deserializer;
                           }
                       }))
-                      .registerModule(new AfterburnerModule())
                       .setInjectableValues(new InjectableValues() {
                           @Override
                           public Object findInjectableValue(Object valueId,
