@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -37,11 +41,15 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.sql.validate.SqlValidatorException;
 import org.apache.calcite.util.NlsString;
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
+import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
+import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.IPushdownPredicateProvider;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
 import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
@@ -52,16 +60,24 @@ import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Frank Chen
@@ -74,6 +90,8 @@ public class AgentDiagnosisApi {
 
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
+    private final ApplicationContext applicationContext;
+    private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
                              SqlExecutionEngine sqlExecutionEngine,
@@ -82,6 +100,8 @@ public class AgentDiagnosisApi {
         this.objectMapper = objectMapper;
         this.sqlExecutionEngine = sqlExecutionEngine;
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
+        this.applicationContext = applicationContext;
+        this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 
     @PostMapping(value = "/api/agent/query")
@@ -210,6 +230,129 @@ public class AgentDiagnosisApi {
             call.setOperand(1, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
             return null;
         }
+    }
+
+    @Data
+    public static class ProfileRequest {
+        @NotEmpty
+        private String appName;
+
+        @NotEmpty
+        private String instanceName;
+
+        /**
+         * in seconds
+         */
+        @Min(5)
+        @Max(10)
+        private long interval;
+
+        /**
+         * how long the profiling should last for in seconds
+         */
+        @Max(5 * 60)
+        @Min(10)
+        private int duration;
+    }
+
+    @GetMapping("/api/agent/profile/jvm")
+    public SseEmitter profile(@Valid @ModelAttribute ProfileRequest request) {
+
+        AtomicReference<DiscoveredServiceInstance> controller = new AtomicReference<>();
+
+        //
+        // Find the controller where the target instance is connected to
+        //
+        List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+        CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+        for (DiscoveredServiceInstance controllerInstance : controllerList) {
+            discoveredServiceInvoker.getExecutor()
+                                    .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
+                                                                          .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
+                                    .thenAccept((returning) -> {
+                                        if (!returning.isEmpty()) {
+                                            controller.set(controllerInstance);
+                                        }
+                                    })
+                                    .whenComplete((ret, ex) -> countDownLatch.countDown());
+        }
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (controller.get() == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName());
+        }
+
+        //
+        //
+        //
+        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
+        IJvmCommand remoteJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
+                                                                                   controller.get(),
+                                                                                   request.getAppName(),
+                                                                                   request.getInstanceName());
+
+        final long duration = request.getDuration();
+
+        Timer timer = new Timer();
+
+        SseEmitter emitter = new SseEmitter(request.getDuration() * 1000L + 500);
+        emitter.onCompletion(timer::cancel);
+        emitter.onTimeout(timer::cancel);
+        emitter.onError((e) -> timer.cancel());
+
+        //
+        // Schedule a task to get information from the target instance continuously
+        //
+        timer.scheduleAtFixedRate(new TimerTask() {
+                                      private int elapsed = 0;
+
+                                      @Override
+                                      public void run() {
+
+                                          try {
+                                              emitter.send(SseEmitter.event()
+                                                                     .id(String.valueOf(elapsed))
+                                                                     .name("timer")
+                                                                     .data(Map.of("elapsed", elapsed,
+                                                                                  "remaining", duration - elapsed),
+                                                                           MediaType.APPLICATION_JSON));
+                                          } catch (IOException e) {
+                                              if (!e.getMessage().contains("Broken pipe")) {
+                                                  emitter.completeWithError(e);
+                                              }
+                                              timer.cancel();
+                                              return;
+                                          }
+
+                                          if (elapsed % request.getInterval() == 0) {
+                                              try {
+                                                  List<IJvmCommand.ThreadInfo> threadInfos = remoteJvmCommand.dumpThreads();
+                                                  emitter.send(SseEmitter.event()
+                                                                         .id(String.valueOf(elapsed))
+                                                                         .name("thread")
+                                                                         .data(threadInfos, MediaType.APPLICATION_JSON));
+                                              } catch (Exception e) {
+                                                  if (!e.getMessage().contains("Broken pipe")) {
+                                                      emitter.completeWithError(e);
+                                                  }
+                                                  timer.cancel();
+                                              }
+                                          }
+
+                                          if (elapsed++ >= duration) {
+                                              timer.cancel();
+                                              emitter.complete();
+                                          }
+                                      }
+                                  },
+                                  0,
+                                  1000L);
+
+        return emitter;
     }
 
     @ExceptionHandler({SqlValidatorException.class, SqlParseException.class})
