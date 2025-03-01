@@ -243,7 +243,7 @@ public class AgentDiagnosisApi {
         /**
          * in seconds
          */
-        @Min(5)
+        @Min(3)
         @Max(10)
         private long interval;
 
