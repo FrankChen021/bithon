@@ -287,13 +287,13 @@ public class AgentDiagnosisApi {
         }
 
         //
-        //
+        // Create service proxy to agent via controller
         //
         AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
-        IJvmCommand remoteJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
-                                                                                   controller.get(),
-                                                                                   request.getAppName(),
-                                                                                   request.getInstanceName());
+        IJvmCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
+                                                                                  controller.get(),
+                                                                                  request.getAppName(),
+                                                                                  request.getInstanceName());
 
         final long duration = request.getDuration();
 
@@ -330,7 +330,7 @@ public class AgentDiagnosisApi {
 
                                           if (elapsed % request.getInterval() == 0) {
                                               try {
-                                                  List<IJvmCommand.ThreadInfo> threadInfos = remoteJvmCommand.dumpThreads();
+                                                  List<IJvmCommand.ThreadInfo> threadInfos = agentJvmCommand.dumpThreads();
                                                   emitter.send(SseEmitter.event()
                                                                          .id(String.valueOf(elapsed))
                                                                          .name("thread")
