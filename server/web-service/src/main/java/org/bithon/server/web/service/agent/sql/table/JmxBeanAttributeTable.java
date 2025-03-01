@@ -42,8 +42,8 @@ public class JmxBeanAttributeTable extends AbstractBaseTable implements IPushdow
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
         String beanName = (String) executionContext.get(BEAN_NAME);
 
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IJvmCommand.class)
                            .getBeanAttributes(beanName)
                            .stream()
                            .map(IJvmCommand.JmxBeanAttribute::getObjects)
