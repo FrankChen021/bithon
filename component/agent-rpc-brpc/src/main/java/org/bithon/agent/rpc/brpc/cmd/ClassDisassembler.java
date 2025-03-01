@@ -43,7 +43,7 @@ public class ClassDisassembler {
             int result = Boolean.compare(Modifier.isStatic(lhs.getModifiers()),
                                          Modifier.isStatic(rhs.getModifiers()));
             if (result != 0) {
-                return result < 0 ? 1: -1;
+                return result < 0 ? 1 : -1;
             }
 
             // Then by access modifiers
