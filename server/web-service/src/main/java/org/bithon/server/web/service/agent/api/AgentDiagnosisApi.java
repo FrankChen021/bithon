@@ -24,6 +24,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -42,7 +43,9 @@ import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.sql.validate.SqlValidatorException;
 import org.apache.calcite.util.NlsString;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
@@ -74,15 +77,21 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Frank Chen
  * @date 23/2/23 9:10 pm
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
@@ -255,35 +264,38 @@ public class AgentDiagnosisApi {
         private int duration;
     }
 
+    @SuppressForbidden
     @GetMapping("/api/agent/profile/jvm")
     public SseEmitter profile(@Valid @ModelAttribute ProfileRequest request) {
-
-        AtomicReference<DiscoveredServiceInstance> controller = new AtomicReference<>();
-
         //
         // Find the controller where the target instance is connected to
         //
-        List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
-        CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
-        for (DiscoveredServiceInstance controllerInstance : controllerList) {
-            discoveredServiceInvoker.getExecutor()
-                                    .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
-                                                                          .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
-                                    .thenAccept((returning) -> {
-                                        if (!returning.isEmpty()) {
-                                            controller.set(controllerInstance);
-                                        }
-                                    })
-                                    .whenComplete((ret, ex) -> countDownLatch.countDown());
-        }
+        DiscoveredServiceInstance controller;
+        {
+            AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
+            List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+            for (DiscoveredServiceInstance controllerInstance : controllerList) {
+                discoveredServiceInvoker.getExecutor()
+                                        .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
+                                                                              .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
+                                        .thenAccept((returning) -> {
+                                            if (!returning.isEmpty()) {
+                                                controllerRef.set(controllerInstance);
+                                            }
+                                        })
+                                        .whenComplete((ret, ex) -> countDownLatch.countDown());
+            }
 
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        if (controller.get() == null) {
-            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName());
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (controllerRef.get() == null) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName());
+            }
+            controller = controllerRef.get();
         }
 
         //
@@ -291,23 +303,35 @@ public class AgentDiagnosisApi {
         //
         AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
         IJvmCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
-                                                                                  controller.get(),
+                                                                                  controller,
                                                                                   request.getAppName(),
                                                                                   request.getInstanceName());
 
-        final long duration = request.getDuration();
 
-        Timer timer = new Timer();
+        ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.daemonThreadFactory("profiling-timer"));
+        ExecutorService profilingExecutor = new ThreadPoolExecutor(1,
+                                                                   1,
+                                                                   0L,
+                                                                   TimeUnit.MILLISECONDS,
+                                                                   new LinkedBlockingQueue<>(1),
+                                                                   NamedThreadFactory.daemonThreadFactory("profiling"),
+                                                                   new ThreadPoolExecutor.DiscardPolicy());
+
+        Runnable stopProfiling = () -> {
+            timer.shutdown();
+            profilingExecutor.shutdown();
+        };
 
         SseEmitter emitter = new SseEmitter(request.getDuration() * 1000L + 500);
-        emitter.onCompletion(timer::cancel);
-        emitter.onTimeout(timer::cancel);
-        emitter.onError((e) -> timer.cancel());
+        emitter.onCompletion(stopProfiling);
+        emitter.onTimeout(stopProfiling);
+        emitter.onError((e) -> stopProfiling.run());
 
         //
         // Schedule a task to get information from the target instance continuously
         //
-        timer.scheduleAtFixedRate(new TimerTask() {
+        final long duration = request.getDuration();
+        timer.scheduleAtFixedRate(new Runnable() {
                                       private int elapsed = 0;
 
                                       @Override
@@ -324,33 +348,48 @@ public class AgentDiagnosisApi {
                                               if (!e.getMessage().contains("Broken pipe")) {
                                                   emitter.completeWithError(e);
                                               }
-                                              timer.cancel();
+                                              stopProfiling.run();
                                               return;
                                           }
 
                                           if (elapsed % request.getInterval() == 0) {
-                                              try {
-                                                  List<IJvmCommand.ThreadInfo> threadInfos = agentJvmCommand.dumpThreads();
-                                                  emitter.send(SseEmitter.event()
-                                                                         .id(String.valueOf(elapsed))
-                                                                         .name("thread")
-                                                                         .data(threadInfos, MediaType.APPLICATION_JSON));
-                                              } catch (Exception e) {
-                                                  if (!e.getMessage().contains("Broken pipe")) {
-                                                      emitter.completeWithError(e);
-                                                  }
-                                                  timer.cancel();
-                                              }
+
+                                              CompletableFuture.supplyAsync(() -> {
+                                                                   List<IJvmCommand.ThreadInfo> threadInfos = agentJvmCommand.dumpThreads();
+                                                                   return threadInfos;
+                                                               }, profilingExecutor)
+                                                               .thenAccept(threadInfos -> {
+                                                                   try {
+                                                                       emitter.send(SseEmitter.event()
+                                                                                              .id(String.valueOf(elapsed))
+                                                                                              .name("thread")
+                                                                                              .data(threadInfos, MediaType.APPLICATION_JSON));
+                                                                   } catch (IOException e) {
+                                                                       if (!e.getMessage().contains("Broken pipe")) {
+                                                                           emitter.completeWithError(e);
+                                                                       }
+                                                                       stopProfiling.run();
+                                                                   }
+                                                               }).exceptionally((ex) -> {
+                                                                   if (ex != null) {
+                                                                       stopProfiling.run();
+
+                                                                       log.error("Failed to get thread info", ex);
+                                                                   }
+
+                                                                   return null;
+                                                               });
                                           }
 
                                           if (elapsed++ >= duration) {
-                                              timer.cancel();
                                               emitter.complete();
+                                              stopProfiling.run();
                                           }
                                       }
                                   },
                                   0,
-                                  1000L);
+                                  1,
+                                  TimeUnit.SECONDS);
 
         return emitter;
     }

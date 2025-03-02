@@ -107,10 +107,10 @@ public class AgentServiceProxyFactory {
      * @param agentServiceDeclaration The service located at agent side that we want to invoke
      */
     public <T> T createUnicastProxy(Class<T> agentServiceDeclaration,
-                                    DiscoveredServiceInstance controllerInstance,
+                                    DiscoveredServiceInstance controller,
                                     String appName,
                                     String instanceName) {
-        // Locate the proxy server
+        // Check if given service declaration is correctly declared
         DiscoverableService metadata = IAgentControllerApi.class.getAnnotation(DiscoverableService.class);
         if (metadata == null) {
             throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
@@ -118,44 +118,46 @@ public class AgentServiceProxyFactory {
                                                           DiscoverableService.class.getSimpleName()));
         }
 
+        String token = "";
+        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getCredentials() != null) {
+            token = (String) authentication.getCredentials();
+        }
+
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
                                           new Class<?>[]{agentServiceDeclaration},
-                                          new AgentServiceUnicastInvoker(controllerInstance, invocationManager, appName, instanceName));
+                                          new AgentServiceUnicastInvoker(controller,
+                                                                         invocationManager,
+                                                                         token,
+                                                                         appName,
+                                                                         instanceName));
     }
 
     private class AgentServiceUnicastInvoker implements InvocationHandler {
 
+        private final DiscoveredServiceInstance controller;
         private final InvocationManager brpcInvocationManager;
-        private final Map<String, Object> context;
         private final String targetApplication;
         private final String targetInstance;
-        private final DiscoveredServiceInstance controller;
+        private final String token;
 
         private AgentServiceUnicastInvoker(DiscoveredServiceInstance controller,
                                            InvocationManager brpcInvocationManager,
+                                           String token,
                                            String targetApplication,
                                            String targetInstance) {
+            this.controller = controller;
             this.brpcInvocationManager = brpcInvocationManager;
+            this.token = token;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;
-            this.controller = controller;
-
-            // Make sure the context is modifiable because we're going to add token into the context
-            this.context = new TreeMap<>();
         }
 
         @Override
         public Object invoke(Object object,
                              Method agentServiceMethod,
                              Object[] args) {
-            // Since the real invocation is issued from a dedicated thread-pool,
-            // to make sure the task in that thread pool can access the security context, we have to explicitly
-            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getCredentials() != null) {
-                context.put("X-Bithon-Token", authentication.getCredentials());
-            }
-
             //
             // Invoke agent service via an controller
             //
@@ -165,7 +167,7 @@ public class AgentServiceProxyFactory {
                                                     new BrpcChannelOverHttp(controller,
                                                                             this.targetApplication,
                                                                             this.targetInstance,
-                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
+                                                                            this.token),
                                                     30_000,
                                                     agentServiceMethod,
                                                     args);

@@ -36,8 +36,8 @@ import java.util.concurrent.TimeUnit;
  * @date 5/9/23 11:11 am
  */
 @SuppressForbidden
-public class ScheduledExecutorServiceFactor {
-    private static final ILogAdaptor LOGGER = LoggerFactory.getLogger(ScheduledExecutorServiceFactor.class);
+public class ScheduledExecutorServiceFactory {
+    private static final ILogAdaptor LOGGER = LoggerFactory.getLogger(ScheduledExecutorServiceFactory.class);
 
     static class ExceptionSafeRunnable implements Runnable {
         final Runnable runnable;
