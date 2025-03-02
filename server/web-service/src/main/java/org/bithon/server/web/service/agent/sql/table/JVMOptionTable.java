@@ -38,8 +38,8 @@ public class JVMOptionTable extends AbstractBaseTable implements IPushdownPredic
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IJvmCommand.class)
                            .getVMOptions()
                            .stream()
                            .map(IJvmCommand.VMOption::getObjects)

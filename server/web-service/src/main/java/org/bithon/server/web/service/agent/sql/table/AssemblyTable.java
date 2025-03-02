@@ -45,8 +45,8 @@ public class AssemblyTable extends AbstractBaseTable implements IPushdownPredica
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        IJvmCommand jvmCommand = proxyFactory.create(executionContext.getParameters(),
-                                                     IJvmCommand.class);
+        IJvmCommand jvmCommand = proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                                   IJvmCommand.class);
 
         String className = (String) executionContext.get("class");
         Preconditions.checkNotNull(className, "'class' filter is not given.");

@@ -41,7 +41,7 @@ public class JmxBeanAttributeValueTable extends AbstractBaseTable implements IPu
         String beanName = (String) executionContext.get("beanName");
         String attributeName = (String) executionContext.get("attribName");
 
-        String val = proxyFactory.create(executionContext.getParameters(), IJvmCommand.class)
+        String val = proxyFactory.createBroadcastProxy(executionContext.getParameters(), IJvmCommand.class)
                                  .getBeanAttribute(beanName, attributeName);
 
         return Collections.singletonList(new Object[]{val});

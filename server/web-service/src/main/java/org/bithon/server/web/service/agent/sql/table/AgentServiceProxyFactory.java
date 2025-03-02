@@ -80,8 +80,8 @@ public class AgentServiceProxyFactory {
      * @param context                 The context that contains extra invocation information
      * @param agentServiceDeclaration The service located at agent side that we want to invoke
      */
-    public <T> T create(Map<String, Object> context,
-                        Class<T> agentServiceDeclaration) {
+    public <T> T createBroadcastProxy(Map<String, Object> context,
+                                      Class<T> agentServiceDeclaration) {
         // instance is a mandatory parameter
         String application = (String) context.get(IAgentControllerApi.PARAMETER_NAME_APP_NAME);
         Preconditions.checkNotNull(application, "'%s' is not given in the context.", IAgentControllerApi.PARAMETER_NAME_APP_NAME);
@@ -100,24 +100,112 @@ public class AgentServiceProxyFactory {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
                                           new Class<?>[]{agentServiceDeclaration},
-                                          new AgentServiceInvoker(application, instance, context, invocationManager));
+                                          new AgentServiceBroadcastInvoker(application, instance, context, invocationManager));
     }
 
     /**
-     * Invoke the agent service on a target proxy servers,
+     * @param agentServiceDeclaration The service located at agent side that we want to invoke
+     */
+    public <T> T createUnicastProxy(Class<T> agentServiceDeclaration,
+                                    DiscoveredServiceInstance controllerInstance,
+                                    String appName,
+                                    String instanceName) {
+        // Locate the proxy server
+        DiscoverableService metadata = IAgentControllerApi.class.getAnnotation(DiscoverableService.class);
+        if (metadata == null) {
+            throw new RuntimeException(StringUtils.format("Given class [%s] is not marked by annotation [%s].",
+                                                          IAgentControllerApi.class.getName(),
+                                                          DiscoverableService.class.getSimpleName()));
+        }
+
+        //noinspection unchecked
+        return (T) Proxy.newProxyInstance(agentServiceDeclaration.getClassLoader(),
+                                          new Class<?>[]{agentServiceDeclaration},
+                                          new AgentServiceUnicastInvoker(controllerInstance, invocationManager, appName, instanceName));
+    }
+
+    private class AgentServiceUnicastInvoker implements InvocationHandler {
+
+        private final InvocationManager brpcInvocationManager;
+        private final Map<String, Object> context;
+        private final String targetApplication;
+        private final String targetInstance;
+        private final DiscoveredServiceInstance controller;
+
+        private AgentServiceUnicastInvoker(DiscoveredServiceInstance controller,
+                                           InvocationManager brpcInvocationManager,
+                                           String targetApplication,
+                                           String targetInstance) {
+            this.brpcInvocationManager = brpcInvocationManager;
+            this.targetApplication = targetApplication;
+            this.targetInstance = targetInstance;
+            this.controller = controller;
+
+            // Make sure the context is modifiable because we're going to add token into the context
+            this.context = new TreeMap<>();
+        }
+
+        @Override
+        public Object invoke(Object object,
+                             Method agentServiceMethod,
+                             Object[] args) {
+            // Since the real invocation is issued from a dedicated thread-pool,
+            // to make sure the task in that thread pool can access the security context, we have to explicitly
+            Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getCredentials() != null) {
+                context.put("X-Bithon-Token", authentication.getCredentials());
+            }
+
+            //
+            // Invoke agent service via an controller
+            //
+            try {
+                return brpcInvocationManager.invoke("bithon-webservice",
+                                                    Headers.EMPTY,
+                                                    new BrpcChannelOverHttp(controller,
+                                                                            this.targetApplication,
+                                                                            this.targetInstance,
+                                                                            context.getOrDefault("X-Bithon-Token", "").toString()),
+                                                    30_000,
+                                                    agentServiceMethod,
+                                                    args);
+            } catch (HttpMappableException e) {
+                if (SessionNotFoundException.class.getName().equals(e.getCauseExceptionClass())) {
+                    // We're issuing broadcast invocations on all proxy servers,
+                    // but there will be only one proxy server that connects to the target agent instance.
+                    // For any other proxy servers, a SessionNotFoundException is thrown which should be ignored.
+                    return Collections.emptyList();
+                }
+                throw e;
+            } catch (ServiceNotFoundException e) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                                "Can't find service [%s] on target application [appName = %s, instance = %s]. You may need to upgrade the agent of the target application.",
+                                                e.getServiceName(),
+                                                targetApplication,
+                                                targetInstance);
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * Broadcast invocation of the agent service on target proxy servers
      * and the proxy server is responsible for invoking agent service on given agent
      */
-    private class AgentServiceInvoker implements InvocationHandler {
+    private class AgentServiceBroadcastInvoker implements InvocationHandler {
 
         private final InvocationManager brpcInvocationManager;
         private final Map<String, Object> context;
         private final String targetApplication;
         private final String targetInstance;
 
-        private AgentServiceInvoker(String targetApplication,
-                                    String targetInstance,
-                                    Map<String, Object> context,
-                                    InvocationManager brpcInvocationManager) {
+        private AgentServiceBroadcastInvoker(String targetApplication,
+                                             String targetInstance,
+                                             Map<String, Object> context,
+                                             InvocationManager brpcInvocationManager) {
             this.brpcInvocationManager = brpcInvocationManager;
             this.targetApplication = targetApplication;
             this.targetInstance = targetInstance;

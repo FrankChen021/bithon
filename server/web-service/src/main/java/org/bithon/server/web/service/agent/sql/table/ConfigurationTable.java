@@ -43,7 +43,7 @@ public class ConfigurationTable extends AbstractBaseTable implements IPushdownPr
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(), IConfigurationCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IConfigurationCommand.class)
                            .getConfiguration("YAML", true)
                            .stream()
                            .map((cfg) -> new Object[]{cfg})
