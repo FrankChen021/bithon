@@ -43,7 +43,7 @@ jobs:
 
       # Execute UT after compilation
       - name: UT
-        run: mvn test
+        run: mvn test -P-server
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
