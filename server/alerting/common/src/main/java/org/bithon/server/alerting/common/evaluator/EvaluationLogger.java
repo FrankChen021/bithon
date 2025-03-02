@@ -67,7 +67,7 @@ public class EvaluationLogger {
     }
 
     private void log(String ruleId, String ruleName, LogLevel level, Class<?> logClass, String message) {
-        log.info("[{}}] [{} {}]: {}",
+        log.info("[{}] [{} {}]: {}",
                  logClass.getSimpleName(),
                  ruleId,
                  ruleName,
