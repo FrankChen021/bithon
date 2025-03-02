@@ -35,6 +35,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
@@ -314,7 +315,7 @@ public class AlertCommandService {
         };
 
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new LocalStateManager(),
+                                                      new LocalStateManager(applicationContext.getBean(IAlertStateStorage.class)),
                                                       logStorage.createWriter(),
                                                       recordStorage,
                                                       this.dataSourceApi,
