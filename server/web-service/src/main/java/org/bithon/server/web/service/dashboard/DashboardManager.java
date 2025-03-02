@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
+import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.dashboard.Dashboard;
@@ -81,7 +81,7 @@ public class DashboardManager implements SmartLifecycle {
     public void start() {
         log.info("Starting dashboard incremental loader...");
 
-        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.nonDaemonThreadFactory("dashboard-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactory.newSingleThreadScheduledExecutor(NamedThreadFactory.nonDaemonThreadFactory("dashboard-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoad,
                                                // no delay to execute the first task
                                                0,

@@ -10,7 +10,7 @@ java.lang.Class#getCanonicalName() @ Class.getCanonicalName can return null for 
 org.apache.commons.codec.binary.Base64
 com.google.common.io.BaseEncoding#base64()
 
-@defaultMessage Use org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor
+@defaultMessage Use org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory
 java.util.concurrent.Executors#newSingleThreadScheduledExecutor()
 java.util.concurrent.Executors#newSingleThreadScheduledExecutor(java.util.concurrent.ThreadFactory)
 java.util.concurrent.Executors#newScheduledThreadPool(int)
