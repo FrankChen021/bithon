@@ -39,7 +39,11 @@ jobs:
         run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true
+        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
+
+      # Execute UT after compilation
+      - name: UT
+        run: mvn test
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
