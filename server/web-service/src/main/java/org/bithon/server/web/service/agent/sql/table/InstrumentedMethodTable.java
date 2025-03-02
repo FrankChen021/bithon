@@ -38,8 +38,8 @@ public class InstrumentedMethodTable extends AbstractBaseTable implements IPushd
 
     @Override
     public List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IInstrumentationCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IInstrumentationCommand.class)
                            .getInstrumentedMethods()
                            .stream()
                            .map(IInstrumentationCommand.InstrumentedMethod::toObjects)

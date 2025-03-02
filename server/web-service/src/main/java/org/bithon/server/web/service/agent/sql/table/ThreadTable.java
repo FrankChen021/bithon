@@ -44,8 +44,8 @@ public class ThreadTable extends AbstractBaseTable implements IPushdownPredicate
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IJvmCommand.class)
                            .dumpThreads()
                            .stream()
                            .map(IJvmCommand.ThreadInfo::toObjects)

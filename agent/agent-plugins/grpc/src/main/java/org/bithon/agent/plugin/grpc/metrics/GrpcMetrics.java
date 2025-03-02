@@ -14,25 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.topo.service;
+package org.bithon.agent.plugin.grpc.metrics;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.bithon.agent.observability.metric.model.annotation.Max;
+import org.bithon.agent.observability.metric.model.annotation.Min;
+import org.bithon.agent.observability.metric.model.annotation.Sum;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/20 21:45
+ * @date 2025/2/23 8:49
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class EndpointBo {
-    private static final AtomicLong ID = new AtomicLong();
+public class GrpcMetrics {
+    /**
+     * in nanoseconds
+     */
+    @Sum
+    public long responseTime;
 
-    private final String id = String.valueOf(ID.addAndGet(1));
-    private String type;
-    private String name;
+    @Min
+    public long minResponseTime;
+
+    @Max
+    public long maxResponseTime;
+
+    @Sum
+    public long callCount;
+
+    @Sum
+    public long errorCount;
+
+    @Sum
+    public long bytesSent;
+
+    @Sum
+    public long bytesReceived;
 }

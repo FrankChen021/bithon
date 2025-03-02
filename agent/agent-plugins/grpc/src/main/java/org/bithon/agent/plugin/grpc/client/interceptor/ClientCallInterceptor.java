@@ -24,12 +24,8 @@ import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
-import org.bithon.agent.observability.tracing.context.ITraceSpan;
-import org.bithon.agent.observability.tracing.context.TraceContextFactory;
-import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.plugin.grpc.client.context.ObservabilityContext;
 import org.bithon.agent.plugin.grpc.utils.MessageUtils;
-import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.tracing.Tags;
 
 /**
  * @author Frank Chen
@@ -47,54 +43,34 @@ public class ClientCallInterceptor implements ClientInterceptor {
         // Must be the first, this would sometimes call DnsNameResolver
         ClientCall<REQ, RSP> result = next.newCall(method, callOptions);
 
-        // Not sure when the other methods will be called,
-        // so, it's better to create a new tracing context for this gRPC client call
-        ITraceSpan span = TraceContextFactory.newAsyncSpan("grpc-client");
-        if (span == null || !span.context().traceMode().equals(TraceMode.TRACING)) {
-            return result;
-        }
-
-        String serviceName;
-        String methodName;
-        String fullName = method.getFullMethodName();
-        int separator = fullName.lastIndexOf('/');
-        if (separator > 0) {
-            serviceName = fullName.substring(0, separator);
-            methodName = fullName.substring(separator + 1);
-        } else {
-            serviceName = "";
-            methodName = fullName;
-        }
-        span.method(serviceName, methodName)
-            .tag(Tags.Net.PEER, this.target)
-            .kind(SpanKind.CLIENT)
-            .start();
-
-        return new TracedClientCall<>(span, result);
+        return new TracedClientCall<>(new ObservabilityContext(this.target, method.getFullMethodName()),
+                                      result);
     }
 
     static class TracedClientCall<REQ, RSP> extends ForwardingClientCall.SimpleForwardingClientCall<REQ, RSP> {
-        private final ITraceSpan span;
+        private final ObservabilityContext context;
 
-        public TracedClientCall(ITraceSpan span, ClientCall<REQ, RSP> delegate) {
+        public TracedClientCall(ObservabilityContext context, ClientCall<REQ, RSP> delegate) {
             super(delegate);
-            this.span = span;
+            this.context = context;
         }
 
         @Override
         public void start(Listener<RSP> responseListener, Metadata headers) {
             // Propagate the tracing context to remote server
-            span.context()
-                .propagate(headers,
-                           (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
+            if (context.getSpan() != null) {
+                context.getSpan()
+                       .context()
+                       .propagate(headers,
+                                  (request, key, val) -> request.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), val));
 
+            }
             try {
                 // Hook the message listener to end the tracing span
-                super.start(new TracedClientCallListener<>(span, responseListener),
+                super.start(new TracedClientCallListener<>(context, responseListener),
                             headers);
             } catch (Throwable t) {
-                span.tag(t).finish();
-                span.context().finish();
+                context.finish(t);
                 throw t;
             }
         }
@@ -103,13 +79,12 @@ public class ClientCallInterceptor implements ClientInterceptor {
         public void sendMessage(REQ message) {
             int size = MessageUtils.getMessageSize(message);
             if (size > 0) {
-                span.tag(Tags.Rpc.RPC_CLIENT_REQ_SIZE, size);
+                context.setRequestSize(size);
             }
             try {
                 super.sendMessage(message);
             } catch (Throwable t) {
-                span.tag(t).finish();
-                span.context().finish();
+                context.finish(t);
                 throw t;
             }
         }
@@ -117,11 +92,11 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
     static class TracedClientCallListener<RSP> extends ClientCall.Listener<RSP> {
         private final ClientCall.Listener<RSP> delegate;
-        private final ITraceSpan span;
+        private final ObservabilityContext context;
 
-        public TracedClientCallListener(ITraceSpan span, ClientCall.Listener<RSP> delegate) {
+        public TracedClientCallListener(ObservabilityContext context, ClientCall.Listener<RSP> delegate) {
             this.delegate = delegate;
-            this.span = span;
+            this.context = context;
         }
 
         @Override
@@ -133,7 +108,7 @@ public class ClientCallInterceptor implements ClientInterceptor {
         public void onMessage(RSP message) {
             int size = MessageUtils.getMessageSize(message);
             if (size > 0) {
-                span.tag(Tags.Rpc.RPC_CLIENT_RSP_SIZE, size);
+                context.setResponseSize(size);
             }
             delegate.onMessage(message);
         }
@@ -145,12 +120,9 @@ public class ClientCallInterceptor implements ClientInterceptor {
 
         @Override
         public void onClose(Status status, Metadata trailers) {
-            span.tag(status.getCause())
-                // TODO: Unify the status code
-                // Currently we use 200 to represent OK so that the code comply with HTTP Status
-                .tag("status", status.equals(Status.OK) ? "200" : status.getCode().toString())
-                .finish();
-            span.context().finish();
+            // TODO: Unify the status code
+            context.finish(status.getCode().name(),
+                           status.getCause());
 
             delegate.onClose(status, trailers);
         }

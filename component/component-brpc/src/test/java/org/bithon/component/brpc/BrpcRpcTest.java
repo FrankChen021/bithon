@@ -29,9 +29,9 @@ import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.message.Headers;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -45,16 +45,15 @@ public class BrpcRpcTest {
     static BrpcServer brpcServer;
     static int idleSeconds = 5;
 
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    public void setup() {
         brpcServer = new BrpcServer("test")
             .bindService(new ExampleServiceImpl())
             .start(8070, idleSeconds);
     }
 
-    @AfterAll
-    public static void teardown() {
-        System.out.println("TestCase Teardown...");
+    @AfterEach
+    public void teardown() {
         brpcServer.close();
     }
 

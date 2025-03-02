@@ -19,12 +19,15 @@ package org.bithon.agent.rpc.brpc.cmd;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -33,6 +36,38 @@ import java.util.TreeSet;
  * @date 2024/3/12 20:12
  */
 public class ClassDisassembler {
+
+    static class MememberComparator implements Comparator<Member> {
+        @Override
+        public int compare(Member lhs, Member rhs) {
+            int result = Boolean.compare(Modifier.isStatic(lhs.getModifiers()),
+                                         Modifier.isStatic(rhs.getModifiers()));
+            if (result != 0) {
+                return result < 0 ? 1 : -1;
+            }
+
+            // Then by access modifiers
+            result = getModifierOrder(rhs.getModifiers()) - getModifierOrder(lhs.getModifiers());
+            if (result != 0) {
+                return result;
+            }
+
+            return lhs.getName().compareTo(rhs.getName());
+        }
+
+        private int getModifierOrder(int modifiers) {
+            if (Modifier.isPublic(modifiers)) {
+                return 3;
+            }
+            if (Modifier.isProtected(modifiers)) {
+                return 2;
+            }
+            if (Modifier.isPrivate(modifiers)) {
+                return 1;
+            }
+            return 0;
+        }
+    }
 
     public static String toModifier(int modifier) {
         StringBuilder s = new StringBuilder();
@@ -146,7 +181,10 @@ public class ClassDisassembler {
     }
 
     private void outputFields() {
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = Arrays.stream(clazz.getDeclaredFields())
+                               .sorted(new MememberComparator())
+                               .toArray(Field[]::new);
+
         for (Field field : fields) {
             body.append('\n');
             outputAnnotations("\t", field.getDeclaredAnnotations());
@@ -180,7 +218,9 @@ public class ClassDisassembler {
     }
 
     private void outputMethods() {
-        Method[] methodList = clazz.getDeclaredMethods();
+        Method[] methodList = Arrays.stream(clazz.getDeclaredMethods())
+                                    .sorted(new MememberComparator())
+                                    .toArray(Method[]::new);
 
         if (methodList.length != 0) {
             body.append('\n');

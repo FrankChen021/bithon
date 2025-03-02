@@ -55,7 +55,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(), ILoggingCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), ILoggingCommand.class)
                            .getLoggers()
                            .stream()
                            .map(LoggerConfiguration::toObjects)
@@ -130,8 +130,8 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
                                             "Only 'level' is allowed to updated");
         }
 
-        return proxyFactory.create(executionContext.getParameters(),
-                                   ILoggingCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 ILoggingCommand.class)
                            .setLogger((String) nameFilter.value, loggingLevel)
                            .stream().reduce(0, Integer::sum);
     }
