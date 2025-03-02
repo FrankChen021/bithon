@@ -218,10 +218,7 @@ public class TestZooKeeperClientMetrics {
         }
 
         // Wait for metrics to be exported
-        int i = 11;
-        while (METRIC_MESSAGE_LIST.isEmpty() && i-- >= 0) {
-            Thread.sleep(1000);
-        }
+        Thread.sleep(11_000);
 
         Assertions.assertFalse(METRIC_MESSAGE_LIST.isEmpty());
 
@@ -290,10 +287,7 @@ public class TestZooKeeperClientMetrics {
         }
 
         // Wait for metrics to be exported
-        int i = 11;
-        while (METRIC_MESSAGE_LIST.isEmpty() && i-- >= 0) {
-            Thread.sleep(1000);
-        }
+        Thread.sleep(11_000);
 
         List<IMeasurement> createLog = METRIC_MESSAGE_LIST.stream()
                                                           .filter((measurement) -> "Create".equals(measurement.getDimensions()
