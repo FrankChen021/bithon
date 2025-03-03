@@ -103,7 +103,7 @@
       }
     },
     {
-      "title": "Exception",
+      "title": "Exceptions",
       "width": 1,
       "type": "stat",
       "link": "/dashboard/exception-metrics",
@@ -145,7 +145,7 @@
       }
     },
     {
-      "title": "Kafka Producers",
+      "title": "Kafka Produced Records",
       "width": 1,
       "type": "stat",
       "link": "/dashboard/kafka-producer-metrics",
