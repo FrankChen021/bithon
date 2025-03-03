@@ -40,27 +40,6 @@
       }
     },
     {
-      "title": "CPU Cores",
-      "width": 1,
-      "type": "stat",
-      "link": "/dashboard/jvm-metrics",
-      "query": {
-        "dataSource": "jvm-metrics",
-        "type": "groupBy",
-        "fields": [
-          {
-            "name": "cpuCores",
-            "expression": "avg(processors)"
-          }
-        ],
-        "precondition": {
-          "filters": [
-            "appName"
-          ]
-        }
-      }
-    },
-    {
       "title": "Instance",
       "width": 1,
       "type": "stat",
