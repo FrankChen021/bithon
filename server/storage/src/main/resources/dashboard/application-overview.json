@@ -124,7 +124,7 @@
       }
     },
     {
-      "title": "GRPC Client Request",
+      "title": "GRPC Client Requests",
       "width": 1,
       "type": "stat",
       "link": "/dashboard/grpc-client-metrics",
