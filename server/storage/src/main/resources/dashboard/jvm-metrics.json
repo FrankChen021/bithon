@@ -16,6 +16,78 @@
   },
   "charts": [
     {
+      "title": "Instance List",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        {
+          "name": "index",
+          "title": "No.",
+          "format": "index",
+          "sortable": false,
+          "width": 80,
+          "align": "center"
+        },
+        {
+          "name": "instanceName",
+          "title": "instance",
+          "format": "template",
+          "template": "<a target='_blank' href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
+        },
+        {
+          "name": "processCpuLoad",
+          "format": "percentage"
+        },
+        "processors",
+        {
+          "name": "instanceStartTime",
+          "title": "startTime",
+          "format": "dateTime"
+        },
+        {
+          "name": "instanceUpTime",
+          "title": "upTime",
+          "format": "timeDuration"
+        },
+        {
+          "name": "heapUsed",
+          "format": "percentage"
+        },
+        {
+          "name": "heapMax",
+          "format": "binary_byte"
+        }
+      ],
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          "processors",
+          "instanceStartTime",
+          "instanceUpTime",
+          {
+            "name": "heapUsed",
+            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
+          },
+          "heapMax",
+          "processCpuLoad"
+        ],
+        "groupBy": [
+          "appName",
+          "instanceName"
+        ],
+        "orderBy": {
+          "name": "instanceUpTime",
+          "order": "asc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
       "title": "CPU",
       "width": 2,
       "type": "line",

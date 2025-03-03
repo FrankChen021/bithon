@@ -8,158 +8,30 @@
         "type": "datasource",
         "name": "jvm-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear":  false}
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          }
         ]
       }
     ]
   },
   "charts": [
     {
-      "title": "Instance List",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "index",
-          "title": "No.",
-          "format": "index",
-          "sortable": false,
-          "width": 80,
-          "align": "center"
-        },
-        {
-          "name": "instanceName",
-          "title": "instance",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
-        },
-        {
-          "name": "processCpuLoad",
-          "format": "percentage"
-        },
-        "processors",
-        {
-          "name": "instanceStartTime",
-          "title": "startTime",
-          "format": "dateTime"
-        },
-        {
-          "name": "instanceUpTime",
-          "title": "upTime",
-          "format": "timeDuration"
-        },
-        {
-          "name": "heapUsed",
-          "format": "percentage"
-        },
-        {
-          "name": "heapMax",
-          "format": "binary_byte"
-        }
-      ],
+      "title": "Avg Cpu Usage",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics",
       "query": {
         "dataSource": "jvm-metrics",
         "type": "groupBy",
         "fields": [
-          "processors",
-          "instanceStartTime",
-          "instanceUpTime",
           {
-            "name": "heapUsed",
-            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
-          },
-          "heapMax",
-          "processCpuLoad"
-        ],
-        "groupBy": [
-          "appName",
-          "instanceName"
-        ],
-        "orderBy": {
-          "name": "instanceUpTime",
-          "order": "asc"
-        },
-        "precondition": {
-          "filters": [
-            "appName"
-          ]
-        }
-      }
-    },
-    {
-      "title": "Top 10 QPS Incoming HTTP Requests",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "uri",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
-        },
-        "qps",
-        {
-          "name": "totalCount",
-          "format": "compact_number"
-        }
-      ],
-      "query": {
-        "dataSource": "http-incoming-metrics",
-        "type": "groupBy",
-        "fields": [
-          "uri",
-          "qps",
-          "totalCount"
-        ],
-        "limit": "10",
-        "groupBy": ["appName", "uri"],
-        "orderBy": {
-          "name": "totalCount",
-          "order": "desc"
-        },
-        "precondition": {
-          "filters": [
-            "appName"
-          ]
-        }
-      }
-    },
-    {
-      "title": "Top 10 Error Incoming HTTP Requests",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "uri",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
-        },
-        {
-          "name": "errorCount",
-          "format": "compact_number"
-        },
-        {
-          "name": "errorRate",
-          "format": "percentage"
-        }
-      ],
-      "query": {
-        "dataSource": "http-incoming-metrics",
-        "type": "groupBy",
-        "fields": [
-          "uri",
-          "errorCount",
-          {
-            "name": "errorRate",
-            "expression": "round(sum(errorCount)*100.0/sum(totalCount), 2)"
+            "name": "avgCpuUsage",
+            "expression": "avg(processCpuLoad)"
           }
         ],
-        "groupBy": ["appName", "uri"],
-        "limit": "10",
-        "orderBy": {
-          "name": "errorCount",
-          "order": "desc"
-        },
-        "filter": "errorCount > 0",
         "precondition": {
           "filters": [
             "appName"
@@ -168,33 +40,61 @@
       }
     },
     {
-      "title": "Top 10 Slowest Incoming HTTP Requests",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "uri",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/http-incoming-metrics/?appName={appName}&uri={uri}&interval=c:{interval}'>{uri}</a>"
-        },
-        {
-          "name": "avgResponseTime",
-          "format": "nanosecond"
+      "title": "CPU Cores",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics",
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "cpuCores",
+            "expression": "avg(processors)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
         }
-      ],
+      }
+    },
+    {
+      "title": "Instance",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics",
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "instanceCount",
+            "expression": "cardinality(instanceName)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Incoming HTTP Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/http-incoming-metrics",
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
         "fields": [
-          "uri",
-          "avgResponseTime"
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
         ],
-        "groupBy": ["appName","uri"],
-        "limit": "10",
-        "orderBy": {
-          "name": "avgResponseTime",
-          "order": "desc"
-        },
         "precondition": {
           "filters": [
             "appName"
@@ -203,56 +103,19 @@
       }
     },
     {
-      "title": "Top 10 Outgoing HTTP Requests",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "path",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/http-outgoing-metrics/?appName={appName}&path={path}&interval=c:{interval}'>{path}</a>"
-        },
-        "qps",
-        {
-          "name": "requestCount",
-          "format": "compact_number",
-          "title": "totalCount"
-        },
-        {
-          "name": "errorCount",
-          "format": "compact_number"
-        },
-        {
-          "name": "errorRate",
-          "format": "percentage"
-        },
-        {
-          "name": "avgResponseTime",
-          "format": "nanosecond"
-        }
-      ],
+      "title": "Outgoing HTTP Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/http-outgoing-metrics",
       "query": {
         "dataSource": "http-outgoing-metrics",
         "type": "groupBy",
         "fields": [
-          "qps",
-          "requestCount",
           {
-            "name": "errorCount",
-            "expression": "sum(count4xx) + sum(count5xx)"
-          },
-          {
-            "name": "errorRate",
-            "expression": "round((sum(count4xx) + sum(count5xx))*100.0/sum(requestCount), 2)"
-          },
-          "avgResponseTime"
+            "name": "totalCount",
+            "expression": "sum(requestCount)"
+          }
         ],
-        "groupBy": ["appName", "path"],
-        "limit": "10",
-        "orderBy": {
-          "name": "requestCount",
-          "order": "desc"
-        },
         "precondition": {
           "filters": [
             "appName"
@@ -261,33 +124,166 @@
       }
     },
     {
-      "title": "Top 10 exceptions",
-      "width": 4,
-      "type": "table",
-      "columns": [
-        {
-          "name": "exceptionClass",
-          "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/exception-metrics/?appName={appName}&exceptionClass={exceptionClass}&interval=c:{interval}'>{exceptionClass}</a>"
-        },
-        {
-          "name": "eventCount",
-          "title": "exceptionCount"
-        }
-      ],
+      "title": "Exception",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/exception-metrics",
       "query": {
         "dataSource": "exception-metrics",
         "type": "groupBy",
         "fields": [
-          "exceptionClass",
-          "eventCount"
+          {
+            "name": "totalCount",
+            "expression": "sum(eventCount)"
+          }
         ],
-        "limit": 10,
-        "groupBy": ["appName", "exceptionClass"],
-        "orderBy": {
-          "name": "eventCount",
-          "order": "desc"
-        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "GRPC Client Request",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/grpc-client-metrics",
+      "query": {
+        "dataSource": "grpc-client-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "callCount",
+            "expression": "sum(callCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Kafka Producers",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/kafka-producer-metrics",
+      "query": {
+        "dataSource": "kafka-producer-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "records",
+            "expression": "sum(recordCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Kafka Consumption Byte Rate (Bps)",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/kafka-consumer-metrics",
+      "query": {
+        "dataSource": "kafka-consumer-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "consumedByteRate",
+            "expression": "round(sum(consumedBytes) * 1.0/{interval}, 2)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Redis Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/redis-metrics",
+      "query": {
+        "dataSource": "redis-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "MongoDb Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/mongodb-metrics",
+      "query": {
+        "dataSource": "mongodb-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "SQLs",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/sql-metrics",
+      "query": {
+        "dataSource": "sql-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(callCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "ZooKeeper Client Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/zookeeper-client-metrics",
+      "query": {
+        "dataSource": "zookeeper-client-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
         "precondition": {
           "filters": [
             "appName"
