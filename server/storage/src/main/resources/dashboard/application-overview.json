@@ -166,7 +166,7 @@
       }
     },
     {
-      "title": "Kafka Consumption Byte Rate (Bps)",
+      "title": "Kafka Consumed Byte Rate (Bps)",
       "width": 1,
       "type": "stat",
       "link": "/dashboard/kafka-consumer-metrics",
