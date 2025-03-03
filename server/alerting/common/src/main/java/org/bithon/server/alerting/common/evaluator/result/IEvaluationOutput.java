@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,9 +29,15 @@ public interface IEvaluationOutput {
      * start time of the current evaluation period
      */
     TimeSpan getStart();
+
     TimeSpan getEnd();
 
-    boolean isMatches();
+    boolean isMatched();
+
+    /**
+     * If the evaluation is based on label (group-by semantics)
+     */
+    Label getLabel();
 
     String getThresholdText();
 

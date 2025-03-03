@@ -20,7 +20,7 @@ package org.bithon.server.alerting.common.evaluator.result;
  * @author frank.chen021@outlook.com
  * @date 2021/1/25
  */
-public enum EvaluationResult {
+public enum EvaluationStatus {
     MATCHED,
     UNMATCHED,
     UNEVALUATED

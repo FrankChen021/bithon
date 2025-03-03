@@ -19,18 +19,21 @@ package org.bithon.server.alerting.common.evaluator;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,19 +45,26 @@ public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
     private final EvaluationLogger evaluationLogger;
     private final AlertRule alertRule;
-    private final Map<String, IEvaluationOutput> evaluatedExpressions = new HashMap<>();
-
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
-    private final Map<String, EvaluationResult> evaluationResults = new HashMap<>();
-    private final IDataSourceApi dataSourceApi;
-    private final @Nullable AlertStateObject prevState;
+
+    // TODO: merge these variables together
+    private final Map<String, EvaluationOutputs> evaluationOutputs = new HashMap<>();
+    private final Map<String, EvaluationStatus> evaluationStatus = new HashMap<>();
 
     /**
      * current condition id that is under evaluation
      */
     @Setter
     private AlertExpression evaluatingExpression;
+
+    /**
+     * Each element in the list is the values of the group by fields
+     */
+    private final List<Label> groups = new ArrayList<>();
+
+    private final IDataSourceApi dataSourceApi;
+    private final @Nullable AlertStateObject prevState;
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
@@ -68,22 +78,22 @@ public class EvaluationContext implements IEvaluationContext {
         this.prevState = prevState;
 
         this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {
-            evaluationResults.put(id, EvaluationResult.UNEVALUATED);
+            evaluationStatus.put(id, EvaluationStatus.UNEVALUATED);
         });
         this.alertExpressions.putAll(alertRule.getFlattenExpressions());
     }
 
-    public IEvaluationOutput getRuleEvaluationOutput(String ruleId) {
-        return evaluatedExpressions.get(ruleId);
+    public EvaluationOutputs getRuleEvaluationOutputs(String ruleId) {
+        return evaluationOutputs.get(ruleId);
     }
 
     public void setEvaluationResult(String ruleId,
                                     boolean matches,
-                                    IEvaluationOutput output) {
+                                    EvaluationOutputs outputs) {
 
-        this.evaluationResults.put(ruleId, matches ? EvaluationResult.MATCHED : EvaluationResult.UNMATCHED);
-        if (output != null) {
-            evaluatedExpressions.put(ruleId, output);
+        this.evaluationStatus.put(ruleId, matches ? EvaluationStatus.MATCHED : EvaluationStatus.UNMATCHED);
+        if (outputs != null) {
+            evaluationOutputs.put(ruleId, outputs);
         }
     }
 

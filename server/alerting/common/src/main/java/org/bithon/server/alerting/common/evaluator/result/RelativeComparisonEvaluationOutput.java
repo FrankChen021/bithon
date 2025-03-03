@@ -21,6 +21,7 @@ import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.Map;
 @Data
 public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
-    private boolean matches;
+    private boolean matched;
     private BigDecimal base;
     private BigDecimal now;
     private double delta;
@@ -41,6 +42,7 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private IMetricEvaluator metric;
     private TimeSpan start;
     private TimeSpan end;
+    private Label label;
 
     /**
      * Used for plotting if the image rendering service is enabled
@@ -55,6 +57,10 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     @Override
     public TimeSpan getEnd() {
         return end;
+    }
+
+    public Label getLabel() {
+        return label;
     }
 
     @Override

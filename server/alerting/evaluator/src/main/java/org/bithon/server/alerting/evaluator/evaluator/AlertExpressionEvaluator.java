@@ -19,9 +19,11 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
@@ -45,7 +47,13 @@ public class AlertExpressionEvaluator {
             @Override
             public Boolean visit(LogicalExpression expression) {
                 if (expression instanceof LogicalExpression.AND) {
-                    return expression.getOperands().stream().allMatch(e -> e.accept(this));
+                    for (IExpression operand : expression.getOperands()) {
+                        // TODO: JOIN the Output
+                        if (!operand.accept(this)) {
+                            return false;
+                        }
+                    }
+                    return true;
                 } else if (expression instanceof LogicalExpression.OR) {
                     return expression.getOperands().stream().anyMatch(e -> e.accept(this));
                 } else {
@@ -55,7 +63,14 @@ public class AlertExpressionEvaluator {
 
             @Override
             public Boolean visit(AlertExpression expression) {
-                return evaluate(expression, context);
+                boolean isTrue = evaluate(expression, context);
+                if (isTrue) {
+                    EvaluationOutputs outputs = context.getEvaluationOutputs().get(expression.getId());
+                    for (IEvaluationOutput output : outputs) {
+                        context.getGroups().add(output.getLabel());
+                    }
+                }
+                return isTrue;
             }
         });
     }
@@ -68,20 +83,21 @@ public class AlertExpressionEvaluator {
 
         TimeSpan end = context.getIntervalEnd();
         TimeSpan start = end.before(expression.getMetricExpression().getWindow());
-        IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
-                                                                                           expression.getMetricExpression().getFrom(),
-                                                                                           expression.getMetricExpression().getMetric(),
-                                                                                           start,
-                                                                                           context.getIntervalEnd(),
-                                                                                           expression.getMetricExpression().getWhereText(),
-                                                                                           expression.getMetricExpression().getGroupBy(),
-                                                                                           context);
-        if (output == null || !output.isMatches()) {
+        EvaluationOutputs outputs = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
+                                                                                            expression.getMetricExpression().getFrom(),
+                                                                                            expression.getMetricExpression().getMetric(),
+                                                                                            start,
+                                                                                            context.getIntervalEnd(),
+                                                                                            expression.getMetricExpression().getWhereText(),
+                                                                                            CollectionUtils.emptyOrOriginal(expression.getMetricExpression().getGroupBy()),
+                                                                                            context);
+        if (outputs.isEmpty() || !outputs.isMatched()) {
             context.setEvaluationResult(expression.getId(), false, null);
             return false;
         }
 
-        context.setEvaluationResult(expression.getId(), true, output);
+        outputs.removeIf((output) -> !output.isMatched());
+        context.setEvaluationResult(expression.getId(), true, outputs);
 
         return true;
     }

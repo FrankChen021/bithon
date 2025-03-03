@@ -27,20 +27,20 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
-import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
+import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
+import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -304,11 +304,6 @@ public class AlertCommandService {
             }
 
             @Override
-            public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus) {
-
-            }
-
-            @Override
             public String getName() {
                 return "";
             }
@@ -320,17 +315,16 @@ public class AlertCommandService {
         };
 
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new AlertStateLocalMemoryStorage(),
+                                                      new LocalStateManager(applicationContext.getBean(IAlertStateStorage.class)),
                                                       logStorage.createWriter(),
                                                       recordStorage,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),
-                                                      applicationContext,
+                                                      applicationContext.getBean(INotificationApiInvoker.class),
                                                       this.objectMapper);
 
-        TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
-
-        evaluator.evaluate(now, rule, null);
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           rule);
 
         return logStorage.getLogs();
     }

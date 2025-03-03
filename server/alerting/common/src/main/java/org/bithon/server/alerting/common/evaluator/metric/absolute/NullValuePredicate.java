@@ -22,8 +22,9 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -47,7 +48,7 @@ public class NullValuePredicate implements IMetricEvaluator {
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -58,9 +59,9 @@ public class NullValuePredicate implements IMetricEvaluator {
         QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
+                                                                                            .startISO8601(start.toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
                                                                    .filterExpression(filterExpression)
                                                                    .fields(Collections.singletonList(metric))
                                                                    .groupBy(groupBy)
@@ -78,12 +79,13 @@ public class NullValuePredicate implements IMetricEvaluator {
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return new AbsoluteComparisonEvaluationOutput(start,
-                                                      end,
-                                                      nowValue == null ? null : valueType.format(nowValue),
-                                                      "null",
-                                                      nowValue == null ? null : nowValue.toString(),
-                                                      matches);
+        return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(start,
+                                                                            end,
+                                                                            new Label(),
+                                                                            nowValue == null ? null : valueType.format(nowValue),
+                                                                            "null",
+                                                                            nowValue == null ? null : nowValue.toString(),
+                                                                            matches));
     }
 
     @Override

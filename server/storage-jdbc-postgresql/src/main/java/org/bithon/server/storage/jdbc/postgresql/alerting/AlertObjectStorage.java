@@ -47,12 +47,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public void initialize() {
-        if (!this.storageConfig.isCreateTable()) {
-            return;
-        }
+    protected void createTableIfNotExists() {
         TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_OBJECT);
         TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_CHANGE_LOG);
-        TableCreator.createTableIfNotExists(this.dslContext, Tables.BITHON_ALERT_STATE);
     }
 }
