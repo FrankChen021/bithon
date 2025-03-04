@@ -24,6 +24,70 @@
   },
   "charts": [
     {
+      "title": "Top 10 Incoming HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        "uri",
+        {
+          "name": "qps",
+          "sortable": true
+        },
+        {
+          "name": "totalCount",
+          "format": "compact_number",
+          "sortable": "true"
+        },
+        {
+          "name": "errorCount",
+          "format": "compact_number",
+          "sortable": "true"
+        },
+        {
+          "name": "minResponseTime",
+          "format": "nanosecond",
+          "sortable": "true"
+        },
+        {
+          "name": "avgResponseTime",
+          "format": "nanosecond",
+          "sortable": "true"
+        },
+        {
+          "name": "maxResponseTime",
+          "format": "nanosecond",
+          "sortable": "true"
+        }
+      ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "groupBy",
+        "fields": [
+          "uri",
+          "qps",
+          "totalCount",
+          "errorCount",
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ],
+        "limit": "10",
+        "groupBy": [
+          "appName",
+          "uri"
+        ],
+        "orderBy": {
+          "name": "totalCount",
+          "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
       "title": "QPS",
       "width": 4,
       "type": "line",
@@ -84,7 +148,7 @@
       "type": "line",
       "yAxis": [
         {
-          "format": "nanoFormatter"
+          "format": "nanosecond"
         }
       ],
       "columns": [
@@ -109,15 +173,15 @@
           "totalCount",
           {
             "name": "minResponseTime",
-            "format": "nanoFormatter"
+            "format": "nanosecond"
           },
           {
             "name": "avgResponseTime",
-            "format": "nanoFormatter"
+            "format": "nanosecond"
           },
           {
             "name": "maxResponseTime",
-            "format": "nanoFormatter"
+            "format": "nanosecond"
           }
         ],
         "query": {
