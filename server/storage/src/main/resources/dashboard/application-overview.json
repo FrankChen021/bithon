@@ -10,8 +10,11 @@
         "fields": [
           {
             "name": "appName",
-            "width": 200,
-            "allowClear": false
+            "width": 200
+          },
+          {
+            "name": "instanceName",
+            "width": 300
           }
         ]
       }
@@ -22,7 +25,7 @@
       "title": "Avg Cpu Usage",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/jvm-metrics",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "jvm-metrics",
         "type": "groupBy",
@@ -43,7 +46,7 @@
       "title": "Instance",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/jvm-metrics",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "jvm-metrics",
         "type": "groupBy",
@@ -64,7 +67,7 @@
       "title": "Incoming HTTP Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/http-incoming-metrics",
+      "link": "/dashboard/http-incoming-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
@@ -85,7 +88,7 @@
       "title": "Outgoing HTTP Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/http-outgoing-metrics",
+      "link": "/dashboard/http-outgoing-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "http-outgoing-metrics",
         "type": "groupBy",
@@ -106,7 +109,7 @@
       "title": "Exceptions",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/exception-metrics",
+      "link": "/dashboard/exception-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "exception-metrics",
         "type": "groupBy",
@@ -127,7 +130,7 @@
       "title": "GRPC Client Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/grpc-client-metrics",
+      "link": "/dashboard/grpc-client-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "grpc-client-metrics",
         "type": "groupBy",
@@ -148,7 +151,7 @@
       "title": "Kafka Produced Records",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/kafka-producer-metrics",
+      "link": "/dashboard/kafka-producer-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "kafka-producer-metrics",
         "type": "groupBy",
@@ -169,7 +172,7 @@
       "title": "Kafka Consumed Byte Rate (Bps)",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/kafka-consumer-metrics",
+      "link": "/dashboard/kafka-consumer-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "kafka-consumer-metrics",
         "type": "groupBy",
@@ -190,7 +193,7 @@
       "title": "Redis Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/redis-metrics",
+      "link": "/dashboard/redis-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "redis-metrics",
         "type": "groupBy",
@@ -211,7 +214,7 @@
       "title": "MongoDb Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/mongodb-metrics",
+      "link": "/dashboard/mongodb-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "mongodb-metrics",
         "type": "groupBy",
@@ -232,7 +235,7 @@
       "title": "SQLs",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/sql-metrics",
+      "link": "/dashboard/sql-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "sql-metrics",
         "type": "groupBy",
@@ -253,7 +256,7 @@
       "title": "ZooKeeper Client Requests",
       "width": 1,
       "type": "stat",
-      "link": "/dashboard/zookeeper-client-metrics",
+      "link": "/dashboard/zookeeper-client-metrics?appName={appName}&instanceName={instanceName}",
       "query": {
         "dataSource": "zookeeper-client-metrics",
         "type": "groupBy",
