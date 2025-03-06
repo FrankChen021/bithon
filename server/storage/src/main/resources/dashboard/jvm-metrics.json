@@ -8,7 +8,11 @@
         "type": "datasource",
         "name": "jvm-metrics",
         "fields": [
-          {"name": "appName", "width": 200, "allowClear": false},
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
           "instanceName"
         ]
       }
@@ -19,6 +23,7 @@
       "title": "Instance List",
       "width": 4,
       "type": "table",
+      "isCollapsed": true,
       "columns": [
         {
           "name": "index",
@@ -32,7 +37,7 @@
           "name": "instanceName",
           "title": "instance",
           "format": "template",
-          "template": "<a target='_blank' href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
+          "template": "<a href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
         },
         {
           "name": "processCpuLoad",
@@ -95,13 +100,25 @@
         {
           "name": "processCpuLoad",
           "format": "percentage"
+        },
+        {
+          "name": "processors",
+          "yAxis": 1,
+          "fill": false
         }
       ],
       "query": {
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "processCpuLoad", "aggregator": "last"}
+          {
+            "name": "processCpuLoad",
+            "aggregator": "last"
+          },
+          {
+            "name": "processors",
+            "expression": "last(processors)"
+          }
         ]
       }
     },
@@ -120,8 +137,14 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "activeThreads", "aggregator": "last"},
-          {"name": "totalThreads", "aggregator": "last"}
+          {
+            "name": "activeThreads",
+            "aggregator": "last"
+          },
+          {
+            "name": "totalThreads",
+            "aggregator": "last"
+          }
         ]
       }
     },
@@ -155,9 +178,18 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "heapUsed", "aggregator": "last"},
-          {"name": "heapMax", "aggregator": "last"},
-          {"name": "heapCommitted", "aggregator": "last"}
+          {
+            "name": "heapUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "heapMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "heapCommitted",
+            "aggregator": "last"
+          }
         ]
       }
     },
@@ -191,9 +223,18 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "nonHeapUsed","aggregator": "last"},
-          {"name": "nonHeapMax","aggregator": "last"},
-          {"name": "nonHeapCommitted","aggregator": "last"}
+          {
+            "name": "nonHeapUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "nonHeapMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "nonHeapCommitted",
+            "aggregator": "last"
+          }
         ]
       }
     },
@@ -227,9 +268,18 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "metaspaceUsed", "aggregator": "last"},
-          {"name": "metaspaceMax","aggregator": "last"},
-          {"name": "metaspaceCommitted","aggregator": "last"}
+          {
+            "name": "metaspaceUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "metaspaceMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "metaspaceCommitted",
+            "aggregator": "last"
+          }
         ]
       }
     },
@@ -258,8 +308,14 @@
         "type": "timeseries",
         "dataSource": "jvm-metrics",
         "fields": [
-          {"name": "directUsed","aggregator": "last"},
-          {"name": "directMax","aggregator": "last"}
+          {
+            "name": "directUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "directMax",
+            "aggregator": "last"
+          }
         ]
       }
     },
@@ -316,8 +372,14 @@
         "type": "timeseries",
         "dataSource": "jvm-gc-metrics",
         "fields": [
-          {"name": "gcCount", "aggregator": "sum"},
-          {"name": "avgGcTime", "expression": "sum(gcTime)/sum(gcCount)"}
+          {
+            "name": "gcCount",
+            "aggregator": "sum"
+          },
+          {
+            "name": "avgGcTime",
+            "expression": "sum(gcTime)/sum(gcCount)"
+          }
         ],
         "groupBy": [
           "gcName"
