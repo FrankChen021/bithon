@@ -94,6 +94,7 @@ public class DashboardManager implements SmartLifecycle {
         if (loaderScheduler != null) {
             loaderScheduler.shutdownNow();
             try {
+                //noinspection ResultOfMethodCallIgnored
                 loaderScheduler.awaitTermination(10, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
             } finally {
