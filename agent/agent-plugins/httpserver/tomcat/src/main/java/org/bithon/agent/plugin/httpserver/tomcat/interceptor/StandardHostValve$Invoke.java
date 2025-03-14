@@ -31,6 +31,7 @@ import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Locale;
@@ -118,6 +119,14 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
             traceContext.currentSpan()
                         .tag(Tags.Http.STATUS, Integer.toString(response.getStatus()))
                         .tag(aopContext.getException())
+                        .configIfTrue(CollectionUtils.isNotEmpty(traceConfig.getHeaders().getResponse()),
+                                      (s) -> {
+                                          for (String header : traceConfig.getHeaders().getResponse()) {
+                                              String value = response.getHeader(header);
+                                              if (value != null) {
+                                                  s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
+                                              }
+                                          }Ï
                         .finish();
         } finally {
             traceContext.finish();
