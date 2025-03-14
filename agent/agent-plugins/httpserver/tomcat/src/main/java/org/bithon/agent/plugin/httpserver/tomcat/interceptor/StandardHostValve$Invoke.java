@@ -126,7 +126,8 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
                                               if (value != null) {
                                                   s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
                                               }
-                                          }Ï
+                                          }
+                                      })
                         .finish();
         } finally {
             traceContext.finish();

@@ -102,7 +102,8 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                                                       if (value != null) {
                                                           s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
                                                       }
-                                                  }})
+                                                  }
+                                              })
                                 .finish();
                     traceContext.finish();
                 }
