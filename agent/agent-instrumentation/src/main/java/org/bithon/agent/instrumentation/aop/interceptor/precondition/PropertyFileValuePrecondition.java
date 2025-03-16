@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  * @date 2025/1/6 23:58
  */
 public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
+    private Boolean evaluationResult;
+    private String actual;
     protected final String propertyFile;
     protected final String propertyName;
     protected final PropertyValuePredicate valuePredicate;
@@ -168,6 +170,13 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
     @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     @Override
     public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
+        if (this.evaluationResult == null) {
+            this.evaluationResult = matches(classLoader);
+        }
+        return evaluationResult;
+    }
+
+    private boolean matches(ClassLoader classLoader) {
         try (InputStream inputStream = classLoader.getResourceAsStream(propertyFile)) {
             if (inputStream == null) {
                 return false;
@@ -175,8 +184,8 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
 
             Properties properties = new Properties();
             properties.load(inputStream);
-            String value = properties.getProperty(propertyName);
-            return this.valuePredicate.matches(value);
+            this.actual = properties.getProperty(propertyName);
+            return this.valuePredicate.matches(this.actual);
         } catch (IOException ignored) {
             return false;
         }
@@ -185,9 +194,10 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
     @Override
     public String toString() {
         return String.format(Locale.ENGLISH,
-                             "'%s'[%s] %s",
+                             "'%s'[%s](val=%s) %s",
                              propertyFile,
                              propertyName,
+                             actual,
                              valuePredicate);
     }
 }

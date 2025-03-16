@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpserver.jetty;
+package org.bithon.agent.plugin.httpserver.jetty12;
 
-import org.bithon.agent.instrumentation.aop.interceptor.descriptor.BithonClassDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
@@ -30,19 +29,13 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class JettyPlugin implements IPlugin {
+public class Jetty12Plugin implements IPlugin {
 
     @Override
     public IInterceptorPrecondition getPreconditions() {
-        // Should not instrument Jetty 12.0 or later which has total different implementation from previous releases
         return new PropertyFileValuePrecondition("META-INF/maven/org.eclipse.jetty/jetty-server/pom.properties",
                                                  "version",
-                                                 PropertyFileValuePrecondition.VersionLT.of("12.0"));
-    }
-
-    @Override
-    public BithonClassDescriptor getBithonClassDescriptor() {
-        return BithonClassDescriptor.of("org.eclipse.jetty.server.Request", true);
+                                                 PropertyFileValuePrecondition.VersionGTE.of("12.0.0"));
     }
 
     @Override
@@ -51,27 +44,22 @@ public class JettyPlugin implements IPlugin {
             forClass("org.eclipse.jetty.server.AbstractConnector")
                 .onMethod("doStart")
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty.interceptor.AbstractConnector$DoStart")
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.AbstractConnector$DoStart")
                 .build(),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .onMethod("doStart")
                 .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty.interceptor.QueuedThreadPool$DoStart")
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.QueuedThreadPool$DoStart")
                 .build(),
 
-            forClass("org.eclipse.jetty.server.HttpChannel")
+            forClass("org.eclipse.jetty.server.Server")
                 .onMethod("handle")
-                .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$Handle")
+                .andArgs("org.eclipse.jetty.server.Request",
+                         "org.eclipse.jetty.server.Response",
+                         "org.eclipse.jetty.util.Callback")
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.Server$Handle")
 
-                .onMethod("onCompleted")
-                .andNoArgs()
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$OnCompleted")
-
-                .onMethod("handleException")
-                .andArgs("java.lang.Throwable")
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$HandleException")
                 .build()
         );
     }

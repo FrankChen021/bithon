@@ -84,10 +84,20 @@ public class InterceptorInstaller {
                     return builder;
                 }
 
+                if (descriptor.getPrecondition() != null
+                    && !descriptor.getPrecondition().matches(classLoader, typeDescription)) {
+                    log.info("Interceptor for class [{}] not installed because precondition [{}] not satisfied",
+                             typeDescription.getName(),
+                             descriptor.getPrecondition().toString());
+                    return builder;
+                }
+
                 //
                 // Transform target class to a type of IBithonObject
                 //
-                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                if (typeDescription.isInterface()) {
+                    log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
                     builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
                                      .implement(IBithonObject.class)
@@ -98,7 +108,6 @@ public class InterceptorInstaller {
                 // install interceptors for the current matched type
                 //
                 for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
-
                     // Run checkers first to see if an interceptor can be installed
                     if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
                         log.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",

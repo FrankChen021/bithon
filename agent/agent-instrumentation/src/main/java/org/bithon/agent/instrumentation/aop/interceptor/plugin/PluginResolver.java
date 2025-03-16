@@ -56,7 +56,7 @@ public abstract class PluginResolver {
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
 
-            descriptors.merge(plugin.getBithonClassDescriptor());
+            descriptors.merge(plugin.getBithonClassDescriptor(), plugin.getPreconditions());
 
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
