@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
@@ -84,16 +84,16 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
     }
 
     @Override
-    public Map<String, AlertStateObject> getAlertStates() {
+    public Map<String, AlertState> getAlertStates() {
         return dslContext.selectFrom(this.stateTableSelectName)
                          .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> {
-                             AlertStateObject obj = new AlertStateObject();
+                             AlertState obj = new AlertState();
                              obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
 
                              String payload = record.get(Tables.BITHON_ALERT_STATE.PAYLOAD);
                              if (payload != null && !payload.isEmpty()) {
                                  try {
-                                     obj.setPayload(objectMapper.readValue(payload, AlertStateObject.Payload.class));
+                                     obj.setPayload(objectMapper.readValue(payload, AlertState.Payload.class));
                                  } catch (JsonProcessingException e) {
                                      throw new RuntimeException(e);
                                  }
@@ -112,10 +112,10 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
     }
 
     @Override
-    public void saveAlertStates(Map<String, AlertStateObject> states) {
-        for (Map.Entry<String, AlertStateObject> entry : states.entrySet()) {
+    public void saveAlertStates(Map<String, AlertState> states) {
+        for (Map.Entry<String, AlertState> entry : states.entrySet()) {
             String ruleId = entry.getKey();
-            AlertStateObject state = entry.getValue();
+            AlertState state = entry.getValue();
             String payloadString;
             try {
                 payloadString = objectMapper.writeValueAsString(state.getPayload());
@@ -139,9 +139,9 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
     }
 
     @Override
-    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus
+    public void updateAlertStatus(String id, AlertState prevState, AlertStatus
         newStatus, Map<Label, AlertStatus> statusPerLabel) {
-        AlertStateObject.Payload payload = new AlertStateObject.Payload();
+        AlertState.Payload payload = new AlertState.Payload();
         //payload.setStates(statusPerLabel);
         String payloadString = "{}";
         try {

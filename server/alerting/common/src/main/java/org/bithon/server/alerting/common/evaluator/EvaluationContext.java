@@ -26,7 +26,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import javax.annotation.Nullable;
@@ -64,13 +64,13 @@ public class EvaluationContext implements IEvaluationContext {
     private final List<Label> groups = new ArrayList<>();
 
     private final IDataSourceApi dataSourceApi;
-    private final @Nullable AlertStateObject prevState;
+    private final @Nullable AlertState prevState;
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
                              AlertRule alertRule,
                              IDataSourceApi dataSourceApi,
-                             AlertStateObject prevState) {
+                             AlertState prevState) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogger = new EvaluationLogger(logger);

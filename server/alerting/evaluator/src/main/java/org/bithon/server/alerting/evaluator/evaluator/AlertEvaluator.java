@@ -39,7 +39,7 @@ import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -134,7 +134,7 @@ public class AlertEvaluator implements DisposableBean {
     }
 
     public void evaluate(TimeSpan now, AlertRule rule) {
-        AlertStateObject stateObject = this.getStateManager().getAlertState(rule.getId());
+        AlertState stateObject = this.getStateManager().getAlertState(rule.getId());
         this.evaluate(now, rule, stateObject, false);
     }
 
@@ -142,12 +142,12 @@ public class AlertEvaluator implements DisposableBean {
      * @param prevState can be null
      */
     @VisibleForTesting
-    void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState) {
+    void evaluate(TimeSpan now, AlertRule alertRule, AlertState prevState) {
         this.evaluate(now, alertRule, prevState, false);
     }
 
     @VisibleForTesting
-    void evaluate(TimeSpan now, AlertRule alertRule, AlertStateObject prevState, boolean skipPrecheck) {
+    void evaluate(TimeSpan now, AlertRule alertRule, AlertState prevState, boolean skipPrecheck) {
         EvaluationContext context = new EvaluationContext(now,
                                                           evaluationLogWriter,
                                                           alertRule,
@@ -255,7 +255,7 @@ public class AlertEvaluator implements DisposableBean {
         return AlertStatus.READY;
     }
 
-    private Map<Label, AlertStatus> evaluate(EvaluationContext context, AlertStateObject prevState) {
+    private Map<Label, AlertStatus> evaluate(EvaluationContext context, AlertState prevState) {
         AlertRule alertRule = context.getAlertRule();
         context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
 
@@ -269,7 +269,7 @@ public class AlertEvaluator implements DisposableBean {
 
             Map<Label, AlertStatus> newStatus = new HashMap<>();
             if (prevState != null) {
-                for (Map.Entry<Label, AlertStateObject.SeriesState> item : prevState.getPayload().getSeries().entrySet()) {
+                for (Map.Entry<Label, AlertState.SeriesState> item : prevState.getPayload().getSeries().entrySet()) {
                     newStatus.put(item.getKey(), AlertStatus.RESOLVED);
                 }
             }
@@ -301,7 +301,7 @@ public class AlertEvaluator implements DisposableBean {
 
     private AlertStatus getAlertStatus(EvaluationContext context,
                                        Label label,
-                                       AlertStateObject prevState,
+                                       AlertState prevState,
                                        long successiveCount,
                                        long expectedMatchCount) {
         AlertRule alertRule = context.getAlertRule();

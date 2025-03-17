@@ -18,7 +18,7 @@ package org.bithon.server.alerting.evaluator.state;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
@@ -64,7 +64,7 @@ public interface IEvaluationStateManager {
      */
     void restoreAlertStates();
 
-    AlertStateObject getAlertState(String alertId);
+    AlertState getAlertState(String alertId);
 
     void setState(String alertId,
                   AlertStatus status,

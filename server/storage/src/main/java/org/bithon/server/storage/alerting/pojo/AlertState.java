@@ -32,7 +32,7 @@ import java.util.Map;
  * @date 24/4/24 8:28 pm
  */
 @Data
-public class AlertStateObject {
+public class AlertState {
 
     @Data
     public static class SeriesState {

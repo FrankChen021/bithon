@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
@@ -66,7 +66,7 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
     }
 
     @Override
-    public void saveAlertStates(Map<String, AlertStateObject> states) {
+    public void saveAlertStates(Map<String, AlertState> states) {
         BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_ALERT_STATE,
                                                                     Tables.BITHON_ALERT_STATE.ALERT_ID,
                                                                     Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
@@ -82,9 +82,9 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
                                                                 null
                                                         ));
 
-        for (Map.Entry<String, AlertStateObject> entry : states.entrySet()) {
+        for (Map.Entry<String, AlertState> entry : states.entrySet()) {
             String ruleId = entry.getKey();
-            AlertStateObject state = entry.getValue();
+            AlertState state = entry.getValue();
             String payloadString;
             try {
                 payloadString = objectMapper.writeValueAsString(state.getPayload());
@@ -102,7 +102,7 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
     }
 
     @Override
-    public void updateAlertStatus(String id, AlertStateObject prevState, AlertStatus newStatus, Map<Label, AlertStatus> statusPerLabel) {
+    public void updateAlertStatus(String id, AlertState prevState, AlertStatus newStatus, Map<Label, AlertStatus> statusPerLabel) {
         String payload = "{}";
         if (statusPerLabel != null) {
             try {

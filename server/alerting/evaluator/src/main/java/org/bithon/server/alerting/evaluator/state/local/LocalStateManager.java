@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LocalStateManager implements IEvaluationStateManager {
 
     private final IAlertStateStorage stateStorage;
-    private Map<String, AlertStateObject> alertStates = new ConcurrentHashMap<>();
+    private Map<String, AlertState> alertStates = new ConcurrentHashMap<>();
 
     public LocalStateManager(@JacksonInject(useInput = OptBoolean.FALSE) IAlertStateStorage stateStorage) {
         this.stateStorage = stateStorage;
@@ -56,17 +56,17 @@ public class LocalStateManager implements IEvaluationStateManager {
     public Map<Label, Long> incrMatchCount(String ruleId, List<Label> labels, Duration duration) {
         long now = System.currentTimeMillis();
 
-        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
-            AlertStateObject state = new AlertStateObject();
-            state.setPayload(new AlertStateObject.Payload());
+        AlertState alertState = alertStates.computeIfAbsent(ruleId, k -> {
+            AlertState state = new AlertState();
+            state.setPayload(new AlertState.Payload());
             return state;
         });
-        AlertStateObject.Payload payload = alertState.getPayload();
+        AlertState.Payload payload = alertState.getPayload();
 
         Map<Label, Long> result = new HashMap<>();
         for (Label label : labels) {
-            AlertStateObject.SeriesState seriesState = payload.getSeries()
-                                                              .computeIfAbsent(label, (k) -> new AlertStateObject.SeriesState());
+            AlertState.SeriesState seriesState = payload.getSeries()
+                                                        .computeIfAbsent(label, (k) -> new AlertState.SeriesState());
 
             // Update match count
             if (now < seriesState.getMatchExpiredAt()) {
@@ -87,13 +87,13 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public boolean tryEnterSilence(String ruleId, Label label, Duration silenceDuration) {
-        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
-            AlertStateObject state = new AlertStateObject();
-            state.setPayload(new AlertStateObject.Payload());
+        AlertState alertState = alertStates.computeIfAbsent(ruleId, k -> {
+            AlertState state = new AlertState();
+            state.setPayload(new AlertState.Payload());
             return state;
         });
 
-        AlertStateObject.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
+        AlertState.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
         if (seriesState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return false;
@@ -114,12 +114,12 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public Duration getSilenceRemainTime(String ruleId, Label label) {
-        AlertStateObject alertState = alertStates.get(ruleId);
+        AlertState alertState = alertStates.get(ruleId);
         if (alertState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return Duration.ZERO;
         }
-        AlertStateObject.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
+        AlertState.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
         if (seriesState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return Duration.ZERO;
@@ -131,9 +131,9 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public void setLastEvaluationTime(String ruleId, long timestamp, Duration interval) {
-        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
-            AlertStateObject state = new AlertStateObject();
-            state.setPayload(new AlertStateObject.Payload());
+        AlertState alertState = alertStates.computeIfAbsent(ruleId, k -> {
+            AlertState state = new AlertState();
+            state.setPayload(new AlertState.Payload());
             return state;
         });
 
@@ -142,7 +142,7 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public long getLastEvaluationTimestamp(String ruleId) {
-        AlertStateObject alertState = alertStates.get(ruleId);
+        AlertState alertState = alertStates.get(ruleId);
         if (alertState == null) {
             return 0;
         }
@@ -155,19 +155,19 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public AlertStateObject getAlertState(String alertId) {
+    public AlertState getAlertState(String alertId) {
         return this.alertStates.computeIfAbsent(alertId, k -> {
-            AlertStateObject state = new AlertStateObject();
-            state.setPayload(new AlertStateObject.Payload());
+            AlertState state = new AlertState();
+            state.setPayload(new AlertState.Payload());
             return state;
         });
     }
 
     @Override
     public void setState(String alertId, AlertStatus status, Map<Label, AlertStatus> seriesStatus) {
-        AlertStateObject alertState = alertStates.computeIfAbsent(alertId, k -> {
-            AlertStateObject state = new AlertStateObject();
-            state.setPayload(new AlertStateObject.Payload());
+        AlertState alertState = alertStates.computeIfAbsent(alertId, k -> {
+            AlertState state = new AlertState();
+            state.setPayload(new AlertState.Payload());
             return state;
         });
 
@@ -181,9 +181,9 @@ public class LocalStateManager implements IEvaluationStateManager {
 
             if (!removed) {
                 // Update status for each label
-                AlertStateObject.SeriesState seriesState = alertState.getPayload()
-                                                                     .getSeries()
-                                                                     .computeIfAbsent(series.getKey(), k -> new AlertStateObject.SeriesState());
+                AlertState.SeriesState seriesState = alertState.getPayload()
+                                                               .getSeries()
+                                                               .computeIfAbsent(series.getKey(), k -> new AlertState.SeriesState());
                 seriesState.setStatus(series.getValue());
             }
         }
