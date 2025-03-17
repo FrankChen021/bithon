@@ -17,22 +17,31 @@
 package org.bithon.agent.plugin.httpserver.jetty12.context;
 
 import org.bithon.agent.observability.tracing.context.ITraceContext;
+import org.eclipse.jetty.server.internal.HttpChannelState;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 7/12/21 9:21 PM
  */
 public class RequestContext {
-    private final long startNanoTime;
+    private final HttpChannelState.ChannelRequest channelRequest;
+    private final HttpChannelState.ChannelResponse channelResponse;
     private final ITraceContext traceContext;
 
-    public RequestContext(long startNanoTime, ITraceContext traceContext) {
-        this.startNanoTime = startNanoTime;
+    public RequestContext(HttpChannelState.ChannelRequest request,
+                          HttpChannelState.ChannelResponse response,
+                          ITraceContext traceContext) {
+        this.channelRequest = request;
+        this.channelResponse = response;
         this.traceContext = traceContext;
     }
 
-    public long getStartNanoTime() {
-        return startNanoTime;
+    public HttpChannelState.ChannelRequest getChannelRequest() {
+        return channelRequest;
+    }
+
+    public HttpChannelState.ChannelResponse getChannelResponse() {
+        return channelResponse;
     }
 
     /**

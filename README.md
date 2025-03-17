@@ -209,7 +209,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Spring Rest Template                                         | 4.3.12      |             |                                                | &check; |
 | Spring Scheduling                                            | 4.3.12      |             |                                                | &check; |
 | Spring Gateway                                               | 3.0.0       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 
-| HTTP Server - Jetty                                          | 9.4.41      |             | &check;                                        | &check; |
+| HTTP Server - Jetty                                          | 9.4.41      | 12.0.x      | &check;                                        | &check; |
 | HTTP Server - Netty                                          | 2.0.0       |             |                                                | &check; |
 | HTTP Server - Tomcat                                         | 8.5.20      |             | &check;                                        | &check; |
 | HTTP Server - Undertow                                       | 1.4.12      |             | &check;                                        | &check; |

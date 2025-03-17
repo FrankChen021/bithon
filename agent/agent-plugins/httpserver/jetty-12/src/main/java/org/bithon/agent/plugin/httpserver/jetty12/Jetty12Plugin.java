@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.httpserver.jetty12;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
+import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
 import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
@@ -53,13 +54,18 @@ public class Jetty12Plugin implements IPlugin {
                 .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.QueuedThreadPool$DoStart")
                 .build(),
 
-            forClass("org.eclipse.jetty.server.Server")
-                .onMethod("handle")
-                .andArgs("org.eclipse.jetty.server.Request",
-                         "org.eclipse.jetty.server.Response",
-                         "org.eclipse.jetty.util.Callback")
-                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.Server$Handle")
+            forClass("org.eclipse.jetty.server.internal.HttpChannelState")
+                .onMethod("onRequest")
+                .andArgs("org.eclipse.jetty.http.MetaData$Request")
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HttpChannelState$OnRequest")
+                .build(),
 
+            forClass("org.eclipse.jetty.server.internal.HttpChannelState$HandlerInvoker")
+                .onMethod(Matchers.name("run").and(Matchers.argumentSize(0)))
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HandlerInvoker$Run")
+
+                .onMethod(Matchers.name("completeStream").and(Matchers.takesArgument(1, "java.lang.Throwable")))
+                .interceptedBy("org.bithon.agent.plugin.httpserver.jetty12.interceptor.HandlerInvoker$CompleteStream")
                 .build()
         );
     }
