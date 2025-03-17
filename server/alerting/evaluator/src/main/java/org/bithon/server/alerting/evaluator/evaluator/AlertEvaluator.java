@@ -201,7 +201,7 @@ public class AlertEvaluator implements DisposableBean {
                 }
             }
 
-            // Group by alert status
+            // Group series with different labels by alert status
             Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
                                                                                         .stream()
                                                                                         .collect(HashMap::new,
@@ -212,13 +212,16 @@ public class AlertEvaluator implements DisposableBean {
             resolveAlert(alertRule, groupedStatus.get(AlertStatus.RESOLVED), context);
 
             this.stateManager.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
-            this.stateManager.setState(alertRule.getId(), getStatus(allNewStatus), allNewStatus);
+            this.stateManager.setState(alertRule.getId(), mergeStatus(allNewStatus), allNewStatus);
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
     }
 
-    private AlertStatus getStatus(Map<Label, AlertStatus> status) {
+    /**
+     * Merge status per label into a single status at the rule level
+     */
+    private AlertStatus mergeStatus(Map<Label, AlertStatus> status) {
         if (status.isEmpty()) {
             return AlertStatus.READY;
         }
@@ -350,6 +353,7 @@ public class AlertEvaluator implements DisposableBean {
     }
 
     /**
+     * TODO: pass the labels to notification message
      * Fire alert and update its status
      */
     private void fireAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {

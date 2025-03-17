@@ -170,14 +170,16 @@ public class LocalStateManager implements IEvaluationStateManager {
             return state;
         });
 
+        long now = System.currentTimeMillis();
         for (Map.Entry<Label, AlertStatus> entry : allNewStatus.entrySet()) {
             // Remove expired states for each label
             boolean removed = stateObject.getPayload()
                                          .getStates()
                                          .entrySet()
-                                         .removeIf(e -> e.getValue().getMatchExpiredAt() < System.currentTimeMillis());
+                                         .removeIf(e -> e.getValue().getMatchExpiredAt() < now);
 
             if (!removed) {
+                // Update status for each label
                 AlertStateObject.StatePerLabel statePerLabel = stateObject.getPayload()
                                                                           .getStates()
                                                                           .computeIfAbsent(entry.getKey(), k -> new AlertStateObject.StatePerLabel());
@@ -186,7 +188,7 @@ public class LocalStateManager implements IEvaluationStateManager {
         }
         stateObject.setStatus(status);
 
-        // TODO: apply batch mechanism
+        // TODO: change declaration to pass array
         this.stateStorage.saveAlertStates(Map.of(alertId, stateObject));
     }
 }

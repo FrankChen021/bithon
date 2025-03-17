@@ -3,4 +3,5 @@
 - [x] merge memory states with alert states
   - [x] Consider to separate evaluation state and rule state
   - [x] Remove updateAlertStatus from RecordStorage/StateStorage
-  - [ ] Fix AlertEvaluatorTest
+  - [x] Fix AlertEvaluatorTest
+  - [ ] See LocalStateManager 

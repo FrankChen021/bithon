@@ -70,7 +70,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AlertEvaluatorTest {
 
-
     private final String metric = "count";
 
     private IDataSourceApi dataSourceApiStub;
@@ -242,9 +241,7 @@ public class AlertEvaluatorTest {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
-                                        .data(Collections.singletonList(ImmutableMap.of(
-                                            "appName", "bithon-test-app",
-                                            metric, 5)))
+                                        .data(Collections.singletonList(ImmutableMap.of("appName", "bithon-test-app", metric, 5)))
                                         .build());
 
         String id = UUID.randomUUID().toString().replace("-", "");
@@ -272,7 +269,7 @@ public class AlertEvaluatorTest {
 
     @SneakyThrows
     @Test
-    public void test_ReadToAlerting() {
+    public void test_ReadyToAlerting() {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
@@ -313,12 +310,14 @@ public class AlertEvaluatorTest {
 
     @SneakyThrows
     @Test
-    public void test_ReadToAlerting_GroupBy_OneGroupAlerting() {
+    public void test_ReadyToAlerting_GroupBy_OneGroupAlerting() {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
-                                        // Return a value that DOES satisfy the condition,
-                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 7),
-                                                            ImmutableMap.of("appName", "test-app-2", metric, 3)
+                                        .data(Arrays.asList(
+                                            // The first series satisfies the condition,
+                                            ImmutableMap.of("appName", "test-app-1", metric, 7),
+                                            // The 2nd DOES NOT satisfy the condition
+                                            ImmutableMap.of("appName", "test-app-2", metric, 3)
                                         ))
                                         .build());
 
