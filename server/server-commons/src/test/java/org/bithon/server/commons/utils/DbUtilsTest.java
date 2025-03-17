@@ -89,4 +89,12 @@ public class DbUtilsTest {
         Assertions.assertEquals("bithon", conn.getDatabase());
         Assertions.assertEquals("clickhouse", conn.getDbType());
     }
+
+    @Test
+    public void test_PostgreSQLConnectionString_WithDatabase() {
+        DbUtils.ConnectionString conn = DbUtils.parseConnectionString("jdbc:postgresql://localhost:5432");
+        Assertions.assertEquals("localhost:5432", conn.getHostAndPort());
+        Assertions.assertEquals("", conn.getDatabase());
+        Assertions.assertEquals("postgresql", conn.getDbType());
+    }
 }

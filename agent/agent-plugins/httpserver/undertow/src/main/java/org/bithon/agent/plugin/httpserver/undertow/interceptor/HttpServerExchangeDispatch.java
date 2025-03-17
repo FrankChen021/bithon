@@ -32,6 +32,7 @@ import org.bithon.agent.observability.tracing.context.propagation.ITracePropagat
 import org.bithon.component.commons.tracing.Components;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Locale;
@@ -92,7 +93,18 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
                 update(httpExchange, startTime);
 
                 if (traceContext != null) {
-                    traceContext.currentSpan().tag(Tags.Http.STATUS, Integer.toString(httpExchange.getStatusCode())).finish();
+                    traceContext.currentSpan()
+                                .tag(Tags.Http.STATUS, Integer.toString(httpExchange.getStatusCode()))
+                                .configIfTrue(CollectionUtils.isNotEmpty(traceConfig.getHeaders().getResponse()),
+                                              (s) -> {
+                                                  for (String header : traceConfig.getHeaders().getResponse()) {
+                                                      String value = httpExchange.getResponseHeaders().getFirst(header);
+                                                      if (value != null) {
+                                                          s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
+                                                      }
+                                                  }
+                                              })
+                                .finish();
                     traceContext.finish();
                 }
             } catch (Exception ignored) {

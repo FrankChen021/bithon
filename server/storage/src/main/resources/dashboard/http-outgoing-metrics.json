@@ -25,6 +25,76 @@
   },
   "charts": [
     {
+      "title": "Top 10 Outgoing HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+          "path",
+        {"name":  "qps", "sortable": true},
+        {
+          "name": "requestCount",
+          "format": "compact_number",
+          "sortable": true
+        },
+        {
+          "name": "errorCount",
+          "format": "compact_number",
+          "sortable": true
+        },
+        {
+          "name": "errorRate",
+          "format": "percentage",
+          "sortable": true
+        },
+        {
+          "name": "minResponseTime",
+          "format": "nanosecond",
+          "sortable": true
+        },
+        {
+          "name": "avgResponseTime",
+          "format": "nanosecond",
+          "sortable": true
+        },
+        {
+          "name": "maxResponseTime",
+          "format": "nanosecond",
+          "sortable": true
+        }
+      ],
+      "query": {
+        "dataSource": "http-outgoing-metrics",
+        "type": "groupBy",
+        "fields": [
+          "qps",
+          "requestCount",
+          {
+            "name": "errorCount",
+            "expression": "sum(count4xx) + sum(count5xx)"
+          },
+          {
+            "name": "errorRate",
+            "expression": "round((sum(count4xx) + sum(count5xx))*100.0/sum(requestCount), 2)"
+          },
+          "avgResponseTime"
+        ],
+        "groupBy": [
+          "appName",
+          "path"
+        ],
+        "limit": "10",
+        "orderBy": {
+          "name": "requestCount",
+          "order": "desc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
       "title": "QPS",
       "width": 4,
       "type": "line",

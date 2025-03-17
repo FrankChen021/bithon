@@ -79,8 +79,7 @@ public class SettingStorage extends SettingJdbcStorage {
                 String sql = dslContext.selectFrom(Tables.BITHON_AGENT_SETTING)
                                        .getSQL() + " FINAL WHERE ";
 
-                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName)
-                                                                                   .and(Tables.BITHON_AGENT_SETTING.ENVIRONMENT.eq("")));
+                sql += dslContext.renderInlined(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName));
 
                 return dslContext.fetch(sql).map(this::toSettingEntry);
             }

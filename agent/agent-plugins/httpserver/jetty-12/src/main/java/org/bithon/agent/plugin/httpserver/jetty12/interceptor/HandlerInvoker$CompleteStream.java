@@ -63,8 +63,8 @@ public class HandlerInvoker$CompleteStream extends BeforeInterceptor {
                                                         s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
                                                     }
                                                 }))
-                .tag(Tags.Http.REQUEST_HEADER_PREFIX + "content-length", requestContext.getChannelRequest().getContentBytesRead())
-                .tag(Tags.Http.RESPONSE_HEADER_PREFIX + "content-length", requestContext.getChannelResponse().getContentBytesWritten())
+                .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, requestContext.getChannelRequest().getContentBytesRead())
+                .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, requestContext.getChannelResponse().getContentBytesWritten())
                 .finish();
             span.context().finish();
         }

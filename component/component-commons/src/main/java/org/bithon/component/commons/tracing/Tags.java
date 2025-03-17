@@ -53,6 +53,9 @@ public class Tags {
 
         public static final String STATUS = "http.status";
 
+        public static final String REQUEST_CONTENT_LENGTH = "http.request_content_length";
+        public static final String RESPONSE_CONTENT_LENGTH = "http.response_content_length";
+
         public static final String REQUEST_HEADER_PREFIX = "http.request.header.";
         public static final String RESPONSE_HEADER_PREFIX = "http.response.header.";
 
