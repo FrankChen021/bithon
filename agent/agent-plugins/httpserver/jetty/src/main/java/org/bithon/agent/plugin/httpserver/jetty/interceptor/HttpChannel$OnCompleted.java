@@ -35,8 +35,6 @@ import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Locale;
 
 /**
@@ -71,8 +69,6 @@ public class HttpChannel$OnCompleted extends AroundInterceptor {
             ITraceSpan span = traceContext.currentSpan();
             if (span != null) {
                 span.tag(Tags.Http.STATUS, Integer.toString(httpChannel.getResponse().getStatus()))
-                    .tag(Tags.Http.REQUEST_CONTENT_LENGTH, request.getContentRead())
-                    .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, response.getContentCount())
                     .configIfTrue(CollectionUtils.isNotEmpty(traceConfig.getHeaders().getResponse()),
                                   (s) -> {
                                       for (String header : traceConfig.getHeaders().getResponse()) {
@@ -81,7 +77,10 @@ public class HttpChannel$OnCompleted extends AroundInterceptor {
                                               s.tag(Tags.Http.RESPONSE_HEADER_PREFIX + header.toLowerCase(Locale.ENGLISH), value);
                                           }
                                       }
-                                  }).finish();
+                                  })
+                    .tag(Tags.Http.REQUEST_CONTENT_LENGTH, request.getContentRead())
+                    .tag(Tags.Http.RESPONSE_CONTENT_LENGTH, response.getContentCount())
+                    .finish();
             }
             traceContext.finish();
         }
@@ -101,18 +100,14 @@ public class HttpChannel$OnCompleted extends AroundInterceptor {
         TraceContextHolder.detach();
     }
 
-    private void update(Request request, HttpServletRequest httpServletRequest, HttpServletResponse response, long costTime) {
+    private void update(Request request, Request httpServletRequest, Response response, long costTime) {
         String srcApplication = request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
         String uri = httpServletRequest.getRequestURI();
         int httpStatus = response.getStatus();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
         int count5xx = httpStatus >= 500 ? 1 : 0;
         long requestByteSize = request.getContentRead();
-        long responseByteSize = 0;
-        if (response instanceof Response) {
-            Response jettyResponse = (Response) response;
-            responseByteSize = jettyResponse.getContentCount();
-        }
+        long responseByteSize = response.getContentCount();
 
         this.metricRegistry.getOrCreateMetrics(srcApplication, httpServletRequest.getMethod(), uri, httpStatus)
                            .updateRequest(costTime, count4xx, count5xx)
