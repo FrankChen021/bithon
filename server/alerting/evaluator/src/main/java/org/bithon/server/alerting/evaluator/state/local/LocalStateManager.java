@@ -56,29 +56,30 @@ public class LocalStateManager implements IEvaluationStateManager {
     public Map<Label, Long> incrMatchCount(String ruleId, List<Label> labels, Duration duration) {
         long now = System.currentTimeMillis();
 
-        AlertStateObject.Payload payload = alertStates.computeIfAbsent(ruleId, k -> {
+        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
             AlertStateObject state = new AlertStateObject();
             state.setPayload(new AlertStateObject.Payload());
             return state;
-        }).getPayload();
+        });
+        AlertStateObject.Payload payload = alertState.getPayload();
 
         Map<Label, Long> result = new HashMap<>();
         for (Label label : labels) {
-            AlertStateObject.StatePerLabel statusPerLabel = payload.getStates()
-                                                                   .computeIfAbsent(label, (k) -> new AlertStateObject.StatePerLabel());
+            AlertStateObject.SeriesState seriesState = payload.getSeries()
+                                                              .computeIfAbsent(label, (k) -> new AlertStateObject.SeriesState());
 
             // Update match count
-            if (now < statusPerLabel.getMatchExpiredAt()) {
+            if (now < seriesState.getMatchExpiredAt()) {
                 // the status is not expired
-                statusPerLabel.setMatchCount(statusPerLabel.getMatchCount() + 1);
+                seriesState.setMatchCount(seriesState.getMatchCount() + 1);
             } else {
-                statusPerLabel.setMatchCount(1);
+                seriesState.setMatchCount(1);
             }
 
             // Update expiration
-            statusPerLabel.setMatchExpiredAt(now + duration.toMillis());
+            seriesState.setMatchExpiredAt(now + duration.toMillis());
 
-            result.put(label, statusPerLabel.getMatchCount());
+            result.put(label, seriesState.getMatchCount());
         }
 
         return result;
@@ -86,25 +87,25 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public boolean tryEnterSilence(String ruleId, Label label, Duration silenceDuration) {
-        AlertStateObject.Payload payload = alertStates.computeIfAbsent(ruleId, k -> {
+        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
             AlertStateObject state = new AlertStateObject();
             state.setPayload(new AlertStateObject.Payload());
             return state;
-        }).getPayload();
+        });
 
-        AlertStateObject.StatePerLabel statePerLabel = payload.getStates().get(label);
-        if (statePerLabel == null) {
+        AlertStateObject.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
+        if (seriesState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return false;
         }
 
-        if (System.currentTimeMillis() <= statePerLabel.getSilenceExpiredAt()) {
+        if (System.currentTimeMillis() <= seriesState.getSilenceExpiredAt()) {
             // Still in the previous silence period
             return true;
         } else {
             // The previous silence period expires, Set a new one
             long silenceExpiration = System.currentTimeMillis() + silenceDuration.toMillis();
-            statePerLabel.setSilenceExpiredAt(silenceExpiration);
+            seriesState.setSilenceExpiredAt(silenceExpiration);
             return false;
         }
 
@@ -113,39 +114,39 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public Duration getSilenceRemainTime(String ruleId, Label label) {
-        AlertStateObject stateObject = alertStates.get(ruleId);
-        if (stateObject == null) {
+        AlertStateObject alertState = alertStates.get(ruleId);
+        if (alertState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return Duration.ZERO;
         }
-        AlertStateObject.StatePerLabel statePerLabel = stateObject.getPayload().getStates().get(label);
-        if (statePerLabel == null) {
+        AlertStateObject.SeriesState seriesState = alertState.getPayload().getSeries().get(label);
+        if (seriesState == null) {
             // SHOULD NOT HAPPEN because above incrMatchCount() should have created the label
             return Duration.ZERO;
         }
 
-        long duration = statePerLabel.getSilenceExpiredAt() - System.currentTimeMillis();
+        long duration = seriesState.getSilenceExpiredAt() - System.currentTimeMillis();
         return duration < 0 ? Duration.ZERO : Duration.ofMillis(duration);
     }
 
     @Override
-    public void setEvaluationTime(String ruleId, long timestamp, Duration interval) {
-        AlertStateObject.Payload payload = alertStates.computeIfAbsent(ruleId, k -> {
+    public void setLastEvaluationTime(String ruleId, long timestamp, Duration interval) {
+        AlertStateObject alertState = alertStates.computeIfAbsent(ruleId, k -> {
             AlertStateObject state = new AlertStateObject();
             state.setPayload(new AlertStateObject.Payload());
             return state;
-        }).getPayload();
+        });
 
-        payload.setEvaluationTimestamp(timestamp);
+        alertState.getPayload().setLastEvaluationTimestamp(timestamp);
     }
 
     @Override
-    public long getEvaluationTimestamp(String ruleId) {
-        AlertStateObject stateObject = alertStates.get(ruleId);
-        if (stateObject == null) {
+    public long getLastEvaluationTimestamp(String ruleId) {
+        AlertStateObject alertState = alertStates.get(ruleId);
+        if (alertState == null) {
             return 0;
         }
-        return stateObject.getPayload().getEvaluationTimestamp();
+        return alertState.getPayload().getLastEvaluationTimestamp();
     }
 
     @Override
@@ -163,32 +164,32 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public void setState(String alertId, AlertStatus status, Map<Label, AlertStatus> allNewStatus) {
-        AlertStateObject stateObject = alertStates.computeIfAbsent(alertId, k -> {
+    public void setState(String alertId, AlertStatus status, Map<Label, AlertStatus> seriesStatus) {
+        AlertStateObject alertState = alertStates.computeIfAbsent(alertId, k -> {
             AlertStateObject state = new AlertStateObject();
             state.setPayload(new AlertStateObject.Payload());
             return state;
         });
 
         long now = System.currentTimeMillis();
-        for (Map.Entry<Label, AlertStatus> entry : allNewStatus.entrySet()) {
+        for (Map.Entry<Label, AlertStatus> series : seriesStatus.entrySet()) {
             // Remove expired states for each label
-            boolean removed = stateObject.getPayload()
-                                         .getStates()
-                                         .entrySet()
-                                         .removeIf(e -> e.getValue().getMatchExpiredAt() < now);
+            boolean removed = alertState.getPayload()
+                                        .getSeries()
+                                        .entrySet()
+                                        .removeIf(e -> e.getValue().getMatchExpiredAt() < now);
 
             if (!removed) {
                 // Update status for each label
-                AlertStateObject.StatePerLabel statePerLabel = stateObject.getPayload()
-                                                                          .getStates()
-                                                                          .computeIfAbsent(entry.getKey(), k -> new AlertStateObject.StatePerLabel());
-                statePerLabel.setStatus(entry.getValue());
+                AlertStateObject.SeriesState seriesState = alertState.getPayload()
+                                                                     .getSeries()
+                                                                     .computeIfAbsent(series.getKey(), k -> new AlertStateObject.SeriesState());
+                seriesState.setStatus(series.getValue());
             }
         }
-        stateObject.setStatus(status);
+        alertState.setStatus(status);
 
         // TODO: change declaration to pass array
-        this.stateStorage.saveAlertStates(Map.of(alertId, stateObject));
+        this.stateStorage.saveAlertStates(Map.of(alertId, alertState));
     }
 }

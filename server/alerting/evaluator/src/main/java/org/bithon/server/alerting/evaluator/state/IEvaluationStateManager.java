@@ -52,12 +52,12 @@ public interface IEvaluationStateManager {
      * @param timestamp the timestamp when the alert is evaluated
      * @param interval  the interval of two consecutive evaluations
      */
-    void setEvaluationTime(String alertId, long timestamp, Duration interval);
+    void setLastEvaluationTime(String alertId, long timestamp, Duration interval);
 
     /**
      * Get the timestamp when the alert is evaluated last time in milliseconds
      */
-    long getEvaluationTimestamp(String alertId);
+    long getLastEvaluationTimestamp(String alertId);
 
     /**
      * Restore alert states from external storage
@@ -68,5 +68,5 @@ public interface IEvaluationStateManager {
 
     void setState(String alertId,
                   AlertStatus status,
-                  Map<Label, AlertStatus> allNewStatus);
+                  Map<Label, AlertStatus> seriesStatus);
 }

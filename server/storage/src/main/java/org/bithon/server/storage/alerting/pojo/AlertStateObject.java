@@ -35,7 +35,7 @@ import java.util.Map;
 public class AlertStateObject {
 
     @Data
-    public static class StatePerLabel {
+    public static class SeriesState {
         private AlertStatus status;
 
         private long matchCount;
@@ -46,25 +46,25 @@ public class AlertStateObject {
 
     public static class Payload {
         /**
-         * Status by labels
+         * states for each series
          */
         @Getter
         @Setter
-        private Map<Label, StatePerLabel> states;
+        private Map<Label, SeriesState> series;
 
         @Getter
         @Setter
-        private long evaluationTimestamp;
+        private long lastEvaluationTimestamp;
 
         public Payload() {
             this(new HashMap<>(), 0L);
         }
 
         @JsonCreator
-        public Payload(@JsonProperty("states") Map<Label, StatePerLabel> states,
-                       @JsonProperty("evaluationTimestamp") long evaluationTimestamp) {
-            this.states = states;
-            this.evaluationTimestamp = evaluationTimestamp;
+        public Payload(@JsonProperty("series") Map<Label, SeriesState> series,
+                       @JsonProperty("lastEvaluationTimestamp") long lastEvaluationTimestamp) {
+            this.series = series;
+            this.lastEvaluationTimestamp = lastEvaluationTimestamp;
         }
     }
 
@@ -78,7 +78,7 @@ public class AlertStateObject {
             return AlertStatus.READY;
         }
 
-        StatePerLabel statusPerLabel = payload.states.get(label);
+        SeriesState statusPerLabel = payload.series.get(label);
         return statusPerLabel == null ? AlertStatus.READY : statusPerLabel.status;
     }
 }

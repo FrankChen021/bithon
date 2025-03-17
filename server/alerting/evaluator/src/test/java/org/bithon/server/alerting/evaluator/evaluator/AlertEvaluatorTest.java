@@ -341,9 +341,9 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
-        AlertStateObject stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        AlertStateObject alertState = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(alertState);
+        Assert.assertEquals(AlertStatus.ALERTING, alertState.getStatus());
 
         // Check if the notification api is invoked
         Mockito.verify(notificationApiStub, Mockito.times(1))

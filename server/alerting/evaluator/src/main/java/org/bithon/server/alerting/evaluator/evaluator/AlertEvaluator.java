@@ -162,21 +162,21 @@ public class AlertEvaluator implements DisposableBean {
                     return;
                 }
 
-                TimeSpan lastEvaluationAt = TimeSpan.of(this.stateManager.getEvaluationTimestamp(alertRule.getId()));
-                if (now.diff(lastEvaluationAt) < interval.toMillis()) {
+                TimeSpan lastEvaluationTimestamp = TimeSpan.of(this.stateManager.getLastEvaluationTimestamp(alertRule.getId()));
+                if (now.diff(lastEvaluationTimestamp) < interval.toMillis()) {
                     context.log(AlertEvaluator.class,
                                 "Evaluation skipped, it's expected to be evaluated at %s",
-                                lastEvaluationAt.after(interval).format("HH:mm"));
+                                lastEvaluationTimestamp.after(interval).format("HH:mm"));
                     return;
                 }
             }
 
             // Evaluate the alert rule
-            Map<Label, AlertStatus> allNewStatus = evaluate(context, context.getPrevState());
+            Map<Label, AlertStatus> seriesStatus = evaluate(context, context.getPrevState());
 
             // TODO: Find notifications to send
             Map<Label, AlertStatus> notificationStatus = new HashMap<>();
-            for (Map.Entry<Label, AlertStatus> entry : allNewStatus.entrySet()) {
+            for (Map.Entry<Label, AlertStatus> entry : seriesStatus.entrySet()) {
                 Label label = entry.getKey();
                 AlertStatus newStatus = entry.getValue();
                 AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
@@ -186,17 +186,17 @@ public class AlertEvaluator implements DisposableBean {
 
                     if (newStatus == AlertStatus.ALERTING) {
                         notificationStatus.put(label, newStatus);
-                        allNewStatus.put(label, newStatus);
+                        seriesStatus.put(label, newStatus);
                     } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
                         notificationStatus.put(label, newStatus);
-                        allNewStatus.put(label, newStatus);
+                        seriesStatus.put(label, newStatus);
                     } else {
                         // Update alert status only
                         //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
-                        allNewStatus.put(label, newStatus);
+                        seriesStatus.put(label, newStatus);
                     }
                 } else {
-                    allNewStatus.put(label, prevStatus);
+                    seriesStatus.put(label, prevStatus);
                     context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
                 }
             }
@@ -211,8 +211,8 @@ public class AlertEvaluator implements DisposableBean {
             fireAlert(alertRule, groupedStatus.get(AlertStatus.ALERTING), context);
             resolveAlert(alertRule, groupedStatus.get(AlertStatus.RESOLVED), context);
 
-            this.stateManager.setEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
-            this.stateManager.setState(alertRule.getId(), mergeStatus(allNewStatus), allNewStatus);
+            this.stateManager.setLastEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
+            this.stateManager.setState(alertRule.getId(), mergeStatus(seriesStatus), seriesStatus);
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
@@ -269,7 +269,7 @@ public class AlertEvaluator implements DisposableBean {
 
             Map<Label, AlertStatus> newStatus = new HashMap<>();
             if (prevState != null) {
-                for (Map.Entry<Label, AlertStateObject.StatePerLabel> item : prevState.getPayload().getStates().entrySet()) {
+                for (Map.Entry<Label, AlertStateObject.SeriesState> item : prevState.getPayload().getSeries().entrySet()) {
                     newStatus.put(item.getKey(), AlertStatus.RESOLVED);
                 }
             }
