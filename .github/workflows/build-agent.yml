@@ -51,7 +51,7 @@ jobs:
 
       # Execute UT after compilation
       - name: UT
-        run: mvn test -P-server
+        run: mvn surefire:test -P-server
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
