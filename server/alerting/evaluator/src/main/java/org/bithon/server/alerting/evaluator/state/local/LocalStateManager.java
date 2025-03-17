@@ -68,7 +68,8 @@ public class LocalStateManager implements IEvaluationStateManager {
                                                                    .computeIfAbsent(label, (k) -> new AlertStateObject.StatePerLabel());
 
             // Update match count
-            if (statusPerLabel.getMatchExpiredAt() < now) {
+            if (now < statusPerLabel.getMatchExpiredAt()) {
+                // the status is not expired
                 statusPerLabel.setMatchCount(statusPerLabel.getMatchCount() + 1);
             } else {
                 statusPerLabel.setMatchCount(1);
