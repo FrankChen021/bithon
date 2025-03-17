@@ -167,7 +167,6 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         this.valuePredicate = valuePredicate;
     }
 
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     @Override
     public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
         if (this.evaluationResult == null) {
@@ -176,6 +175,7 @@ public class PropertyFileValuePrecondition implements IInterceptorPrecondition {
         return evaluationResult;
     }
 
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE")
     private boolean matches(ClassLoader classLoader) {
         try (InputStream inputStream = classLoader.getResourceAsStream(propertyFile)) {
             if (inputStream == null) {
