@@ -73,8 +73,9 @@ cd bithon && git submodule update --init
 
 ## 2. Configure JDK
 
-Since backend services are built upon SpringBoot 3.0, a JDK 17 or higher (like 21) is required to build this project.
-If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. For example
+JDK 17 and above are required to build this project.
+If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. 
+For example
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
