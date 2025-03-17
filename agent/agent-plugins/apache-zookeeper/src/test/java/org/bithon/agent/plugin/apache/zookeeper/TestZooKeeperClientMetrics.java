@@ -171,7 +171,7 @@ public class TestZooKeeperClientMetrics {
         // Resolve interceptors
         Descriptors descriptors = new Descriptors();
         ZooKeeperPlugin plugin = new ZooKeeperPlugin();
-        descriptors.merge(plugin.getBithonClassDescriptor());
+        descriptors.merge(plugin.getBithonClassDescriptor(), null);
         descriptors.merge(plugin.getClass().getSimpleName(),
                           plugin.getPreconditions(),
                           plugin.getInterceptors());

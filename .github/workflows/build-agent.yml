@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Agent Build on JDK8
+name: Agent Build
 
 on:
   push:
@@ -25,10 +25,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup JDK8
-        uses: actions/setup-java@v2
+      - name: Setup JDK17
+        uses: actions/setup-java@v3
         with:
-          java-version: '8'
+          java-version: '17'
           distribution: 'adopt'
 
       #
@@ -41,9 +41,17 @@ jobs:
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
 
+      # Set up JDK 8 for testing
+      - name: Set up JDK8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven
+
       # Execute UT after compilation
       - name: UT
-        run: mvn test -P-server
+        run: mvn surefire:test -P-server
 
       #
       # Follow steps are for release, we only enable them for changes on the master branch
