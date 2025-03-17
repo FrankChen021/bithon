@@ -73,8 +73,9 @@ cd bithon && git submodule update --init
 
 ## 2. Configure JDK
 
-Since backend services are built upon SpringBoot 3.0, a JDK 17 or higher (like 21) is required to build this project.
-If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. For example
+JDK 17 and above are required to build this project.
+If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK. 
+For example
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home
@@ -209,7 +210,7 @@ If the target application runs under JDK 11 and above, the following arguments s
 | Spring Rest Template                                         | 4.3.12      |             |                                                | &check; |
 | Spring Scheduling                                            | 4.3.12      |             |                                                | &check; |
 | Spring Gateway                                               | 3.0.0       |             | [&check;](doc/metrics/http-outgoing/README.md) | &check; | 
-| HTTP Server - Jetty                                          | 9.4.41      |             | &check;                                        | &check; |
+| HTTP Server - Jetty                                          | 9.4.41      | 12.0.x      | &check;                                        | &check; |
 | HTTP Server - Netty                                          | 2.0.0       |             |                                                | &check; |
 | HTTP Server - Tomcat                                         | 8.5.20      |             | &check;                                        | &check; |
 | HTTP Server - Undertow                                       | 1.4.12      |             | &check;                                        | &check; |

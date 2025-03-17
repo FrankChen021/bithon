@@ -55,6 +55,7 @@
     <module>httpserver/tomcat</module>
     <module>httpserver/undertow</module>
     <module>httpserver/jetty</module>
+    <module>httpserver/jetty-12</module>
     <module>httpserver/netty</module>
     <module>openfeign</module>
     <module>redis/jedis-2.x</module>
@@ -172,6 +173,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpserver-jetty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpserver-jetty-12</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
