@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
-import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluationPipeline;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
@@ -314,14 +314,14 @@ public class AlertCommandService {
             }
         };
 
-        AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new LocalStateManager(applicationContext.getBean(IAlertStateStorage.class)),
-                                                      logStorage.createWriter(),
-                                                      recordStorage,
-                                                      this.dataSourceApi,
-                                                      applicationContext.getBean(ServerProperties.class),
-                                                      applicationContext.getBean(INotificationApiInvoker.class),
-                                                      this.objectMapper);
+        AlertEvaluationPipeline evaluator = new AlertEvaluationPipeline(null,
+                                                                        new LocalStateManager(applicationContext.getBean(IAlertStateStorage.class)),
+                                                                        logStorage.createWriter(),
+                                                                        recordStorage,
+                                                                        this.dataSourceApi,
+                                                                        applicationContext.getBean(ServerProperties.class),
+                                                                        applicationContext.getBean(INotificationApiInvoker.class),
+                                                                        this.objectMapper);
 
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            rule);

@@ -22,7 +22,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,14 +42,12 @@ import java.util.concurrent.TimeUnit;
 @Conditional(EvaluatorModuleEnabler.class)
 public class AlertEvaluatorScheduler {
 
-    private final AlertEvaluator alertEvaluator;
+    private final AlertEvaluationPipeline alertEvaluator;
     private final AlertRepository alertRepository;
     private final ThreadPoolExecutor executor;
-    private final IAlertStateStorage alertStateStorage;
 
-    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator,
-                                   AlertRepository alertRepository,
-                                   IAlertStateStorage alertStateStorage) {
+    public AlertEvaluatorScheduler(AlertEvaluationPipeline alertEvaluator,
+                                   AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
         this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
@@ -60,7 +57,6 @@ public class AlertEvaluatorScheduler {
                                                new LinkedBlockingQueue<>(128),
                                                new ThreadFactoryBuilder().setDaemon(true).setNameFormat("alert-evaluator-%d").build(),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
-        this.alertStateStorage = alertStateStorage;
     }
 
     @Scheduled(cron = "${bithon.alerting.evaluator.scheduler.cron:15 0/1 * 1/1 * ?}")

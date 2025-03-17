@@ -27,6 +27,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import javax.annotation.Nullable;
@@ -51,6 +52,11 @@ public class EvaluationContext implements IEvaluationContext {
     // TODO: merge these variables together
     private final Map<String, EvaluationOutputs> evaluationOutputs = new HashMap<>();
     private final Map<String, EvaluationStatus> evaluationStatus = new HashMap<>();
+
+    @Getter
+    @Setter
+    private boolean isExpressionEvaluatedAsTrue = false;
+    private Map<Label, AlertStatus> seriesStatus = new HashMap<>();
 
     /**
      * current condition id that is under evaluation

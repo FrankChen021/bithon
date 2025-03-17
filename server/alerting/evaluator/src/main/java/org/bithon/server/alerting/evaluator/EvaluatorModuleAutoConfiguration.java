@@ -26,7 +26,7 @@ import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
-import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluationPipeline;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -118,7 +118,7 @@ public class EvaluatorModuleAutoConfiguration {
                         try (IEvaluationLogWriter writer = logStorage.createWriter()) {
                             new EvaluationLogger(writer).error(message.getAlertRule().getId(),
                                                                message.getAlertRule().getName(),
-                                                               AlertEvaluator.class,
+                                                               AlertEvaluationPipeline.class,
                                                                e,
                                                                "Failed to send notification to channel [%s]",
                                                                name);
@@ -130,26 +130,26 @@ public class EvaluatorModuleAutoConfiguration {
     }
 
     @Bean
-    public AlertEvaluator alertEvaluator(AlertRepository repository,
-                                         IEvaluationStateManager stateManager,
-                                         IEvaluationLogStorage logStorage,
-                                         IAlertRecordStorage recordStorage,
-                                         IDataSourceApi dataSourceApi,
-                                         ServerProperties serverProperties,
-                                         INotificationApiInvoker notificationApiInvoker,
-                                         ObjectMapper objectMapper) {
+    public AlertEvaluationPipeline alertEvaluator(AlertRepository repository,
+                                                  IEvaluationStateManager stateManager,
+                                                  IEvaluationLogStorage logStorage,
+                                                  IAlertRecordStorage recordStorage,
+                                                  IDataSourceApi dataSourceApi,
+                                                  ServerProperties serverProperties,
+                                                  INotificationApiInvoker notificationApiInvoker,
+                                                  ObjectMapper objectMapper) {
 
         EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         logWriter.start();
 
-        return new AlertEvaluator(repository,
-                                  stateManager,
-                                  logWriter,
-                                  recordStorage,
-                                  dataSourceApi,
-                                  serverProperties,
-                                  notificationApiInvoker,
-                                  objectMapper);
+        return new AlertEvaluationPipeline(repository,
+                                           stateManager,
+                                           logWriter,
+                                           recordStorage,
+                                           dataSourceApi,
+                                           serverProperties,
+                                           notificationApiInvoker,
+                                           objectMapper);
     }
 
     @Bean

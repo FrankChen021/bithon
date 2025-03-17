@@ -21,13 +21,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.evaluator.evaluator.step.IEvaluationStep;
+import org.bithon.server.alerting.evaluator.evaluator.step.InhibitionStep;
+import org.bithon.server.alerting.evaluator.evaluator.step.RuleEvaluationStep;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
@@ -49,9 +51,11 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,7 +63,9 @@ import java.util.UUID;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 10:40 上午
  */
-public class AlertEvaluator implements DisposableBean {
+public class AlertEvaluationPipeline implements DisposableBean {
+
+    private final List<IEvaluationStep> pipelines = new ArrayList<>();
 
     @Getter
     private final IEvaluationStateManager stateManager;
@@ -69,14 +75,79 @@ public class AlertEvaluator implements DisposableBean {
     private final IDataSourceApi dataSourceApi;
     private final INotificationApiInvoker notificationApiInvoker;
 
-    public AlertEvaluator(AlertRepository repository,
-                          IEvaluationStateManager stateManager,
-                          IEvaluationLogWriter evaluationLogWriter,
-                          IAlertRecordStorage recordStorage,
-                          IDataSourceApi dataSourceApi,
-                          ServerProperties serverProperties,
-                          INotificationApiInvoker notificationApiInvoker,
-                          ObjectMapper objectMapper) {
+    public AlertEvaluationPipeline(AlertRepository repository,
+                                   IEvaluationStateManager stateManager,
+                                   IEvaluationLogWriter evaluationLogWriter,
+                                   IAlertRecordStorage recordStorage,
+                                   IDataSourceApi dataSourceApi,
+                                   ServerProperties serverProperties,
+                                   INotificationApiInvoker notificationApiInvoker,
+                                   ObjectMapper objectMapper) {
+
+        this.pipelines.add(new IEvaluationStep() {
+            @Override
+            public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+                // Evaluate the alert rule
+                AlertRule alertRule = context.getAlertRule();
+                context.log(RuleEvaluationStep.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
+
+                boolean isTrue = new AlertExpressionEvaluator(context.getAlertRule().getAlertExpression()).evaluate(context);
+                context.setExpressionEvaluatedAsTrue(isTrue);
+            }
+        });
+
+        this.pipelines.add(new RuleEvaluationStep());
+        this.pipelines.add(new InhibitionStep());
+        this.pipelines.add(new IEvaluationStep() {
+            @Override
+            public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+                // TODO: Find notifications to send
+                Map<Label, AlertStatus> notificationStatus = new HashMap<>();
+                for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
+                    Label label = entry.getKey();
+                    AlertStatus newStatus = entry.getValue();
+                    AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
+
+                    if (prevStatus.canTransitTo(newStatus)) {
+                        context.log(AlertEvaluationPipeline.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+
+                        if (newStatus == AlertStatus.ALERTING) {
+                            notificationStatus.put(label, newStatus);
+                            context.getSeriesStatus().put(label, newStatus);
+                        } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
+                            notificationStatus.put(label, newStatus);
+                            context.getSeriesStatus().put(label, newStatus);
+                        } else {
+                            // Update alert status only
+                            //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
+                            context.getSeriesStatus().put(label, newStatus);
+                        }
+                    } else {
+                        context.getSeriesStatus().put(label, prevStatus);
+                        context.log(AlertEvaluationPipeline.class, "Stay in alert status: [%s]", prevStatus);
+                    }
+                }
+
+                // Group series with different labels by alert status
+                Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
+                                                                                            .stream()
+                                                                                            .collect(HashMap::new,
+                                                                                                     (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
+                                                                                                                        .put(entry.getKey(), entry.getValue()),
+                                                                                                     HashMap::putAll);
+                fireAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.ALERTING), context);
+                resolveAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.RESOLVED), context);
+            }
+        });
+        this.pipelines.add(new IEvaluationStep() {
+            @Override
+            public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+                String ruleId = context.getAlertRule().getId();
+                stateManager.setLastEvaluationTime(ruleId, System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
+                stateManager.setState(ruleId, mergeStatus(context.getSeriesStatus()), context.getSeriesStatus());
+            }
+        });
+
         this.stateManager = stateManager;
         this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
@@ -96,7 +167,7 @@ public class AlertEvaluator implements DisposableBean {
                     evaluationLogWriter.write(EvaluationLogEvent.builder()
                                                                 .timestamp(new Timestamp(System.currentTimeMillis()))
                                                                 .alertId(rule.getId())
-                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .clazz(AlertEvaluationPipeline.class.getName())
                                                                 .level("INFO")
                                                                 .message(StringUtils.format("Loaded rule: [%s], Enabled: %s, Expr: %s",
                                                                                             rule.getName(),
@@ -110,7 +181,7 @@ public class AlertEvaluator implements DisposableBean {
                     evaluationLogWriter.write(EvaluationLogEvent.builder()
                                                                 .timestamp(new Timestamp(System.currentTimeMillis()))
                                                                 .alertId(updated.getId())
-                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .clazz(AlertEvaluationPipeline.class.getName())
                                                                 .level("INFO")
                                                                 .message(StringUtils.format("Updated rule [%s], Enabled: %s, Expr: %s",
                                                                                             updated.getName(),
@@ -124,7 +195,7 @@ public class AlertEvaluator implements DisposableBean {
                     evaluationLogWriter.write(EvaluationLogEvent.builder()
                                                                 .timestamp(new Timestamp(System.currentTimeMillis()))
                                                                 .alertId(rule.getId())
-                                                                .clazz(AlertEvaluator.class.getName())
+                                                                .clazz(AlertEvaluationPipeline.class.getName())
                                                                 .level("INFO")
                                                                 .message(StringUtils.format("Deleted rule [%s], Expr: %s", rule.getName(), rule.getExpr()))
                                                                 .build());
@@ -158,63 +229,25 @@ public class AlertEvaluator implements DisposableBean {
         try {
             if (!skipPrecheck) {
                 if (!alertRule.isEnabled()) {
-                    context.log(AlertEvaluator.class, "Alert is disabled. Evaluation is skipped.");
+                    context.log(AlertEvaluationPipeline.class, "Alert is disabled. Evaluation is skipped.");
                     return;
                 }
 
                 TimeSpan lastEvaluationTimestamp = TimeSpan.of(this.stateManager.getLastEvaluationTimestamp(alertRule.getId()));
                 if (now.diff(lastEvaluationTimestamp) < interval.toMillis()) {
-                    context.log(AlertEvaluator.class,
+                    context.log(AlertEvaluationPipeline.class,
                                 "Evaluation skipped, it's expected to be evaluated at %s",
                                 lastEvaluationTimestamp.after(interval).format("HH:mm"));
                     return;
                 }
             }
 
-            // Evaluate the alert rule
-            Map<Label, AlertStatus> seriesStatus = evaluate(context, context.getPrevState());
-
-            // TODO: Find notifications to send
-            Map<Label, AlertStatus> notificationStatus = new HashMap<>();
-            for (Map.Entry<Label, AlertStatus> entry : seriesStatus.entrySet()) {
-                Label label = entry.getKey();
-                AlertStatus newStatus = entry.getValue();
-                AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
-
-                if (prevStatus.canTransitTo(newStatus)) {
-                    context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
-
-                    if (newStatus == AlertStatus.ALERTING) {
-                        notificationStatus.put(label, newStatus);
-                        seriesStatus.put(label, newStatus);
-                    } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
-                        notificationStatus.put(label, newStatus);
-                        seriesStatus.put(label, newStatus);
-                    } else {
-                        // Update alert status only
-                        //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
-                        seriesStatus.put(label, newStatus);
-                    }
-                } else {
-                    seriesStatus.put(label, prevStatus);
-                    context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
-                }
+            for (IEvaluationStep step : this.pipelines) {
+                step.evaluate(this.stateManager, context);
             }
 
-            // Group series with different labels by alert status
-            Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
-                                                                                        .stream()
-                                                                                        .collect(HashMap::new,
-                                                                                                 (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
-                                                                                                                    .put(entry.getKey(), entry.getValue()),
-                                                                                                 HashMap::putAll);
-            fireAlert(alertRule, groupedStatus.get(AlertStatus.ALERTING), context);
-            resolveAlert(alertRule, groupedStatus.get(AlertStatus.RESOLVED), context);
-
-            this.stateManager.setLastEvaluationTime(alertRule.getId(), now.getMilliseconds(), interval);
-            this.stateManager.setState(alertRule.getId(), mergeStatus(seriesStatus), seriesStatus);
         } catch (Exception e) {
-            context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
+            context.logException(AlertEvaluationPipeline.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
     }
 
@@ -255,103 +288,6 @@ public class AlertEvaluator implements DisposableBean {
         return AlertStatus.READY;
     }
 
-    private Map<Label, AlertStatus> evaluate(EvaluationContext context, AlertState prevState) {
-        AlertRule alertRule = context.getAlertRule();
-        context.log(AlertEvaluator.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
-
-        AlertExpressionEvaluator expressionEvaluator = new AlertExpressionEvaluator(alertRule.getAlertExpression());
-        if (!expressionEvaluator.evaluate(context)) {
-            context.log(AlertEvaluator.class,
-                        "Rule [%s] evaluated as FALSE",
-                        alertRule.getName());
-
-            stateManager.resetMatchCount(alertRule.getId());
-
-            Map<Label, AlertStatus> newStatus = new HashMap<>();
-            if (prevState != null) {
-                for (Map.Entry<Label, AlertState.SeriesState> item : prevState.getPayload().getSeries().entrySet()) {
-                    newStatus.put(item.getKey(), AlertStatus.RESOLVED);
-                }
-            }
-            return newStatus;
-        }
-
-        context.log(AlertEvaluator.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
-
-        long expectedMatchCount = alertRule.getExpectedMatchCount();
-
-        Map<Label, AlertStatus> alertStatus = new HashMap<>();
-        Map<Label, Long> successiveCountList = stateManager.incrMatchCount(alertRule.getId(),
-                                                                           context.getGroups(),
-                                                                           alertRule.getEvery()
-                                                                                    .getDuration()
-                                                                                    // Add 30 seconds for margin
-                                                                                    .plus(Duration.ofSeconds(30)));
-        for (Map.Entry<Label, Long> entry : successiveCountList.entrySet()) {
-            Label label = entry.getKey();
-            long successiveCount = entry.getValue();
-
-            AlertStatus newStatus = getAlertStatus(context, label, prevState, successiveCount, expectedMatchCount);
-
-            alertStatus.put(label, newStatus);
-        }
-
-        return alertStatus;
-    }
-
-    private AlertStatus getAlertStatus(EvaluationContext context,
-                                       Label label,
-                                       AlertState prevState,
-                                       long successiveCount,
-                                       long expectedMatchCount) {
-        AlertRule alertRule = context.getAlertRule();
-
-        if (successiveCount >= expectedMatchCount) {
-            stateManager.resetMatchCount(alertRule.getId());
-
-            context.log(AlertEvaluator.class,
-                        "Rule [%s] evaluated as TRUE for [%d] times successively，and reaches the expected threshold [%d] to fire alert",
-                        alertRule.getName(),
-                        successiveCount,
-                        expectedMatchCount);
-
-            HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
-
-            String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
-
-            // Calc the silence period by adding some margin
-            // Let's say current timestamp is 10:01:02.123, and the silence period is 1 minute,
-            // The silence period is [now(), 10:02:00.000(assuming the evaluation execution finishes within 1 minute) + 1 minute]
-            TimeSpan now = TimeSpan.now();
-            TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
-            Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
-
-            if (silenceDuration.getDuration().getSeconds() > 0 && stateManager.tryEnterSilence(alertRule.getId(), label, silencePeriod)) {
-                Duration silenceRemainTime = stateManager.getSilenceRemainTime(alertRule.getId(), label);
-                context.log(AlertEvaluator.class, "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
-                            silenceDuration,
-                            lastAlertingAt,
-                            TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
-                return AlertStatus.SUPPRESSING;
-            } else {
-                context.log(AlertEvaluator.class,
-                            "Alerting，silence period(%s) is over. Last alert at: %s",
-                            silenceDuration,
-                            lastAlertingAt);
-            }
-
-            return AlertStatus.ALERTING;
-        } else {
-            context.log(AlertEvaluator.class,
-                        "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
-                        alertRule.getName(),
-                        successiveCount,
-                        expectedMatchCount);
-
-            return AlertStatus.PENDING;
-        }
-    }
-
     /**
      * TODO: pass the labels to notification message
      * Fire alert and update its status
@@ -385,23 +321,23 @@ public class AlertEvaluator implements DisposableBean {
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
-            context.log(AlertEvaluator.class, "Saving alert record");
+            context.log(AlertEvaluationPipeline.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
+                context.log(AlertEvaluationPipeline.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluator.class, e, "Exception when sending notification");
+            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification");
         }
     }
 
@@ -441,16 +377,16 @@ public class AlertEvaluator implements DisposableBean {
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(context.getPrevState().getLastRecordId());
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
+                context.log(AlertEvaluationPipeline.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluator.class, e, "Exception when sending RESOLVED notification");
+            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending RESOLVED notification");
         }
     }
 

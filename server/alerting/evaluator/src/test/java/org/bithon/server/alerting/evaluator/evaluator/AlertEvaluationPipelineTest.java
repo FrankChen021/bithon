@@ -62,13 +62,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * State test cases for {@link org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator}
+ * State test cases for {@link AlertEvaluationPipeline}
  *
  * @author Frank Chen
  * @date 05/1/25 4:42 PM
  */
 @Slf4j
-public class AlertEvaluatorTest {
+public class AlertEvaluationPipelineTest {
 
     private final String metric = "count";
 
@@ -79,7 +79,7 @@ public class AlertEvaluatorTest {
     private static IAlertRecordStorage alertRecordStorageStub;
     private static AlertStateJdbcStorage alertStateStorageStub;
     private static AlertObjectJdbcStorage alertObjectStorageStub;
-    private AlertEvaluator evaluator;
+    private AlertEvaluationPipeline evaluator;
 
     @BeforeClass
     public static void setUpStorage() {
@@ -129,14 +129,14 @@ public class AlertEvaluatorTest {
 
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
-        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
-                                       new LocalStateManager(alertStateStorageStub),
-                                       evaluationLogWriterStub,
-                                       alertRecordStorageStub,
-                                       dataSourceApiStub,
-                                       serverProperties,
-                                       notificationApiStub,
-                                       JsonMapper.builder().build());
+        evaluator = new AlertEvaluationPipeline(new AlertRepository(alertObjectStorageStub),
+                                                new LocalStateManager(alertStateStorageStub),
+                                                evaluationLogWriterStub,
+                                                alertRecordStorageStub,
+                                                dataSourceApiStub,
+                                                serverProperties,
+                                                notificationApiStub,
+                                                JsonMapper.builder().build());
     }
 
     @Test
