@@ -42,6 +42,7 @@ import java.util.List;
 @JsonDeserialize(using = Label.Deserializer.class)
 public class Label {
     private final List<String> values = new ArrayList<>();
+    private transient int hashCode = 0;
 
     @Getter
     private String id = "";
@@ -63,6 +64,7 @@ public class Label {
             id += ", ";
         }
         id += StringUtils.format("%s = '%s'", label, value);
+        hashCode = id.hashCode();
     }
 
     @Override
@@ -72,7 +74,7 @@ public class Label {
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return hashCode;
     }
 
     @Override
