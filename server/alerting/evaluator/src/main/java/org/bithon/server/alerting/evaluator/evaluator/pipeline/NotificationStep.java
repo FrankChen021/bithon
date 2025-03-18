@@ -109,7 +109,7 @@ public class NotificationStep implements IPipelineStep {
         notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
-        notification.setExpressions(context.getAlertExpressions());
+        notification.setExpressions(alertRule.getFlattenExpressions());
         notification.setEvaluationResult(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
@@ -147,7 +147,7 @@ public class NotificationStep implements IPipelineStep {
         NotificationMessage notification = new NotificationMessage();
         notification.setStatus(AlertStatus.RESOLVED);
         notification.setAlertRule(alertRule);
-        notification.setExpressions(context.getAlertExpressions());
+        notification.setExpressions(alertRule.getFlattenExpressions());
         notification.setEvaluationResult(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
@@ -195,7 +195,7 @@ public class NotificationStep implements IPipelineStep {
         alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
                                                                                  .start(startInclusive)
                                                                                  .end(endInclusive)
-                                                                                 .expressions(context.getAlertExpressions().values())
+                                                                                 .expressions(context.getAlertRule().getFlattenExpressions().values())
                                                                                  .conditionEvaluation(notification.getEvaluationResult())
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);

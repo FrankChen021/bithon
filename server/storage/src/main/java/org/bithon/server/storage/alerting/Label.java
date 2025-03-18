@@ -42,7 +42,7 @@ import java.util.TreeMap;
 @JsonSerialize(using = Label.Serializer.class, keyUsing = Label.LabelKeySerializer.class)
 @JsonDeserialize(using = Label.Deserializer.class, keyUsing = Label.LabelKeyDeserializer.class)
 public class Label {
-    public final static Label EMPTY = new Label(Collections.emptyMap());
+    public static final Label EMPTY = new Label(Collections.emptyMap());
 
     private final Map<String, String> kv;
     private transient int hashCode;

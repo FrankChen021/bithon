@@ -32,10 +32,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,6 +42,8 @@ import java.util.Map;
 @Getter
 public class EvaluationContext implements IEvaluationContext {
 
+    private final @Nullable AlertState prevState;
+
     private final TimeSpan intervalEnd;
     private final AlertRule alertRule;
 
@@ -53,9 +52,6 @@ public class EvaluationContext implements IEvaluationContext {
      */
     @Setter
     private AlertExpression evaluatingExpression;
-
-    // Use LinkedHashMap to keep the order of expressions
-    private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
 
     @Getter
     @Setter
@@ -68,14 +64,7 @@ public class EvaluationContext implements IEvaluationContext {
     private final Map<Label, AlertStatus> seriesStatus = new HashMap<>();
 
     private final EvaluationLogger evaluationLogger;
-
-    /**
-     * Each element in the list is the values of the group by fields
-     */
-    private final List<Label> groups = new ArrayList<>();
-
     private final IDataSourceApi dataSourceApi;
-    private final @Nullable AlertState prevState;
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
@@ -87,8 +76,6 @@ public class EvaluationContext implements IEvaluationContext {
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
         this.prevState = prevState;
-
-        this.alertExpressions.putAll(alertRule.getFlattenExpressions());
     }
 
     public void setEvaluationResult(String expressionId,

@@ -18,7 +18,6 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

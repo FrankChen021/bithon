@@ -25,7 +25,6 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**

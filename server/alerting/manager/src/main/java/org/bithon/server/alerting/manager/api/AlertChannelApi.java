@@ -38,7 +38,6 @@ import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEval
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
@@ -153,12 +152,12 @@ public class AlertChannelApi {
                                                                               this.objectMapper)) {
             channel.test(NotificationMessage.builder()
                                             .alertRecordId("fake")
-                                            .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
+                                            .expressions(AlertRule.flattenExpressions(AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .evaluationResult(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationStatus.MATCHED,
                                                 new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(System.currentTimeMillis(),
                                                                                                              System.currentTimeMillis(),
-                                                                                                             new Label(),
+                                                                                                             Label.EMPTY,
                                                                                                              "1", "2", "1", true))
                                             )))
                                             .status(AlertStatus.ALERTING)
