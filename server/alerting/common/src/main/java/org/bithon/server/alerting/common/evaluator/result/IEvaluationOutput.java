@@ -16,9 +16,9 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
  * @author frank.chen021@outlook.com

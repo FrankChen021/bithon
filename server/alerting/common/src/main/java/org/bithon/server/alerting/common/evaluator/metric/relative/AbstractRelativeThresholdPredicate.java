@@ -136,21 +136,22 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             double delta;
             if (threshold instanceof HumanReadablePercentage) {
                 delta = ZERO.equals(baseValue)
-                    ? currWindowValue.subtract(baseValue).doubleValue()
-                    : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
+                        ? currWindowValue.subtract(baseValue).doubleValue()
+                        : currWindowValue.subtract(baseValue).divide(baseValue, 4, RoundingMode.HALF_UP).doubleValue();
             } else {
                 delta = currWindowValue.subtract(baseValue).doubleValue();
             }
 
-            RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput();
-            output.setDelta(delta);
-            output.setNow(currWindowValue);
-            output.setBase(baseValue);
-            output.setThreshold(threshold);
-            output.setMatched(matches(delta, threshold.doubleValue()));
-            output.setStart(start.getMilliseconds());
-            output.setEnd(end.getMilliseconds());
-            output.setLabel(labelBuilder.build());
+            RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput(
+                matches(delta, threshold.doubleValue()),
+                labelBuilder.build(),
+                baseValue,
+                currWindowValue,
+                delta,
+                threshold,
+                start.getMilliseconds(),
+                end.getMilliseconds()
+            );
 
             outputs.add(output);
         }

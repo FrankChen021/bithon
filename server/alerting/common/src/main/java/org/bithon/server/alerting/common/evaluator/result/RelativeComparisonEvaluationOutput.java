@@ -16,15 +16,14 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.storage.alerting.Label;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author frankchen
@@ -33,20 +32,32 @@ import java.util.Map;
 @Data
 public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
-    private boolean matched;
+    private boolean isMatched;
     private BigDecimal base;
-    private BigDecimal now;
+    private BigDecimal current;
     private double delta;
     private Number threshold;
-    private IMetricEvaluator metric;
     private long start;
     private long end;
     private Label label;
 
-    /**
-     * Used for plotting if the image rendering service is enabled
-     */
-    private List<Map<String, Object>> baseline;
+    @JsonCreator
+    public RelativeComparisonEvaluationOutput(@JsonProperty boolean isMatched,
+                                              @JsonProperty Label label,
+                                              @JsonProperty BigDecimal base,
+                                              @JsonProperty BigDecimal current,
+                                              @JsonProperty double delta,
+                                              @JsonProperty Number threshold,
+                                              @JsonProperty long start,
+                                              @JsonProperty long end) {
+        this.isMatched = isMatched;
+        this.base = base;
+        this.current = current;
+        this.delta = delta;
+        this.threshold = threshold;
+        this.start = start;
+        this.end = end;
+    }
 
     @Override
     public long getStart() {
@@ -70,7 +81,7 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Override
     public String getCurrentText() {
-        return StringUtils.format("%.2f], base [%.2f", now.doubleValue(), base.doubleValue());
+        return StringUtils.format("%.2f], base [%.2f", current.doubleValue(), base.doubleValue());
     }
 
     @Override

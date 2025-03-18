@@ -16,6 +16,9 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.alerting.Label;
 
@@ -26,13 +29,13 @@ import org.bithon.server.storage.alerting.Label;
 public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
 
     @Getter
-    private final boolean isMatched;
+    private final boolean matched;
 
     /**
      * The value at the moment when the metric is retrieved
      */
     @Getter
-    private final String now;
+    private final String current;
 
     @Getter
     private final String threshold;
@@ -49,36 +52,36 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     @Getter
     private final Label label;
 
-    public AbsoluteComparisonEvaluationOutput(long start,
-                                              long end,
-                                              Label label,
-                                              String now,
-                                              String threshold,
-                                              String delta,
-                                              boolean isMatches) {
+    @JsonCreator
+    public AbsoluteComparisonEvaluationOutput(@JsonProperty("start") long start,
+                                              @JsonProperty("end") long end,
+                                              @JsonProperty("label") Label label,
+                                              @JsonProperty("current") String current,
+                                              @JsonProperty("threshold") String threshold,
+                                              @JsonProperty("delta") String delta,
+                                              @JsonProperty("matched") boolean matched) {
         this.start = start;
         this.end = end;
-        this.isMatched = isMatches;
+        this.matched = matched;
         this.label = label;
-        this.now = now;
+        this.current = current;
         this.threshold = threshold;
         this.delta = delta;
     }
 
-    public Label getLabel() {
-        return label;
-    }
-
+    @JsonIgnore
     @Override
     public String getThresholdText() {
         return threshold;
     }
 
+    @JsonIgnore
     @Override
     public String getCurrentText() {
-        return now;
+        return current;
     }
 
+    @JsonIgnore
     @Override
     public String getDeltaText() {
         return delta;

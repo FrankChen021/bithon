@@ -18,14 +18,21 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
+import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
+import org.bithon.server.alerting.notification.message.NotificationMessage;
+import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
+import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -80,12 +87,18 @@ public class AlertEvaluatorTest {
     private static IAlertRecordStorage alertRecordStorageStub;
     private static AlertStateJdbcStorage alertStateStorageStub;
     private static AlertObjectJdbcStorage alertObjectStorageStub;
+    private static INotificationApiInvoker notificationImpl;
     private AlertEvaluator evaluator;
 
     @BeforeClass
     public static void setUpStorage() {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new H2StorageModuleAutoConfiguration().h2StorageModel());
+        objectMapper.registerModule(new H2StorageModuleAutoConfiguration().h2StorageModel())
+                    // They're configured via ObjectMapperConfigurer for production
+                    .registerModule(new SimpleModule().addSerializer(AlertExpression.class, new AlertExpressionSerializer())
+                                                      .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())
+                                                      .addDeserializer(AlertExpression.class, new AlertExpressionDeserializer())
+                                                      .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer()));
 
         SqlDialectManager sqlDialectManager = new SqlDialectManager(objectMapper);
 
@@ -113,6 +126,14 @@ public class AlertEvaluatorTest {
         alertStateStorageStub.initialize();
 
         evaluationLogWriterStub = Mockito.mock(IEvaluationLogWriter.class);
+
+        notificationImpl = (name, message) -> {
+            // Serialize and deserialize the message to simulate the remote API call
+            String serialized = objectMapper.writeValueAsString(message);
+            objectMapper.readValue(serialized, NotificationMessage.class);
+
+            notificationApiStub.notify(name, message);
+        };
     }
 
     @Before
@@ -136,7 +157,7 @@ public class AlertEvaluatorTest {
                                        alertRecordStorageStub,
                                        dataSourceApiStub,
                                        serverProperties,
-                                       notificationApiStub,
+                                       notificationImpl,
                                        JsonMapper.builder().build());
     }
 
