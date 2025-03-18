@@ -43,8 +43,8 @@ import java.util.Map;
  */
 @Getter
 public class EvaluationContext implements IEvaluationContext {
+
     private final TimeSpan intervalEnd;
-    private final EvaluationLogger evaluationLogger;
     private final AlertRule alertRule;
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
@@ -57,6 +57,8 @@ public class EvaluationContext implements IEvaluationContext {
     @Setter
     private boolean isExpressionEvaluatedAsTrue = false;
     private Map<Label, AlertStatus> seriesStatus = new HashMap<>();
+
+    private final EvaluationLogger evaluationLogger;
 
     /**
      * current condition id that is under evaluation

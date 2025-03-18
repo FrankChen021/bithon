@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator.step;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,7 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluationPipeline;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
@@ -47,7 +47,7 @@ import java.util.UUID;
  * @author frank.chen021@outlook.com
  * @date 18/3/25 9:47 am
  */
-public class NotificationStep implements IEvaluationStep {
+public class NotificationStep implements IPipelineStep {
     private final IAlertRecordStorage alertRecordStorage;
     private final INotificationApiInvoker notificationApiInvoker;
     private final ObjectMapper objectMapper;
@@ -70,7 +70,7 @@ public class NotificationStep implements IEvaluationStep {
             AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
 
             if (prevStatus.canTransitTo(newStatus)) {
-                context.log(AlertEvaluationPipeline.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+                context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
 
                 if (newStatus == AlertStatus.ALERTING) {
                     notificationStatus.put(label, newStatus);
@@ -85,7 +85,7 @@ public class NotificationStep implements IEvaluationStep {
                 }
             } else {
                 context.getSeriesStatus().put(label, prevStatus);
-                context.log(AlertEvaluationPipeline.class, "Stay in alert status: [%s]", prevStatus);
+                context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
             }
         }
 
@@ -133,23 +133,23 @@ public class NotificationStep implements IEvaluationStep {
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
-            context.log(AlertEvaluationPipeline.class, "Saving alert record");
+            context.log(AlertEvaluator.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluationPipeline.class, "Sending alerting notification to channel [%s]", channelName);
+                context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification");
+            context.logException(AlertEvaluator.class, e, "Exception when sending notification");
         }
     }
 
@@ -189,16 +189,16 @@ public class NotificationStep implements IEvaluationStep {
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(context.getPrevState().getLastRecordId());
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluationPipeline.class, "Sending RESOLVED notification to channel [%s]", channelName);
+                context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending RESOLVED notification");
+            context.logException(AlertEvaluator.class, e, "Exception when sending RESOLVED notification");
         }
     }
 

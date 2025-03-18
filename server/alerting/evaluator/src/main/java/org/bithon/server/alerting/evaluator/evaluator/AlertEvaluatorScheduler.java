@@ -42,11 +42,11 @@ import java.util.concurrent.TimeUnit;
 @Conditional(EvaluatorModuleEnabler.class)
 public class AlertEvaluatorScheduler {
 
-    private final AlertEvaluationPipeline alertEvaluator;
+    private final AlertEvaluator alertEvaluator;
     private final AlertRepository alertRepository;
     private final ThreadPoolExecutor executor;
 
-    public AlertEvaluatorScheduler(AlertEvaluationPipeline alertEvaluator,
+    public AlertEvaluatorScheduler(AlertEvaluator alertEvaluator,
                                    AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;

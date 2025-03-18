@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator.step;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
@@ -24,7 +24,7 @@ import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
  * @author frank.chen021@outlook.com
  * @date 17/3/25 10:59 pm
  */
-public interface IEvaluationStep {
+public interface IPipelineStep {
     void evaluate(IEvaluationStateManager stateManager,
                   EvaluationContext context);
 }

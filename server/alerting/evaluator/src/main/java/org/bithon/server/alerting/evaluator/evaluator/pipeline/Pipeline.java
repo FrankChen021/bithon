@@ -14,26 +14,33 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator.step;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.evaluator.AlertExpressionEvaluator;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 18/3/25 9:45 am
+ * @date 18/3/25 10:40 am
  */
-public class ExpressionEvaluationStep implements IEvaluationStep {
-    @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
-        // Evaluate the alert rule
-        AlertRule alertRule = context.getAlertRule();
-        context.log(RuleEvaluationStep.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
+public class Pipeline {
+    private final List<IPipelineStep> steps;
 
-        boolean isTrue = new AlertExpressionEvaluator(context.getAlertRule().getAlertExpression()).evaluate(context);
-        context.setExpressionEvaluatedAsTrue(isTrue);
+    public Pipeline() {
+        this.steps = new ArrayList<>();
+    }
+
+    public void addStep(IPipelineStep step) {
+        steps.add(step);
+    }
+
+    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+        for (IPipelineStep step : steps) {
+            step.evaluate(stateManager, context);
+        }
     }
 }

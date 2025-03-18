@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator.step;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -30,7 +30,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 10:40 上午
  */
-public class RuleEvaluationStep implements IEvaluationStep {
+public class RuleEvaluationStep implements IPipelineStep {
 
     @Override
     public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {

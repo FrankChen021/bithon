@@ -62,13 +62,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * State test cases for {@link AlertEvaluationPipeline}
+ * State test cases for {@link AlertEvaluator}
  *
  * @author Frank Chen
  * @date 05/1/25 4:42 PM
  */
 @Slf4j
-public class AlertEvaluationPipelineTest {
+public class AlertEvaluatorTest {
 
     private final String metric = "count";
 
@@ -79,7 +79,7 @@ public class AlertEvaluationPipelineTest {
     private static IAlertRecordStorage alertRecordStorageStub;
     private static AlertStateJdbcStorage alertStateStorageStub;
     private static AlertObjectJdbcStorage alertObjectStorageStub;
-    private AlertEvaluationPipeline evaluator;
+    private AlertEvaluator evaluator;
 
     @BeforeClass
     public static void setUpStorage() {
@@ -129,14 +129,14 @@ public class AlertEvaluationPipelineTest {
 
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
-        evaluator = new AlertEvaluationPipeline(new AlertRepository(alertObjectStorageStub),
-                                                new LocalStateManager(alertStateStorageStub),
-                                                evaluationLogWriterStub,
-                                                alertRecordStorageStub,
-                                                dataSourceApiStub,
-                                                serverProperties,
-                                                notificationApiStub,
-                                                JsonMapper.builder().build());
+        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
+                                       new LocalStateManager(alertStateStorageStub),
+                                       evaluationLogWriterStub,
+                                       alertRecordStorageStub,
+                                       dataSourceApiStub,
+                                       serverProperties,
+                                       notificationApiStub,
+                                       JsonMapper.builder().build());
     }
 
     @Test
@@ -206,7 +206,7 @@ public class AlertEvaluationPipelineTest {
     }
 
     @Test
-    public void test_ReadToPending() throws IOException {
+    public void test_ReadyToPending() throws IOException {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
@@ -237,7 +237,7 @@ public class AlertEvaluationPipelineTest {
     }
 
     @Test
-    public void test_ReadToPending_GroupBy() throws IOException {
+    public void test_ReadyToPending_GroupBy() throws IOException {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
@@ -355,7 +355,7 @@ public class AlertEvaluationPipelineTest {
 
     @SneakyThrows
     @Test
-    public void test_ReadToAlerting_GroupBy_AllGroupAlerting() {
+    public void test_ReadyToAlerting_GroupBy_AllGroupAlerting() {
         Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
