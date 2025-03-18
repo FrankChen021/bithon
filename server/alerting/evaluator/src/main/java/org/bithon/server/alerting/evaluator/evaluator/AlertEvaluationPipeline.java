@@ -20,27 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
+import org.bithon.server.alerting.evaluator.evaluator.step.ExpressionEvaluationStep;
 import org.bithon.server.alerting.evaluator.evaluator.step.IEvaluationStep;
 import org.bithon.server.alerting.evaluator.evaluator.step.InhibitionStep;
+import org.bithon.server.alerting.evaluator.evaluator.step.NotificationStep;
 import org.bithon.server.alerting.evaluator.evaluator.step.RuleEvaluationStep;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
-import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -48,16 +43,11 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author frank.chen021@outlook.com
@@ -70,10 +60,7 @@ public class AlertEvaluationPipeline implements DisposableBean {
     @Getter
     private final IEvaluationStateManager stateManager;
     private final IEvaluationLogWriter evaluationLogWriter;
-    private final IAlertRecordStorage alertRecordStorage;
-    private final ObjectMapper objectMapper;
     private final IDataSourceApi dataSourceApi;
-    private final INotificationApiInvoker notificationApiInvoker;
 
     public AlertEvaluationPipeline(AlertRepository repository,
                                    IEvaluationStateManager stateManager,
@@ -84,61 +71,15 @@ public class AlertEvaluationPipeline implements DisposableBean {
                                    INotificationApiInvoker notificationApiInvoker,
                                    ObjectMapper objectMapper) {
 
-        this.pipelines.add(new IEvaluationStep() {
-            @Override
-            public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
-                // Evaluate the alert rule
-                AlertRule alertRule = context.getAlertRule();
-                context.log(RuleEvaluationStep.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
+        // Use Indent output for better debugging
+        // It's a copy of existing ObjectMapper
+        // because the injected ObjectMapper has extra serialization/deserialization configurations
+        ObjectMapper mapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
 
-                boolean isTrue = new AlertExpressionEvaluator(context.getAlertRule().getAlertExpression()).evaluate(context);
-                context.setExpressionEvaluatedAsTrue(isTrue);
-            }
-        });
-
+        this.pipelines.add(new ExpressionEvaluationStep());
         this.pipelines.add(new RuleEvaluationStep());
         this.pipelines.add(new InhibitionStep());
-        this.pipelines.add(new IEvaluationStep() {
-            @Override
-            public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
-                // TODO: Find notifications to send
-                Map<Label, AlertStatus> notificationStatus = new HashMap<>();
-                for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
-                    Label label = entry.getKey();
-                    AlertStatus newStatus = entry.getValue();
-                    AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
-
-                    if (prevStatus.canTransitTo(newStatus)) {
-                        context.log(AlertEvaluationPipeline.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
-
-                        if (newStatus == AlertStatus.ALERTING) {
-                            notificationStatus.put(label, newStatus);
-                            context.getSeriesStatus().put(label, newStatus);
-                        } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
-                            notificationStatus.put(label, newStatus);
-                            context.getSeriesStatus().put(label, newStatus);
-                        } else {
-                            // Update alert status only
-                            //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
-                            context.getSeriesStatus().put(label, newStatus);
-                        }
-                    } else {
-                        context.getSeriesStatus().put(label, prevStatus);
-                        context.log(AlertEvaluationPipeline.class, "Stay in alert status: [%s]", prevStatus);
-                    }
-                }
-
-                // Group series with different labels by alert status
-                Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
-                                                                                            .stream()
-                                                                                            .collect(HashMap::new,
-                                                                                                     (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
-                                                                                                                        .put(entry.getKey(), entry.getValue()),
-                                                                                                     HashMap::putAll);
-                fireAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.ALERTING), context);
-                resolveAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.RESOLVED), context);
-            }
-        });
+        this.pipelines.add(new NotificationStep(recordStorage, notificationApiInvoker, mapper));
         this.pipelines.add(new IEvaluationStep() {
             @Override
             public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
@@ -149,16 +90,9 @@ public class AlertEvaluationPipeline implements DisposableBean {
         });
 
         this.stateManager = stateManager;
-        this.alertRecordStorage = recordStorage;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogWriter = evaluationLogWriter;
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
-
-        // Use Indent output for better debugging
-        // It's a copy of existing ObjectMapper
-        // because the injected ObjectMapper has extra serialization/deserialization configurations
-        this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
-        this.notificationApiInvoker = notificationApiInvoker;
 
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {
@@ -288,144 +222,9 @@ public class AlertEvaluationPipeline implements DisposableBean {
         return AlertStatus.READY;
     }
 
-    /**
-     * TODO: pass the labels to notification message
-     * Fire alert and update its status
-     */
-    private void fireAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
-        if (CollectionUtils.isEmpty(labels)) {
-            return;
-        }
-
-        // Prepare notification
-        NotificationMessage notification = new NotificationMessage();
-        notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
-        notification.setAlertRule(alertRule);
-        notification.setStatus(AlertStatus.ALERTING);
-        notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationStatus().forEach((expressionId, result) -> {
-            AlertExpression expression = context.getAlertExpressions().get(expressionId);
-
-            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
-            notification.getConditionEvaluation()
-                        .put(expression.getId(),
-                             new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : outputs.stream().map((output) -> OutputMessage.builder()
-                                                                                                                                   .current(output.getCurrentText())
-                                                                                                                                   .delta(output.getDeltaText())
-                                                                                                                                   .threshold(output.getThresholdText())
-                                                                                                                                   .build()).toList()));
-        });
-
-        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
-        try {
-            // Save alerting records
-            context.log(AlertEvaluationPipeline.class, "Saving alert record");
-            String id = saveAlertRecord(context, alertAt, notification);
-
-            // notification
-            notification.setLastAlertAt(alertAt.getTime());
-            notification.setAlertRecordId(id);
-            for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluationPipeline.class, "Sending alerting notification to channel [%s]", channelName);
-
-                try {
-                    notificationApiInvoker.notify(channelName, notification);
-                } catch (Exception e) {
-                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
-                }
-            }
-        } catch (Exception e) {
-            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification");
-        }
-    }
-
-    /**
-     * Fire alert and update its status
-     */
-    private void resolveAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
-        if (CollectionUtils.isEmpty(labels)) {
-            return;
-        }
-
-        // Prepare notification
-        NotificationMessage notification = new NotificationMessage();
-        notification.setStatus(AlertStatus.RESOLVED);
-        notification.setAlertRule(alertRule);
-        notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationStatus().forEach((expressionId, result) -> {
-            AlertExpression expression = context.getAlertExpressions().get(expressionId);
-
-            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
-            notification.getConditionEvaluation()
-                        .put(expression.getId(),
-                             new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : outputs.stream()
-                                                                                            .map((output) -> OutputMessage.builder()
-                                                                                                                          .current(output.getCurrentText())
-                                                                                                                          .delta(output.getDeltaText())
-                                                                                                                          .threshold(output.getThresholdText())
-                                                                                                                          .build())
-                                                                                            .toList()));
-        });
-
-        Timestamp alertAt = new Timestamp(System.currentTimeMillis());
-        try {
-            // notification
-            notification.setLastAlertAt(alertAt.getTime());
-            notification.setAlertRecordId(context.getPrevState().getLastRecordId());
-            for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluationPipeline.class, "Sending RESOLVED notification to channel [%s]", channelName);
-
-                try {
-                    notificationApiInvoker.notify(channelName, notification);
-                } catch (Exception e) {
-                    context.logException(AlertEvaluationPipeline.class, e, "Exception when sending notification to channel [%s]", channelName);
-                }
-            }
-        } catch (Exception e) {
-            context.logException(AlertEvaluationPipeline.class, e, "Exception when sending RESOLVED notification");
-        }
-    }
-
-    private String saveAlertRecord(EvaluationContext context, Timestamp lastAlertAt, NotificationMessage notification) throws IOException {
-        AlertRecordObject alertRecord = new AlertRecordObject();
-        alertRecord.setRecordId(UUID.randomUUID().toString().replace("-", ""));
-        alertRecord.setAlertId(context.getAlertRule().getId());
-        alertRecord.setAlertName(context.getAlertRule().getName());
-        alertRecord.setAppName(context.getAlertRule().getAppName());
-        alertRecord.setNamespace("");
-        alertRecord.setDataSource("{}");
-        alertRecord.setCreatedAt(lastAlertAt);
-
-        long startOfThisEvaluation = context.getEvaluationOutputs()
-                                            .values()
-                                            .stream()
-                                            .flatMap(Collection::stream)
-                                            .map((output) -> output.getStart().getMilliseconds())
-                                            .min(Comparator.comparingLong((v) -> v))
-                                            .get();
-
-        // Calculate the first time the rule is tested as TRUE
-        // Since the current interval is TRUE, there were (n - 1) intervals before this interval
-        long startInclusive = startOfThisEvaluation - (context.getAlertRule().getForTimes() - 1) * context.getAlertRule().getEvery().getDuration().toMillis();
-        long endInclusive = context.getIntervalEnd().getMilliseconds() - context.getAlertRule().getEvery().getDuration().toMillis();
-
-        alertRecord.setPayload(objectMapper.writeValueAsString(AlertRecordPayload.builder()
-                                                                                 .start(startInclusive)
-                                                                                 .end(endInclusive)
-                                                                                 .expressions(context.getAlertExpressions().values())
-                                                                                 .conditionEvaluation(notification.getConditionEvaluation())
-                                                                                 .build()));
-        alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
-        alertRecordStorage.addAlertRecord(alertRecord);
-        return alertRecord.getRecordId();
-    }
-
     @Override
     public void destroy() {
         this.evaluationLogWriter.close();
     }
+
 }
