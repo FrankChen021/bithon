@@ -34,7 +34,10 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
+import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
@@ -42,12 +45,11 @@ import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.commons.json.JsonPayloadFormatter;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
@@ -154,7 +156,10 @@ public class AlertChannelApi {
                                             .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationStatus.MATCHED,
-                                                List.of(new OutputMessage("1", "2", "1"))
+                                                new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(System.currentTimeMillis(),
+                                                                                                             System.currentTimeMillis(),
+                                                                                                             new Label(),
+                                                                                                             "1", "2", "1", true))
                                             )))
                                             .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()

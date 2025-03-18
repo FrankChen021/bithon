@@ -20,7 +20,6 @@ import lombok.Data;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
 
 import java.math.BigDecimal;
@@ -40,8 +39,8 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private double delta;
     private Number threshold;
     private IMetricEvaluator metric;
-    private TimeSpan start;
-    private TimeSpan end;
+    private long start;
+    private long end;
     private Label label;
 
     /**
@@ -50,15 +49,16 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private List<Map<String, Object>> baseline;
 
     @Override
-    public TimeSpan getStart() {
+    public long getStart() {
         return start;
     }
 
     @Override
-    public TimeSpan getEnd() {
+    public long getEnd() {
         return end;
     }
 
+    @Override
     public Label getLabel() {
         return label;
     }

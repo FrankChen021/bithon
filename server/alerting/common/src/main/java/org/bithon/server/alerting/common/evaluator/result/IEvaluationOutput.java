@@ -16,21 +16,27 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
-import org.bithon.server.commons.time.TimeSpan;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.Label;
+import org.bithon.shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020-08-25 15:48:07
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "absolute", value = AbsoluteComparisonEvaluationOutput.class),
+    @JsonSubTypes.Type(name = "relative", value = RelativeComparisonEvaluationOutput.class),
+})
 public interface IEvaluationOutput {
 
     /**
      * start time of the current evaluation period
      */
-    TimeSpan getStart();
+    long getStart();
 
-    TimeSpan getEnd();
+    long getEnd();
 
     boolean isMatched();
 

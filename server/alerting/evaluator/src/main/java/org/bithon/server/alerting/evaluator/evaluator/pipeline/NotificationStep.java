@@ -20,16 +20,13 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
@@ -37,7 +34,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,20 +111,7 @@ public class NotificationStep implements IPipelineStep {
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationStatus().forEach((expressionId, result) -> {
-            AlertExpression expression = context.getAlertExpressions().get(expressionId);
-
-            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
-            notification.getConditionEvaluation()
-                        .put(expression.getId(),
-                             new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : outputs.stream().map((output) -> OutputMessage.builder()
-                                                                                                                                   .current(output.getCurrentText())
-                                                                                                                                   .delta(output.getDeltaText())
-                                                                                                                                   .threshold(output.getThresholdText())
-                                                                                                                                   .build()).toList()));
-        });
+        notification.setConditionEvaluation(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -166,22 +149,7 @@ public class NotificationStep implements IPipelineStep {
         notification.setStatus(AlertStatus.RESOLVED);
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(new HashMap<>());
-        context.getEvaluationStatus().forEach((expressionId, result) -> {
-            AlertExpression expression = context.getAlertExpressions().get(expressionId);
-
-            EvaluationOutputs outputs = context.getRuleEvaluationOutputs(expressionId);
-            notification.getConditionEvaluation()
-                        .put(expression.getId(),
-                             new ExpressionEvaluationResult(result,
-                                                            outputs == null ? null : outputs.stream()
-                                                                                            .map((output) -> OutputMessage.builder()
-                                                                                                                          .current(output.getCurrentText())
-                                                                                                                          .delta(output.getDeltaText())
-                                                                                                                          .threshold(output.getThresholdText())
-                                                                                                                          .build())
-                                                                                            .toList()));
-        });
+        notification.setConditionEvaluation(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -212,11 +180,11 @@ public class NotificationStep implements IPipelineStep {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long startOfThisEvaluation = context.getEvaluationOutputs()
+        long startOfThisEvaluation = context.getEvaluationResult()
                                             .values()
                                             .stream()
-                                            .flatMap(Collection::stream)
-                                            .map((output) -> output.getStart().getMilliseconds())
+                                            .flatMap((result) -> result.getOutputs().stream())
+                                            .map(IEvaluationOutput::getStart)
                                             .min(Comparator.comparingLong((v) -> v))
                                             .get();
 

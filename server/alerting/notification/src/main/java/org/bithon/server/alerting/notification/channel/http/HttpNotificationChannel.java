@@ -40,10 +40,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
@@ -134,8 +134,8 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     private void send(NotificationMessage message, Duration timeout) throws IOException {
         String messageBody = StringUtils.hasText(message.getAlertRule().getNotificationProps().getMessage()) ?
-            message.getAlertRule().getNotificationProps().getMessage()
-            : this.props.body;
+                             message.getAlertRule().getNotificationProps().getMessage()
+                                                                                                             : this.props.body;
 
         messageBody = messageBody.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
                                  .replace("{alert.name}", message.getAlertRule().getName())
@@ -150,9 +150,9 @@ public class HttpNotificationChannel implements INotificationChannel {
                 evaluationMessage = result.getOutputs()
                                           .stream()
                                           .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                              output.getThreshold(),
-                                                                              output.getCurrent(),
-                                                                              output.getDelta()))
+                                                                              output.getThresholdText(),
+                                                                              output.getCurrentText(),
+                                                                              output.getDeltaText()))
                                           .collect(Collectors.joining("\n"));
             } else {
                 evaluationMessage = message.getConditionEvaluation()
@@ -170,9 +170,9 @@ public class HttpNotificationChannel implements INotificationChannel {
                                            })
                                            .flatMap((result) -> result.getOutputs().stream())
                                            .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                               output.getThreshold(),
-                                                                               output.getCurrent(),
-                                                                               output.getDelta()))
+                                                                               output.getThresholdText(),
+                                                                               output.getCurrentText(),
+                                                                               output.getDeltaText()))
                                            .collect(Collectors.joining("\n"));
             }
         }

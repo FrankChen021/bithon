@@ -17,7 +17,6 @@
 package org.bithon.server.alerting.common.evaluator.result;
 
 import lombok.Getter;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
 
 /**
@@ -42,16 +41,16 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     private final String delta;
 
     @Getter
-    private final TimeSpan start;
+    private final long start;
 
     @Getter
-    private final TimeSpan end;
+    private final long end;
 
     @Getter
     private final Label label;
 
-    public AbsoluteComparisonEvaluationOutput(TimeSpan start,
-                                              TimeSpan end,
+    public AbsoluteComparisonEvaluationOutput(long start,
+                                              long end,
                                               Label label,
                                               String now,
                                               String threshold,

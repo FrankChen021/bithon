@@ -148,9 +148,8 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             output.setBase(baseValue);
             output.setThreshold(threshold);
             output.setMatched(matches(delta, threshold.doubleValue()));
-            output.setStart(start);
-            output.setEnd(end);
-            output.setMetric(this);
+            output.setStart(start.getMilliseconds());
+            output.setEnd(end.getMilliseconds());
             output.setLabel(label);
 
             outputs.add(output);

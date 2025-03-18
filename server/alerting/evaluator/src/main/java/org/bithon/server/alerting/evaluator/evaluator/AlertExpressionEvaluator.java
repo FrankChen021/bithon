@@ -65,7 +65,7 @@ public class AlertExpressionEvaluator {
             public Boolean visit(AlertExpression expression) {
                 boolean isTrue = evaluate(expression, context);
                 if (isTrue) {
-                    EvaluationOutputs outputs = context.getEvaluationOutputs().get(expression.getId());
+                    EvaluationOutputs outputs = context.getEvaluationResult().get(expression.getId()).getOutputs();
                     for (IEvaluationOutput output : outputs) {
                         context.getGroups().add(output.getLabel());
                     }

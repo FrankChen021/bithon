@@ -14,32 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.notification.message;
+package org.bithon.server.alerting.common.evaluator.result;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * @author Frank Chen
  * @date 19/3/22 8:00 PM
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OutputMessage {
-    private String threshold;
-    private String current;
-    private String delta;
+public class ExpressionEvaluationResult {
+    private EvaluationStatus result;
+    private EvaluationOutputs outputs;
 
-    @Override
-    public String toString() {
-        return "OutputMessage{" +
-               "threshold='" + threshold + '\'' +
-               ", current='" + current + '\'' +
-               ", delta='" + delta + '\'' +
-               '}';
+    @JsonCreator
+    public ExpressionEvaluationResult(@JsonProperty("result") EvaluationStatus result,
+                                      @JsonProperty("outputs") EvaluationOutputs outputs) {
+        this.result = result;
+        this.outputs = outputs;
     }
 }

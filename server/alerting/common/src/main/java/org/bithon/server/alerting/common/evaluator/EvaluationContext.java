@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
+import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
@@ -46,12 +47,12 @@ public class EvaluationContext implements IEvaluationContext {
 
     private final TimeSpan intervalEnd;
     private final AlertRule alertRule;
+
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
 
     // TODO: merge these variables together
-    private final Map<String, EvaluationOutputs> evaluationOutputs = new HashMap<>();
-    private final Map<String, EvaluationStatus> evaluationStatus = new HashMap<>();
+    private final Map<String, ExpressionEvaluationResult> evaluationResult = new HashMap<>();
 
     @Getter
     @Setter
@@ -85,23 +86,17 @@ public class EvaluationContext implements IEvaluationContext {
         this.alertRule = alertRule;
         this.prevState = prevState;
 
-        this.alertRule.getFlattenExpressions().forEach((id, alertExpression) -> {
-            evaluationStatus.put(id, EvaluationStatus.UNEVALUATED);
-        });
         this.alertExpressions.putAll(alertRule.getFlattenExpressions());
     }
 
-    public EvaluationOutputs getRuleEvaluationOutputs(String ruleId) {
-        return evaluationOutputs.get(ruleId);
-    }
-
-    public void setEvaluationResult(String ruleId,
+    public void setEvaluationResult(String expressionId,
                                     boolean matches,
                                     EvaluationOutputs outputs) {
 
-        this.evaluationStatus.put(ruleId, matches ? EvaluationStatus.MATCHED : EvaluationStatus.UNMATCHED);
+        ExpressionEvaluationResult result = this.evaluationResult.computeIfAbsent(expressionId, (k) -> new ExpressionEvaluationResult(EvaluationStatus.UNEVALUATED, new EvaluationOutputs()));
+        result.setResult(matches ? EvaluationStatus.MATCHED : EvaluationStatus.UNMATCHED);
         if (outputs != null) {
-            evaluationOutputs.put(ruleId, outputs);
+            result.setOutputs(outputs);
         }
     }
 
