@@ -80,10 +80,11 @@ public class NotificationApiImpl implements INotificationApi {
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
-            List<AlertExpression> expressionList = message.getConditionEvaluation()
+            List<AlertExpression> expressionList = message.getEvaluationResult()
                                                           .entrySet().stream()
                                                           .filter((entry) -> entry.getValue().getResult() == EvaluationStatus.MATCHED)
                                                           .map((entry) -> message.getExpressions()
+                                                                                 .values()
                                                                                  .stream()
                                                                                  .filter((expr) -> expr.getId().equals(entry.getKey()))
                                                                                  .findFirst()

@@ -154,7 +154,7 @@ public class AlertChannelApi {
             channel.test(NotificationMessage.builder()
                                             .alertRecordId("fake")
                                             .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
-                                            .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
+                                            .evaluationResult(ImmutableMap.of("1", new ExpressionEvaluationResult(
                                                 EvaluationStatus.MATCHED,
                                                 new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(System.currentTimeMillis(),
                                                                                                              System.currentTimeMillis(),

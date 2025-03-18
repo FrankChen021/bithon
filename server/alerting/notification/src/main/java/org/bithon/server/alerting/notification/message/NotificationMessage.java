@@ -38,8 +38,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class NotificationMessage {
     private String alertRecordId;
-    private Collection<AlertExpression> expressions;
-    private Map<String, ExpressionEvaluationResult> conditionEvaluation;
+    private Map<String, AlertExpression> expressions;
+    private Map<String, ExpressionEvaluationResult> evaluationResult;
     private AlertRule alertRule;
     private Long lastAlertAt;
     private AlertStatus status;

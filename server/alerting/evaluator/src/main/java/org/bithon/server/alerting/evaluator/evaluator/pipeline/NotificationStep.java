@@ -110,8 +110,8 @@ public class NotificationStep implements IPipelineStep {
         notification.setEndTimestamp(context.getIntervalEnd().getMilliseconds());
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
-        notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(context.getEvaluationResult());
+        notification.setExpressions(context.getAlertExpressions());
+        notification.setEvaluationResult(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -148,8 +148,8 @@ public class NotificationStep implements IPipelineStep {
         NotificationMessage notification = new NotificationMessage();
         notification.setStatus(AlertStatus.RESOLVED);
         notification.setAlertRule(alertRule);
-        notification.setExpressions(alertRule.getFlattenExpressions().values());
-        notification.setConditionEvaluation(context.getEvaluationResult());
+        notification.setExpressions(context.getAlertExpressions());
+        notification.setEvaluationResult(context.getEvaluationResult());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -197,7 +197,7 @@ public class NotificationStep implements IPipelineStep {
                                                                                  .start(startInclusive)
                                                                                  .end(endInclusive)
                                                                                  .expressions(context.getAlertExpressions().values())
-                                                                                 .conditionEvaluation(notification.getConditionEvaluation())
+                                                                                 .conditionEvaluation(notification.getEvaluationResult())
                                                                                  .build()));
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);

@@ -77,8 +77,8 @@ public class DingNotificationChannel implements INotificationChannel {
         }
         section.add("Alert at", StringUtils.format("MM-dd HH:mm:ss", alertAt));
 
-        for (AlertExpression expression : message.getExpressions()) {
-            ExpressionEvaluationResult result = message.getConditionEvaluation().get(expression.getId());
+        for (AlertExpression expression : message.getExpressions().values()) {
+            ExpressionEvaluationResult result = message.getEvaluationResult().get(expression.getId());
             if (result == null || result.getResult() != EvaluationStatus.MATCHED || result.getOutputs() != null) {
                 continue;
             }

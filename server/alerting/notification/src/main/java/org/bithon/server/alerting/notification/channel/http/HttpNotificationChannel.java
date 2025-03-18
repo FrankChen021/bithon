@@ -41,7 +41,6 @@ import org.apache.http.message.BasicHeader;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -146,7 +145,7 @@ public class HttpNotificationChannel implements INotificationChannel {
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
             if (message.getExpressions().size() == 1) {
-                ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
+                ExpressionEvaluationResult result = message.getEvaluationResult().entrySet().iterator().next().getValue();
                 evaluationMessage = result.getOutputs()
                                           .stream()
                                           .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
@@ -155,19 +154,9 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                               output.getDeltaText()))
                                           .collect(Collectors.joining("\n"));
             } else {
-                evaluationMessage = message.getConditionEvaluation()
-                                           .entrySet()
+                evaluationMessage = message.getEvaluationResult()
+                                           .values()
                                            .stream()
-                                           .map((entry) -> {
-                                               AlertExpression evaluatedExpression = message.getExpressions()
-                                                                                            .stream()
-                                                                                            .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                            .findFirst()
-                                                                                            .orElse(null);
-
-                                               ExpressionEvaluationResult result = entry.getValue();
-                                               return result;
-                                           })
                                            .flatMap((result) -> result.getOutputs().stream())
                                            .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
                                                                                output.getThresholdText(),
