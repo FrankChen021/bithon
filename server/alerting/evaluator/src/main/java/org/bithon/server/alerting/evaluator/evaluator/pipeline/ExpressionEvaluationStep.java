@@ -30,7 +30,11 @@ public class ExpressionEvaluationStep implements IPipelineStep {
     @Override
     public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
         AlertRule alertRule = context.getAlertRule();
-        context.log(RuleEvaluationStep.class, "Evaluating rule [%s]: %s ", alertRule.getName(), alertRule.getExpr());
+
+        if (alertRule.getFlattenExpressions().size() > 1) {
+            // If the size is 1, the alertExpression is the SAME as the expression, so no need to log it again which will be logged in the ExpressionEvaluationStep
+            context.log(ExpressionEvaluationStep.class, "Evaluating expression [%s]: %s ", alertRule.getName(), alertRule.getExpr());
+        }
 
         boolean isTrue = new AlertExpressionEvaluator(context.getAlertRule().getAlertExpression()).evaluate(context);
         context.setExpressionEvaluatedAsTrue(isTrue);

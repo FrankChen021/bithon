@@ -48,24 +48,26 @@ public class EvaluationContext implements IEvaluationContext {
     private final TimeSpan intervalEnd;
     private final AlertRule alertRule;
 
+    /**
+     * current expression that is under evaluation
+     */
+    @Setter
+    private AlertExpression evaluatingExpression;
+
     // Use LinkedHashMap to keep the order of expressions
     private final Map<String, AlertExpression> alertExpressions = new LinkedHashMap<>();
-
-    // TODO: merge these variables together
-    private final Map<String, ExpressionEvaluationResult> evaluationResult = new HashMap<>();
 
     @Getter
     @Setter
     private boolean isExpressionEvaluatedAsTrue = false;
-    private Map<Label, AlertStatus> seriesStatus = new HashMap<>();
-
-    private final EvaluationLogger evaluationLogger;
+    private final Map<String, ExpressionEvaluationResult> evaluationResult = new HashMap<>();
 
     /**
-     * current condition id that is under evaluation
+     * The status of each (group-by) series
      */
-    @Setter
-    private AlertExpression evaluatingExpression;
+    private final Map<Label, AlertStatus> seriesStatus = new HashMap<>();
+
+    private final EvaluationLogger evaluationLogger;
 
     /**
      * Each element in the list is the values of the group by fields

@@ -20,7 +20,6 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
@@ -63,16 +62,21 @@ public class InhibitionStep implements IPipelineStep {
         TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
         Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
 
-        if (silenceDuration.getDuration().getSeconds() > 0 && stateManager.tryEnterSilence(alertRule.getId(), label, silencePeriod)) {
+        if (silenceDuration.getDuration().getSeconds() > 0
+            && stateManager.tryEnterSilence(alertRule.getId(), label, silencePeriod)) {
             Duration silenceRemainTime = stateManager.getSilenceRemainTime(alertRule.getId(), label);
-            context.log(AlertEvaluator.class,
-                        "Alerting，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
+            context.log(InhibitionStep.class,
+                        "Alerting%s，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
+                        label.formatIfNotEmpty(" for series {%s}"),
                         silenceDuration,
                         lastAlertingAt,
                         TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
             return AlertStatus.SUPPRESSING;
         } else {
-            context.log(AlertEvaluator.class, "Alerting，silence period(%s) is over. Last alert at: %s", silenceDuration, lastAlertingAt);
+            context.log(InhibitionStep.class, "Alerting%s，silence period(%s) is over. Last alert at: %s",
+                        label.formatIfNotEmpty(" for series {%s}"),
+                        silenceDuration,
+                        lastAlertingAt);
         }
 
         return AlertStatus.ALERTING;

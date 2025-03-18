@@ -24,7 +24,6 @@ import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
@@ -63,14 +62,7 @@ public class AlertExpressionEvaluator {
 
             @Override
             public Boolean visit(AlertExpression expression) {
-                boolean isTrue = evaluate(expression, context);
-                if (isTrue) {
-                    EvaluationOutputs outputs = context.getEvaluationResult().get(expression.getId()).getOutputs();
-                    for (IEvaluationOutput output : outputs) {
-                        context.getGroups().add(output.getLabel());
-                    }
-                }
-                return isTrue;
+                return evaluate(expression, context);
             }
         });
     }

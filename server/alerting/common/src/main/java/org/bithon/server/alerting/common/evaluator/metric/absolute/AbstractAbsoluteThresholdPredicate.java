@@ -130,15 +130,15 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                 continue;
             }
 
-            Label label = new Label();
+            Label.Builder labelBuilder = Label.builder();
             for (String labelName : groupBy) {
                 String labelValue = (String) series.get(labelName);
-                label.add(labelName, labelValue);
+                labelBuilder.add(labelName, labelValue);
             }
 
             IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput(start.getMilliseconds(),
                                                                               end.getMilliseconds(),
-                                                                              label,
+                                                                              labelBuilder.build(),
                                                                               valueType.format(currentValue),
                                                                               expected.toString(),
                                                                               valueType.format(valueType.diff(currentValue, expectedValue)),

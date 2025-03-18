@@ -100,10 +100,10 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                 continue;
             }
 
-            Label label = new Label();
+            Label.Builder labelBuilder = Label.builder();
             for (String labelName : groupBy) {
                 String labelValue = (String) series.get(labelName);
-                label.add(labelName, labelValue);
+                labelBuilder.add(labelName, labelValue);
             }
 
             // TODO: MOVE out of for-loop
@@ -150,7 +150,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             output.setMatched(matches(delta, threshold.doubleValue()));
             output.setStart(start.getMilliseconds());
             output.setEnd(end.getMilliseconds());
-            output.setLabel(label);
+            output.setLabel(labelBuilder.build());
 
             outputs.add(output);
         }

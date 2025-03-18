@@ -63,7 +63,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                                                    context);
             if (outputs.isEmpty()) {
                 context.log(delegateEvaluator.getClass(),
-                            "Expected: [%s], Current: [null], Delta: [null], Result: [NOT Matched]",
+                            "Current: [null], Expected: [%s], Delta: [null], Result: [NOT Matched]",
                             delegateEvaluator.toString());
                 return outputs;
             }
@@ -71,19 +71,19 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
             for (IEvaluationOutput output : outputs) {
                 if (output.getLabel().isEmpty()) {
                     context.log(delegateEvaluator.getClass(),
-                                "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
-                                delegateEvaluator.toString(),
+                                "%s %s, [%s], Delta: [%s]",
                                 output.getCurrentText(),
-                                output.getDeltaText(),
-                                output.isMatched() ? "Matched" : "NOT Matched");
+                                delegateEvaluator.toString(),
+                                output.isMatched() ? "MATCHED" : "NOT Matched",
+                                output.getDeltaText());
                 } else {
                     context.log(delegateEvaluator.getClass(),
-                                "Expected: [%s], Current: [%s {%s}], Delta: [%s], Result: [%s]",
-                                delegateEvaluator.toString(),
+                                "%s{%s} %s, [%s], Delta: [%s]",
                                 output.getCurrentText(),
                                 output.getLabel(),
-                                output.getDeltaText(),
-                                output.isMatched() ? "Matched" : "NOT Matched");
+                                delegateEvaluator.toString(),
+                                output.isMatched() ? "MATCHED" : "NOT Matched",
+                                output.getDeltaText());
                 }
             }
 

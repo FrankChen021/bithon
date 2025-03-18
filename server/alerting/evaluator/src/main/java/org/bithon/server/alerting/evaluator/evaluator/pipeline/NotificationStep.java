@@ -22,7 +22,6 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
@@ -66,7 +65,10 @@ public class NotificationStep implements IPipelineStep {
             AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
 
             if (prevStatus.canTransitTo(newStatus)) {
-                context.log(AlertEvaluator.class, "Update alert status: [%s] ---> [%s]", prevStatus, newStatus);
+                context.log(NotificationStep.class, "Update alert status%s: [%s] ---> [%s]",
+                            label.formatIfNotEmpty(" for series {%s}"),
+                            prevStatus,
+                            newStatus);
 
                 if (newStatus == AlertStatus.ALERTING) {
                     notificationStatus.put(label, newStatus);
@@ -75,13 +77,11 @@ public class NotificationStep implements IPipelineStep {
                     notificationStatus.put(label, newStatus);
                     context.getSeriesStatus().put(label, newStatus);
                 } else {
-                    // Update alert status only
-                    //this.alertRecordStorage.updateAlertStatus(alertRule.getId(), context.getPrevState(), newStatus);
                     context.getSeriesStatus().put(label, newStatus);
                 }
             } else {
                 context.getSeriesStatus().put(label, prevStatus);
-                context.log(AlertEvaluator.class, "Stay in alert status: [%s]", prevStatus);
+                context.log(NotificationStep.class, "%sstay in alert status: [%s]", label.formatIfNotEmpty("Series {%s} "), prevStatus);
             }
         }
 
@@ -97,7 +97,6 @@ public class NotificationStep implements IPipelineStep {
     }
 
     /**
-     * TODO: pass the labels to notification message
      * Fire alert and update its status
      */
     private void fireAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
@@ -116,23 +115,23 @@ public class NotificationStep implements IPipelineStep {
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
-            context.log(AlertEvaluator.class, "Saving alert record");
+            context.log(NotificationStep.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(id);
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluator.class, "Sending alerting notification to channel [%s]", channelName);
+                context.log(NotificationStep.class, "Sending alerting notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(NotificationStep.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluator.class, e, "Exception when sending notification");
+            context.logException(NotificationStep.class, e, "Exception when sending notification");
         }
     }
 
@@ -157,16 +156,16 @@ public class NotificationStep implements IPipelineStep {
             notification.setLastAlertAt(alertAt.getTime());
             notification.setAlertRecordId(context.getPrevState().getLastRecordId());
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
-                context.log(AlertEvaluator.class, "Sending RESOLVED notification to channel [%s]", channelName);
+                context.log(NotificationStep.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
                 try {
                     notificationApiInvoker.notify(channelName, notification);
                 } catch (Exception e) {
-                    context.logException(AlertEvaluator.class, e, "Exception when sending notification to channel [%s]", channelName);
+                    context.logException(NotificationStep.class, e, "Exception when sending notification to channel [%s]", channelName);
                 }
             }
         } catch (Exception e) {
-            context.logException(AlertEvaluator.class, e, "Exception when sending RESOLVED notification");
+            context.logException(NotificationStep.class, e, "Exception when sending RESOLVED notification");
         }
     }
 

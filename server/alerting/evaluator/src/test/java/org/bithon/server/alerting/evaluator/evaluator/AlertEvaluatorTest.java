@@ -18,6 +18,7 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
@@ -498,6 +500,12 @@ public class AlertEvaluatorTest {
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
+        // Check the series status
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        // The status is PENDING since the rule requires 2 times of match
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
                .groupBy(Mockito.any());
@@ -513,6 +521,10 @@ public class AlertEvaluatorTest {
         stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+
+        // Check the series status
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))

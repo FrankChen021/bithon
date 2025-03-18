@@ -64,6 +64,9 @@ public class LocalStateManager implements IEvaluationStateManager {
         AlertState.Payload payload = alertState.getPayload();
 
         Map<Label, Long> result = new HashMap<>();
+
+        // Find state for each label, if not found, create a new one
+        // If prev state is not in current label list, remove it since it does NOT match current evaluation condition, it needs to re-calculate
         for (Label label : labels) {
             AlertState.SeriesState seriesState = payload.getSeries()
                                                         .computeIfAbsent(label, (k) -> new AlertState.SeriesState());

@@ -17,6 +17,8 @@
 package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
+import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.Label;
@@ -24,6 +26,7 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,29 +38,39 @@ public class RuleEvaluationStep implements IPipelineStep {
     @Override
     public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
         AlertRule alertRule = context.getAlertRule();
+
+        context.log(RuleEvaluationStep.class,
+                    "Rule [%s] evaluated as %s", alertRule.getName(),
+                    Boolean.valueOf(context.isExpressionEvaluatedAsTrue()).toString());
+
         AlertState prevState = context.getPrevState();
 
         if (!context.isExpressionEvaluatedAsTrue()) {
-            context.log(RuleEvaluationStep.class,
-                        "Rule [%s] evaluated as FALSE",
-                        context.getAlertRule().getName());
-
             stateManager.resetMatchCount(context.getAlertRule().getId());
 
+            // reset all series to RESOLVED
             if (prevState != null) {
-                for (Map.Entry<Label, AlertState.SeriesState> item : prevState.getPayload().getSeries().entrySet()) {
-                    context.getSeriesStatus().put(item.getKey(), AlertStatus.RESOLVED);
+                for (Map.Entry<Label, AlertState.SeriesState> series : prevState.getPayload().getSeries().entrySet()) {
+                    context.getSeriesStatus().put(series.getKey(), AlertStatus.RESOLVED);
                 }
             }
             return;
         }
 
-        context.log(RuleEvaluationStep.class, "Rule [%s] evaluated as TRUE", alertRule.getName());
-
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
+        // Find matched labels
+        List<Label> series = context.getEvaluationResult()
+                                    .values()
+                                    .stream()
+                                    .filter((result) -> result.getResult() == EvaluationStatus.MATCHED)
+                                    .flatMap((result) -> result.getOutputs().stream())
+                                    .map(IEvaluationOutput::getLabel)
+                                    .toList();
+
+        // Update states for each series, and get the successive count for each series
         Map<Label, Long> successiveCountList = stateManager.incrMatchCount(alertRule.getId(),
-                                                                           context.getGroups(),
+                                                                           series,
                                                                            alertRule.getEvery()
                                                                                     .getDuration()
                                                                                     // Add 30 seconds for margin
@@ -68,12 +81,18 @@ public class RuleEvaluationStep implements IPipelineStep {
 
             AlertStatus newStatus;
             if (successiveCount >= expectedMatchCount) {
+                context.log(RuleEvaluationStep.class,
+                            "Rule%s evaluated as TRUE for [%d] times successively，REACH the expected threshold [%s] to fire alert",
+                            label.formatIfNotEmpty(" for series {%s}"),
+                            successiveCount,
+                            expectedMatchCount);
+
                 stateManager.resetMatchCount(alertRule.getId());
                 newStatus = AlertStatus.ALERTING;
             } else {
                 context.log(RuleEvaluationStep.class,
-                            "Rule [%s] evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
-                            alertRule.getName(),
+                            "Rule%s evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
+                            label.formatIfNotEmpty(" for series {%s}"),
                             successiveCount,
                             expectedMatchCount);
 
