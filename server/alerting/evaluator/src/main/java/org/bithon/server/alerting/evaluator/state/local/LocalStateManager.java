@@ -203,7 +203,6 @@ public class LocalStateManager implements IEvaluationStateManager {
         }
         alertState.setStatus(status);
 
-        // TODO: change declaration to pass array
-        this.stateStorage.saveAlertStates(Map.of(alertId, alertState));
+        this.stateStorage.updateAlertStates(Map.of(alertId, alertState));
     }
 }

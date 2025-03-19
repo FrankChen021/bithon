@@ -23,17 +23,13 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
-import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
-import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
 import org.jooq.BatchBindStep;
-import org.jooq.InsertSetMoreStep;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -66,7 +62,7 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
     }
 
     @Override
-    public void saveAlertStates(Map<String, AlertState> states) {
+    public void updateAlertStates(Map<String, AlertState> states) {
         BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_ALERT_STATE,
                                                                     Tables.BITHON_ALERT_STATE.ALERT_ID,
                                                                     Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
@@ -98,30 +94,6 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
                              payloadString,
                              state.getStatus().statusCode());
         }
-        step.execute();
-    }
-
-    @Override
-    public void updateAlertStatus(String id, AlertState prevState, AlertStatus newStatus, Map<Label, AlertStatus> statusPerLabel) {
-        String payload = "{}";
-        if (statusPerLabel != null) {
-            try {
-                payload = objectMapper.writeValueAsString(statusPerLabel);
-            } catch (JsonProcessingException ignored) {
-            }
-        }
-
-        InsertSetMoreStep<BithonAlertStateRecord> step = dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                                                                   .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
-                                                                   .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                                                                   .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payload)
-                                                                   .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode());
-
-        if (prevState != null) {
-            step = step.set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState.getLastAlertAt())
-                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState.getLastRecordId());
-        }
-
         step.execute();
     }
 }

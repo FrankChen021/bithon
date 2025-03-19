@@ -18,7 +18,6 @@ package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertState;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.util.Map;
 
@@ -42,10 +41,5 @@ public interface IAlertStateStorage {
     /**
      * @param states a map of all alert states, key is alert rule id
      */
-    void saveAlertStates(Map<String, AlertState> states);
-
-    void updateAlertStatus(String id,
-                           AlertState prevState,
-                           AlertStatus newStatus,
-                           Map<Label, AlertStatus> statusPerLabel);
+    void updateAlertStates(Map<String, AlertState> states);
 }

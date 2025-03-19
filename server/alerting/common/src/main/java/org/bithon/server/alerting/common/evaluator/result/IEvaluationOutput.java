@@ -32,6 +32,12 @@ import org.bithon.server.storage.alerting.Label;
 public interface IEvaluationOutput {
 
     /**
+     * The expression that the current output belongs to
+     */
+    String getExpressionId();
+    void setExpressionId(String expressionId);
+
+    /**
      * start time of the current evaluation period
      */
     long getStart();
@@ -39,10 +45,6 @@ public interface IEvaluationOutput {
     long getEnd();
 
     boolean isMatched();
-
-
-    String getExpressionId();
-    void setExpressionId(String expressionId);
 
     /**
      * If the evaluation is based on label (group-by semantics)

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
-import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
@@ -112,7 +111,7 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
     }
 
     @Override
-    public void saveAlertStates(Map<String, AlertState> states) {
+    public void updateAlertStates(Map<String, AlertState> states) {
         for (Map.Entry<String, AlertState> entry : states.entrySet()) {
             String ruleId = entry.getKey();
             AlertState state = entry.getValue();
@@ -136,30 +135,5 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
                       .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
                       .execute();
         }
-    }
-
-    @Override
-    public void updateAlertStatus(String id, AlertState prevState, AlertStatus
-        newStatus, Map<Label, AlertStatus> statusPerLabel) {
-        AlertState.Payload payload = new AlertState.Payload();
-        //payload.setStates(statusPerLabel);
-        String payloadString = "{}";
-        try {
-            payloadString = this.objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException ignored) {
-        }
-
-        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, id)
-                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, prevState == null ? new Timestamp(0).toLocalDateTime() : new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, prevState == null ? "" : prevState.getLastRecordId())
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
-                  .onDuplicateKeyUpdate()
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, newStatus.statusCode())
-                  .set(Tables.BITHON_ALERT_STATE.PAYLOAD, payloadString)
-                  .execute();
     }
 }

@@ -1,7 +1,7 @@
-- [ ] group-by in two AND operands
+- [x] group-by in two AND operands
 - [x] notification label
 - [x] merge memory states with alert states
   - [x] Consider to separate evaluation state and rule state
   - [x] Remove updateAlertStatus from RecordStorage/StateStorage
   - [x] Fix AlertEvaluatorTest
-  - [ ] See LocalStateManager 
+  - [ ] Remove IEvaluationOutput
