@@ -5,3 +5,4 @@
   - [x] Remove updateAlertStatus from RecordStorage/StateStorage
   - [x] Fix AlertEvaluatorTest
   - [ ] Remove IEvaluationOutput
+  - [ ] See AbstractRelativeThresholdPredicate

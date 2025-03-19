@@ -56,16 +56,16 @@ public class NullValuePredicate implements IMetricEvaluator {
                                       String filterExpression,
                                       Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
-        QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
-                                                                   .dataSource(dataSource)
-                                                                   .interval(IntervalRequest.builder()
-                                                                                            .startISO8601(start.toISO8601())
-                                                                                            .endISO8601(end.toISO8601())
-                                                                                            .build())
-                                                                   .filterExpression(filterExpression)
-                                                                   .fields(Collections.singletonList(metric))
-                                                                   .groupBy(groupBy)
-                                                                   .build());
+        QueryResponse response = dataSourceApi.groupByV3(QueryRequest.builder()
+                                                                     .dataSource(dataSource)
+                                                                     .interval(IntervalRequest.builder()
+                                                                                              .startISO8601(start.toISO8601())
+                                                                                              .endISO8601(end.toISO8601())
+                                                                                              .build())
+                                                                     .filterExpression(filterExpression)
+                                                                     .fields(Collections.singletonList(metric))
+                                                                     .groupBy(groupBy)
+                                                                     .build());
 
         //noinspection unchecked
         List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();

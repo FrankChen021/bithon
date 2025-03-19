@@ -105,6 +105,9 @@ public class AlertExpressionEvaluator {
                                                                                             expression.getMetricExpression().getWhereText(),
                                                                                             CollectionUtils.emptyOrOriginal(expression.getMetricExpression().getGroupBy()),
                                                                                             context);
+        if (outputs == null) {
+            return EvaluationOutputs.EMPTY;
+        }
 
         outputs.forEach((output) -> output.setExpressionId(expression.getId()));
 

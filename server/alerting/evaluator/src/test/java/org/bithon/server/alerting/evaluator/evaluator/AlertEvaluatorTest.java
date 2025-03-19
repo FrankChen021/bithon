@@ -192,7 +192,7 @@ public class AlertEvaluatorTest {
 
     @Test
     public void test_ReadyToReady() throws IOException {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that does NOT satisfy the condition,
                                         // Alert Status keeps unchanged
@@ -219,12 +219,12 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
-    public void test_ReadyToReady_GroupBy() throws IOException {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+    public void test_ReadyToReady_groupByV3() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that does NOT satisfy the condition,
                                         // Alert Status keeps unchanged
@@ -253,12 +253,12 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_ReadyToPending() throws IOException {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -284,12 +284,12 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
-    public void test_ReadyToPending_GroupBy() throws IOException {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+    public void test_ReadyToPending_groupByV3() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of("appName", "bithon-test-app", metric, 5)))
@@ -315,13 +315,13 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @SneakyThrows
     @Test
     public void test_ReadyToAlerting() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 7)))
@@ -356,13 +356,13 @@ public class AlertEvaluatorTest {
                .notify(Mockito.any(), Mockito.any());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @SneakyThrows
     @Test
     public void test_ReadyToAlerting_GroupBy_OneGroupAlerting() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Arrays.asList(
                                             // The first series satisfies the condition,
@@ -401,13 +401,13 @@ public class AlertEvaluatorTest {
                .notify(Mockito.any(), Mockito.any());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @SneakyThrows
     @Test
     public void test_ReadyToAlerting_GroupBy_AllGroupAlerting() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 7),
@@ -444,13 +444,13 @@ public class AlertEvaluatorTest {
                .notify(Mockito.any(), Mockito.any());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @SneakyThrows
     @Test
     public void test_PendingToAlerting() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 88)))
@@ -488,7 +488,7 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(0))
                .notify(Mockito.any(), Mockito.any());
 
@@ -504,7 +504,7 @@ public class AlertEvaluatorTest {
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(1))
                .notify(Mockito.any(), Mockito.any());
     }
@@ -512,7 +512,7 @@ public class AlertEvaluatorTest {
     @SneakyThrows
     @Test
     public void test_PendingToAlerting_GroupBy_1SeriesMatches() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 88),
@@ -557,7 +557,7 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(0))
                .notify(Mockito.any(), Mockito.any());
 
@@ -577,7 +577,7 @@ public class AlertEvaluatorTest {
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(1))
                .notify(Mockito.any(), Mockito.any());
     }
@@ -585,7 +585,7 @@ public class AlertEvaluatorTest {
     @SneakyThrows
     @Test
     public void test_AlertingToResolved() {
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 100)))
@@ -632,7 +632,7 @@ public class AlertEvaluatorTest {
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Mockito.verify(dataSourceApiStub, Mockito.times(1)).groupBy(Mockito.any());
+        Mockito.verify(dataSourceApiStub, Mockito.times(1)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(1)).notify(Mockito.any(), Mockito.any());
 
         //
@@ -648,7 +648,7 @@ public class AlertEvaluatorTest {
         stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
-        Mockito.verify(dataSourceApiStub, Mockito.times(2)).groupBy(Mockito.any());
+        Mockito.verify(dataSourceApiStub, Mockito.times(2)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(2)).notify(Mockito.any(), Mockito.any());
 
         //
@@ -666,7 +666,7 @@ public class AlertEvaluatorTest {
         stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
-        Mockito.verify(dataSourceApiStub, Mockito.times(3)).groupBy(Mockito.any());
+        Mockito.verify(dataSourceApiStub, Mockito.times(3)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(2)).notify(Mockito.any(), Mockito.any());
 
         //
@@ -678,16 +678,16 @@ public class AlertEvaluatorTest {
         stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Mockito.verify(dataSourceApiStub, Mockito.times(4)).groupBy(Mockito.any());
+        Mockito.verify(dataSourceApiStub, Mockito.times(4)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(3)).notify(Mockito.any(), Mockito.any());
     }
 
     @Test
-    public void test_PendingToAlerting_MultipleExpression_WithGroupBy() throws IOException {
+    public void test_PendingToAlerting_MultipleExpression_WithgroupByV3() throws IOException {
         //
         // test-app-2, which meets the alerting threshold, are in 3 data sources
         //
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenAnswer((invocation) -> {
                    QueryRequest queryRequest = invocation.getArgument(0);
                    if (queryRequest.getDataSource().equals(schema1.getName())) {
@@ -753,15 +753,15 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(3))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
-    public void test_ReadyToReady_MultipleExpression_No_Intersection_Across_GroupBy() throws IOException {
+    public void test_ReadyToReady_MultipleExpression_No_Intersection_Across_groupByV3() throws IOException {
         //
         // test-app-2, which meets the alerting threshold, are in two data sources
         //
-        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenAnswer((invocation) -> {
                    QueryRequest queryRequest = invocation.getArgument(0);
                    if (queryRequest.getDataSource().equals(schema1.getName())) {
@@ -819,6 +819,6 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 }

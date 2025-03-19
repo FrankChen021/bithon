@@ -91,7 +91,7 @@ public class AlertExpressionEvaluatorTest {
 
     @Test
     public void test_GreaterThan() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a metric that DOES satisfy the condition
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -111,12 +111,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   dataSourceProvider,
                                                                                                   null)));
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalAnd_AllConditionsSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a metric that DOES satisfy the condition
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -136,12 +136,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   dataSourceProvider,
                                                                                                   null)));
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalAnd_AllConditionsNOTSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 6)))
@@ -167,12 +167,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalAnd_FirstConditionsNOTSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -192,12 +192,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    dataSourceProvider,
                                                                                                    null)));
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalAnd_2ndConditionsNOTSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
                                         .build());
@@ -217,12 +217,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalOr_AllConditionSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 3)))
                                         .build());
@@ -243,12 +243,12 @@ public class AlertExpressionEvaluatorTest {
 
         // Evaluation of 2nd expression will be skipped
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalOr_1stConditionSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         // Return a value that DOES satisfy the condition,
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 3)))
@@ -269,12 +269,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalOr_2ndConditionSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 3)))
                                         .build());
@@ -294,12 +294,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LogicalOr_AllConditionNOTSatisfy() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 3)))
                                         .build());
@@ -319,12 +319,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_GreaterThanOrEqual() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
                                         .build());
@@ -344,12 +344,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LessThan() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
                                         .build());
@@ -369,12 +369,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_LessThanOrEqual() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
                                         .build());
@@ -394,13 +394,13 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
 
     @Test
     public void test_IsNull_OnEmptyMap() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.emptyList())
                                         .build());
@@ -420,12 +420,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_IsNull_OnNullReturn() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(null)
                                         .build());
@@ -445,12 +445,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void testRelativeComparison_GTE() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
                                         .build())
@@ -474,12 +474,12 @@ public class AlertExpressionEvaluatorTest {
 
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void testRelativeComparison_GT() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 10)))
                                         .build())
@@ -502,12 +502,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void testRelativeComparison_LT() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                // Current
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -533,12 +533,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void testRelativeComparison_LTE() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                // Current
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -564,12 +564,12 @@ public class AlertExpressionEvaluatorTest {
                                                               dataSourceProvider, null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_Contains() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                // Current
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -596,12 +596,12 @@ public class AlertExpressionEvaluatorTest {
                                                               dataSourceProvider, null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_NotContains() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                // Current
                .thenReturn(QueryResponse.builder()
                                         .data(Collections.singletonList(ImmutableMap.of(metric, 5)))
@@ -629,12 +629,12 @@ public class AlertExpressionEvaluatorTest {
                                                               null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_GroupBy_PartiallySatisfiesCondition() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Arrays.asList(
                                             // Returns two series,
@@ -661,12 +661,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_GroupBy_NoneSatisfiesCondition() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Arrays.asList(
                                             // Returns two series,
@@ -693,12 +693,12 @@ public class AlertExpressionEvaluatorTest {
                                                                                                    null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 
     @Test
     public void test_GroupBy_AllSatisfiesCondition() throws IOException {
-        Mockito.when(dataSourceProvider.groupBy(Mockito.any()))
+        Mockito.when(dataSourceProvider.groupByV3(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(Arrays.asList(
                                             ImmutableMap.of("appName", "bithon-local", metric, 5),
@@ -722,6 +722,6 @@ public class AlertExpressionEvaluatorTest {
                                                                                                   null)));
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
-               .groupBy(Mockito.any());
+               .groupByV3(Mockito.any());
     }
 }
