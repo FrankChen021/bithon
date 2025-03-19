@@ -16,7 +16,11 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
+import org.bithon.server.storage.alerting.Label;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,5 +52,39 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
     public void add(int index, IEvaluationOutput output) {
         isMatched = isMatched || output.isMatched();
         super.add(index, output);
+    }
+
+    /**
+     * Join two outputs by {@link Label}
+     */
+    public EvaluationOutputs intersect(EvaluationOutputs rhs) {
+        if (rhs.isEmpty()) {
+            return EvaluationOutputs.EMPTY;
+        }
+        if (this.size() > rhs.size()) {
+            return rhs.intersect(this);
+        }
+
+        EvaluationOutputs result = new EvaluationOutputs();
+
+        // Create a map from the right side outputs for quick lookup by label
+        Map<Label, IEvaluationOutput> rhsMap = new HashMap<>();
+        for (IEvaluationOutput output : rhs) {
+            rhsMap.put(output.getLabel(), output);
+        }
+
+        // Perform left join - iterate through left outputs
+        for (IEvaluationOutput leftOutput : this) {
+            Label label = leftOutput.getLabel();
+
+            IEvaluationOutput rightOutput = rhsMap.get(label);
+            if (rightOutput != null) {
+                // Found a match - add the left output to the result
+                // (We could merge properties from both outputs here if needed)
+                result.add(leftOutput);
+            }
+        }
+
+        return result;
     }
 }

@@ -28,6 +28,8 @@ import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
 
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/8 3:29 下午
@@ -42,32 +44,52 @@ public class AlertExpressionEvaluator {
     }
 
     public boolean evaluate(EvaluationContext context) {
-        return this.expression.accept(new IAlertExpressionVisitor<>() {
+        EvaluationOutputs outputs = this.expression.accept(new IAlertExpressionVisitor<>() {
             @Override
-            public Boolean visit(LogicalExpression expression) {
+            public EvaluationOutputs visit(LogicalExpression expression) {
                 if (expression instanceof LogicalExpression.AND) {
-                    for (IExpression operand : expression.getOperands()) {
-                        // TODO: JOIN the Output
-                        if (!operand.accept(this)) {
-                            return false;
+
+                    EvaluationOutputs mergedOutputs = null;
+
+                    List<IExpression> operands = expression.getOperands();
+                    for (IExpression operand : operands) {
+                        EvaluationOutputs outputs = operand.accept(this);
+                        if (!outputs.isMatched()) {
+                            return outputs;
+                        }
+                        if (mergedOutputs == null) {
+                            mergedOutputs = outputs;
+                        } else {
+                            mergedOutputs = mergedOutputs.intersect(outputs);
                         }
                     }
-                    return true;
+
+                    return mergedOutputs;
+
                 } else if (expression instanceof LogicalExpression.OR) {
-                    return expression.getOperands().stream().anyMatch(e -> e.accept(this));
+                    for (IExpression operand : expression.getOperands()) {
+                        EvaluationOutputs outputs = operand.accept(this);
+                        if (outputs.isMatched()) {
+                            return outputs;
+                        }
+                    }
+                    return EvaluationOutputs.EMPTY;
                 } else {
                     throw new UnsupportedOperationException("Unsupported logical expression: " + expression.getClass().getName());
                 }
             }
 
             @Override
-            public Boolean visit(AlertExpression expression) {
+            public EvaluationOutputs visit(AlertExpression expression) {
                 return evaluate(expression, context);
             }
         });
+
+        context.setOutputs(outputs);
+        return outputs.isMatched();
     }
 
-    private boolean evaluate(AlertExpression expression, EvaluationContext context) {
+    private EvaluationOutputs evaluate(AlertExpression expression, EvaluationContext context) {
         context.log(AlertExpressionEvaluator.class, "Evaluating expression [%s]: %s", expression.getId(), expression.serializeToText());
 
         IMetricEvaluator metricEvaluator = expression.getMetricEvaluator();
@@ -85,12 +107,11 @@ public class AlertExpressionEvaluator {
                                                                                             context);
         if (outputs.isEmpty() || !outputs.isMatched()) {
             context.setEvaluationResult(expression.getId(), false, null);
-            return false;
+            return outputs;
         }
 
         outputs.removeIf((output) -> !output.isMatched());
         context.setEvaluationResult(expression.getId(), true, outputs);
-
-        return true;
+        return outputs;
     }
 }

@@ -179,10 +179,8 @@ public class NotificationStep implements IPipelineStep {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long startOfThisEvaluation = context.getEvaluationResult()
-                                            .values()
+        long startOfThisEvaluation = context.getOutputs()
                                             .stream()
-                                            .flatMap((result) -> result.getOutputs().stream())
                                             .map(IEvaluationOutput::getStart)
                                             .min(Comparator.comparingLong((v) -> v))
                                             .get();

@@ -53,10 +53,20 @@ public class EvaluationContext implements IEvaluationContext {
     @Setter
     private AlertExpression evaluatingExpression;
 
-    @Getter
     @Setter
     private boolean isExpressionEvaluatedAsTrue = false;
+    /**
+     * Result per each {@link AlertExpression} for each label
+     */
     private final Map<String, ExpressionEvaluationResult> evaluationResult = new HashMap<>();
+
+    /**
+     * The outputs of whole alert rule.
+     * For simple expression, it's the SAME as above.
+     * For complex expression like A AND B, it's the intersection result set of A and B
+     */
+    @Setter
+    private EvaluationOutputs outputs;
 
     /**
      * The status of each (group-by) series

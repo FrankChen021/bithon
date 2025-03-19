@@ -17,7 +17,6 @@
 package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
@@ -28,6 +27,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,13 +58,10 @@ public class RuleEvaluationStep implements IPipelineStep {
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
         // Find matched labels
-        List<Label> series = context.getEvaluationResult()
-                                    .values()
+        List<Label> series = context.getOutputs()
                                     .stream()
-                                    .filter((result) -> result.getResult() == EvaluationStatus.MATCHED)
-                                    .flatMap((result) -> result.getOutputs().stream())
                                     .map(IEvaluationOutput::getLabel)
-                                    .toList();
+                                    .collect(Collectors.toList());
 
         // Update states for each series, and get the successive count for each series
         Map<Label, Long> successiveCountList = stateManager.incrMatchCount(alertRule.getId(),

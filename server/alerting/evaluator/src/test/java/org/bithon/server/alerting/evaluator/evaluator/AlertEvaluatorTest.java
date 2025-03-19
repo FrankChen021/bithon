@@ -24,6 +24,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
@@ -53,6 +54,7 @@ import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.h2.H2StorageModuleAutoConfiguration;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -82,6 +84,9 @@ public class AlertEvaluatorTest {
 
     private IDataSourceApi dataSourceApiStub;
 
+    private static ISchema schema1;
+    private static ISchema schema2;
+    private static ISchema schema3;
     private static IEvaluationLogWriter evaluationLogWriterStub;
     private static INotificationApiInvoker notificationApiStub;
     private static IAlertRecordStorage alertRecordStorageStub;
@@ -140,14 +145,38 @@ public class AlertEvaluatorTest {
     public void setUp() {
         notificationApiStub = Mockito.mock(INotificationApiInvoker.class);
 
-        ISchema schema = new DefaultSchema("test-metrics",
-                                           "test-metrics",
-                                           new TimestampSpec("timestamp"),
-                                           Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
-                                           Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
+        schema1 = new DefaultSchema("test-metrics",
+                                    "test-metrics",
+                                    new TimestampSpec("timestamp"),
+                                    Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
+                                    Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
         dataSourceApiStub = Mockito.mock(IDataSourceApi.class);
-        Mockito.when(dataSourceApiStub.getSchemaByName(schema.getName()))
-               .thenReturn(schema);
+        Mockito.when(dataSourceApiStub.getSchemaByName(schema1.getName()))
+               .thenReturn(schema1);
+
+        schema2 = new DefaultSchema("test-metrics-2",
+                                    "test-metrics-2",
+                                    new TimestampSpec("timestamp"),
+                                    Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
+                                    Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
+        Mockito.when(dataSourceApiStub.getSchemaByName(schema2.getName()))
+               .thenReturn(schema2);
+
+        schema3 = new DefaultSchema("test-metrics-3",
+                                    "test-metrics-3",
+                                    new TimestampSpec("timestamp"),
+                                    Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
+                                    Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
+        Mockito.when(dataSourceApiStub.getSchemaByName(schema3.getName()))
+               .thenReturn(schema3);
+
+        ISchema schema2 = new DefaultSchema("test-metrics-2",
+                                            "test-metrics-2",
+                                            new TimestampSpec("timestamp"),
+                                            Arrays.asList(new StringColumn("appName", "appName"), new StringColumn("type", "type")),
+                                            Collections.singletonList(new AggregateLongSumColumn(metric, metric)));
+        Mockito.when(dataSourceApiStub.getSchemaByName(schema2.getName()))
+               .thenReturn(schema2);
 
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
@@ -177,7 +206,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4", schema1.getName(), metric))
                                        .build()
                                        .initialize();
 
@@ -211,7 +240,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4", schema1.getName(), metric))
                                        .build()
                                        .initialize();
 
@@ -242,7 +271,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4", schema1.getName(), metric))
                                        .build()
                                        .initialize();
 
@@ -273,7 +302,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4", schema1.getName(), metric))
                                        .build()
                                        .initialize();
 
@@ -306,7 +335,7 @@ public class AlertEvaluatorTest {
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        // Match times is 1, should go to ALERTING status
                                        .forTimes(1)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            .silence(HumanReadableDuration.DURATION_30_MINUTE)
@@ -351,7 +380,7 @@ public class AlertEvaluatorTest {
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        // Match times is 1, should go to ALERTING status
                                        .forTimes(1)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            .silence(HumanReadableDuration.DURATION_30_MINUTE)
@@ -394,7 +423,7 @@ public class AlertEvaluatorTest {
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        // Match times is 1, should go to ALERTING status
                                        .forTimes(1)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            .silence(HumanReadableDuration.DURATION_30_MINUTE)
@@ -438,7 +467,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0
@@ -501,7 +530,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(2)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] by (appName) > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0
@@ -581,7 +610,7 @@ public class AlertEvaluatorTest {
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
                                        .forTimes(1)
-                                       .expr(StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric))
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4", schema1.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0
@@ -596,6 +625,10 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
 
+        new EvaluationLogger(evaluationLogWriterStub).info(alertRule.getId(),
+                                                           alertRule.getName(),
+                                                           AlertEvaluatorTest.class,
+                                                           "=====================Evaluating 1st==================");
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
@@ -604,6 +637,10 @@ public class AlertEvaluatorTest {
 
         //
         // 2nd round evaluation, RESOLVED status
+        new EvaluationLogger(evaluationLogWriterStub).info(alertRule.getId(),
+                                                           alertRule.getName(),
+                                                           AlertEvaluatorTest.class,
+                                                           "=====================Evaluating 2nd==================");
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            alertRule,
                            stateObject,
@@ -616,10 +653,16 @@ public class AlertEvaluatorTest {
 
         //
         // 3rd round evaluation, RESOLVED -> RESOLVED status
+        //
+        new EvaluationLogger(evaluationLogWriterStub).info(alertRule.getId(),
+                                                           alertRule.getName(),
+                                                           AlertEvaluatorTest.class,
+                                                           "=====================Evaluating 3rd==================");
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            alertRule,
                            stateObject,
                            true);
+        // Verify states
         stateObject = alertStateStorageStub.getAlertStates().get(id);
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
@@ -637,5 +680,145 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(4)).groupBy(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(3)).notify(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void test_PendingToAlerting_MultipleExpression_WithGroupBy() throws IOException {
+        //
+        // test-app-2, which meets the alerting threshold, are in 3 data sources
+        //
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenAnswer((invocation) -> {
+                   QueryRequest queryRequest = invocation.getArgument(0);
+                   if (queryRequest.getDataSource().equals(schema1.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 88),
+                                                               ImmutableMap.of("appName", "test-app-2", metric, 99)))
+                                           .build();
+                   }
+
+                   if (queryRequest.getDataSource().equals(schema2.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 88),
+                                                               ImmutableMap.of("appName", "test-app-3", metric, 99)))
+                                           .build();
+                   }
+
+                   if (queryRequest.getDataSource().equals(schema3.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 77),
+                                                               ImmutableMap.of("appName", "test-app-4", metric, 88)))
+                                           .build();
+                   }
+                   throw new RuntimeException("Unknown data source");
+               });
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4 "
+                                                                + "AND sum(%s.%s)[1m] by (appName) > 5 "
+                                                                + "AND sum(%s.%s)[1m] by (appName) > 7", schema1.getName(), metric,
+                                                                schema2.getName(), metric,
+                                                                schema3.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        //
+        // First round evaluation, expect PENDING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+
+        // Check the series status, even 3 series in two datasource above meet either one of conditions,
+        // but only 1 series meet both conditions
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(3))
+               .groupBy(Mockito.any());
+    }
+
+    @Test
+    public void test_ReadyToReady_MultipleExpression_No_Intersection_Across_GroupBy() throws IOException {
+        //
+        // test-app-2, which meets the alerting threshold, are in two data sources
+        //
+        Mockito.when(dataSourceApiStub.groupBy(Mockito.any()))
+               .thenAnswer((invocation) -> {
+                   QueryRequest queryRequest = invocation.getArgument(0);
+                   if (queryRequest.getDataSource().equals(schema1.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 88),
+                                                               ImmutableMap.of("appName", "test-app-2", metric, 99)))
+                                           .build();
+                   }
+
+                   if (queryRequest.getDataSource().equals(schema2.getName())) {
+                       return QueryResponse.builder()
+                                           // Return different labels from previous data source
+                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-3", metric, 88),
+                                                               ImmutableMap.of("appName", "test-app-4", metric, 99)))
+                                           .build();
+                   }
+                   throw new RuntimeException("Unknown data source");
+               });
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4 "
+                                                                + "AND sum(%s.%s)[1m] by (appName) > 5",
+                                                                schema1.getName(),
+                                                                metric,
+                                                                schema2.getName(),
+                                                                metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        //
+        // First round evaluation, expect PENDING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+
+        // Check the series status, even 4 series in two datasource above meet either one of conditions,
+        // but none of them meets ALL conditions
+        Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupBy(Mockito.any());
     }
 }
