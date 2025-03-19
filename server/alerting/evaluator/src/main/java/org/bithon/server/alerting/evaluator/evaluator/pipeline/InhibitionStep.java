@@ -52,7 +52,10 @@ public class InhibitionStep implements IPipelineStep {
         AlertRule alertRule = context.getAlertRule();
         AlertState prevState = context.getPrevState();
 
-        String lastAlertingAt = prevState == null ? "N/A" : TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+        String lastAlertingAt = "N/A";
+        if (prevState != null && prevState.getLastAlertAt() != null) {
+            lastAlertingAt = TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+        }
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
         // Calc the silence period by adding some margin

@@ -79,6 +79,6 @@ public class AlertState {
         }
 
         SeriesState statusPerLabel = payload.series.get(label);
-        return statusPerLabel == null ? AlertStatus.READY : statusPerLabel.status;
+        return statusPerLabel == null || statusPerLabel.status == null ? AlertStatus.READY : statusPerLabel.status;
     }
 }
