@@ -51,6 +51,7 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
                                               @JsonProperty long start,
                                               @JsonProperty long end) {
         this.isMatched = isMatched;
+        this.label = label;
         this.base = base;
         this.current = current;
         this.delta = delta;

@@ -46,8 +46,6 @@ public class RuleEvaluationStep implements IPipelineStep {
         AlertState prevState = context.getPrevState();
 
         if (!context.isExpressionEvaluatedAsTrue()) {
-            stateManager.resetMatchCount(context.getAlertRule().getId());
-
             // reset all series to RESOLVED
             if (prevState != null) {
                 for (Map.Entry<Label, AlertState.SeriesState> series : prevState.getPayload().getSeries().entrySet()) {
@@ -87,7 +85,6 @@ public class RuleEvaluationStep implements IPipelineStep {
                             successiveCount,
                             expectedMatchCount);
 
-                stateManager.resetMatchCount(alertRule.getId());
                 newStatus = AlertStatus.ALERTING;
             } else {
                 context.log(RuleEvaluationStep.class,

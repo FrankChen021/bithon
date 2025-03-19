@@ -27,6 +27,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -174,21 +175,31 @@ public class LocalStateManager implements IEvaluationStateManager {
             return state;
         });
 
-        long now = System.currentTimeMillis();
-        for (Map.Entry<Label, AlertStatus> series : seriesStatus.entrySet()) {
-            // Remove expired states for each label
-            boolean removed = alertState.getPayload()
-                                        .getSeries()
-                                        .entrySet()
-                                        .removeIf(e -> e.getValue().getMatchExpiredAt() < now);
-
-            if (!removed) {
-                // Update status for each label
-                AlertState.SeriesState seriesState = alertState.getPayload()
-                                                               .getSeries()
-                                                               .computeIfAbsent(series.getKey(), k -> new AlertState.SeriesState());
-                seriesState.setStatus(series.getValue());
+        // Remove entries that aren't in the seriesStatus map
+        Iterator<Map.Entry<Label, AlertState.SeriesState>> i = alertState.getPayload()
+                                                                         .getSeries()
+                                                                         .entrySet()
+                                                                         .iterator();
+        while (i.hasNext()) {
+            Map.Entry<Label, AlertState.SeriesState> entry = i.next();
+            Label label = entry.getKey();
+            if (!seriesStatus.containsKey(label)
+                || entry.getValue().getMatchExpiredAt() < System.currentTimeMillis()
+            ) {
+                i.remove();
             }
+        }
+
+        for (Map.Entry<Label, AlertStatus> series : seriesStatus.entrySet()) {
+            // Update status for each label
+            AlertState.SeriesState seriesState = alertState.getPayload()
+                                                           .getSeries()
+                                                           .get(series.getKey());
+            if (seriesState == null) {
+                // SHOULD be error because for this series, incrMatchCount should have created the label
+                continue;
+            }
+            seriesState.setStatus(series.getValue());
         }
         alertState.setStatus(status);
 
