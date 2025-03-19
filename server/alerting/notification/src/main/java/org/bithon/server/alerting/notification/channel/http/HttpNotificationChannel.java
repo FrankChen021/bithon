@@ -40,7 +40,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -51,6 +50,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -144,26 +144,15 @@ public class HttpNotificationChannel implements INotificationChannel {
 
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
-            if (message.getExpressions().size() == 1) {
-                ExpressionEvaluationResult result = message.getEvaluationResult().entrySet().iterator().next().getValue();
-                evaluationMessage = result.getOutputs()
-                                          .stream()
-                                          .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                              output.getThresholdText(),
-                                                                              output.getCurrentText(),
-                                                                              output.getDeltaText()))
-                                          .collect(Collectors.joining("\n"));
-            } else {
-                evaluationMessage = message.getEvaluationResult()
-                                           .values()
-                                           .stream()
-                                           .flatMap((result) -> result.getOutputs().stream())
-                                           .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                               output.getThresholdText(),
-                                                                               output.getCurrentText(),
-                                                                               output.getDeltaText()))
-                                           .collect(Collectors.joining("\n"));
-            }
+            evaluationMessage = message.getEvaluationOutputs()
+                                       .values()
+                                       .stream()
+                                       .flatMap(Collection::stream)
+                                       .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
+                                                                           output.getThresholdText(),
+                                                                           output.getCurrentText(),
+                                                                           output.getDeltaText()))
+                                       .collect(Collectors.joining("\n"));
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 

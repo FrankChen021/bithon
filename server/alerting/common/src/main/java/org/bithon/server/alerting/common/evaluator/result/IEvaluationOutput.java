@@ -40,6 +40,10 @@ public interface IEvaluationOutput {
 
     boolean isMatched();
 
+
+    String getExpressionId();
+    void setExpressionId(String expressionId);
+
     /**
      * If the evaluation is based on label (group-by semantics)
      */

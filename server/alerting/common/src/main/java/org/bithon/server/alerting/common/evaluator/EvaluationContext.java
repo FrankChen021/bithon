@@ -20,8 +20,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
-import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
@@ -55,10 +53,6 @@ public class EvaluationContext implements IEvaluationContext {
 
     @Setter
     private boolean isExpressionEvaluatedAsTrue = false;
-    /**
-     * Result per each {@link AlertExpression} for each label
-     */
-    private final Map<String, ExpressionEvaluationResult> evaluationResult = new HashMap<>();
 
     /**
      * The outputs of whole alert rule.
@@ -66,7 +60,7 @@ public class EvaluationContext implements IEvaluationContext {
      * For complex expression like A AND B, it's the intersection result set of A and B
      */
     @Setter
-    private EvaluationOutputs outputs;
+    private EvaluationOutputs evaluationOutputs;
 
     /**
      * The status of each (group-by) series
@@ -86,17 +80,6 @@ public class EvaluationContext implements IEvaluationContext {
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
         this.prevState = prevState;
-    }
-
-    public void setEvaluationResult(String expressionId,
-                                    boolean matches,
-                                    EvaluationOutputs outputs) {
-
-        ExpressionEvaluationResult result = this.evaluationResult.computeIfAbsent(expressionId, (k) -> new ExpressionEvaluationResult(EvaluationStatus.UNEVALUATED, new EvaluationOutputs()));
-        result.setResult(matches ? EvaluationStatus.MATCHED : EvaluationStatus.UNMATCHED);
-        if (outputs != null) {
-            result.setOutputs(outputs);
-        }
     }
 
     public void log(Class<?> loggerClass, String message) {

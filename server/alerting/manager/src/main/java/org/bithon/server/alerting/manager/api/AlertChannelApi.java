@@ -36,8 +36,6 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
-import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
@@ -153,13 +151,13 @@ public class AlertChannelApi {
             channel.test(NotificationMessage.builder()
                                             .alertRecordId("fake")
                                             .expressions(AlertRule.flattenExpressions(AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
-                                            .evaluationResult(ImmutableMap.of("1", new ExpressionEvaluationResult(
-                                                EvaluationStatus.MATCHED,
-                                                new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(System.currentTimeMillis(),
-                                                                                                             System.currentTimeMillis(),
-                                                                                                             Label.EMPTY,
-                                                                                                             "1", "2", "1", true))
-                                            )))
+                                            .evaluationOutputs(ImmutableMap.of("1",
+                                                                               new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput("",
+                                                                                                                                            System.currentTimeMillis(),
+                                                                                                                                            System.currentTimeMillis(),
+                                                                                                                                            Label.EMPTY,
+                                                                                                                                            "1", "2", "1", true))
+                                            ))
                                             .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()
                                                                 .id("fake")

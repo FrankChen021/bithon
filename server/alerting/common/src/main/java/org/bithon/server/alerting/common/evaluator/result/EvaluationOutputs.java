@@ -87,4 +87,12 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
 
         return result;
     }
+
+    public Map<String, EvaluationOutputs> toMap() {
+        Map<String, EvaluationOutputs> result = new HashMap<>();
+        for (IEvaluationOutput output : this) {
+            result.computeIfAbsent(output.getExpressionId(), (k) -> new EvaluationOutputs()).add(output);
+        }
+        return result;
+    }
 }

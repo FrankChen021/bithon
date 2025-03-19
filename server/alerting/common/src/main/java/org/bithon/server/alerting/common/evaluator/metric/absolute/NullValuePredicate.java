@@ -79,7 +79,8 @@ public class NullValuePredicate implements IMetricEvaluator {
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput(start.getMilliseconds(),
+        return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput("",
+                                                                            start.getMilliseconds(),
                                                                             end.getMilliseconds(),
                                                                             Label.EMPTY,
                                                                             nowValue == null ? null : valueType.format(nowValue),

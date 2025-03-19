@@ -85,7 +85,7 @@ public class AlertExpressionEvaluator {
             }
         });
 
-        context.setOutputs(outputs);
+        context.setEvaluationOutputs(outputs);
         return outputs.isMatched();
     }
 
@@ -105,13 +105,15 @@ public class AlertExpressionEvaluator {
                                                                                             expression.getMetricExpression().getWhereText(),
                                                                                             CollectionUtils.emptyOrOriginal(expression.getMetricExpression().getGroupBy()),
                                                                                             context);
+
+        outputs.forEach((output) -> output.setExpressionId(expression.getId()));
+
         if (outputs.isEmpty() || !outputs.isMatched()) {
-            context.setEvaluationResult(expression.getId(), false, null);
             return outputs;
         }
 
+        // Remove all matched series
         outputs.removeIf((output) -> !output.isMatched());
-        context.setEvaluationResult(expression.getId(), true, outputs);
         return outputs;
     }
 }

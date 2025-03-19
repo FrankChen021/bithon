@@ -143,6 +143,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             }
 
             RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput(
+                "",
                 matches(delta, threshold.doubleValue()),
                 labelBuilder.build(),
                 baseValue,

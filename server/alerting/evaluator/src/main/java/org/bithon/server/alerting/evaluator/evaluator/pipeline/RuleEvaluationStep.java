@@ -58,7 +58,7 @@ public class RuleEvaluationStep implements IPipelineStep {
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
         // Find matched labels
-        List<Label> series = context.getOutputs()
+        List<Label> series = context.getEvaluationOutputs()
                                     .stream()
                                     .map(IEvaluationOutput::getLabel)
                                     .collect(Collectors.toList());

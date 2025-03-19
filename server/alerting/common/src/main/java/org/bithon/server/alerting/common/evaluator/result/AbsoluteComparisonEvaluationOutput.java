@@ -52,14 +52,19 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
     @Getter
     private final Label label;
 
+    @Getter
+    private String expressionId;
+
     @JsonCreator
-    public AbsoluteComparisonEvaluationOutput(@JsonProperty("start") long start,
+    public AbsoluteComparisonEvaluationOutput(@JsonProperty("expressionId") String expressionId,
+                                              @JsonProperty("start") long start,
                                               @JsonProperty("end") long end,
                                               @JsonProperty("label") Label label,
                                               @JsonProperty("current") String current,
                                               @JsonProperty("threshold") String threshold,
                                               @JsonProperty("delta") String delta,
                                               @JsonProperty("matched") boolean matched) {
+        this.expressionId = expressionId;
         this.start = start;
         this.end = end;
         this.matched = matched;
@@ -67,6 +72,11 @@ public class AbsoluteComparisonEvaluationOutput implements IEvaluationOutput {
         this.current = current;
         this.threshold = threshold;
         this.delta = delta;
+    }
+
+    @Override
+    public void setExpressionId(String expressionId) {
+        this.expressionId = expressionId;
     }
 
     @JsonIgnore

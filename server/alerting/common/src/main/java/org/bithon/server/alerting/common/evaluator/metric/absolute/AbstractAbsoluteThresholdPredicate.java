@@ -136,7 +136,8 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                 labelBuilder.add(labelName, labelValue);
             }
 
-            IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput(start.getMilliseconds(),
+            IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput("",
+                                                                              start.getMilliseconds(),
                                                                               end.getMilliseconds(),
                                                                               labelBuilder.build(),
                                                                               valueType.format(currentValue),

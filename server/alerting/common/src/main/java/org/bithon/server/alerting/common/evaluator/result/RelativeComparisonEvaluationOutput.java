@@ -32,7 +32,7 @@ import java.math.BigDecimal;
 @Data
 public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
 
-    private boolean isMatched;
+    private boolean matched;
     private BigDecimal base;
     private BigDecimal current;
     private double delta;
@@ -40,17 +40,20 @@ public class RelativeComparisonEvaluationOutput implements IEvaluationOutput {
     private long start;
     private long end;
     private Label label;
+    private String expressionId;
 
     @JsonCreator
-    public RelativeComparisonEvaluationOutput(@JsonProperty boolean isMatched,
-                                              @JsonProperty Label label,
-                                              @JsonProperty BigDecimal base,
-                                              @JsonProperty BigDecimal current,
-                                              @JsonProperty double delta,
-                                              @JsonProperty Number threshold,
-                                              @JsonProperty long start,
-                                              @JsonProperty long end) {
-        this.isMatched = isMatched;
+    public RelativeComparisonEvaluationOutput(@JsonProperty("expressionId") String expressionId,
+                                              @JsonProperty("matched") boolean matched,
+                                              @JsonProperty("label") Label label,
+                                              @JsonProperty("base") BigDecimal base,
+                                              @JsonProperty("current") BigDecimal current,
+                                              @JsonProperty("delta") double delta,
+                                              @JsonProperty("threshold") Number threshold,
+                                              @JsonProperty("start") long start,
+                                              @JsonProperty("end") long end) {
+        this.expressionId = expressionId;
+        this.matched = matched;
         this.label = label;
         this.base = base;
         this.current = current;

@@ -24,8 +24,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationStatus;
-import org.bithon.server.alerting.common.evaluator.result.ExpressionEvaluationResult;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -78,8 +77,8 @@ public class DingNotificationChannel implements INotificationChannel {
         section.add("Alert at", StringUtils.format("MM-dd HH:mm:ss", alertAt));
 
         for (AlertExpression expression : message.getExpressions().values()) {
-            ExpressionEvaluationResult result = message.getEvaluationResult().get(expression.getId());
-            if (result == null || result.getResult() != EvaluationStatus.MATCHED || result.getOutputs() != null) {
+            EvaluationOutputs outputs = message.getEvaluationOutputs().get(expression.getId());
+            if (outputs == null || !outputs.isMatched()) {
                 continue;
             }
 
@@ -87,7 +86,7 @@ public class DingNotificationChannel implements INotificationChannel {
             text.append(expression.getId());
             text.append(expression.serializeToText());
 
-            for (IEvaluationOutput output : result.getOutputs()) {
+            for (IEvaluationOutput output : outputs) {
                 text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
                                                expression.getMetricExpression().getMetric().getAggregator(),
                                                expression.getMetricExpression().getFrom(),
