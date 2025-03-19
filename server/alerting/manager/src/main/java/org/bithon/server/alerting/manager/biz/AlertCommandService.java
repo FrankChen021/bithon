@@ -41,6 +41,7 @@ import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -269,7 +270,7 @@ public class AlertCommandService {
     public List<EvaluationLogEvent> testRule(AlertRule rule) {
         EvaluationLogLocalStorage logStorage = new EvaluationLogLocalStorage();
 
-        IAlertRecordStorage recordStorage = new IAlertRecordStorage() {
+        IAlertRecordStorage recordStorage4Test = new IAlertRecordStorage() {
             @Override
             public Timestamp getLastAlert(String alertId) {
                 return null;
@@ -314,10 +315,25 @@ public class AlertCommandService {
             }
         };
 
+        IAlertStateStorage alertStateStorage4Test = new IAlertStateStorage() {
+            @Override
+            public void initialize() {
+            }
+
+            @Override
+            public Map<String, AlertState> getAlertStates() {
+                return Map.of();
+            }
+
+            @Override
+            public void updateAlertStates(Map<String, AlertState> states) {
+            }
+        };
+
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new LocalStateManager(applicationContext.getBean(IAlertStateStorage.class)),
+                                                      new LocalStateManager(alertStateStorage4Test),
                                                       logStorage.createWriter(),
-                                                      recordStorage,
+                                                      recordStorage4Test,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),
                                                       applicationContext.getBean(INotificationApiInvoker.class),
