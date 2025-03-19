@@ -49,7 +49,7 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
     @JsonCreator
     public AlertRecordStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration storageProvider,
                               @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
-                              @JacksonInject(useInput = OptBoolean.DEFAULT) ObjectMapper objectMapper) {
+                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         super(storageProvider.getDslContext(), storageConfig, objectMapper);
         this.clickHouseConfig = storageProvider.getClickHouseConfig();
     }
