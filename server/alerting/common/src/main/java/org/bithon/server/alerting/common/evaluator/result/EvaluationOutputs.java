@@ -54,6 +54,10 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
         super.add(index, output);
     }
 
+    public IEvaluationOutput last() {
+        return this.get(this.size() - 1);
+    }
+
     /**
      * Join two outputs by {@link Label}
      */

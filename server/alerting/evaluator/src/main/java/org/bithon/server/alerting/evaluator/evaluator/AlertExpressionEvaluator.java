@@ -60,7 +60,12 @@ public class AlertExpressionEvaluator {
                         if (mergedOutputs == null) {
                             mergedOutputs = outputs;
                         } else {
-                            mergedOutputs = mergedOutputs.intersect(outputs);
+                            if (mergedOutputs.last().getLabel().isEmpty() || outputs.last().getLabel().isEmpty()) {
+                                // If any of the outputs is non-group-by (label contains no key-value pair), then merge them directly
+                                mergedOutputs.addAll(outputs);
+                            } else {
+                                mergedOutputs = mergedOutputs.intersect(outputs);
+                            }
                         }
                     }
 

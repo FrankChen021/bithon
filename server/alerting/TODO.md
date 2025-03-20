@@ -6,4 +6,4 @@
   - [x] Fix AlertEvaluatorTest
   - [ ] Remove IEvaluationOutput
   - [ ] See AbstractRelativeThresholdPredicate
-  - [ ] join ONLY WHEN the two has GROUP-BY. Otherwise, just merge the two
+  - [x] join ONLY WHEN the two has GROUP-BY. Otherwise, just merge the two
