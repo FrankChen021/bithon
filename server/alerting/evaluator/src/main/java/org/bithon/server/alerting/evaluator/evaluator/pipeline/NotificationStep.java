@@ -20,7 +20,7 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
@@ -181,7 +181,7 @@ public class NotificationStep implements IPipelineStep {
 
         long startOfThisEvaluation = context.getEvaluationOutputs()
                                             .stream()
-                                            .map(IEvaluationOutput::getStart)
+                                            .map(EvaluationOutput::getStart)
                                             .min(Comparator.comparingLong((v) -> v))
                                             .get();
 

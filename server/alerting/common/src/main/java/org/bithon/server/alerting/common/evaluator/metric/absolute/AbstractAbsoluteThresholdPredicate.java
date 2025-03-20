@@ -25,9 +25,8 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -136,16 +135,13 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                 labelBuilder.add(labelName, labelValue);
             }
 
-            IEvaluationOutput output = new AbsoluteComparisonEvaluationOutput("",
-                                                                              start.getMilliseconds(),
-                                                                              end.getMilliseconds(),
-                                                                              labelBuilder.build(),
-                                                                              valueType.format(currentValue),
-                                                                              expected.toString(),
-                                                                              valueType.format(valueType.diff(currentValue, expectedValue)),
-                                                                              matches(valueType, expectedValue, currentValue));
-
-            outputs.add(output);
+            outputs.add(EvaluationOutput.builder()
+                                        .matched(matches(valueType, expectedValue, currentValue))
+                                        .label(labelBuilder.build())
+                                        .current(valueType.format(currentValue))
+                                        .threshold(expectedValue.toString())
+                                        .delta(valueType.format(valueType.diff(currentValue, expectedValue)))
+                                        .build());
         }
 
         return outputs;

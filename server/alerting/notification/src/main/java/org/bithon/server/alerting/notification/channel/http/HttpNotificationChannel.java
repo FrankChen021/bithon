@@ -149,9 +149,9 @@ public class HttpNotificationChannel implements INotificationChannel {
                                        .stream()
                                        .flatMap(Collection::stream)
                                        .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                           output.getThresholdText(),
-                                                                           output.getCurrentText(),
-                                                                           output.getDeltaText()))
+                                                                           output.getThreshold(),
+                                                                           output.getCurrent(),
+                                                                           output.getDelta()))
                                        .collect(Collectors.joining("\n"));
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);

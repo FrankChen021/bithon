@@ -26,16 +26,18 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2024/12/7 22:59
  */
-public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
+public class EvaluationOutputs extends ArrayList<EvaluationOutput> {
     public static final EvaluationOutputs EMPTY = new EvaluationOutputs();
+
+    public static EvaluationOutputs of(EvaluationOutput output) {
+        EvaluationOutputs outputs = new EvaluationOutputs();
+        outputs.add(output);
+        return outputs;
+    }
 
     private boolean isMatched;
 
     public EvaluationOutputs() {
-    }
-
-    public EvaluationOutputs(IEvaluationOutput output) {
-        this.add(output);
     }
 
     public boolean isMatched() {
@@ -43,18 +45,18 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
     }
 
     @Override
-    public boolean add(IEvaluationOutput output) {
+    public boolean add(EvaluationOutput output) {
         isMatched = isMatched || output.isMatched();
         return super.add(output);
     }
 
     @Override
-    public void add(int index, IEvaluationOutput output) {
+    public void add(int index, EvaluationOutput output) {
         isMatched = isMatched || output.isMatched();
         super.add(index, output);
     }
 
-    public IEvaluationOutput last() {
+    public EvaluationOutput last() {
         return this.get(this.size() - 1);
     }
 
@@ -72,16 +74,16 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
         EvaluationOutputs result = new EvaluationOutputs();
 
         // Create a map from the right side outputs for quick lookup by label
-        Map<Label, IEvaluationOutput> rhsMap = new HashMap<>();
-        for (IEvaluationOutput output : rhs) {
+        Map<Label, EvaluationOutput> rhsMap = new HashMap<>();
+        for (EvaluationOutput output : rhs) {
             rhsMap.put(output.getLabel(), output);
         }
 
         // Perform left join - iterate through left outputs
-        for (IEvaluationOutput leftOutput : this) {
+        for (EvaluationOutput leftOutput : this) {
             Label label = leftOutput.getLabel();
 
-            IEvaluationOutput rightOutput = rhsMap.get(label);
+            EvaluationOutput rightOutput = rhsMap.get(label);
             if (rightOutput != null) {
                 // Found a match - add the left output to the result
                 // (We could merge properties from both outputs here if needed)
@@ -94,7 +96,7 @@ public class EvaluationOutputs extends ArrayList<IEvaluationOutput> {
 
     public Map<String, EvaluationOutputs> toMap() {
         Map<String, EvaluationOutputs> result = new HashMap<>();
-        for (IEvaluationOutput output : this) {
+        for (EvaluationOutput output : this) {
             result.computeIfAbsent(output.getExpressionId(), (k) -> new EvaluationOutputs()).add(output);
         }
         return result;

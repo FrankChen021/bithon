@@ -21,7 +21,7 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
@@ -79,14 +79,13 @@ public class NullValuePredicate implements IMetricEvaluator {
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput("",
-                                                                            start.getMilliseconds(),
-                                                                            end.getMilliseconds(),
-                                                                            Label.EMPTY,
-                                                                            nowValue == null ? null : valueType.format(nowValue),
-                                                                            "null",
-                                                                            nowValue == null ? null : nowValue.toString(),
-                                                                            matches));
+        return EvaluationOutputs.of(EvaluationOutput.builder()
+                                                    .matched(matches)
+                                                    .label(Label.EMPTY)
+                                                    .current(nowValue == null ? null : valueType.format(nowValue))
+                                                    .threshold("null")
+                                                    .delta(nowValue == null ? null : nowValue.toString())
+                                                    .build());
     }
 
     @Override

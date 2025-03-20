@@ -34,7 +34,7 @@ import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
@@ -152,12 +152,13 @@ public class AlertChannelApi {
                                             .alertRecordId("fake")
                                             .expressions(AlertRule.flattenExpressions(AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
                                             .evaluationOutputs(ImmutableMap.of("1",
-                                                                               new EvaluationOutputs(new AbsoluteComparisonEvaluationOutput("",
-                                                                                                                                            System.currentTimeMillis(),
-                                                                                                                                            System.currentTimeMillis(),
-                                                                                                                                            Label.EMPTY,
-                                                                                                                                            "1", "2", "1", true))
-                                            ))
+                                                                               EvaluationOutputs.of(EvaluationOutput.builder()
+                                                                                                                    .matched(true)
+                                                                                                                    .label(Label.EMPTY)
+                                                                                                                    .current("1")
+                                                                                                                    .threshold("2")
+                                                                                                                    .delta("1")
+                                                                                                                    .build())))
                                             .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()
                                                                 .id("fake")

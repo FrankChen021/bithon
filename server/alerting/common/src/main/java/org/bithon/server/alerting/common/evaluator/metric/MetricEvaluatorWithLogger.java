@@ -16,9 +16,10 @@
 
 package org.bithon.server.alerting.common.evaluator.metric;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -68,22 +69,23 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                 return outputs;
             }
 
-            for (IEvaluationOutput output : outputs) {
+            for (EvaluationOutput output : outputs) {
                 if (output.getLabel().isEmpty()) {
                     context.log(delegateEvaluator.getClass(),
                                 "%s %s, [%s], Delta: [%s]",
-                                output.getCurrentText(),
+                                output.getBase() == null ? output.getCurrent() : StringUtils.format("%s, Base: %s", output.getCurrent(), output.getBase()),
                                 delegateEvaluator.toString(),
                                 output.isMatched() ? "MATCHED" : "NOT Matched",
-                                output.getDeltaText());
+                                output.getDelta());
                 } else {
                     context.log(delegateEvaluator.getClass(),
-                                "%s{%s} %s, [%s], Delta: [%s]",
-                                output.getCurrentText(),
+                                "%s{%s} %s %s, [%s], Delta: [%s]",
+                                output.getCurrent(),
                                 output.getLabel(),
+                                output.getBase() == null ? "" : "Base: " + output.getBase(),
                                 delegateEvaluator.toString(),
                                 output.isMatched() ? "MATCHED" : "NOT Matched",
-                                output.getDeltaText());
+                                output.getDelta());
                 }
             }
 

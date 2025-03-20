@@ -24,8 +24,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
@@ -86,13 +86,13 @@ public class DingNotificationChannel implements INotificationChannel {
             text.append(expression.getId());
             text.append(expression.serializeToText());
 
-            for (IEvaluationOutput output : outputs) {
+            for (EvaluationOutput output : outputs) {
                 text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
                                                expression.getMetricExpression().getMetric().getAggregator(),
                                                expression.getMetricExpression().getFrom(),
                                                expression.getMetricExpression().getMetric().getName(),
-                                               output.getCurrentText(),
-                                               output.getDeltaText()));
+                                               output.getCurrent(),
+                                               output.getDelta()));
             }
 
             section.add(new QuotedTextLine(text.toString()));

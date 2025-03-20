@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.Label;
@@ -60,7 +60,7 @@ public class RuleEvaluationStep implements IPipelineStep {
         // Find matched labels
         List<Label> series = context.getEvaluationOutputs()
                                     .stream()
-                                    .map(IEvaluationOutput::getLabel)
+                                    .map(EvaluationOutput::getLabel)
                                     .collect(Collectors.toList());
 
         // Update states for each series, and get the successive count for each series

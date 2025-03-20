@@ -24,8 +24,8 @@ import org.bithon.component.commons.utils.NumberUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
-import org.bithon.server.alerting.common.evaluator.result.RelativeComparisonEvaluationOutput;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -143,19 +143,16 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                 delta = currWindowValue.subtract(baseValue).doubleValue();
             }
 
-            RelativeComparisonEvaluationOutput output = new RelativeComparisonEvaluationOutput(
-                "",
-                matches(delta, threshold.doubleValue()),
-                labelBuilder.build(),
-                baseValue,
-                currWindowValue,
-                delta,
-                threshold,
-                start.getMilliseconds(),
-                end.getMilliseconds()
-            );
+            String deltaText = threshold instanceof HumanReadablePercentage ? (delta * 100) + "%" : String.valueOf(delta);
 
-            outputs.add(output);
+            outputs.add(EvaluationOutput.builder()
+                                        .matched(matches(delta, threshold.doubleValue()))
+                                        .label(labelBuilder.build())
+                                        .current(currWindowValue.toString())
+                                        .threshold(threshold.toString())
+                                        .delta(deltaText)
+                                        .base(baseValue.toString())
+                                        .build());
         }
 
         return outputs;

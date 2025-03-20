@@ -4,6 +4,7 @@
   - [x] Consider to separate evaluation state and rule state
   - [x] Remove updateAlertStatus from RecordStorage/StateStorage
   - [x] Fix AlertEvaluatorTest
-  - [ ] Remove IEvaluationOutput
+  - [x] Remove IEvaluationOutput
   - [ ] See AbstractRelativeThresholdPredicate
   - [x] join ONLY WHEN the two has GROUP-BY. Otherwise, just merge the two
+  - [ ] Relative comparison test case

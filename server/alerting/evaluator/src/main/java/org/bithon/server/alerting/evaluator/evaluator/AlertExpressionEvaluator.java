@@ -114,7 +114,12 @@ public class AlertExpressionEvaluator {
             return EvaluationOutputs.EMPTY;
         }
 
-        outputs.forEach((output) -> output.setExpressionId(expression.getId()));
+        // Update some runtime variables
+        outputs.forEach((output) -> {
+            output.setExpressionId(expression.getId());
+            output.setStart(start.getMilliseconds());
+            output.setEnd(end.getMilliseconds());
+        });
 
         if (outputs.isEmpty() || !outputs.isMatched()) {
             return outputs;
