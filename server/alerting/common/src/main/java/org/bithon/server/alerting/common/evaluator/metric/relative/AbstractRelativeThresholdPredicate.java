@@ -38,10 +38,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frankchen
@@ -93,46 +95,48 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             return EvaluationOutputs.EMPTY;
         }
 
+        Map<Label, Number> current = toMap(seriesList, metric.getName(), groupBy);
+
+        String seriesSelector = current.keySet()
+                                       .stream()
+                                       .map((label) -> label.getKeyValues()
+                                                            .entrySet()
+                                                            .stream()
+                                                            .map((entry) -> "(" + entry.getKey() + "= '" + entry.getValue() + "')")
+                                                            .collect(Collectors.joining(" AND ")))
+                                       .collect(Collectors.joining(" OR "));
+
+        // Find base values for different series
+        response = dataSourceApi.groupByV3(QueryRequest.builder()
+                                                       .dataSource(dataSource)
+                                                       .interval(IntervalRequest.builder()
+                                                                                .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                                .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
+                                                                                .build())
+                                                       .filterExpression(filterExpression + (seriesSelector.isEmpty() ? "" : " AND (" + seriesSelector + ")"))
+                                                       .fields(Collections.singletonList(metric))
+                                                       .groupBy(groupBy)
+                                                       .build());
+
+        //noinspection unchecked
+        Map<Label, Number> baseMap = toMap((List<Map<String, Object>>) response.getData(), metric.getName(), groupBy);
+        if (baseMap.isEmpty()) {
+            return EvaluationOutputs.EMPTY;
+        }
+
         EvaluationOutputs outputs = new EvaluationOutputs();
 
-        for (Map<String, Object> series : seriesList) {
-            Number currValue = (Number) series.get(metric.getName());
-            if (currValue == null) {
-                continue;
-            }
+        for (Map.Entry<Label, Number> series : current.entrySet()) {
+            Label label = series.getKey();
+            Number curr = series.getValue();
 
-            Label.Builder labelBuilder = Label.builder();
-            for (String labelName : groupBy) {
-                String labelValue = (String) series.get(labelName);
-                labelBuilder.add(labelName, labelValue);
-            }
-
-            // TODO: MOVE out of for-loop
-            response = dataSourceApi.groupByV3(QueryRequest.builder()
-                                                           .dataSource(dataSource)
-                                                           .interval(IntervalRequest.builder()
-                                                                                    .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                                    .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
-                                                                                    .build())
-                                                           .filterExpression(filterExpression)
-                                                           .fields(Collections.singletonList(metric))
-                                                           .groupBy(groupBy)
-                                                           .build());
-
-            //noinspection unchecked
-            List<Map<String, Object>> base = (List<Map<String, Object>>) response.getData();
-            if (CollectionUtils.isEmpty(base)) {
-                return null;
-            }
-
-            // TODO: find by group-by keys
-            Number val = (Number) base.get(0).get(metric.getName());
+            Number val = baseMap.get(series.getKey());
             if (val == null) {
                 // No data in given time window, treat it as zero
                 val = 0;
             }
 
-            BigDecimal currWindowValue = NumberUtils.scaleTo(currValue.doubleValue(), 2);
+            BigDecimal currWindowValue = NumberUtils.scaleTo(curr.doubleValue(), 2);
             BigDecimal baseValue = NumberUtils.scaleTo(val.doubleValue(), 2);
             double delta;
             if (threshold instanceof HumanReadablePercentage) {
@@ -147,7 +151,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
 
             outputs.add(EvaluationOutput.builder()
                                         .matched(matches(delta, threshold.doubleValue()))
-                                        .label(labelBuilder.build())
+                                        .label(label)
                                         .current(currWindowValue.toString())
                                         .threshold(threshold.toString())
                                         .delta(deltaText)
@@ -159,4 +163,24 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
     }
 
     protected abstract boolean matches(double delta, double threshold);
+
+    private Map<Label, Number> toMap(List<Map<String, Object>> seriesList, String metric, Set<String> groupBy) {
+        Map<Label, Number> map = new HashMap<>();
+
+        for (Map<String, Object> series : seriesList) {
+            Number currValue = (Number) series.get(metric);
+            if (currValue == null) {
+                continue;
+            }
+
+            Label.Builder labelBuilder = Label.builder();
+            for (String labelName : groupBy) {
+                String labelValue = (String) series.get(labelName);
+                labelBuilder.add(labelName, labelValue);
+            }
+            map.put(labelBuilder.build(), currValue);
+        }
+
+        return map;
+    }
 }

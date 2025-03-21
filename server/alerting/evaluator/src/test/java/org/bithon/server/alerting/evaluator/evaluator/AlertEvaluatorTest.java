@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
 import org.bithon.server.alerting.common.model.AlertExpression;
@@ -34,6 +35,8 @@ import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
+import org.bithon.server.commons.serializer.HumanReadablePercentageDeserializer;
+import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -102,8 +105,11 @@ public class AlertEvaluatorTest {
                     // They're configured via ObjectMapperConfigurer for production
                     .registerModule(new SimpleModule().addSerializer(AlertExpression.class, new AlertExpressionSerializer())
                                                       .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())
+                                                      .addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer())
                                                       .addDeserializer(AlertExpression.class, new AlertExpressionDeserializer())
-                                                      .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer()));
+                                                      .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer())
+                                                      .addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer()));
+
 
         SqlDialectManager sqlDialectManager = new SqlDialectManager(objectMapper);
 
@@ -977,6 +983,159 @@ public class AlertEvaluatorTest {
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
         Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupByV3(Mockito.any());
+    }
+
+    @Test
+    public void test_GroupBy_RelativeComparison_NoMatch() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 100),
+                                                            ImmutableMap.of("appName", "test-app-2", metric, 200)))
+                                        .build()
+               )
+               // Base line
+               .thenReturn(
+                   QueryResponse.builder()
+                                // Return a value that DOES satisfy the condition,
+                                .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 100),
+                                                    ImmutableMap.of("appName", "test-app-2", metric, 200)))
+                                .build()
+               );
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 99%%[-1m] ",
+                                                                schema1.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupByV3(Mockito.any());
+    }
+
+    @Test
+    public void test_GroupBy_RelativeComparison_1_Series_Match() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 120),
+                                                            ImmutableMap.of("appName", "test-app-2", metric, 200)))
+                                        .build()
+               )
+               // Base line
+               .thenReturn(
+                   QueryResponse.builder()
+                                .data(Arrays.asList(
+                                    // This one matches the condition
+                                    ImmutableMap.of("appName", "test-app-1", metric, 50),
+                                    // This one does NOT match
+                                    ImmutableMap.of("appName", "test-app-2", metric, 200)))
+                                .build()
+               );
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 100%%[-1m] ",
+                                                                schema1.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+
+        // Check if the notification api is NOT invoked
+        Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupByV3(Mockito.any());
+    }
+
+    @Test
+    public void test_GroupBy_RelativeComparison_ALL_Series_Match() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(Arrays.asList(ImmutableMap.of("appName", "test-app-1", metric, 120),
+                                                            ImmutableMap.of("appName", "test-app-2", metric, 200)))
+                                        .build()
+               )
+               // Base line
+               .thenReturn(
+                   QueryResponse.builder()
+                                .data(Arrays.asList(
+                                    // This one matches the condition
+                                    ImmutableMap.of("appName", "test-app'-1", metric, 50),
+                                    // This one DOES match
+                                    ImmutableMap.of("appName", "test-app'-2", metric, 30)))
+                                .build()
+               );
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 100%%[-1m] ",
+                                                                schema1.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))

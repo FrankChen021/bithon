@@ -5,6 +5,6 @@
   - [x] Remove updateAlertStatus from RecordStorage/StateStorage
   - [x] Fix AlertEvaluatorTest
   - [x] Remove IEvaluationOutput
-  - [ ] See AbstractRelativeThresholdPredicate
+  - [x] See AbstractRelativeThresholdPredicate
   - [x] join ONLY WHEN the two has GROUP-BY. Otherwise, just merge the two
-  - [ ] Relative comparison test case
+  - [x] Relative comparison test case

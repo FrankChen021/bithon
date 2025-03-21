@@ -69,6 +69,10 @@ public class Label {
         return kv.isEmpty() ? "" : StringUtils.format(format, this.toString());
     }
 
+    public Map<String, String> getKeyValues() {
+        return Collections.unmodifiableMap(kv);
+    }
+
     @Override
     public String toString() {
         if (id == null) {
