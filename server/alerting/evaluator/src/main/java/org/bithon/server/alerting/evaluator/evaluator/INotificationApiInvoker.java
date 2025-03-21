@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.common.evaluator.result;
+package org.bithon.server.alerting.evaluator.evaluator;
+
+import org.bithon.server.alerting.notification.api.INotificationApi;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/25
+ * @date 2025/1/5 17:25
  */
-public enum EvaluationResult {
-    MATCHED,
-    UNMATCHED,
-    UNEVALUATED
+public interface INotificationApiInvoker extends INotificationApi {
 }

@@ -17,39 +17,29 @@
 package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 
-import java.time.Duration;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/14 2:51 下午
+ * @date 2025/1/9 22:22
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IAlertStateStorage {
 
-    void resetMatchCount(String alertId);
+    /**
+     * Initialize the storage
+     */
+    void initialize();
 
     /**
-     * @param duration The duration of an alert rule
+     * Get alert state for all rules
      */
-    long incrMatchCount(String alertId, Duration duration);
+    Map<String, AlertState> getAlertStates();
 
     /**
-     * Check if there's an alert sending out in the past {@param silencePeriod} minutes.
+     * @param states a map of all alert states, key is alert rule id
      */
-    boolean tryEnterSilence(String alertId, Duration silenceDuration);
-
-    Duration getSilenceRemainTime(String alertId);
-
-    /**
-     * Set the last evaluation time of an alert.
-     * @param timestamp the timestamp when the alert is evaluated
-     * @param interval the interval of two consecutive evaluations
-     */
-    void setEvaluationTime(String alertId, long timestamp, Duration interval);
-
-    /**
-     * Get the timestamp when the alert is evaluated last time in milliseconds
-     */
-    long getEvaluationTimestamp(String alertId);
+    void updateAlertStates(Map<String, AlertState> states);
 }

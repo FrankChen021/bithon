@@ -109,14 +109,19 @@ public class AlertRule {
         }
 
         // Use LinkedHashMap to keep order
-        this.flattenExpressions = new LinkedHashMap<>();
+        this.flattenExpressions = flattenExpressions(this.alertExpression);
 
-        this.alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
+        return this;
+    }
+
+    public static Map<String, AlertExpression> flattenExpressions(IExpression alertExpression) {
+        // Use LinkedHashMap to keep order
+        Map<String, AlertExpression> flattenExpressions = new LinkedHashMap<>();
+        alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
             // Save to the flattened list
             flattenExpressions.put(expression.getId(), expression);
         });
-
-        return this;
+        return flattenExpressions;
     }
 
     public static AlertRule from(AlertStorageObject alertObject) {

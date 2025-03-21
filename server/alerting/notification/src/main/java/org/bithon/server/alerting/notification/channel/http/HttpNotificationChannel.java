@@ -40,10 +40,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.config.NotificationProperties;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
@@ -52,6 +50,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -134,8 +133,8 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     private void send(NotificationMessage message, Duration timeout) throws IOException {
         String messageBody = StringUtils.hasText(message.getAlertRule().getNotificationProps().getMessage()) ?
-            message.getAlertRule().getNotificationProps().getMessage()
-            : this.props.body;
+                             message.getAlertRule().getNotificationProps().getMessage()
+                                                                                                             : this.props.body;
 
         messageBody = messageBody.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
                                  .replace("{alert.name}", message.getAlertRule().getName())
@@ -145,32 +144,15 @@ public class HttpNotificationChannel implements INotificationChannel {
 
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
-            if (message.getExpressions().size() == 1) {
-                ExpressionEvaluationResult result = message.getConditionEvaluation().entrySet().iterator().next().getValue();
-                evaluationMessage = StringUtils.format("expected: %s, current: %s, delta: %s",
-                                                       result.getOutputs().getThreshold(),
-                                                       result.getOutputs().getCurrent(),
-                                                       result.getOutputs().getDelta());
-            } else {
-                evaluationMessage = message.getConditionEvaluation()
-                                           .entrySet()
-                                           .stream()
-                                           .map((entry) -> {
-                                               AlertExpression evaluatedExpression = message.getExpressions()
-                                                                                            .stream()
-                                                                                            .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                            .findFirst()
-                                                                                            .orElse(null);
-
-                                               ExpressionEvaluationResult result = entry.getValue();
-                                               return StringUtils.format("expr: %s, expected: %s, current: %s, delta: %s",
-                                                                         evaluatedExpression.serializeToText(),
-                                                                         result.getOutputs().getThreshold(),
-                                                                         result.getOutputs().getCurrent(),
-                                                                         result.getOutputs().getDelta());
-                                           })
-                                           .collect(Collectors.joining("\n"));
-            }
+            evaluationMessage = message.getEvaluationOutputs()
+                                       .values()
+                                       .stream()
+                                       .flatMap(Collection::stream)
+                                       .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
+                                                                           output.getThreshold(),
+                                                                           output.getCurrent(),
+                                                                           output.getDelta()))
+                                       .collect(Collectors.joining("\n"));
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 

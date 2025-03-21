@@ -64,6 +64,8 @@ public class StringUtilsTest {
 
     @Test
     public void testEscapeSingleQuote() {
+        Assertions.assertEquals("''", StringUtils.escape("'", '\'', '\''));
+
         Assertions.assertEquals("\\'", StringUtils.escape("'", '\\', '\''));
         Assertions.assertEquals("\\'\\'", StringUtils.escape("''", '\\', '\''));
 

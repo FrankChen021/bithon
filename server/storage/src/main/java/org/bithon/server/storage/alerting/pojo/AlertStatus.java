@@ -67,7 +67,9 @@ public enum AlertStatus {
     RESOLVED(20) {
         @Override
         public boolean canTransitTo(AlertStatus newStatus) {
-            return newStatus == PENDING || newStatus == ALERTING;
+            return newStatus == PENDING
+                   || newStatus == ALERTING
+                   || newStatus == SUPPRESSING;
         }
     };
 

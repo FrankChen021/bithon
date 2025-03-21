@@ -19,13 +19,16 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.alerting.common.evaluator.metric.MetricEvaluatorWithLogger;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
 import org.bithon.server.commons.time.TimeSpan;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,26 +44,57 @@ public class AlertExpressionEvaluator {
     }
 
     public boolean evaluate(EvaluationContext context) {
-        return this.expression.accept(new IAlertExpressionVisitor<>() {
+        EvaluationOutputs outputs = this.expression.accept(new IAlertExpressionVisitor<>() {
             @Override
-            public Boolean visit(LogicalExpression expression) {
+            public EvaluationOutputs visit(LogicalExpression expression) {
                 if (expression instanceof LogicalExpression.AND) {
-                    return expression.getOperands().stream().allMatch(e -> e.accept(this));
+
+                    EvaluationOutputs mergedOutputs = null;
+
+                    List<IExpression> operands = expression.getOperands();
+                    for (IExpression operand : operands) {
+                        EvaluationOutputs outputs = operand.accept(this);
+                        if (!outputs.isMatched()) {
+                            return outputs;
+                        }
+                        if (mergedOutputs == null) {
+                            mergedOutputs = outputs;
+                        } else {
+                            if (mergedOutputs.last().getLabel().isEmpty() || outputs.last().getLabel().isEmpty()) {
+                                // If any of the outputs is non-group-by (label contains no key-value pair), then merge them directly
+                                mergedOutputs.addAll(outputs);
+                            } else {
+                                mergedOutputs = mergedOutputs.intersect(outputs);
+                            }
+                        }
+                    }
+
+                    return mergedOutputs;
+
                 } else if (expression instanceof LogicalExpression.OR) {
-                    return expression.getOperands().stream().anyMatch(e -> e.accept(this));
+                    for (IExpression operand : expression.getOperands()) {
+                        EvaluationOutputs outputs = operand.accept(this);
+                        if (outputs.isMatched()) {
+                            return outputs;
+                        }
+                    }
+                    return EvaluationOutputs.EMPTY;
                 } else {
                     throw new UnsupportedOperationException("Unsupported logical expression: " + expression.getClass().getName());
                 }
             }
 
             @Override
-            public Boolean visit(AlertExpression expression) {
+            public EvaluationOutputs visit(AlertExpression expression) {
                 return evaluate(expression, context);
             }
         });
+
+        context.setEvaluationOutputs(outputs);
+        return outputs.isMatched();
     }
 
-    private boolean evaluate(AlertExpression expression, EvaluationContext context) {
+    private EvaluationOutputs evaluate(AlertExpression expression, EvaluationContext context) {
         context.log(AlertExpressionEvaluator.class, "Evaluating expression [%s]: %s", expression.getId(), expression.serializeToText());
 
         IMetricEvaluator metricEvaluator = expression.getMetricEvaluator();
@@ -68,21 +102,31 @@ public class AlertExpressionEvaluator {
 
         TimeSpan end = context.getIntervalEnd();
         TimeSpan start = end.before(expression.getMetricExpression().getWindow());
-        IEvaluationOutput output = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
-                                                                                           expression.getMetricExpression().getFrom(),
-                                                                                           expression.getMetricExpression().getMetric(),
-                                                                                           start,
-                                                                                           context.getIntervalEnd(),
-                                                                                           expression.getMetricExpression().getWhereText(),
-                                                                                           expression.getMetricExpression().getGroupBy(),
-                                                                                           context);
-        if (output == null || !output.isMatches()) {
-            context.setEvaluationResult(expression.getId(), false, null);
-            return false;
+        EvaluationOutputs outputs = new MetricEvaluatorWithLogger(metricEvaluator).evaluate(context.getDataSourceApi(),
+                                                                                            expression.getMetricExpression().getFrom(),
+                                                                                            expression.getMetricExpression().getMetric(),
+                                                                                            start,
+                                                                                            context.getIntervalEnd(),
+                                                                                            expression.getMetricExpression().getWhereText(),
+                                                                                            CollectionUtils.emptyOrOriginal(expression.getMetricExpression().getGroupBy()),
+                                                                                            context);
+        if (outputs == null) {
+            return EvaluationOutputs.EMPTY;
         }
 
-        context.setEvaluationResult(expression.getId(), true, output);
+        // Update some runtime variables
+        outputs.forEach((output) -> {
+            output.setExpressionId(expression.getId());
+            output.setStart(start.getMilliseconds());
+            output.setEnd(end.getMilliseconds());
+        });
 
-        return true;
+        if (outputs.isEmpty() || !outputs.isMatched()) {
+            return outputs;
+        }
+
+        // Remove all matched series
+        outputs.removeIf((output) -> !output.isMatched());
+        return outputs;
     }
 }

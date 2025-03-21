@@ -36,7 +36,8 @@ public class ConsoleNotificationChannel implements INotificationChannel {
     public void send(NotificationMessage message) {
         StringBuilder sb = new StringBuilder(StringUtils.format(">>>>>>>>>>>%s<<<<<<<<<<<<<<<\n", message.getStatus()));
         sb.append(StringUtils.format("Name: %s\n", message.getAlertRule().getName()));
-        message.getConditionEvaluation().forEach((sn, cnd) -> sb.append(StringUtils.format("Expression %s: %s", sn, cnd.getOutputs())));
+        message.getEvaluationOutputs()
+               .forEach((sn, outputs) -> sb.append(StringUtils.format("Expression %s: %s", sn, outputs)));
         log.info(sb.toString());
     }
 
