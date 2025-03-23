@@ -14,7 +14,7 @@
   <description>Bithon Storage over JDBC</description>
 
   <properties>
-    <mysql.version>8.0.28</mysql.version>
+    <mysql.version>8.4.0</mysql.version>
   </properties>
 
   <dependencies>
@@ -80,8 +80,9 @@
         <configuration>
           <jdbc>
             <driver>com.mysql.cj.jdbc.Driver</driver>
-            <url>jdbc:mysql://localhost:3306/bithon_codegen?useSSL=false</url>
+            <url>jdbc:mysql://localhost:3306/bithon?allowPublicKeyRetrieval=true&amp;useSSL=false</url>
             <user>root</user>
+            <password>mysecretpassword</password>
           </jdbc>
           <generator>
             <database>
@@ -121,8 +122,8 @@
         </configuration>
         <dependencies>
           <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <version>${mysql.version}</version>
           </dependency>
         </dependencies>
