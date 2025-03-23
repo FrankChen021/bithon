@@ -155,11 +155,16 @@ public class AlertEvaluator implements DisposableBean {
                     return;
                 }
 
-                TimeSpan lastEvaluationTimestamp = TimeSpan.of(this.stateManager.getLastEvaluationTimestamp(alertRule.getId()));
-                if (now.diff(lastEvaluationTimestamp) < interval.toMillis()) {
+                TimeSpan lastEvaluationTimestamp = TimeSpan.of(this.stateManager.getLastEvaluationTimestamp(alertRule.getId()))
+                                                           .floor(Duration.ofMinutes(1));
+                long pastSeconds = now.diff(lastEvaluationTimestamp) / 1000;
+                if (pastSeconds < interval.toSeconds()) {
                     context.log(AlertEvaluator.class,
-                                "Evaluation skipped, it's expected to be evaluated at %s",
-                                lastEvaluationTimestamp.after(interval).format("HH:mm"));
+                                "Evaluation skipped. Last evaluated at %s, diff: %d milliseconds, the evaluation interval is %s seconds, it's expected to be evaluated at %s",
+                                lastEvaluationTimestamp.format("HH:mm:ss"),
+                                pastSeconds,
+                                interval.getSeconds(),
+                                lastEvaluationTimestamp.after(interval).format("HH:mm:ss"));
                     return;
                 }
             }
