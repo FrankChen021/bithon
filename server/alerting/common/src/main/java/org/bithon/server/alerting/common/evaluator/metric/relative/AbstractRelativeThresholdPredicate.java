@@ -95,16 +95,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
             return EvaluationOutputs.EMPTY;
         }
 
-        Map<Label, Number> current = toMap(seriesList, metric.getName(), groupBy);
-
-        String seriesSelector = current.keySet()
-                                       .stream()
-                                       .map((label) -> label.getKeyValues()
-                                                            .entrySet()
-                                                            .stream()
-                                                            .map((entry) -> "(" + entry.getKey() + "= '" + entry.getValue() + "')")
-                                                            .collect(Collectors.joining(" AND ")))
-                                       .collect(Collectors.joining(" OR "));
+        Map<Label, Number> current = toSeriesMap(seriesList, metric.getName(), groupBy);
 
         // Find base values for different series
         response = dataSourceApi.groupByV3(QueryRequest.builder()
@@ -113,13 +104,13 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
                                                                                 .startISO8601(start.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                 .endISO8601(end.before(this.offset, TimeUnit.SECONDS).toISO8601())
                                                                                 .build())
-                                                       .filterExpression(filterExpression + (seriesSelector.isEmpty() ? "" : " AND (" + seriesSelector + ")"))
+                                                       .filterExpression(filterExpression)
                                                        .fields(Collections.singletonList(metric))
                                                        .groupBy(groupBy)
                                                        .build());
 
         //noinspection unchecked
-        Map<Label, Number> baseMap = toMap((List<Map<String, Object>>) response.getData(), metric.getName(), groupBy);
+        Map<Label, Number> baseMap = toSeriesMap((List<Map<String, Object>>) response.getData(), metric.getName(), groupBy);
         if (baseMap.isEmpty()) {
             return EvaluationOutputs.EMPTY;
         }
@@ -164,7 +155,11 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
 
     protected abstract boolean matches(double delta, double threshold);
 
-    private Map<Label, Number> toMap(List<Map<String, Object>> seriesList, String metric, Set<String> groupBy) {
+    private Map<Label, Number> toSeriesMap(List<Map<String, Object>> seriesList, String metric, Set<String> groupBy) {
+        if (seriesList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
         Map<Label, Number> map = new HashMap<>();
 
         for (Map<String, Object> series : seriesList) {
