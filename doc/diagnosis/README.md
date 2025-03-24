@@ -160,16 +160,21 @@ SELECT * FROM agent.instrumented_method WHERE instance = '192.168.50.151:9897'
 
 ### Output fields explanation
 
-| Field       | Explanation                                                                          |
-|-------------|--------------------------------------------------------------------------------------|
-| interceptor | The class name of interceptors that intercept the target method.                     |
-| clazzLoader | The class loader id that loads the target class.                                     |
-| hitCount    | How many times that the interceptor has been called.                                 |
-| clazzName   | The class of the target method.                                                      |
-| isStatic    | Whether the target method is a static method.                                        |
-| returnType  | The return type of target method.                                                    |
-| methodName  | The name of intercepted method. `<ctor>` represents constructor of the target class. |
-| parameters  | The parameters of intercepted method.                                                |
+| Field                 | Explanation                                                                          |
+|-----------------------|--------------------------------------------------------------------------------------|
+| interceptor           | The class name of interceptors that intercept the target method.                     |
+| clazzLoader           | The class loader id that loads the target class.                                     |
+| hitCount              | How many times that the interceptor has been called.                                 |
+| clazzName             | The class of the target method.                                                      |
+| returnType            | The return type of target method.                                                    |
+| methodName            | The name of intercepted method. `<ctor>` represents constructor of the target class. |
+| isStatic              | Whether the target method is a static method.                                        |
+| parameters            | The parameters of intercepted method.                                                |
+| instrumentedException | The exception raised during installation of an interceptor.                          |
+| exceptionCount        | The count of exceptions raised during runtime from interceptor.                      |
+| lastExceptionTime     | The timestamp of the last run time exception from the interceptor                    |
+| lastException         | The stack trace of last exception                                                    |
+
 
 ## agent.loaded_class
 

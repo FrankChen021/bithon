@@ -66,6 +66,7 @@ public class AroundAdvice {
                                     e.getMessage()),
                       e);
 
+            interceptor.exception(e);
             // continue to execute
         }
 
@@ -111,6 +112,8 @@ public class AroundAdvice {
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),
                       e);
+
+            interceptor.exception(e);
         }
 
         returning = aopContext.getReturning();

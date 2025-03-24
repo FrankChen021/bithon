@@ -100,11 +100,10 @@ public class InterceptorSupplier implements Supplier<AbstractInterceptor> {
         }
     }
 
-    private static String getStackTrace(Throwable throwable) {
+    public static String getStackTrace(Throwable throwable) {
         StringWriter stackTrace = new StringWriter(256);
         while (throwable != null) {
             try (PrintWriter pw = new PrintWriter(stackTrace)) {
-                pw.format(Locale.ENGLISH, "%s:%s%n", throwable.getClass().getName(), throwable.getMessage());
                 throwable.printStackTrace(pw);
             }
             throwable = throwable.getCause();

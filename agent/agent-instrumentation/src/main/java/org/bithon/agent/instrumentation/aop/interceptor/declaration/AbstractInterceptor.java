@@ -24,12 +24,33 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public abstract class AbstractInterceptor {
     private final LongAdder hitCount = new LongAdder();
+    private long exceptionCount;
+    private long lastExceptionTime;
+    private Throwable lastException;
 
     public long getHitCount() {
         return hitCount.sum();
     }
 
+    public long getExceptionCount() {
+        return exceptionCount;
+    }
+
+    public long getLastExceptionTime() {
+        return lastExceptionTime;
+    }
+
+    public Throwable getLastException() {
+        return lastException;
+    }
+
     public void hit() {
         hitCount.increment();
+    }
+
+    public synchronized void exception(Throwable throwable) {
+        exceptionCount++;
+        lastExceptionTime = System.currentTimeMillis();
+        lastException = throwable;
     }
 }
