@@ -65,6 +65,8 @@ public class AroundConstructorAdvice {
                                     e.getMessage()),
                       e);
 
+            interceptor.exception(e);
+
             // continue to execute
         }
 
@@ -112,6 +114,8 @@ public class AroundConstructorAdvice {
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),
                       e);
+
+            interceptor.exception(e);
         }
     }
 }

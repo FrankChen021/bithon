@@ -62,6 +62,8 @@ public class BeforeAdvice {
                                     e.getMessage()),
                       e);
 
+            interceptor.exception(e);
+
             // continue to execute
         }
 

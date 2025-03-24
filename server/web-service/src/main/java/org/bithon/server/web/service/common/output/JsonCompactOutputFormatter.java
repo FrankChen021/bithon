@@ -50,7 +50,8 @@ public class JsonCompactOutputFormatter implements IOutputFormatter {
             writer.write("{\n");
             {
                 String columns = fields.stream().map(field -> "\"" + field.getName() + "\"").collect(Collectors.joining(","));
-                writer.format(Locale.ENGLISH, "\"meta\": { \"columns\": [%s] },%n", columns);
+                String types = fields.stream().map(field -> "\"" + field.getType().getSqlTypeName().getName() + "\"").collect(Collectors.joining(","));
+                writer.format(Locale.ENGLISH, "\"meta\": { \"columns\": [%s], \"types\": [%s] },%n", columns, types);
 
                 writer.write("\"rows\": [");
                 {
