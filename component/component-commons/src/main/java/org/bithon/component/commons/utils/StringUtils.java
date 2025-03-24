@@ -182,6 +182,8 @@ public class StringUtils {
 
     /**
      * For all character of toBeEscaped in the input, escape it with escapeCharacter.
+     * @param escapeCharacter the character that will be inserted before the target character
+     * @param toBeEscaped the character to be searched and escaped in the given input
      */
     public static String escape(String input, char escapeCharacter, char toBeEscaped) {
         if (input == null || input.isEmpty()) {

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.postgresql.alerting.AlertObjectStorage;
 import org.bithon.server.storage.jdbc.postgresql.alerting.AlertRecordStorage;
+import org.bithon.server.storage.jdbc.postgresql.alerting.AlertStateStorage;
 import org.bithon.server.storage.jdbc.postgresql.alerting.EvaluationLogStorage;
 import org.bithon.server.storage.jdbc.postgresql.alerting.NotificationChannelStorage;
 import org.bithon.server.storage.jdbc.postgresql.dashboard.DashboardStorage;
@@ -77,6 +78,7 @@ public class PostgresqlStorageModuleAutoConfiguration {
                                          new NamedType(EvaluationLogStorage.class, "postgresql"),
                                          new NamedType(AlertObjectStorage.class, "postgresql"),
                                          new NamedType(AlertRecordStorage.class, "postgresql"),
+                                         new NamedType(AlertStateStorage.class, "postgresql"),
                                          new NamedType(NotificationChannelStorage.class, "postgresql")
                 );
             }

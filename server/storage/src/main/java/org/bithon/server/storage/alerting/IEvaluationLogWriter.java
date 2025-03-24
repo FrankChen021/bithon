@@ -36,4 +36,9 @@ public interface IEvaluationLogWriter extends AutoCloseable {
     void write(EvaluationLogEvent logEvent);
 
     void write(List<EvaluationLogEvent> logs);
+
+    /**
+     * override to ignore the checked exception
+     */
+    void close();
 }

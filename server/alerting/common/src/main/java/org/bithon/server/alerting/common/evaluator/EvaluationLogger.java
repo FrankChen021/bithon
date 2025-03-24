@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public class EvaluationLogger {
-    private final AtomicLong SEQUENCE = new AtomicLong(0);
+    private static final AtomicLong SEQUENCE = new AtomicLong(0);
 
     private final IEvaluationLogWriter logWriter;
 
@@ -67,7 +67,11 @@ public class EvaluationLogger {
     }
 
     private void log(String ruleId, String ruleName, LogLevel level, Class<?> logClass, String message) {
-        log.info("[Alert Logger] [{} {}]: {}", ruleId, ruleName, message);
+        log.info("[{}] [{} {}]: {}",
+                 logClass.getSimpleName(),
+                 ruleId,
+                 ruleName,
+                 message);
 
         EvaluationLogEvent log = new EvaluationLogEvent();
         log.setTimestamp(new Timestamp(System.currentTimeMillis()));

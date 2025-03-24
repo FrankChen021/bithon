@@ -18,7 +18,6 @@ package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
@@ -27,7 +26,6 @@ import org.bithon.server.storage.datasource.query.OrderBy;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -72,8 +70,6 @@ public interface IAlertObjectStorage {
                                     String alertName,
                                     OrderBy orderBy,
                                     Limit limit);
-
-    Map<String, AlertStateObject> getAlertStates();
 
     ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize);
 

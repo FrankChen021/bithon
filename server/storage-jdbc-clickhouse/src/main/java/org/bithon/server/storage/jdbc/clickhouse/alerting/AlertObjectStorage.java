@@ -61,11 +61,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public void initialize() {
-        if (!this.storageConfig.isCreateTable()) {
-            return;
-        }
-
+    protected void createTableIfNotExists() {
         new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.getName())
                                                       .partitionByExpression(null)
                                                       .createIfNotExist(Tables.BITHON_ALERT_OBJECT);
@@ -73,10 +69,6 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
         new TableCreator(this.config, this.dslContext).partitionByExpression(StringUtils.format("toYYYYMMDD(%s)",
                                                                                                 Tables.BITHON_ALERT_CHANGE_LOG.CREATED_AT.getName()))
                                                       .createIfNotExist(Tables.BITHON_ALERT_CHANGE_LOG);
-
-        new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_STATE.UPDATE_AT.getName())
-                                                      .partitionByExpression(null)
-                                                      .createIfNotExist(Tables.BITHON_ALERT_STATE);
     }
 
     @Override

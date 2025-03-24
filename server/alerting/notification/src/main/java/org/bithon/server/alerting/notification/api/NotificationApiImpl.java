@@ -19,7 +19,6 @@ package org.bithon.server.alerting.notification.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author frank.chen021@outlook.com
@@ -80,14 +80,16 @@ public class NotificationApiImpl implements INotificationApi {
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
-            List<AlertExpression> expressionList = message.getConditionEvaluation()
-                                                          .entrySet().stream()
-                                                          .filter((entry) -> entry.getValue().getResult() == EvaluationResult.MATCHED)
-                                                          .map((entry) -> message.getExpressions()
-                                                                                 .stream()
-                                                                                 .filter((expr) -> expr.getId().equals(entry.getKey()))
-                                                                                 .findFirst()
-                                                                                 .orElse(null))
+            List<AlertExpression> expressionList = message.getEvaluationOutputs()
+                                                          .keySet()
+                                                          .stream()
+                                                          .map(expressionId -> message.getExpressions()
+                                                                                      .values()
+                                                                                      .stream()
+                                                                                      .filter((expr) -> expr.getId().equals(expressionId))
+                                                                                      .findFirst()
+                                                                                      .orElse(null))
+                                                          .filter(Objects::nonNull)
                                                           .toList();
 
             TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());

@@ -16,7 +16,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alert Rules
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
 
     private static final long serialVersionUID = 1L;

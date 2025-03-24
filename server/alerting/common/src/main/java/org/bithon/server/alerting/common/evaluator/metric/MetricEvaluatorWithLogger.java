@@ -16,8 +16,10 @@
 
 package org.bithon.server.alerting.common.evaluator.metric;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -30,14 +32,14 @@ import java.util.Set;
  */
 public class MetricEvaluatorWithLogger implements IMetricEvaluator {
 
-    private final IMetricEvaluator delegate;
+    private final IMetricEvaluator delegateEvaluator;
 
     public MetricEvaluatorWithLogger(IMetricEvaluator delegate) {
-        this.delegate = delegate;
+        this.delegateEvaluator = delegate;
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -46,37 +48,57 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                       Set<String> groupBy,
                                       EvaluationContext context) {
         try {
-            context.log(delegate.getClass(),
+            context.log(delegateEvaluator.getClass(),
                         "Evaluating %s in interval [%s, %s)",
                         context.getEvaluatingExpression().serializeToText(false),
                         start.format("HH:mm"),
                         end.format("HH:mm"));
 
-            IEvaluationOutput output = delegate.evaluate(dataSourceApi,
-                                                         dataSource,
-                                                         metric,
-                                                         start,
-                                                         end,
-                                                         filterExpression,
-                                                         groupBy,
-                                                         context);
+            EvaluationOutputs outputs = delegateEvaluator.evaluate(dataSourceApi,
+                                                                   dataSource,
+                                                                   metric,
+                                                                   start,
+                                                                   end,
+                                                                   filterExpression,
+                                                                   groupBy,
+                                                                   context);
+            if (outputs.isEmpty()) {
+                context.log(delegateEvaluator.getClass(),
+                            "Current: [null], Expected: [%s], Delta: [null], Result: [NOT Matched]",
+                            delegateEvaluator.toString());
+                return outputs;
+            }
 
-            context.log(delegate.getClass(),
-                        "Expected: [%s], Current: [%s], Delta: [%s], Result: [%s]",
-                        delegate.toString(),
-                        output == null ? "null" : output.getCurrentText(),
-                        output == null ? "null" : output.getDeltaText(),
-                        (output != null && output.isMatches()) ? "Matched" : "NOT Matched");
+            for (EvaluationOutput output : outputs) {
+                if (output.getLabel().isEmpty()) {
+                    context.log(delegateEvaluator.getClass(),
+                                "%s %s, [%s], Delta: [%s]",
+                                output.getBase() == null ? output.getCurrent() : StringUtils.format("%s, Base: %s", output.getCurrent(), output.getBase()),
+                                delegateEvaluator.toString(),
+                                output.isMatched() ? "MATCHED" : "NOT Matched",
+                                output.getDelta());
+                } else {
+                    context.log(delegateEvaluator.getClass(),
+                                "%s{%s} %s %s, [%s], Delta: [%s]",
+                                output.getCurrent(),
+                                output.getLabel(),
+                                output.getBase() == null ? "" : "Base: " + output.getBase(),
+                                delegateEvaluator.toString(),
+                                output.isMatched() ? "MATCHED" : "NOT Matched",
+                                output.getDelta());
+                }
+            }
 
-            return output;
+            return outputs;
         } catch (Exception e) {
             context.logException(MetricEvaluatorWithLogger.class,
                                  e,
                                  "Exception during evaluation: %s",
                                  context.getEvaluatingExpression().getId(),
-                                 delegate.toString(),
+                                 delegateEvaluator.toString(),
                                  e.getMessage());
-            return null;
+
+            return EvaluationOutputs.EMPTY;
         }
     }
 }

@@ -14,19 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting.pojo;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
-import lombok.Data;
 
-import java.time.LocalDateTime;
+import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 24/4/24 8:28 pm
+ * @date 17/3/25 10:59 pm
  */
-@Data
-public class AlertStateObject {
-    private AlertStatus status;
-    private LocalDateTime lastAlertAt;
-    private String lastRecordId;
+public interface IPipelineStep {
+    void evaluate(IEvaluationStateManager stateManager,
+                  EvaluationContext context);
 }

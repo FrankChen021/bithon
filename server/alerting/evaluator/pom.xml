@@ -28,18 +28,6 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <!-- Redis State Storage -->
-    <dependency>
-      <groupId>redis.clients</groupId>
-      <artifactId>jedis</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>gson</artifactId>
-          <groupId>com.google.code.gson</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
@@ -72,8 +60,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--Introduce H2 storage for testing-->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-storage-jdbc-h2</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -25,9 +25,10 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -87,7 +88,7 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
@@ -95,26 +96,20 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                       String filterExpression,
                                       Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
-        QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
-                                                                   .dataSource(dataSource)
-                                                                   .interval(IntervalRequest.builder()
-                                                                                            .startISO8601(start.toISO8601())
-                                                                                            .endISO8601(end.toISO8601())
-                                                                                            .build())
-                                                                   .filterExpression(filterExpression)
-                                                                   .fields(Collections.singletonList(metric))
-                                                                   .groupBy(groupBy)
-                                                                   .build());
+        QueryResponse response = dataSourceApi.groupByV3(QueryRequest.builder()
+                                                                     .dataSource(dataSource)
+                                                                     .interval(IntervalRequest.builder()
+                                                                                              .startISO8601(start.toISO8601())
+                                                                                              .endISO8601(end.toISO8601())
+                                                                                              .build())
+                                                                     .filterExpression(filterExpression)
+                                                                     .fields(Collections.singletonList(metric))
+                                                                     .groupBy(groupBy)
+                                                                     .build());
         //noinspection unchecked
-        List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
-        if (CollectionUtils.isEmpty(now)) {
-            return null;
-        }
-
-        // TODO: iterate the result set if groupBy has been set
-        Number nowValue = (Number) now.get(0).get(metric.getName());
-        if (nowValue == null) {
-            return null;
+        List<Map<String, Object>> seriesList = (List<Map<String, Object>>) response.getData();
+        if (CollectionUtils.isEmpty(seriesList)) {
+            return EvaluationOutputs.EMPTY;
         }
 
         IDataType valueType;
@@ -126,12 +121,30 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
                                      .getColumnByName(metric.getName())
                                      .getDataType();
         }
-        return new AbsoluteComparisonEvaluationOutput(start,
-                                                      end,
-                                                      valueType.format(nowValue),
-                                                      expected.toString(),
-                                                      valueType.format(valueType.diff(nowValue, expectedValue)),
-                                                      matches(valueType, expectedValue, nowValue));
+
+        EvaluationOutputs outputs = new EvaluationOutputs();
+        for (Map<String, Object> series : seriesList) { // Iterate through all series
+            Number currentValue = (Number) series.get(metric.getName());
+            if (currentValue == null) {
+                continue;
+            }
+
+            Label.Builder labelBuilder = Label.builder();
+            for (String labelName : groupBy) {
+                String labelValue = (String) series.get(labelName);
+                labelBuilder.add(labelName, labelValue);
+            }
+
+            outputs.add(EvaluationOutput.builder()
+                                        .matched(matches(valueType, expectedValue, currentValue))
+                                        .label(labelBuilder.build())
+                                        .current(valueType.format(currentValue))
+                                        .threshold(expectedValue.toString())
+                                        .delta(valueType.format(valueType.diff(currentValue, expectedValue)))
+                                        .build());
+        }
+
+        return outputs;
     }
 
     protected abstract boolean matches(IDataType valueType, Number threshold, Number now);

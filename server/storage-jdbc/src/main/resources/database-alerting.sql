@@ -58,11 +58,12 @@ CREATE TABLE `bithon_alert_record`
 DROP TABLE IF EXISTS `bithon_alert_state`;
 CREATE TABLE `bithon_alert_state`
 (
-    `alert_id`       varchar(32) NOT NULL COMMENT '',
-    `alert_status`          int(11) NOT NULL COMMENT 'See the AlertStatus enum',
-    `last_alert_at`  datetime    NOT NULL COMMENT '',
-    `last_record_id` varchar(32) COMMENT 'The PK ID in bithon_alert_record table',
+    `alert_id`          varchar(32) NOT NULL COMMENT '',
+    `alert_status`      int(11) NOT NULL COMMENT 'See the AlertStatus enum',
+    `last_alert_at`     datetime    NOT NULL COMMENT '',
+    `last_record_id`    varchar(32) COMMENT 'The PK ID in bithon_alert_record table',
     `update_at` datetime NOT NULL COMMENT 'when the record is updated',
+    `payload`           text COMMENT 'JSON formatted runtime info. See AlertStateObject$Payload to know more',
     UNIQUE KEY `uq_alert_id` (`alert_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Alerting State';
 

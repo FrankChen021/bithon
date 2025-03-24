@@ -1,0 +1,46 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
+
+
+import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 18/3/25 10:40 am
+ */
+public class Pipeline {
+    private final List<IPipelineStep> steps;
+
+    public Pipeline() {
+        this.steps = new ArrayList<>();
+    }
+
+    public void addStep(IPipelineStep step) {
+        steps.add(step);
+    }
+
+    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+        for (IPipelineStep step : steps) {
+            step.evaluate(stateManager, context);
+        }
+    }
+}

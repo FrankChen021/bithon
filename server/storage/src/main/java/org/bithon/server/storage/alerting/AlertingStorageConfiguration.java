@@ -59,6 +59,14 @@ public class AlertingStorageConfiguration {
     }
 
     @Bean
+    public IAlertStateStorage alertStateStorage(StorageProviderManager storageProviderManager,
+                                                AlertStorageConfig config) throws IOException {
+        IAlertStateStorage storage = storageProviderManager.createStorage(config.getProvider(), IAlertStateStorage.class);
+        storage.initialize();
+        return storage;
+    }
+
+    @Bean
     public IAlertObjectStorage alertObjectStorage(StorageProviderManager storageProviderManager,
                                                   AlertStorageConfig config) throws IOException {
         IAlertObjectStorage storage = storageProviderManager.createStorage(config.getProvider(), IAlertObjectStorage.class);
