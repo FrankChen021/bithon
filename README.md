@@ -164,6 +164,8 @@ And in theory, this matrix works both for Windows and Linux.
 | JDK 16.02     | &check;   |
 | JDK 17        | &check;   |
 | JDK 21        | &check;   |
+| JDK 22.0.2    | &check;   |
+| JDK 23.0.2    | &check;   |
 
 ## JDK 11 and above
 
