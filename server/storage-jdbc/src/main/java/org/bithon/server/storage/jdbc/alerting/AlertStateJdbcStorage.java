@@ -96,6 +96,8 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
                                  } catch (JsonProcessingException e) {
                                      throw new RuntimeException(e);
                                  }
+                             } else {
+                                 obj.setPayload(new AlertState.Payload());
                              }
 
                              Object timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
