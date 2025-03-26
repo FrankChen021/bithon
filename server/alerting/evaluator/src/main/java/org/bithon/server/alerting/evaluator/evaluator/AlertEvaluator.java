@@ -179,7 +179,7 @@ public class AlertEvaluator implements DisposableBean {
                 public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
                     String ruleId = context.getAlertRule().getId();
                     stateManager.setLastEvaluationTime(ruleId, System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
-                    stateManager.setState(ruleId, mergeStatus(context.getSeriesStatus()), context.getSeriesStatus());
+                    stateManager.setState(ruleId, context.getRecordId(), mergeStatus(context.getSeriesStatus()), context.getSeriesStatus());
                 }
             });
             pipeline.evaluate(this.stateManager, context);

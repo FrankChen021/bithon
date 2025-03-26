@@ -143,12 +143,13 @@ public class HttpNotificationChannel implements INotificationChannel {
 
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
-            evaluationMessage = message.getEvaluationOutputs()
+            evaluationMessage = "\n" +
+                                message.getEvaluationOutputs()
                                        .values()
                                        .stream()
                                        .flatMap(Collection::stream)
-                                       .map((output) -> StringUtils.format("%s = %s, expected: %s, delta: %s\n",
-                                                                           output.getLabel().isEmpty() ? "current" : output.getLabel(),
+                                       .map((output) -> StringUtils.format("%s = %s, expected: %s, delta: %s",
+                                                                           output.getLabel().isEmpty() ? "current" : output.getLabel().formatIfNotEmpty("{%s}"),
                                                                            output.getCurrent(),
                                                                            output.getThreshold(),
                                                                            output.getDelta()))

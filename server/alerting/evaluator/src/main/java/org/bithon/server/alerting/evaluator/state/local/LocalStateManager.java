@@ -25,10 +25,11 @@ import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
+import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,12 +50,7 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public void resetMatchCount(String alertId) {
-        alertStates.remove(alertId);
-    }
-
-    @Override
-    public Map<Label, Long> incrMatchCount(String ruleId, List<Label> labels, Duration duration) {
+    public Map<Label, Long> setMatches(String ruleId, Collection<Label> labels, Duration duration) {
         long now = System.currentTimeMillis();
 
         AlertState alertState = alertStates.computeIfAbsent(ruleId, k -> {
@@ -168,7 +164,10 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public void setState(String alertId, AlertStatus status, Map<Label, AlertStatus> seriesStatus) {
+    public void setState(String alertId,
+                         String recordId,
+                         AlertStatus status,
+                         Map<Label, AlertStatus> seriesStatus) {
         AlertState alertState = alertStates.computeIfAbsent(alertId, k -> {
             AlertState state = new AlertState();
             state.setPayload(new AlertState.Payload());
@@ -202,7 +201,12 @@ public class LocalStateManager implements IEvaluationStateManager {
             seriesState.setStatus(series.getValue());
         }
         alertState.setStatus(status);
-
+        if (AlertStatus.ALERTING.equals(status)) {
+            alertState.setLastAlertAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
+        }
+        if (recordId != null) {
+            alertState.setLastRecordId(recordId);
+        }
         this.stateStorage.updateAlertStates(Map.of(alertId, alertState));
     }
 }

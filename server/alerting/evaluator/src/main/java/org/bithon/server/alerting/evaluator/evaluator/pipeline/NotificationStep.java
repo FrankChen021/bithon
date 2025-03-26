@@ -92,17 +92,19 @@ public class NotificationStep implements IPipelineStep {
                                                                                              (map, entry) -> map.computeIfAbsent(entry.getValue(), (k) -> new HashMap<>())
                                                                                                                 .put(entry.getKey(), entry.getValue()),
                                                                                              HashMap::putAll);
-        fireAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.ALERTING), context);
+        fireAlert(context, groupedStatus.get(AlertStatus.ALERTING));
         resolveAlert(context.getAlertRule(), groupedStatus.get(AlertStatus.RESOLVED), context);
     }
 
     /**
      * Fire alert and update its status
      */
-    private void fireAlert(AlertRule alertRule, Map<Label, AlertStatus> labels, EvaluationContext context) {
+    private void fireAlert(EvaluationContext context, Map<Label, AlertStatus> labels) {
         if (CollectionUtils.isEmpty(labels)) {
             return;
         }
+
+        AlertRule alertRule = context.getAlertRule();
 
         // Prepare notification
         NotificationMessage notification = new NotificationMessage();
@@ -117,6 +119,7 @@ public class NotificationStep implements IPipelineStep {
             // Save alerting records
             context.log(NotificationStep.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
+            context.setRecordId(id);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());

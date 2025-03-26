@@ -67,6 +67,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1139,6 +1140,79 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupByV3(Mockito.any());
+    }
+
+    /**
+     * To test that if SAME series appear in multiple sub-expressions, the state(successive match count) are calculated correctly
+     */
+    @Test
+    public void test_SameLabel_MatchCount() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenAnswer((invocation) -> {
+                   QueryRequest queryRequest = invocation.getArgument(0);
+                   if (queryRequest.getDataSource().equals(schema1.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-1", metric, 88)))
+                                           .build();
+                   }
+
+                   if (queryRequest.getDataSource().equals(schema2.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                           .build();
+                   }
+                   throw new RuntimeException("Unknown data source");
+               });
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       // Two sub expression, expected the whole expression are evaluated as true for 2 times
+                                       .forTimes(2)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4 "
+                                                                // no match with GROUP-BY
+                                                                + "AND sum(%s.%s)[1m] > 99",
+                                                                schema1.getName(), metric,
+                                                                schema2.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        // First round evaluation, expect PENDING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+
+        // 2nd round evaluation, expect ALERTING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true /*Skip interval check for test case*/);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+        Assert.assertNotEquals(0L, Timestamp.valueOf(stateObject.getLastAlertAt()).getTime());
+        Assert.assertNotNull(stateObject.getLastRecordId());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(4))
                .groupByV3(Mockito.any());
     }
 }
