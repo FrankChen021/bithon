@@ -59,15 +59,15 @@ COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh \
   && mkdir -p /opt/shared/conf
 
-ENV JAVA_OPTS ""
-ENV APP_OPTS ""
+ENV JAVA_OPTS=""
+ENV APP_OPTS=""
 ENV ENABLE_AGENT=true
 
 # Remember to replace the URI to the URI of your own distribution
-ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+ENV AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
 
 # Replace the glibc memory allocator to jemalloc
-ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so"
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so"
 
 VOLUME /opt/shared/conf
 
