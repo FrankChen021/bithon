@@ -57,7 +57,6 @@ public class NotificationStep implements IPipelineStep {
 
     @Override
     public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
-        // TODO: Find notifications to send
         Map<Label, AlertStatus> notificationStatus = new HashMap<>();
         for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
             Label label = entry.getKey();
@@ -85,7 +84,7 @@ public class NotificationStep implements IPipelineStep {
             }
         }
 
-        // Group series with different labels by alert status
+        // Group series with different labels by alert status so we can send notifications in batch
         Map<AlertStatus, Map<Label, AlertStatus>> groupedStatus = notificationStatus.entrySet()
                                                                                     .stream()
                                                                                     .collect(HashMap::new,
@@ -112,6 +111,8 @@ public class NotificationStep implements IPipelineStep {
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions());
+
+        // TODO: REMOVE non-alerting outputs
         notification.setEvaluationOutputs(context.getEvaluationOutputs().toMap());
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());

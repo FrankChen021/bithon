@@ -153,7 +153,8 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                            output.getCurrent(),
                                                                            output.getThreshold(),
                                                                            output.getDelta()))
-                                       .collect(Collectors.joining("\n"));
+                                       .collect(Collectors.joining("\n"))
+                                + "\n";
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 

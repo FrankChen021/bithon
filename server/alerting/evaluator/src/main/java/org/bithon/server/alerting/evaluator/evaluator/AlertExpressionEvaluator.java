@@ -125,7 +125,7 @@ public class AlertExpressionEvaluator {
             return outputs;
         }
 
-        // Remove all matched series
+        // Remove all un-matched series
         outputs.removeIf((output) -> !output.isMatched());
         return outputs;
     }

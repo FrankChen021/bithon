@@ -69,6 +69,27 @@
       <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-h2</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>spring-boot-starter-jooq</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jooq</artifactId>
+          <groupId>org.jooq</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-storage-jdbc-clickhouse</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency><!-- Use our version to Support more DBMS -->
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>3.17.99</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
