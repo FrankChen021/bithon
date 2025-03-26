@@ -19,6 +19,8 @@ package org.bithon.server.alerting.notification.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
@@ -80,17 +82,34 @@ public class NotificationApiImpl implements INotificationApi {
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
         if (imageService.isEnabled()) {
-            List<AlertExpression> expressionList = message.getEvaluationOutputs()
-                                                          .keySet()
-                                                          .stream()
-                                                          .map(expressionId -> message.getExpressions()
-                                                                                      .values()
-                                                                                      .stream()
-                                                                                      .filter((expr) -> expr.getId().equals(expressionId))
-                                                                                      .findFirst()
-                                                                                      .orElse(null))
-                                                          .filter(Objects::nonNull)
-                                                          .toList();
+
+            // Find out evaluated expressions
+            List<AlertImageRenderService.EvaluatedExpression> expressionList =
+                message.getEvaluationOutputs()
+                       .entrySet()
+                       .stream()
+                       .map(entry -> {
+                           String expressionId = entry.getKey();
+                           EvaluationOutputs outputs = entry.getValue();
+                           AlertExpression expression = message.getExpressions()
+                                                               .values()
+                                                               .stream()
+                                                               .filter((expr) -> expr.getId().equals(expressionId))
+                                                               .findFirst()
+                                                               .orElse(null);
+                           if (expression == null) {
+                               return null;
+                           }
+                           return AlertImageRenderService.EvaluatedExpression.builder()
+                                                                             .alertExpression(expression)
+                                                                             .labels(outputs.stream()
+                                                                                            .map(EvaluationOutput::getLabel)
+                                                                                            .filter(label -> !label.isEmpty())
+                                                                                            .toList())
+                                                                             .build();
+                       })
+                       .filter(Objects::nonNull)
+                       .toList();
 
             TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
 
