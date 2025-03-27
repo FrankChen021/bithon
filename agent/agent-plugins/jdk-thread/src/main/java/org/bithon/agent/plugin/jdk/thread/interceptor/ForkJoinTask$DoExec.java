@@ -43,11 +43,8 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
             // The Span is injected by ForkJoinPool$ExternalPush
             && asyncTaskContext.rootSpan != null) {
 
-            //
-            aopContext.setSpan(asyncTaskContext.rootSpan);
-
             TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
-            asyncTaskContext.rootSpan.start();
+            aopContext.setSpan(asyncTaskContext.rootSpan.start());
         }
 
         return InterceptionDecision.CONTINUE;

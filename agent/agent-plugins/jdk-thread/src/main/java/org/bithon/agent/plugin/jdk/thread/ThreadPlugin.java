@@ -103,6 +103,14 @@ public class ThreadPlugin implements IPlugin {
 
                 .onMethod(Matchers.name("doExec").and(Matchers.argumentSize(0)))
                 .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.ForkJoinTask$DoExec")
+                .build(),
+
+            forClass("java.util.concurrent.CompletableFuture$AsyncRun")
+                .onConstructor().andArgsSize(2).andArgs(1, "java.lang.Runnable")
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.CompletableFuture$AsyncRun$Ctor")
+
+                .onMethod(Matchers.name("run").and(Matchers.argumentSize(0)))
+                .interceptedBy("org.bithon.agent.plugin.jdk.thread.interceptor.CompletableFuture$AsyncRun$Run")
                 .build()
         );
     }
