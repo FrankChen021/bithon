@@ -99,16 +99,16 @@ public class MetricQueryApi {
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         MetricExpression metricExpression = MetricExpressionASTBuilder.parse(request.getExpression());
 
-        String filerExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
-                                       .filter(Objects::nonNull)
-                                       .collect(Collectors.joining(" AND "));
+        String filterExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.joining(" AND "));
 
         if (metricExpression.getOffset() != null) {
             CountDownLatch latch = new CountDownLatch(2);
             Future<QueryResponse> current = this.executor.submit(() -> {
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filerExpression)
+                                               .filterExpression(filterExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
                                                .interval(request.getInterval())
@@ -125,7 +125,7 @@ public class MetricQueryApi {
                 long seconds = -metricExpression.getOffset().getDuration().getSeconds();
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filerExpression)
+                                               .filterExpression(filterExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
                                                .interval(IntervalRequest.builder()
@@ -153,7 +153,7 @@ public class MetricQueryApi {
         } else {
             QueryRequest req = QueryRequest.builder()
                                            .dataSource(metricExpression.getFrom())
-                                           .filterExpression(filerExpression)
+                                           .filterExpression(filterExpression)
                                            .groupBy(metricExpression.getGroupBy())
                                            .fields(List.of(metricExpression.getMetric()))
                                            .interval(request.getInterval())
