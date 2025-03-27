@@ -151,14 +151,16 @@ public class AlertEvaluatorTest {
         injection.put(ObjectMapper.class.getName(), objectMapper);
         injection.put(SqlDialectManager.class.getName(), sqlDialectManager);
 
-        ClickHouseStorageProviderConfiguration clickhouseStorageProviderConfiguration = new ClickHouseStorageProviderConfiguration(
-            ImmutableMap.of("type", "clickhouse",
-                            "url", "jdbc:clickhouse://localhost:8123/bithon"),
-            objectMapper
-        );
-        injection.put(ClickHouseStorageProviderConfiguration.class.getName(), clickhouseStorageProviderConfiguration);
-
         String database = "h2"; // can be clickhouse when debugging at local
+        if ("clickhouse".equals(database)) {
+            ClickHouseStorageProviderConfiguration clickhouseStorageProviderConfiguration = new ClickHouseStorageProviderConfiguration(
+                ImmutableMap.of("type", "clickhouse",
+                                "url", "jdbc:clickhouse://localhost:8123/bithon"),
+                objectMapper
+            );
+            injection.put(ClickHouseStorageProviderConfiguration.class.getName(), clickhouseStorageProviderConfiguration);
+        }
+
         String type = StringUtils.format("{\"type\":\"%s\"}", database);
         alertRecordStorageStub = objectMapper.readValue(type, IAlertRecordStorage.class);
         alertRecordStorageStub.initialize();
