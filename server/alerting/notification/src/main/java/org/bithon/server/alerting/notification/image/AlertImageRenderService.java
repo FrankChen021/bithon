@@ -166,6 +166,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
         //
         // If matched labels are specified, append them in the expression so that we get data for these labels only
         //
+        String seriesSelector = null;
         if (!expression.getLabels().isEmpty()) {
             List<IExpression> multipleGroups = new ArrayList<>();
             for (Label label : expression.getLabels()) {
@@ -180,18 +181,12 @@ public class AlertImageRenderService implements ApplicationContextAware {
                 multipleGroups.add(new LogicalExpression.AND(oneGroup));
             }
 
-            IExpression labelSelector = expression.getAlertExpression()
-                                                  .getMetricExpression()
-                                                  .getLabelSelectorExpression();
-
-            // Update the label selector to include data with series that matches the label
-            expression.getAlertExpression()
-                      .getMetricExpression()
-                      .setLabelSelectorExpression(new LogicalExpression.AND(labelSelector, new LogicalExpression.OR(multipleGroups)));
+            seriesSelector = '(' + new LogicalExpression.OR(multipleGroups).serializeToText(null) + ')';
         }
 
         QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
                                                                                             .expression(expression.getAlertExpression().getMetricExpression().serializeToText(true))
+                                                                                            .condition(seriesSelector)
                                                                                             .interval(IntervalRequest.builder()
                                                                                                                      .startISO8601(visualInterval.getStartTime().toISO8601())
                                                                                                                      .endISO8601(visualInterval.getEndTime().toISO8601())

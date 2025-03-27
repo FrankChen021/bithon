@@ -43,14 +43,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -73,8 +77,17 @@ public class MetricQueryApi {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MetricQueryRequest {
+        /**
+         * Metric QL expression such as "sum(cpu_usage) by host"
+         */
         @NotBlank
         private String expression;
+
+        /**
+         * Extra condition
+         */
+        @Nullable
+        private String condition;
 
         @NotNull
         @Valid
@@ -86,12 +99,16 @@ public class MetricQueryApi {
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         MetricExpression metricExpression = MetricExpressionASTBuilder.parse(request.getExpression());
 
+        String filerExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
+                                       .filter(Objects::nonNull)
+                                       .collect(Collectors.joining(" AND "));
+
         if (metricExpression.getOffset() != null) {
             CountDownLatch latch = new CountDownLatch(2);
             Future<QueryResponse> current = this.executor.submit(() -> {
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
-                                               .filterExpression(metricExpression.getWhereText())
+                                               .filterExpression(filerExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
                                                .interval(request.getInterval())
@@ -108,7 +125,7 @@ public class MetricQueryApi {
                 long seconds = -metricExpression.getOffset().getDuration().getSeconds();
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
-                                               .filterExpression(metricExpression.getWhereText())
+                                               .filterExpression(filerExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
                                                .interval(IntervalRequest.builder()
@@ -136,7 +153,7 @@ public class MetricQueryApi {
         } else {
             QueryRequest req = QueryRequest.builder()
                                            .dataSource(metricExpression.getFrom())
-                                           .filterExpression(metricExpression.getWhereText())
+                                           .filterExpression(filerExpression)
                                            .groupBy(metricExpression.getGroupBy())
                                            .fields(List.of(metricExpression.getMetric()))
                                            .interval(request.getInterval())
