@@ -16,24 +16,25 @@
 
 package org.bithon.agent.plugin.jdk.thread.interceptor;
 
+
 import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinTask;
-
 /**
- * Inject ForkJoinTaskContext to this task object which is type of {@link ForkJoinTask#ForkJoinTask()} or its subclass
- * {@link CompletableFuture.AsyncRun#run()}.
+ * Support of {@link java.util.concurrent.CompletableFuture#runAsync(Runnable)}
+ *
+ * {@link java.util.concurrent.CompletableFuture.AsyncRun}
  *
  * @author frank.chen021@outlook.com
- * @date 2024/12/25 22:30
+ * @date 27/3/25 12:13 am
  */
-public class ForkJoinTask$Ctor extends AfterInterceptor {
+public class CompletableFuture$AsyncRun$Ctor extends AfterInterceptor {
     @Override
-    public void after(AopContext aopContext) {
+    public void after(AopContext aopContext) throws Exception {
+        Runnable runnable = aopContext.getArgAs(1);
+
         IBithonObject task = aopContext.getTargetAs();
-        task.setInjectedObject(new ForkJoinTaskContext(aopContext.getTargetClass().getName(), "exec"));
+        task.setInjectedObject(new ForkJoinTaskContext(runnable.getClass().getName(), "run"));
     }
 }
