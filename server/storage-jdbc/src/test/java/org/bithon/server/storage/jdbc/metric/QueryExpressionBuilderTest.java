@@ -327,7 +327,7 @@ public class QueryExpressionBuilderTest {
                                     SELECT "appName",
                                            sum("totalCount") AS "t"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
@@ -355,7 +355,7 @@ public class QueryExpressionBuilderTest {
                                     SELECT "appName",
                                            sum("totalCount" * 2) AS "t"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
@@ -388,7 +388,7 @@ public class QueryExpressionBuilderTest {
                                            "appName",
                                            sum("totalCount") AS "totalCount"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 sqlGenerator.getSQL());
@@ -425,7 +425,7 @@ public class QueryExpressionBuilderTest {
                                              sum("responseTime" * 2) AS "_var0",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
@@ -463,7 +463,7 @@ public class QueryExpressionBuilderTest {
                                              sum("responseTime") AS "responseTime",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
@@ -506,7 +506,7 @@ public class QueryExpressionBuilderTest {
                                              sum("responseTime") AS "responseTime",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName", "_timestamp"
                                     )
                                     """.trim(),
@@ -544,7 +544,7 @@ public class QueryExpressionBuilderTest {
                                              sum("responseTime") AS "responseTime",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
@@ -585,7 +585,7 @@ public class QueryExpressionBuilderTest {
                                              sum("count5xx") AS "count5xx",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
@@ -622,7 +622,7 @@ public class QueryExpressionBuilderTest {
                                              "instanceName",
                                              FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "a"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
                                     GROUP BY "appName", "instanceName", "a"
                                     HAVING "a" > 5
@@ -653,7 +653,7 @@ public class QueryExpressionBuilderTest {
                                            "instanceName",
                                            argMin("activeThreads", "timestamp") AS "a"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName", "instanceName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
@@ -694,7 +694,7 @@ public class QueryExpressionBuilderTest {
                                              "instanceName",
                                              FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
                                     GROUP BY "appName", "instanceName", "activeThreads", "_timestamp"
                                     """.trim(),
@@ -742,7 +742,7 @@ public class QueryExpressionBuilderTest {
                                                FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       )
                                       GROUP BY "appName", "instanceName", "activeThreads"
                                     )
@@ -786,7 +786,7 @@ public class QueryExpressionBuilderTest {
                                              argMin("activeThreads", "timestamp") AS "activeThreads",
                                              sum("totalThreads") AS "totalThreads"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     ORDER BY "timestamp" asc
@@ -835,7 +835,7 @@ public class QueryExpressionBuilderTest {
                                                FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       )
                                       GROUP BY "appName", "instanceName", "activeThreads"
                                     )
@@ -885,7 +885,7 @@ public class QueryExpressionBuilderTest {
                                                FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       ) AS "tbl0"
                                       GROUP BY "appName", "instanceName", "activeThreads"
                                     ) AS "tbl1"
@@ -931,7 +931,7 @@ public class QueryExpressionBuilderTest {
                                              "instanceName",
                                              sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName", "_timestamp"
                                     )
                                     ORDER BY "appName" asc
@@ -967,7 +967,7 @@ public class QueryExpressionBuilderTest {
                                     SELECT "appName",
                                            count(distinct "instance") AS "instanceCount"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
@@ -1000,7 +1000,7 @@ public class QueryExpressionBuilderTest {
                                     SELECT "appName",
                                            count(1) AS "cnt"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
@@ -1050,7 +1050,7 @@ public class QueryExpressionBuilderTest {
                                     SELECT "appName",
                                            count(1) AS "cnt"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND ("bithon_jvm_metrics"."totalCount" > 1048576) AND ("bithon_jvm_metrics"."totalCount" < 3600) AND ("bithon_jvm_metrics"."totalCount" < 0.5)
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."totalCount" > 1048576) AND ("bithon_jvm_metrics"."totalCount" < 3600) AND ("bithon_jvm_metrics"."totalCount" < 0.5))
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
@@ -1106,7 +1106,7 @@ public class QueryExpressionBuilderTest {
                                                sum("responseTime" * 2) AS "_var0",
                                                sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00' AND "bithon_jvm_metrics"."appName" = 'bithon'
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
                                         GROUP BY "appName", "instanceName"
                                       )
                                     )
@@ -1143,7 +1143,7 @@ public class QueryExpressionBuilderTest {
                                            "instanceName",
                                            sum("totalCount") AS "cnt"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName", "instanceName"
                                     HAVING "cnt" > 1000
                                     """.trim(),
@@ -1180,7 +1180,7 @@ public class QueryExpressionBuilderTest {
                                            "instanceName",
                                            sum("totalCount") AS "totalCount"
                                     FROM "bithon_jvm_metrics"
-                                    WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName", "instanceName"
                                     HAVING "totalCount" > 1000
                                     """.trim(),
@@ -1227,7 +1227,7 @@ public class QueryExpressionBuilderTest {
                                                sum("totalCount") AS "totalCount",
                                                sum("responseTime") AS "responseTime"
                                         FROM "bithon_jvm_metrics"
-                                        WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                         GROUP BY "appName", "instanceName"
                                       )
                                     )
@@ -1273,7 +1273,7 @@ public class QueryExpressionBuilderTest {
                                              sum("totalCount") AS "totalCount",
                                              sum("responseTime") AS "responseTime"
                                       FROM "bithon_jvm_metrics"
-                                      WHERE "timestamp" >= '2024-07-26T21:22:00.000+08:00' AND "timestamp" < '2024-07-26T21:32:00.000+08:00'
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
                                     )
                                     WHERE "avgResponseTime" > 5.0

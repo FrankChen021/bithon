@@ -16,6 +16,11 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -39,7 +44,9 @@ import org.bithon.server.commons.serializer.HumanReadablePercentageDeserializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
@@ -51,9 +58,8 @@ import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
-import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
-import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration;
+import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.h2.H2StorageModuleAutoConfiguration;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -67,10 +73,13 @@ import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -93,47 +102,73 @@ public class AlertEvaluatorTest {
     private static IEvaluationLogWriter evaluationLogWriterStub;
     private static INotificationApiInvoker notificationApiStub;
     private static IAlertRecordStorage alertRecordStorageStub;
-    private static AlertStateJdbcStorage alertStateStorageStub;
-    private static AlertObjectJdbcStorage alertObjectStorageStub;
+    private static IAlertStateStorage alertStateStorageStub;
+    private static IAlertObjectStorage alertObjectStorageStub;
     private static INotificationApiInvoker notificationImpl;
     private AlertEvaluator evaluator;
 
     @BeforeClass
-    public static void setUpStorage() {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public static void setUpStorage() throws Exception {
+        Map<String, Object> injection = new HashMap<>();
+
+        ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new H2StorageModuleAutoConfiguration().h2StorageModel())
+                    .registerModule(new ClickHouseStorageAutoConfiguration().clickHouseStorageModule())
                     // They're configured via ObjectMapperConfigurer for production
                     .registerModule(new SimpleModule().addSerializer(AlertExpression.class, new AlertExpressionSerializer())
                                                       .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())
                                                       .addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer())
                                                       .addDeserializer(AlertExpression.class, new AlertExpressionDeserializer())
                                                       .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer())
-                                                      .addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer()));
+                                                      .addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer()))
+                    .setInjectableValues(new InjectableValues() {
+                        @Override
+                        public Object findInjectableValue(Object valueId,
+                                                          DeserializationContext ctx,
+                                                          BeanProperty forProperty,
+                                                          Object beanInstance) {
+                            JacksonInject inject = forProperty.getAnnotation(JacksonInject.class);
 
+                            Class<?> targetClass = forProperty.getType().getRawClass();
+                            Object obj = injection.get(targetClass.getName());
+                            return obj;
+                        }
+                    });
 
         SqlDialectManager sqlDialectManager = new SqlDialectManager(objectMapper);
 
-        JdbcStorageProviderConfiguration jdbcStorageProviderConfiguration = new JdbcStorageProviderConfiguration(
+        JdbcStorageProviderConfiguration h2StorageProviderConfiguration = new JdbcStorageProviderConfiguration(
             ImmutableMap.of("type", "h2",
                             "url", "jdbc:h2:mem:bithon-alerting-test;DB_CLOSE_DELAY=-1;MODE=mysql;",
                             "username", "sa"),
             sqlDialectManager
         );
-        alertRecordStorageStub = new AlertRecordJdbcStorage(jdbcStorageProviderConfiguration,
-                                                            new AlertingStorageConfiguration.AlertStorageConfig(),
-                                                            objectMapper);
+        injection.put(JdbcStorageProviderConfiguration.class.getName(), h2StorageProviderConfiguration);
+
+        injection.put(AlertingStorageConfiguration.AlertStorageConfig.class.getName(), new AlertingStorageConfiguration.AlertStorageConfig());
+        injection.put(ObjectMapper.class.getName(), objectMapper);
+        injection.put(SqlDialectManager.class.getName(), sqlDialectManager);
+
+        String database = "h2"; // can be clickhouse when debugging at local
+        if ("clickhouse".equals(database)) {
+            ClickHouseStorageProviderConfiguration clickhouseStorageProviderConfiguration = new ClickHouseStorageProviderConfiguration(
+                ImmutableMap.of("type", "clickhouse",
+                                "url", "jdbc:clickhouse://localhost:8123/bithon"),
+                objectMapper
+            );
+            injection.put(ClickHouseStorageProviderConfiguration.class.getName(), clickhouseStorageProviderConfiguration);
+        }
+
+        String type = StringUtils.format("{\"type\":\"%s\"}", database);
+        alertRecordStorageStub = objectMapper.readValue(type, IAlertRecordStorage.class);
         alertRecordStorageStub.initialize();
 
-        alertObjectStorageStub = new AlertObjectJdbcStorage(jdbcStorageProviderConfiguration,
-                                                            sqlDialectManager,
-                                                            objectMapper,
-                                                            new AlertingStorageConfiguration.AlertStorageConfig());
+        alertObjectStorageStub = objectMapper.readValue(type, IAlertObjectStorage.class);
         alertObjectStorageStub.initialize();
 
-        alertStateStorageStub = new AlertStateJdbcStorage(jdbcStorageProviderConfiguration,
-                                                          new AlertingStorageConfiguration.AlertStorageConfig(),
-                                                          sqlDialectManager,
-                                                          objectMapper);
+        alertStateStorageStub = objectMapper.readValue(type, IAlertStateStorage.class);
         alertStateStorageStub.initialize();
 
         evaluationLogWriterStub = Mockito.mock(IEvaluationLogWriter.class);
@@ -1139,6 +1174,160 @@ public class AlertEvaluatorTest {
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
+               .groupByV3(Mockito.any());
+    }
+
+    /**
+     * To test that if SAME series appear in multiple sub-expressions, the state(successive match count) are calculated correctly
+     */
+    @Test
+    public void test_SameLabel_MatchCount() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenAnswer((invocation) -> {
+                   QueryRequest queryRequest = invocation.getArgument(0);
+                   if (queryRequest.getDataSource().equals(schema1.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-1", metric, 88)))
+                                           .build();
+                   }
+
+                   if (queryRequest.getDataSource().equals(schema2.getName())) {
+                       return QueryResponse.builder()
+                                           // Return a value that DOES satisfy the condition,
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                           .build();
+                   }
+                   throw new RuntimeException("Unknown data source");
+               });
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       // Two sub expression, expected the whole expression are evaluated as true for 2 times
+                                       .forTimes(2)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] > 4 "
+                                                                // no match with GROUP-BY
+                                                                + "AND sum(%s.%s)[1m] > 99",
+                                                                schema1.getName(), metric,
+                                                                schema2.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 0
+                                                                           .silence(HumanReadableDuration.of(0, TimeUnit.SECONDS))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        // First round evaluation, expect PENDING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+
+        // 2nd round evaluation, expect ALERTING status
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true /*Skip interval check for test case*/);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+        Assert.assertNotEquals(0L, Timestamp.valueOf(stateObject.getLastAlertAt()).getTime());
+        Assert.assertNotNull(stateObject.getLastRecordId());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(4))
+               .groupByV3(Mockito.any());
+    }
+
+    @Test
+    public void test_MultipleLabels_One_Alerting_After_Another() throws IOException {
+        Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(
+                                            // NOT Satisfy
+                                            ImmutableMap.of("appName", "test-app-1", metric, 50),
+                                            // Satisfy
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                        .build())
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(
+                                            // Satisfy
+                                            ImmutableMap.of("appName", "test-app-1", metric, 100),
+                                            // NOT Satisfy
+                                            ImmutableMap.of("appName", "test-app-2", metric, 50)))
+                                        .build())
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(
+                                            // Satisfy
+                                            ImmutableMap.of("appName", "test-app-1", metric, 100),
+                                            // Satisfy
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                        .build());
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        AlertRule alertRule = AlertRule.builder()
+                                       .id(id)
+                                       .name("test-rule-1")
+                                       .enabled(true)
+                                       .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       // Two sub expression, expected the whole expression are evaluated as true for 2 times
+                                       .forTimes(1)
+                                       .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 57",
+                                                                schema1.getName(), metric,
+                                                                schema2.getName(), metric))
+                                       .notificationProps(NotificationProps.builder()
+                                                                           .channels(List.of("console"))
+                                                                           // Silence is 1min
+                                                                           .silence(HumanReadableDuration.of(1, TimeUnit.MINUTES))
+                                                                           .build())
+                                       .build()
+                                       .initialize();
+
+        // First round evaluation, series 2 will be in ALERTING
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           null);
+        AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
+        // 2nd round, series 1 will be ALERTING
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+
+        // 3rd round, both are under SUPPRESSING
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(3))
                .groupByV3(Mockito.any());
     }
 }

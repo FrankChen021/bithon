@@ -27,6 +27,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -36,6 +41,7 @@ import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.NotificationModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.api.MetricQueryApi;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
@@ -48,6 +54,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +72,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Conditional(NotificationModuleEnabler.class)
 public class AlertImageRenderService implements ApplicationContextAware {
+
+    @Data
+    @Builder
+    public static class EvaluatedExpression {
+        private AlertExpression alertExpression;
+        private List<Label> labels;
+    }
 
     private final RenderingConfig renderingConfig;
     private final ObjectMapper objectMapper;
@@ -92,7 +106,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
      */
     public Map<String, String> render(ImageMode imageMode,
                                       AlertRule rule,
-                                      List<AlertExpression> expressions,
+                                      List<EvaluatedExpression> expressions,
                                       TimeSpan endExclusive) {
         if (CollectionUtils.isEmpty(expressions)) {
             return Collections.emptyMap();
@@ -101,12 +115,12 @@ public class AlertImageRenderService implements ApplicationContextAware {
         Map<String, String> images = new ConcurrentHashMap<>();
 
         List<CompletableFuture<Void>> renderTasks = expressions.stream()
-                                                               .filter((expression) -> shouldRenderExpression(rule, expression.getId()))
+                                                               .filter((expression) -> shouldRenderExpression(rule, expression.getAlertExpression().getId()))
                                                                .map((expression) ->
                                                                         CompletableFuture.runAsync(() -> {
                                                                             try {
                                                                                 // Start of current evaluation
-                                                                                TimeSpan evaluationStart = endExclusive.before(expression.getMetricExpression().getWindow().getDuration());
+                                                                                TimeSpan evaluationStart = endExclusive.before(expression.getAlertExpression().getMetricExpression().getWindow().getDuration());
 
                                                                                 // Start of first triggering timestamp
                                                                                 TimeSpan alertingStart = evaluationStart.before(rule.getEvery().getDuration().getSeconds() * (rule.getForTimes() - 1), TimeUnit.SECONDS);
@@ -117,9 +131,9 @@ public class AlertImageRenderService implements ApplicationContextAware {
                                                                                                       Interval.of(visualizationStart, endExclusive),
                                                                                                       Interval.of(alertingStart, evaluationStart));
 
-                                                                                images.put(expression.getId(), image);
+                                                                                images.put(expression.getAlertExpression().getId(), image);
                                                                             } catch (Exception e) {
-                                                                                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getId()), e);
+                                                                                log.error(StringUtils.format("exception when render image, Alert=[%s], Condition=[%s]", rule.getName(), expression.getAlertExpression().getId()), e);
                                                                             }
                                                                         })).toList();
 
@@ -138,7 +152,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
         return shouldRender;
     }
 
-    private String render(AlertExpression expression,
+    private String render(EvaluatedExpression expression,
                           Interval visualInterval,
                           Interval evaluationInterval) throws Exception {
         // Get the data for visualization first
@@ -146,20 +160,52 @@ public class AlertImageRenderService implements ApplicationContextAware {
         // DO NOT inject the DataSourceApi in ctor
         // See: https://github.com/FrankChen021/bithon/issues/838
         MetricQueryApi metricQueryApi = this.applicationContext.getBean(MetricQueryApi.class);
+
+        IExpression initLabelSelector = expression.getAlertExpression().getMetricExpression().getLabelSelectorExpression();
+
+        //
+        // If matched labels are specified, append them in the expression so that we get data for these labels only
+        //
+        String seriesSelector = null;
+        if (!expression.getLabels().isEmpty()) {
+            List<IExpression> multipleGroups = new ArrayList<>();
+            for (Label label : expression.getLabels()) {
+
+                List<IExpression> oneGroup = new ArrayList<>();
+                for (Map.Entry<String, String> entry : label.getKeyValues().entrySet()) {
+                    IExpression selector = new ComparisonExpression.EQ(new IdentifierExpression(entry.getKey()),
+                                                                       LiteralExpression.StringLiteral.of(entry.getValue()));
+                    oneGroup.add(selector);
+                }
+
+                multipleGroups.add(new LogicalExpression.AND(oneGroup));
+            }
+
+            seriesSelector = '(' + new LogicalExpression.OR(multipleGroups).serializeToText(null) + ')';
+        }
+
         QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()
-                                                                                            .expression(expression.getMetricExpression().serializeToText(true))
+                                                                                            .expression(expression.getAlertExpression().getMetricExpression().serializeToText(true))
+                                                                                            .condition(seriesSelector)
                                                                                             .interval(IntervalRequest.builder()
                                                                                                                      .startISO8601(visualInterval.getStartTime().toISO8601())
                                                                                                                      .endISO8601(visualInterval.getEndTime().toISO8601())
-                                                                                                                     .step((int) expression.getMetricExpression().getWindow().getDuration().getSeconds())
+                                                                                                                     .step((int) expression.getAlertExpression()
+                                                                                                                                           .getMetricExpression()
+                                                                                                                                           .getWindow()
+                                                                                                                                           .getDuration()
+                                                                                                                                           .getSeconds())
                                                                                                                      .build())
                                                                                             .build());
+
+        // Restore the label selector
+        expression.getAlertExpression().getMetricExpression().setLabelSelectorExpression(initLabelSelector);
 
         // Render image
         return invokeRenderApi(RenderImageRequest.builder()
                                                  .height(renderingConfig.getHeight())
                                                  .width(renderingConfig.getWidth())
-                                                 .expression(expression)
+                                                 .expression(expression.getAlertExpression())
                                                  .data(response)
                                                  .markers(new MarkerSpec[]{
                                                      MarkerSpec.builder()

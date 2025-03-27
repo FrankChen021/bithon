@@ -133,8 +133,7 @@ public class HttpNotificationChannel implements INotificationChannel {
 
     private void send(NotificationMessage message, Duration timeout) throws IOException {
         String messageBody = StringUtils.hasText(message.getAlertRule().getNotificationProps().getMessage()) ?
-                             message.getAlertRule().getNotificationProps().getMessage()
-                                                                                                             : this.props.body;
+                             message.getAlertRule().getNotificationProps().getMessage() : this.props.body;
 
         messageBody = messageBody.replace("{alert.appName}", StringUtils.getOrEmpty(message.getAlertRule().getAppName()))
                                  .replace("{alert.name}", message.getAlertRule().getName())
@@ -144,15 +143,18 @@ public class HttpNotificationChannel implements INotificationChannel {
 
         String evaluationMessage = "";
         if (message.getStatus() == AlertStatus.ALERTING) {
-            evaluationMessage = message.getEvaluationOutputs()
+            evaluationMessage = "\n" +
+                                message.getEvaluationOutputs()
                                        .values()
                                        .stream()
                                        .flatMap(Collection::stream)
-                                       .map((output) -> StringUtils.format("expected: %s, current: %s, delta: %s\n",
-                                                                           output.getThreshold(),
+                                       .map((output) -> StringUtils.format("%s = %s, expected: %s, delta: %s",
+                                                                           output.getLabel().isEmpty() ? "current" : output.getLabel().formatIfNotEmpty("{%s}"),
                                                                            output.getCurrent(),
+                                                                           output.getThreshold(),
                                                                            output.getDelta()))
-                                       .collect(Collectors.joining("\n"));
+                                       .collect(Collectors.joining("\n"))
+                                + "\n";
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 

@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
@@ -85,14 +84,6 @@ public class AlertRecordStorage extends AlertRecordJdbcStorage {
                   .set(Tables.BITHON_ALERT_RECORD.NOTIFICATION_STATUS, record.getNotificationStatus())
                   .set(Tables.BITHON_ALERT_RECORD.RECORD_ID, record.getRecordId())
                   .set(Tables.BITHON_ALERT_RECORD.CREATED_AT, record.getCreatedAt().toLocalDateTime())
-                  .execute();
-
-        dslContext.insertInto(Tables.BITHON_ALERT_STATE)
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_ID, record.getAlertId())
-                  .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, new Timestamp(System.currentTimeMillis()).toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, record.getCreatedAt().toLocalDateTime())
-                  .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, record.getRecordId())
-                  .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, AlertStatus.ALERTING.statusCode())
                   .execute();
     }
 

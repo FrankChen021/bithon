@@ -25,7 +25,7 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -58,15 +58,16 @@ public class RuleEvaluationStep implements IPipelineStep {
         long expectedMatchCount = alertRule.getExpectedMatchCount();
 
         // Find matched labels
-        List<Label> series = context.getEvaluationOutputs()
-                                    .stream()
-                                    .map(EvaluationOutput::getLabel)
-                                    .collect(Collectors.toList());
+        // SAME labels might appear in multiple expression, so we have to fold them to unique set
+        Collection<Label> series = context.getEvaluationOutputs()
+                                          .stream()
+                                          .map(EvaluationOutput::getLabel)
+                                          .collect(Collectors.toSet());
 
         // Update states for each series, and get the successive count for each series
-        Map<Label, Long> successiveCountList = stateManager.incrMatchCount(alertRule.getId(),
-                                                                           series,
-                                                                           alertRule.getEvery()
+        Map<Label, Long> successiveCountList = stateManager.setMatches(alertRule.getId(),
+                                                                       series,
+                                                                       alertRule.getEvery()
                                                                                     .getDuration()
                                                                                     // Add 30 seconds for margin
                                                                                     .plus(Duration.ofSeconds(30)));
@@ -77,7 +78,7 @@ public class RuleEvaluationStep implements IPipelineStep {
             AlertStatus newStatus;
             if (successiveCount >= expectedMatchCount) {
                 context.log(RuleEvaluationStep.class,
-                            "Rule%s evaluated as TRUE for [%d] times successively，REACH the expected threshold [%s] to fire alert",
+                            "Rule%s evaluated as TRUE for [%d] times successively, REACH the expected threshold [%s] to fire alert",
                             label.formatIfNotEmpty(" for series {%s}"),
                             successiveCount,
                             expectedMatchCount);
@@ -85,7 +86,7 @@ public class RuleEvaluationStep implements IPipelineStep {
                 newStatus = AlertStatus.ALERTING;
             } else {
                 context.log(RuleEvaluationStep.class,
-                            "Rule%s evaluated as TRUE for [%d] times successively，NOT reach the expected threshold [%s] to fire alert",
+                            "Rule%s evaluated as TRUE for [%d] times successively, NOT reach the expected threshold [%s] to fire alert",
                             label.formatIfNotEmpty(" for series {%s}"),
                             successiveCount,
                             expectedMatchCount);

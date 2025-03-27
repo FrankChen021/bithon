@@ -22,7 +22,7 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -32,12 +32,11 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IEvaluationStateManager {
 
-    void resetMatchCount(String alertId);
-
     /**
      * @param duration The duration of an alert rule
+     * @return The successive match count of each Label
      */
-    Map<Label, Long> incrMatchCount(String alertId, List<Label> series, Duration duration);
+    Map<Label, Long> setMatches(String alertId, Collection<Label> series, Duration duration);
 
     /**
      * Check if there's an alert sending out in the past {@param silencePeriod} minutes.
@@ -67,6 +66,7 @@ public interface IEvaluationStateManager {
     AlertState getAlertState(String alertId);
 
     void setState(String alertId,
+                  String recordId,
                   AlertStatus status,
                   Map<Label, AlertStatus> seriesStatus);
 }
