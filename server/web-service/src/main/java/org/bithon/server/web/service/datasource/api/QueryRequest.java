@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -28,6 +29,7 @@ import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -54,7 +56,11 @@ public class QueryRequest {
     @NotEmpty
     private List<QueryField> fields;
 
+    /**
+     * Use LinkedHashSet to keep the order of the client side
+     */
     @Nullable
+    @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> groupBy;
 
     @Nullable

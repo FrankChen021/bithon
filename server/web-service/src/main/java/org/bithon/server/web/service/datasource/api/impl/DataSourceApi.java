@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -200,9 +201,27 @@ public class DataSourceApi implements IDataSourceApi {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         Query query = QueryConverter.toQuery(schema, request, true, false);
+
+        List<QueryResponse.QueryResponseColumn> groupByColumns = query.getGroupBy()
+                                                                      .stream()
+                                                                      .map((groupBy) -> {
+                                                                          IColumn column = schema.getColumnByName(groupBy);
+                                                                          Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", groupBy);
+                                                                          return new QueryResponse.QueryResponseColumn(column.getName(), column.getDataType().name());
+                                                                      })
+                                                                      .toList();
+
+        List<QueryResponse.QueryResponseColumn> selectColumns = query.getSelectors()
+                                                                     .stream()
+                                                                     .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
+                                                                     .toList();
+        List<QueryResponse.QueryResponseColumn> returnColumns = new ArrayList<>();
+        returnColumns.addAll(groupByColumns);
+        returnColumns.addAll(selectColumns);
+
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
-                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
+                                .meta(returnColumns)
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))
