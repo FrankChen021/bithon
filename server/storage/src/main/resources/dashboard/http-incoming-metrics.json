@@ -63,7 +63,6 @@
         "dataSource": "http-incoming-metrics",
         "type": "groupBy",
         "fields": [
-          "uri",
           "qps",
           "totalCount",
           "errorCount",
