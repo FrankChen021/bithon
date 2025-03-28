@@ -82,7 +82,7 @@
           "appName",
           "path"
         ],
-        "limit": "10",
+        "limit": 10,
         "orderBy": {
           "name": "requestCount",
           "order": "desc"

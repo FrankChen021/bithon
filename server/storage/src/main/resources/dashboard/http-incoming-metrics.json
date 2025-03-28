@@ -70,7 +70,7 @@
           "avgResponseTime",
           "maxResponseTime"
         ],
-        "limit": "10",
+        "limit": 10,
         "groupBy": [
           "appName",
           "uri"
