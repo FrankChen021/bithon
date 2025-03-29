@@ -28,7 +28,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.commons.time.TimeSpan;
@@ -331,7 +330,6 @@ public class AlertCommandService {
         };
 
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new LocalStateManager(alertStateStorage4Test),
                                                       logStorage.createWriter(),
                                                       recordStorage4Test,
                                                       this.dataSourceApi,
@@ -340,7 +338,8 @@ public class AlertCommandService {
                                                       this.objectMapper);
 
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                           rule);
+                           rule,
+                           null);
 
         return logStorage.getLogs();
     }

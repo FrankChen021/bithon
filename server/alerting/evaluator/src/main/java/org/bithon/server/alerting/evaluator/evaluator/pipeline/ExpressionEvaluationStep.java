@@ -27,7 +27,6 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertExpressionVisitor;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 
 import java.util.List;
@@ -38,7 +37,7 @@ import java.util.List;
  */
 public class ExpressionEvaluationStep implements IPipelineStep {
     @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+    public void evaluate(EvaluationContext context) {
         AlertRule alertRule = context.getAlertRule();
 
         if (alertRule.getFlattenExpressions().size() > 1) {

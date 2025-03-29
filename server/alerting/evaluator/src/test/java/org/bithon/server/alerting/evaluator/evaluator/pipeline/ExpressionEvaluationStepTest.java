@@ -103,9 +103,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
 
@@ -130,9 +130,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -161,9 +161,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
 
@@ -188,9 +188,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -213,9 +213,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -238,9 +238,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
 
@@ -266,9 +266,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -291,9 +291,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -316,9 +316,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -341,9 +341,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -366,9 +366,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -391,9 +391,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -418,9 +418,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -443,10 +443,10 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
 
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -472,9 +472,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -500,9 +500,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -531,9 +531,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -562,8 +562,10 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+                                                          dataSourceProvider,
+                                                          null,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -593,8 +595,10 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+                                                          dataSourceProvider,
+                                                          null,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -624,9 +628,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
@@ -656,9 +660,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -688,9 +692,9 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -717,10 +721,10 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider,
+                                                          dataSourceProvider, null,
                                                           null);
 
-        new ExpressionEvaluationStep().evaluate(null, context);
+        new ExpressionEvaluationStep().evaluate(context);
 
         Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))

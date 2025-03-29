@@ -36,7 +36,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
 import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
@@ -221,8 +220,7 @@ public class AlertEvaluatorTest {
 
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
-        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
-                                       new LocalStateManager(alertStateStorageStub),
+        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub, alertStateStorageStub),
                                        evaluationLogWriterStub,
                                        alertRecordStorageStub,
                                        dataSourceApiStub,

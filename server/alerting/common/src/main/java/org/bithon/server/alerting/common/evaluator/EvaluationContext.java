@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
@@ -65,24 +66,27 @@ public class EvaluationContext implements IEvaluationContext {
     /**
      * The status of each (group-by) series
      */
-    private final Map<Label, AlertStatus> seriesStatus = new HashMap<>();
+    private final Map<Label, AlertStatus> seriesStates = new HashMap<>();
 
     @Setter
     private String recordId;
 
     private final EvaluationLogger evaluationLogger;
     private final IDataSourceApi dataSourceApi;
+    private final IEvaluationStateManager stateManager;
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
                              AlertRule alertRule,
                              IDataSourceApi dataSourceApi,
+                             IEvaluationStateManager stateManager,
                              AlertState prevState) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
         this.prevState = prevState;
+        this.stateManager = stateManager;
     }
 
     public void log(Class<?> loggerClass, String message) {

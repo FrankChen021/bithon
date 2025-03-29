@@ -18,7 +18,7 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
+import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +38,9 @@ public class Pipeline {
         steps.add(step);
     }
 
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+    public void evaluate(EvaluationContext context) {
         for (IPipelineStep step : steps) {
-            step.evaluate(stateManager, context);
+            step.evaluate(context);
         }
     }
 }

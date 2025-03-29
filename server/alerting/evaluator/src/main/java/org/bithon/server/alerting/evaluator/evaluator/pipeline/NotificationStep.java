@@ -24,7 +24,6 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.Label;
@@ -56,9 +55,9 @@ public class NotificationStep implements IPipelineStep {
     }
 
     @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+    public void evaluate(EvaluationContext context) {
         Map<Label, AlertStatus> notificationStatus = new HashMap<>();
-        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
+        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStates().entrySet()) {
             Label label = entry.getKey();
             AlertStatus newStatus = entry.getValue();
             AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
@@ -71,15 +70,15 @@ public class NotificationStep implements IPipelineStep {
 
                 if (newStatus == AlertStatus.ALERTING) {
                     notificationStatus.put(label, newStatus);
-                    context.getSeriesStatus().put(label, newStatus);
+                    context.getSeriesStates().put(label, newStatus);
                 } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
                     notificationStatus.put(label, newStatus);
-                    context.getSeriesStatus().put(label, newStatus);
+                    context.getSeriesStates().put(label, newStatus);
                 } else {
-                    context.getSeriesStatus().put(label, newStatus);
+                    context.getSeriesStates().put(label, newStatus);
                 }
             } else {
-                context.getSeriesStatus().put(label, prevStatus);
+                context.getSeriesStates().put(label, prevStatus);
                 context.log(NotificationStep.class, "%sstay in alert status: [%s]", label.formatIfNotEmpty("Series {%s} "), prevStatus);
             }
         }

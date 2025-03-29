@@ -18,8 +18,8 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -36,7 +36,9 @@ import java.util.stream.Collectors;
 public class RuleEvaluationStep implements IPipelineStep {
 
     @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+    public void evaluate(EvaluationContext context) {
+        IEvaluationStateManager stateManager = context.getStateManager();
+
         AlertRule alertRule = context.getAlertRule();
 
         context.log(RuleEvaluationStep.class,
@@ -49,7 +51,8 @@ public class RuleEvaluationStep implements IPipelineStep {
             // reset all series to RESOLVED
             if (prevState != null) {
                 for (Map.Entry<Label, AlertState.SeriesState> series : prevState.getPayload().getSeries().entrySet()) {
-                    context.getSeriesStatus().put(series.getKey(), AlertStatus.RESOLVED);
+                    //series.getValue().setStatus(AlertStatus.RESOLVED);
+                    context.getSeriesStates().put(series.getKey(), AlertStatus.RESOLVED);
                 }
             }
             return;
@@ -65,12 +68,11 @@ public class RuleEvaluationStep implements IPipelineStep {
                                           .collect(Collectors.toSet());
 
         // Update states for each series, and get the successive count for each series
-        Map<Label, Long> successiveCountList = stateManager.setMatches(alertRule.getId(),
-                                                                       series,
+        Map<Label, Long> successiveCountList = stateManager.setMatches(series,
                                                                        alertRule.getEvery()
-                                                                                    .getDuration()
-                                                                                    // Add 30 seconds for margin
-                                                                                    .plus(Duration.ofSeconds(30)));
+                                                                                .getDuration()
+                                                                                // Add 30 seconds for margin
+                                                                                .plus(Duration.ofSeconds(30)));
         for (Map.Entry<Label, Long> entry : successiveCountList.entrySet()) {
             Label label = entry.getKey();
             long successiveCount = entry.getValue();
@@ -94,7 +96,7 @@ public class RuleEvaluationStep implements IPipelineStep {
                 newStatus = AlertStatus.PENDING;
             }
 
-            context.getSeriesStatus().put(label, newStatus);
+            context.getSeriesStates().put(label, newStatus);
         }
     }
 }

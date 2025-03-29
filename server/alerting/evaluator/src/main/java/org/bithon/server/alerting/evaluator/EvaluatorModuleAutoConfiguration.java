@@ -23,11 +23,9 @@ import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -48,13 +46,7 @@ import java.time.Duration;
 public class EvaluatorModuleAutoConfiguration {
 
     @Bean
-    public IEvaluationStateManager stateManager(IAlertStateStorage stateStorage) {
-        return new LocalStateManager(stateStorage);
-    }
-
-    @Bean
     public AlertEvaluator alertEvaluator(AlertRepository repository,
-                                         IEvaluationStateManager stateManager,
                                          IEvaluationLogStorage logStorage,
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
@@ -66,7 +58,6 @@ public class EvaluatorModuleAutoConfiguration {
         logWriter.start();
 
         return new AlertEvaluator(repository,
-                                  stateManager,
                                   logWriter,
                                   recordStorage,
                                   dataSourceApi,

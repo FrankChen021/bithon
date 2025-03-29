@@ -19,8 +19,8 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
@@ -37,18 +37,18 @@ import java.util.Map;
 public class InhibitionStep implements IPipelineStep {
 
     @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
-        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
+    public void evaluate(EvaluationContext context) {
+        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStates().entrySet()) {
             Label label = entry.getKey();
             if (entry.getValue() == AlertStatus.ALERTING) {
 
-                AlertStatus newStatus = inhibit(stateManager, context, label);
-                context.getSeriesStatus().put(label, newStatus);
+                AlertStatus newStatus = inhibit(context, label);
+                context.getSeriesStates().put(label, newStatus);
             }
         }
     }
 
-    private AlertStatus inhibit(IEvaluationStateManager stateManager, EvaluationContext context, Label label) {
+    private AlertStatus inhibit(EvaluationContext context, Label label) {
         AlertRule alertRule = context.getAlertRule();
         AlertState prevState = context.getPrevState();
 
@@ -65,9 +65,10 @@ public class InhibitionStep implements IPipelineStep {
         TimeSpan endOfThisMinute = now.ceil(Duration.ofMinutes(1));
         Duration silencePeriod = silenceDuration.getDuration().plus(Duration.ofMillis(endOfThisMinute.diff(now)));
 
+        IEvaluationStateManager stateManager = context.getStateManager();
         if (silenceDuration.getDuration().getSeconds() > 0
-            && stateManager.tryEnterSilence(alertRule.getId(), label, silencePeriod)) {
-            Duration silenceRemainTime = stateManager.getSilenceRemainTime(alertRule.getId(), label);
+            && stateManager.tryEnterSilence(label, silencePeriod)) {
+            Duration silenceRemainTime = stateManager.getSilenceRemainTime(label);
             context.log(InhibitionStep.class,
                         "Alerting%s，but is under notification silence duration (%s) from last alerting timestamp %s to %s.",
                         label.formatIfNotEmpty(" for series {%s}"),
