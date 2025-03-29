@@ -57,8 +57,7 @@ public interface IEvaluationStateManager {
      */
     long getLastEvaluationTimestamp();
 
-    AlertState updateState(String recordId,
-                           AlertStatus status,
+    AlertState updateState(AlertStatus status,
                            Map<Label, AlertStatus> seriesStatus);
 
     /**
@@ -70,6 +69,8 @@ public interface IEvaluationStateManager {
      * @return If the label is not found, it returns {@link AlertStatus#READY}
      */
     AlertStatus getStatusByLabel(Label label);
+
+    void setLastRecordId(String recordId);
 
     /**
      * @return Nullable

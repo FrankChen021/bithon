@@ -14,32 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator.pipeline;
+package org.bithon.server.alerting.common.evaluator;
 
 
-import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Getter;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 18/3/25 10:40 am
+ * @date 29/3/25 12:42 pm
  */
-public class Pipeline {
-    private final List<IPipelineStep> steps;
+@Getter
+public class EvaluationState {
+    private AlertState.SeriesState series;
+    private EvaluationOutputs outputs;
 
-    public Pipeline() {
-        this.steps = new ArrayList<>();
-    }
-
-    public void addStep(IPipelineStep step) {
-        steps.add(step);
-    }
-
-    public void evaluate(EvaluationContext context) {
-        for (IPipelineStep step : steps) {
-            step.evaluate(context);
-        }
+    public EvaluationState(AlertState.SeriesState series, EvaluationOutputs outputs) {
+        this.series = series;
+        this.outputs = outputs;
     }
 }

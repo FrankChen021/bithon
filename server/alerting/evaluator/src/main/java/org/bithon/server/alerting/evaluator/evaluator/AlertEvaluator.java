@@ -171,7 +171,7 @@ public class AlertEvaluator implements DisposableBean {
                 public void evaluate(EvaluationContext context) {
                     String ruleId = context.getAlertRule().getId();
                     context.getStateManager().setLastEvaluationTime(System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
-                    AlertState alertState = context.getStateManager().updateState(context.getRecordId(), mergeStatus(context.getSeriesStates()), context.getSeriesStates());
+                    AlertState alertState = context.getStateManager().updateState(mergeStatus(context.getSeriesStates()), context.getSeriesStates());
                     repository.setAlertState(ruleId, alertState);
                 }
             });

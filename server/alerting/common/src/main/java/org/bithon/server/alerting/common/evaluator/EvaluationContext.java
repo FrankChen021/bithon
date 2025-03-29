@@ -66,9 +66,6 @@ public class EvaluationContext implements IEvaluationContext {
      */
     private final Map<Label, AlertStatus> seriesStates = new HashMap<>();
 
-    @Setter
-    private String recordId;
-
     private final EvaluationLogger evaluationLogger;
     private final IDataSourceApi dataSourceApi;
     private final IEvaluationStateManager stateManager;

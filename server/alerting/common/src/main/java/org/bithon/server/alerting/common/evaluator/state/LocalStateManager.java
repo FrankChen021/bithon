@@ -122,8 +122,7 @@ public class LocalStateManager implements IEvaluationStateManager {
     }
 
     @Override
-    public AlertState updateState(String recordId,
-                                  AlertStatus status,
+    public AlertState updateState(AlertStatus status,
                                   Map<Label, AlertStatus> seriesStatus) {
 
         // Remove entries that aren't in the seriesStatus map
@@ -153,12 +152,7 @@ public class LocalStateManager implements IEvaluationStateManager {
             seriesState.setStatus(series.getValue());
         }
         alertState.setStatus(status);
-        if (AlertStatus.ALERTING.equals(status)) {
-            alertState.setLastAlertAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
-        }
-        if (recordId != null) {
-            alertState.setLastRecordId(recordId);
-        }
+
         return alertState;
     }
 
@@ -170,6 +164,12 @@ public class LocalStateManager implements IEvaluationStateManager {
     @Override
     public AlertStatus getStatusByLabel(Label label) {
         return this.alertState.getStatusByLabel(label);
+    }
+
+    @Override
+    public void setLastRecordId(String recordId) {
+        this.alertState.setLastRecordId(recordId);
+        this.alertState.setLastAlertAt(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
     }
 
     @Override

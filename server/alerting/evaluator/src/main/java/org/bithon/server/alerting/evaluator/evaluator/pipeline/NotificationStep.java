@@ -119,7 +119,7 @@ public class NotificationStep implements IPipelineStep {
             // Save alerting records
             context.log(NotificationStep.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
-            context.setRecordId(id);
+            context.getStateManager().setLastRecordId(id);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());
