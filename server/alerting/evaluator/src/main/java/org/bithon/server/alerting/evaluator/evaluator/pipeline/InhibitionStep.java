@@ -20,14 +20,13 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
-import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
-import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -49,12 +48,10 @@ public class InhibitionStep implements IPipelineStep {
     }
 
     private AlertStatus inhibit(EvaluationContext context, Label label) {
-        AlertRule alertRule = context.getAlertRule();
-        AlertState prevState = context.getPrevState();
-
         String lastAlertingAt = "N/A";
-        if (prevState != null && prevState.getLastAlertAt() != null) {
-            lastAlertingAt = TimeSpan.of(Timestamp.valueOf(prevState.getLastAlertAt()).getTime()).format("HH:mm:ss");
+        LocalDateTime timestamp = context.getStateManager().getLastAlertAt();
+        if (timestamp != null) {
+            lastAlertingAt = TimeSpan.of(Timestamp.valueOf(timestamp).getTime()).format("HH:mm:ss");
         }
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();

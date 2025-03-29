@@ -60,7 +60,7 @@ public class NotificationStep implements IPipelineStep {
         for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStates().entrySet()) {
             Label label = entry.getKey();
             AlertStatus newStatus = entry.getValue();
-            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
+            AlertStatus prevStatus = context.getStateManager().getStatusByLabel(label);
 
             if (prevStatus.canTransitTo(newStatus)) {
                 context.log(NotificationStep.class, "Update alert status%s: [%s] ---> [%s]",
@@ -157,7 +157,7 @@ public class NotificationStep implements IPipelineStep {
         try {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
-            notification.setAlertRecordId(context.getPrevState().getLastRecordId());
+            notification.setAlertRecordId(context.getStateManager().getLastRecordId());
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
                 context.log(NotificationStep.class, "Sending RESOLVED notification to channel [%s]", channelName);
 

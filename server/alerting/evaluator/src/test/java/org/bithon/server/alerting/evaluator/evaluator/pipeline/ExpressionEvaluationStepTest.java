@@ -103,7 +103,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -130,7 +130,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -161,7 +161,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -188,7 +188,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -213,7 +213,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
         Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
@@ -238,7 +238,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -266,7 +266,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -291,7 +291,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -316,7 +316,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -341,7 +341,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -366,7 +366,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -391,7 +391,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -418,7 +418,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -443,7 +443,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
 
         new ExpressionEvaluationStep().evaluate(context);
@@ -472,7 +472,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -500,7 +500,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -531,7 +531,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -563,7 +563,6 @@ public class ExpressionEvaluationStepTest {
                                                           CONSOLE_LOGGER,
                                                           alertRule,
                                                           dataSourceProvider,
-                                                          null,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -596,7 +595,6 @@ public class ExpressionEvaluationStepTest {
                                                           CONSOLE_LOGGER,
                                                           alertRule,
                                                           dataSourceProvider,
-                                                          null,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -628,7 +626,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -660,7 +658,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -692,7 +690,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
@@ -721,7 +719,7 @@ public class ExpressionEvaluationStepTest {
         EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
                                                           CONSOLE_LOGGER,
                                                           alertRule,
-                                                          dataSourceProvider, null,
+                                                          dataSourceProvider,
                                                           null);
 
         new ExpressionEvaluationStep().evaluate(context);

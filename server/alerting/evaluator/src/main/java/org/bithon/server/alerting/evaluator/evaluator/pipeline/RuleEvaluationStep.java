@@ -45,16 +45,14 @@ public class RuleEvaluationStep implements IPipelineStep {
                     "Rule [%s] evaluated as %s", alertRule.getName(),
                     Boolean.valueOf(context.isExpressionEvaluatedAsTrue()).toString());
 
-        AlertState prevState = context.getPrevState();
-
         if (!context.isExpressionEvaluatedAsTrue()) {
             // reset all series to RESOLVED
-            if (prevState != null) {
-                for (Map.Entry<Label, AlertState.SeriesState> series : prevState.getPayload().getSeries().entrySet()) {
-                    //series.getValue().setStatus(AlertStatus.RESOLVED);
-                    context.getSeriesStates().put(series.getKey(), AlertStatus.RESOLVED);
-                }
+
+            for (Map.Entry<Label, AlertState.SeriesState> series : context.getStateManager().getSeriesState().entrySet()) {
+                //series.getValue().setStatus(AlertStatus.RESOLVED);
+                context.getSeriesStates().put(series.getKey(), AlertStatus.RESOLVED);
             }
+
             return;
         }
 

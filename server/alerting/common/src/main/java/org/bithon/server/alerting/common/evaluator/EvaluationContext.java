@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
+import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
@@ -30,7 +31,6 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +40,6 @@ import java.util.Map;
  */
 @Getter
 public class EvaluationContext implements IEvaluationContext {
-
-    private final @Nullable AlertState prevState;
 
     private final TimeSpan intervalEnd;
     private final AlertRule alertRule;
@@ -79,14 +77,12 @@ public class EvaluationContext implements IEvaluationContext {
                              IEvaluationLogWriter logger,
                              AlertRule alertRule,
                              IDataSourceApi dataSourceApi,
-                             IEvaluationStateManager stateManager,
                              AlertState prevState) {
         this.intervalEnd = intervalEnd;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
-        this.prevState = prevState;
-        this.stateManager = stateManager;
+        this.stateManager = new LocalStateManager(prevState);
     }
 
     public void log(Class<?> loggerClass, String message) {

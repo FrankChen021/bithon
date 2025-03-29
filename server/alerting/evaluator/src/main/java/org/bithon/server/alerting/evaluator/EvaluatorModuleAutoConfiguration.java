@@ -23,7 +23,7 @@ import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
+import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;

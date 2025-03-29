@@ -31,7 +31,6 @@ import org.bithon.server.alerting.evaluator.evaluator.pipeline.Pipeline;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.RuleEvaluationStep;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
@@ -137,7 +136,6 @@ public class AlertEvaluator implements DisposableBean {
                                                           evaluationLogWriter,
                                                           alertRule,
                                                           dataSourceApi,
-                                                          new LocalStateManager(prevState),
                                                           prevState);
 
         Duration interval = alertRule.getEvery().getDuration();

@@ -21,6 +21,7 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 
@@ -59,4 +60,21 @@ public interface IEvaluationStateManager {
     AlertState updateState(String recordId,
                            AlertStatus status,
                            Map<Label, AlertStatus> seriesStatus);
+
+    /**
+     * @return the timestamp or NULL
+     */
+    LocalDateTime getLastAlertAt();
+
+    /**
+     * @return If the label is not found, it returns {@link AlertStatus#READY}
+     */
+    AlertStatus getStatusByLabel(Label label);
+
+    /**
+     * @return Nullable
+     */
+    String getLastRecordId();
+
+    Map<Label, AlertState.SeriesState> getSeriesState();
 }

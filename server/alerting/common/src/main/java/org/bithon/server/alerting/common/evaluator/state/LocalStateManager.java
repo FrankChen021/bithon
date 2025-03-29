@@ -14,15 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.state.local;
+package org.bithon.server.alerting.common.evaluator.state;
 
-import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,6 +40,7 @@ public class LocalStateManager implements IEvaluationStateManager {
     public LocalStateManager(AlertState prevState) {
         if (prevState == null) {
             this.alertState = new AlertState();
+            this.alertState.setStatus(AlertStatus.READY);
             this.alertState.setPayload(new AlertState.Payload());
         } else {
             this.alertState = prevState;
@@ -159,5 +160,25 @@ public class LocalStateManager implements IEvaluationStateManager {
             alertState.setLastRecordId(recordId);
         }
         return alertState;
+    }
+
+    @Override
+    public LocalDateTime getLastAlertAt() {
+        return alertState.getLastAlertAt();
+    }
+
+    @Override
+    public AlertStatus getStatusByLabel(Label label) {
+        return this.alertState.getStatusByLabel(label);
+    }
+
+    @Override
+    public String getLastRecordId() {
+        return this.alertState.getLastRecordId();
+    }
+
+    @Override
+    public Map<Label, AlertState.SeriesState> getSeriesState() {
+        return alertState.getPayload().getSeries();
     }
 }
