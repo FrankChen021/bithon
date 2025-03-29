@@ -46,6 +46,7 @@ import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
@@ -218,10 +219,14 @@ public class AlertEvaluatorTest {
         Mockito.when(dataSourceApiStub.getSchemaByName(schema2.getName()))
                .thenReturn(schema2);
 
+        IEvaluationLogStorage logStorage = Mockito.mock(IEvaluationLogStorage.class);
+        Mockito.when(logStorage.createWriter())
+               .thenReturn(evaluationLogWriterStub);
+
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
         evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub, alertStateStorageStub),
-                                       evaluationLogWriterStub,
+                                       logStorage,
                                        alertRecordStorageStub,
                                        dataSourceApiStub,
                                        serverProperties,

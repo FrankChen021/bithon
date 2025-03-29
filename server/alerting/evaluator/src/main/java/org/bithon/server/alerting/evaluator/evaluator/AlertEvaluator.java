@@ -33,7 +33,7 @@ import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -53,7 +53,7 @@ import java.util.Map;
  */
 public class AlertEvaluator implements DisposableBean {
 
-    private final IEvaluationLogWriter evaluationLogWriter;
+    private final EvaluationLogBatchWriter evaluationLogWriter;
     private final IDataSourceApi dataSourceApi;
     private final ObjectMapper objectMapper;
     private final IAlertRecordStorage recordStorage;
@@ -61,7 +61,7 @@ public class AlertEvaluator implements DisposableBean {
     private final AlertRepository repository;
 
     public AlertEvaluator(AlertRepository repository,
-                          IEvaluationLogWriter evaluationLogWriter,
+                          IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
@@ -76,8 +76,9 @@ public class AlertEvaluator implements DisposableBean {
         this.recordStorage = recordStorage;
         this.notificationApiInvoker = notificationApiInvoker;
         this.dataSourceApi = dataSourceApi;
-        this.evaluationLogWriter = evaluationLogWriter;
+        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
+        this.evaluationLogWriter.start();
 
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {

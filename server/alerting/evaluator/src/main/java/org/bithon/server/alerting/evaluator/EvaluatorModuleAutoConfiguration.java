@@ -54,11 +54,8 @@ public class EvaluatorModuleAutoConfiguration {
                                          INotificationApiInvoker notificationApiInvoker,
                                          ObjectMapper objectMapper) {
 
-        EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
-        logWriter.start();
-
         return new AlertEvaluator(repository,
-                                  logWriter,
+                                  logStorage,
                                   recordStorage,
                                   dataSourceApi,
                                   serverProperties,
