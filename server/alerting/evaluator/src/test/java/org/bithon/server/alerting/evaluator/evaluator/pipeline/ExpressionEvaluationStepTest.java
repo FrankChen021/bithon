@@ -14,16 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.evaluator;
+package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -50,7 +47,7 @@ import java.util.List;
  * @date 28/3/22 9:42 PM
  */
 @Slf4j
-public class AlertExpressionEvaluatorTest {
+public class ExpressionEvaluationStepTest {
 
     private static final IEvaluationLogWriter CONSOLE_LOGGER = new IEvaluationLogWriter() {
         @Override
@@ -98,18 +95,20 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 4", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -123,18 +122,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 4 AND sum(test-metrics.%s)[1m] > 3", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -153,18 +153,19 @@ public class AlertExpressionEvaluatorTest {
 
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 6 AND sum(test-metrics.%s)[1m] > 6", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -179,18 +180,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 6 AND sum(test-metrics.%s)[1m] > 3", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -203,18 +205,18 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 3 AND sum(test-metrics.%s)[1m] > 6", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
@@ -228,18 +230,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 2 OR sum(test-metrics.%s)[1m] = 3", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
 
         // Evaluation of 2nd expression will be skipped
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -255,19 +258,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 2 OR sum(test-metrics.%s)[1m] = 3", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -280,19 +283,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 5 OR sum(test-metrics.%s)[1m] = 3", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -305,19 +308,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 5 OR sum(test-metrics.%s)[1m] = 2", metric, metric);
-        IExpression expression = AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -330,19 +333,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 5", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -355,19 +358,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < 6", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -380,19 +383,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 5", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -406,19 +409,20 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
 
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -431,19 +435,20 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] is null", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
 
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -459,20 +464,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] >= 100%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
-
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -488,19 +492,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] > 99%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -518,20 +522,20 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] < -50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
         // Decreased by 50%, the threshold is < 50%, Not triggered
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -549,20 +553,19 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s)[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .expr(expr)
                                        .build()
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertTrue(new AlertExpressionEvaluator(expression)
-                              .evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                              CONSOLE_LOGGER,
-                                                              alertRule,
-                                                              dataSourceProvider, null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider, null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -580,8 +583,6 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s{type contains 'a'})[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .appName("bithon")
                                        .expr(expr)
@@ -589,12 +590,13 @@ public class AlertExpressionEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertTrue(new AlertExpressionEvaluator(expression)
-                              .evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                              CONSOLE_LOGGER,
-                                                              alertRule,
-                                                              dataSourceProvider, null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider, null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -612,8 +614,6 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s{type not contains 'a'})[1m] <= 50%%[-1m]", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .appName("bithon")
                                        .expr(expr)
@@ -621,13 +621,14 @@ public class AlertExpressionEvaluatorTest {
                                        .initialize();
 
         // Decreased by 50%, the threshold is <= 50%, triggered
-        Assert.assertTrue(new AlertExpressionEvaluator(expression)
-                              .evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                              CONSOLE_LOGGER,
-                                                              alertRule,
-                                                              dataSourceProvider,
-                                                              null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -645,8 +646,6 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .id("1")
                                        .name("test")
@@ -654,12 +653,14 @@ public class AlertExpressionEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -677,8 +678,6 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .id("1")
                                        .name("test")
@@ -686,12 +685,14 @@ public class AlertExpressionEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertFalse(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                   CONSOLE_LOGGER,
-                                                                                                   alertRule,
-                                                                                                   dataSourceProvider,
-                                                                                                   null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
+        new ExpressionEvaluationStep().evaluate(null, context);
 
+        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -706,8 +707,6 @@ public class AlertExpressionEvaluatorTest {
                                         .build());
 
         String expr = StringUtils.format("sum(test-metrics.%s) by (appName) > 4", metric);
-        AlertExpression expression = (AlertExpression) AlertExpressionASTParser.parse(expr);
-
         AlertRule alertRule = AlertRule.builder()
                                        .id("1")
                                        .name("test")
@@ -715,12 +714,15 @@ public class AlertExpressionEvaluatorTest {
                                        .build()
                                        .initialize();
 
-        Assert.assertTrue(new AlertExpressionEvaluator(expression).evaluate(new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                                                                                                  CONSOLE_LOGGER,
-                                                                                                  alertRule,
-                                                                                                  dataSourceProvider,
-                                                                                                  null)));
+        EvaluationContext context = new EvaluationContext(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                                                          CONSOLE_LOGGER,
+                                                          alertRule,
+                                                          dataSourceProvider,
+                                                          null);
 
+        new ExpressionEvaluationStep().evaluate(null, context);
+
+        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
