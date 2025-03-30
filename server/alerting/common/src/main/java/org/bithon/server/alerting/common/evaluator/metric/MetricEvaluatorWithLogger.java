@@ -98,7 +98,7 @@ public class MetricEvaluatorWithLogger implements IMetricEvaluator {
                                  delegateEvaluator.toString(),
                                  e.getMessage());
 
-            return EvaluationOutputs.EMPTY;
+            return EvaluationOutputs.empty();
         }
     }
 }

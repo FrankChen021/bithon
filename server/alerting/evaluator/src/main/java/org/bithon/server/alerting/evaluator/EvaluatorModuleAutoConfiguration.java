@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
-import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
@@ -33,8 +32,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import java.time.Duration;
 
 /**
  * @author Frank Chen

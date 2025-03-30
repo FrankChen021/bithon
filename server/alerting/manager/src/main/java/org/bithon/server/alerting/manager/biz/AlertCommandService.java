@@ -34,13 +34,11 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
@@ -314,23 +312,8 @@ public class AlertCommandService {
             }
         };
 
-        IAlertStateStorage alertStateStorage4Test = new IAlertStateStorage() {
-            @Override
-            public void initialize() {
-            }
-
-            @Override
-            public Map<String, AlertState> getAlertStates() {
-                return Map.of();
-            }
-
-            @Override
-            public void updateAlertStates(Map<String, AlertState> states) {
-            }
-        };
-
         AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      logStorage.createWriter(),
+                                                      logStorage,
                                                       recordStorage4Test,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),

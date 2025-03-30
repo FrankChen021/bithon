@@ -109,7 +109,7 @@ public abstract class AbstractAbsoluteThresholdPredicate implements IMetricEvalu
         //noinspection unchecked
         List<Map<String, Object>> seriesList = (List<Map<String, Object>>) response.getData();
         if (CollectionUtils.isEmpty(seriesList)) {
-            return EvaluationOutputs.EMPTY;
+            return EvaluationOutputs.empty();
         }
 
         IDataType valueType;

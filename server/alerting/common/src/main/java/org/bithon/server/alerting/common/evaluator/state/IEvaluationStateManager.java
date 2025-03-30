@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.common.evaluator.state;
 
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -58,7 +59,7 @@ public interface IEvaluationStateManager {
     long getLastEvaluationTimestamp();
 
     AlertState updateState(AlertStatus status,
-                           Map<Label, AlertStatus> seriesStatus);
+                           Map<Label, EvaluationOutputs> seriesStatus);
 
     /**
      * @return the timestamp or NULL

@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.storage.alerting.Label;
@@ -47,10 +47,12 @@ public class RuleEvaluationStep implements IPipelineStep {
 
         if (!context.isExpressionEvaluatedAsTrue()) {
             // reset all series to RESOLVED
+            for (Map.Entry<Label, AlertState.SeriesState> entry : context.getStateManager().getSeriesState().entrySet()) {
+                Label label = entry.getKey();
 
-            for (Map.Entry<Label, AlertState.SeriesState> series : context.getStateManager().getSeriesState().entrySet()) {
-                //series.getValue().setStatus(AlertStatus.RESOLVED);
-                context.getSeriesStates().put(series.getKey(), AlertStatus.RESOLVED);
+                context.getOutputs()
+                       .computeIfAbsent(label,
+                                        v -> new EvaluationOutputs(AlertStatus.RESOLVED));
             }
 
             return;
@@ -60,10 +62,12 @@ public class RuleEvaluationStep implements IPipelineStep {
 
         // Find matched labels
         // SAME labels might appear in multiple expression, so we have to fold them to unique set
-        Collection<Label> series = context.getEvaluationOutputs()
+        Collection<Label> series = context.getOutputs()
+                                          .entrySet()
                                           .stream()
-                                          .map(EvaluationOutput::getLabel)
-                                          .collect(Collectors.toSet());
+                                          .filter((entry) -> entry.getValue().isMatched())
+                                          .map(Map.Entry::getKey)
+                                          .collect(Collectors.toList());
 
         // Update states for each series, and get the successive count for each series
         Map<Label, Long> successiveCountList = stateManager.setMatches(series,
@@ -94,7 +98,9 @@ public class RuleEvaluationStep implements IPipelineStep {
                 newStatus = AlertStatus.PENDING;
             }
 
-            context.getSeriesStates().put(label, newStatus);
+            context.getOutputs()
+                   .get(label)
+                   .setStatus(newStatus);
         }
     }
 }

@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.ExpressionEvaluationStep;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.IPipelineStep;
@@ -172,7 +173,7 @@ public class AlertEvaluator implements DisposableBean {
                 public void evaluate(EvaluationContext context) {
                     String ruleId = context.getAlertRule().getId();
                     context.getStateManager().setLastEvaluationTime(System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
-                    AlertState alertState = context.getStateManager().updateState(mergeStatus(context.getSeriesStates()), context.getSeriesStates());
+                    AlertState alertState = context.getStateManager().updateState(mergeStatus(context.getOutputs()), context.getOutputs());
                     repository.setAlertState(ruleId, alertState);
                 }
             });
@@ -185,7 +186,7 @@ public class AlertEvaluator implements DisposableBean {
     /**
      * Merge status per label into a single status at the rule level
      */
-    private AlertStatus mergeStatus(Map<Label, AlertStatus> status) {
+    private AlertStatus mergeStatus(Map<Label, EvaluationOutputs> status) {
         if (status.isEmpty()) {
             return AlertStatus.READY;
         }
@@ -193,7 +194,8 @@ public class AlertEvaluator implements DisposableBean {
         int isResolved = 0;
         boolean hasSuppressing = false;
         boolean hasPending = false;
-        for (AlertStatus alertStatus : status.values()) {
+        for (EvaluationOutputs outputs : status.values()) {
+            AlertStatus alertStatus = outputs.getStatus();
             if (alertStatus == AlertStatus.ALERTING) {
                 return AlertStatus.ALERTING;
             }

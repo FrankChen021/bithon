@@ -16,6 +16,7 @@
 
 package org.bithon.server.alerting.common.evaluator.state;
 
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -123,9 +124,9 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public AlertState updateState(AlertStatus status,
-                                  Map<Label, AlertStatus> seriesStatus) {
+                                  Map<Label, EvaluationOutputs> newStates) {
 
-        // Remove entries that aren't in the seriesStatus map
+        // Remove entries that aren't in the newStates map
         Iterator<Map.Entry<Label, AlertState.SeriesState>> i = alertState.getPayload()
                                                                          .getSeries()
                                                                          .entrySet()
@@ -133,23 +134,23 @@ public class LocalStateManager implements IEvaluationStateManager {
         while (i.hasNext()) {
             Map.Entry<Label, AlertState.SeriesState> entry = i.next();
             Label label = entry.getKey();
-            if (!seriesStatus.containsKey(label)
+            if (!newStates.containsKey(label)
                 || entry.getValue().getMatchExpiredAt() < System.currentTimeMillis()
             ) {
                 i.remove();
             }
         }
 
-        for (Map.Entry<Label, AlertStatus> series : seriesStatus.entrySet()) {
+        for (Map.Entry<Label, EvaluationOutputs> newState : newStates.entrySet()) {
             // Update status for each label
             AlertState.SeriesState seriesState = alertState.getPayload()
                                                            .getSeries()
-                                                           .get(series.getKey());
+                                                           .get(newState.getKey());
             if (seriesState == null) {
-                // SHOULD be error because for this series, incrMatchCount should have created the label
+                // SHOULD be error because for this newState, incrMatchCount should have created the label
                 continue;
             }
-            seriesState.setStatus(series.getValue());
+            seriesState.setStatus(newState.getValue().getStatus());
         }
         alertState.setStatus(status);
 

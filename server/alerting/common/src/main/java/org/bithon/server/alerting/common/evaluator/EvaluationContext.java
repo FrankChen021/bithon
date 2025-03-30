@@ -28,7 +28,6 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
 import java.util.HashMap;
@@ -54,17 +53,10 @@ public class EvaluationContext implements IEvaluationContext {
     private boolean isExpressionEvaluatedAsTrue = false;
 
     /**
-     * The outputs of whole alert rule.
-     * For simple expression, it's the SAME as above.
-     * For complex expression like A AND B, it's the intersection result set of A and B
+     * The status of each (group-by) series.
+     * For complex logical expression like, A by (appName) AND B by (appName), the value of the key holds the merged outputs from both A and B sub expressions
      */
-    @Setter
-    private EvaluationOutputs evaluationOutputs;
-
-    /**
-     * The status of each (group-by) series
-     */
-    private final Map<Label, AlertStatus> seriesStates = new HashMap<>();
+    private final Map<Label, EvaluationOutputs> outputs = new HashMap<>();
 
     private final EvaluationLogger evaluationLogger;
     private final IDataSourceApi dataSourceApi;

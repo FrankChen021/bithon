@@ -19,6 +19,7 @@ package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.Label;
@@ -37,12 +38,13 @@ public class InhibitionStep implements IPipelineStep {
 
     @Override
     public void evaluate(EvaluationContext context) {
-        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStates().entrySet()) {
+        for (Map.Entry<Label, EvaluationOutputs> entry : context.getOutputs().entrySet()) {
             Label label = entry.getKey();
-            if (entry.getValue() == AlertStatus.ALERTING) {
+            EvaluationOutputs state = entry.getValue();
 
+            if (state.getStatus() == AlertStatus.ALERTING) {
                 AlertStatus newStatus = inhibit(context, label);
-                context.getSeriesStates().put(label, newStatus);
+                state.setStatus(newStatus);
             }
         }
     }

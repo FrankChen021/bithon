@@ -16,18 +16,18 @@
 
 package org.bithon.server.alerting.common.evaluator.result;
 
-import org.bithon.server.storage.alerting.Label;
+import lombok.Getter;
+import lombok.Setter;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/12/7 22:59
  */
 public class EvaluationOutputs extends ArrayList<EvaluationOutput> {
-    public static final EvaluationOutputs EMPTY = new EvaluationOutputs();
 
     public static EvaluationOutputs of(EvaluationOutput output) {
         EvaluationOutputs outputs = new EvaluationOutputs();
@@ -35,13 +35,23 @@ public class EvaluationOutputs extends ArrayList<EvaluationOutput> {
         return outputs;
     }
 
+    public static EvaluationOutputs empty() {
+        return new EvaluationOutputs();
+    }
+
+    @Setter
+    @Getter
+    private AlertStatus status = AlertStatus.READY;
+
+    @Getter
+    @Setter
     private boolean isMatched;
 
     public EvaluationOutputs() {
     }
 
-    public boolean isMatched() {
-        return isMatched;
+    public EvaluationOutputs(AlertStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -56,49 +66,11 @@ public class EvaluationOutputs extends ArrayList<EvaluationOutput> {
         super.add(index, output);
     }
 
-    public EvaluationOutput last() {
-        return this.get(this.size() - 1);
-    }
-
-    /**
-     * Join two outputs by {@link Label}
-     */
-    public EvaluationOutputs intersect(EvaluationOutputs rhs) {
-        if (rhs.isEmpty()) {
-            return EvaluationOutputs.EMPTY;
+    @Override
+    public boolean addAll(Collection<? extends EvaluationOutput> c) {
+        for (EvaluationOutput output : c) {
+            add(output);
         }
-        if (this.size() > rhs.size()) {
-            return rhs.intersect(this);
-        }
-
-        EvaluationOutputs result = new EvaluationOutputs();
-
-        // Create a map from the right side outputs for quick lookup by label
-        Map<Label, EvaluationOutput> rhsMap = new HashMap<>();
-        for (EvaluationOutput output : rhs) {
-            rhsMap.put(output.getLabel(), output);
-        }
-
-        // Perform left join - iterate through left outputs
-        for (EvaluationOutput leftOutput : this) {
-            Label label = leftOutput.getLabel();
-
-            EvaluationOutput rightOutput = rhsMap.get(label);
-            if (rightOutput != null) {
-                // Found a match - add the left output to the result
-                // (We could merge properties from both outputs here if needed)
-                result.add(leftOutput);
-            }
-        }
-
-        return result;
-    }
-
-    public Map<String, EvaluationOutputs> toMap() {
-        Map<String, EvaluationOutputs> result = new HashMap<>();
-        for (EvaluationOutput output : this) {
-            result.computeIfAbsent(output.getExpressionId(), (k) -> new EvaluationOutputs()).add(output);
-        }
-        return result;
+        return true;
     }
 }

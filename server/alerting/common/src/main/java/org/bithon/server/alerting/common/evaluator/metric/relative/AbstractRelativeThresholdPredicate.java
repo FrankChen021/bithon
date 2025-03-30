@@ -91,7 +91,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         //noinspection unchecked
         List<Map<String, Object>> seriesList = (List<Map<String, Object>>) response.getData();
         if (CollectionUtils.isEmpty(seriesList)) {
-            return EvaluationOutputs.EMPTY;
+            return EvaluationOutputs.empty();
         }
 
         Map<Label, Number> current = toSeriesMap(seriesList, metric.getName(), groupBy);
@@ -111,7 +111,7 @@ public abstract class AbstractRelativeThresholdPredicate implements IMetricEvalu
         //noinspection unchecked
         Map<Label, Number> baseMap = toSeriesMap((List<Map<String, Object>>) response.getData(), metric.getName(), groupBy);
         if (baseMap.isEmpty()) {
-            return EvaluationOutputs.EMPTY;
+            return new EvaluationOutputs();
         }
 
         EvaluationOutputs outputs = new EvaluationOutputs();

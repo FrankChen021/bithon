@@ -918,8 +918,7 @@ public class AlertEvaluatorTest {
                    if (queryRequest.getDataSource().equals(schema2.getName())) {
                        return QueryResponse.builder()
                                            // Return a value that DOES satisfy the condition,
-                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 88),
-                                                               ImmutableMap.of("appName", "test-app-3", metric, 99)))
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-2", metric, 88)))
                                            .build();
                    }
                    throw new RuntimeException("Unknown data source");
@@ -935,8 +934,7 @@ public class AlertEvaluatorTest {
                                        .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4 "
                                                                 + "AND sum(%s.%s)[1m] > 5 ",
                                                                 schema1.getName(), metric,
-                                                                schema2.getName(), metric,
-                                                                schema3.getName(), metric))
+                                                                schema2.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0
