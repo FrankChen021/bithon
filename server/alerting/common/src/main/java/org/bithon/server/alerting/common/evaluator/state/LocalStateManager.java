@@ -134,7 +134,10 @@ public class LocalStateManager implements IEvaluationStateManager {
         while (i.hasNext()) {
             Map.Entry<Label, AlertState.SeriesState> entry = i.next();
             Label label = entry.getKey();
-            if (!newStates.containsKey(label)
+
+            EvaluationOutputs newOutput = newStates.get(label);
+            if (newOutput == null
+                || newOutput.getStatus() == AlertStatus.RESOLVED
                 || entry.getValue().getMatchExpiredAt() < System.currentTimeMillis()
             ) {
                 i.remove();

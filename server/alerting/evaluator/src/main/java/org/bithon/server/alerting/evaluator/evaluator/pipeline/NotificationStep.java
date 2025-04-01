@@ -215,6 +215,9 @@ public class NotificationStep implements IPipelineStep {
             if (!outputs.isMatched()) {
                 continue;
             }
+            if (!(outputs.getStatus().equals(AlertStatus.ALERTING))) {
+                continue;
+            }
 
             for (EvaluationOutput output : outputs) {
                 result.computeIfAbsent(output.getExpressionId(), k -> new EvaluationOutputs())
