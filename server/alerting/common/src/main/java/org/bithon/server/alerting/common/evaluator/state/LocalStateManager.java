@@ -136,12 +136,12 @@ public class LocalStateManager implements IEvaluationStateManager {
 
     @Override
     public void setLastEvaluationTime(long timestamp, Duration interval) {
-        alertState.getPayload().setLastEvaluationTimestamp(timestamp);
+        alertState.setLastEvaluatedAt(new Timestamp(timestamp).toLocalDateTime());
     }
 
     @Override
     public long getLastEvaluationTimestamp() {
-        return this.alertState.getPayload().getLastEvaluationTimestamp();
+        return this.alertState.getLastEvaluatedAt() == null ? 0L : Timestamp.valueOf(this.alertState.getLastEvaluatedAt()).getTime();
     }
 
     @Override

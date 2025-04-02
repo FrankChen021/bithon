@@ -695,11 +695,11 @@ public class AlertEvaluatorTest {
 
     /**
      * round 1
-     *  series 1: READY -> PENDING
-     *  series 2: READY -> PENDING
+     * series 1: READY -> PENDING
+     * series 2: READY -> PENDING
      * round 2
-     *  series 1: PENDING -> RESOLVED
-     *  series 2: PENDING -> ALERTING
+     * series 1: PENDING -> RESOLVED
+     * series 2: PENDING -> ALERTING
      */
     @Test
     public void test_GroupBy_1_SeriesMatches_PendingToAlerting() throws Exception {
@@ -1330,7 +1330,6 @@ public class AlertEvaluatorTest {
                                             ImmutableMap.of("appName", "test-app-1", metric, 5), // NOT Satisfy --> RESOLVED
                                             ImmutableMap.of("appName", "test-app-2", metric, 5)))// NOT Satisfy --> RESOLVED
                                         .build());
-        ;
 
         String id = UUID.randomUUID().toString().replace("-", "");
         AlertRule alertRule = AlertRule.builder()

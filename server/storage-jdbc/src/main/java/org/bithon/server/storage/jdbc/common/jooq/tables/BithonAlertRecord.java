@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Alerting History Records
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertRecord extends TableImpl<BithonAlertRecordRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -95,9 +95,9 @@ public class BithonAlertRecord extends TableImpl<BithonAlertRecordRecord> {
 
     /**
      * The column <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
-    public final TableField<BithonAlertRecordRecord, Integer> NOTIFICATION_STATUS = createField(DSL.name("notification_status"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.inline("0", SQLDataType.INTEGER)), this, "-1:waiting ack，1:ACK");
+    public final TableField<BithonAlertRecordRecord, Integer> NOTIFICATION_STATUS = createField(DSL.name("notification_status"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.inline("0", SQLDataType.INTEGER)), this, "-1:waiting ack1:ACK");
 
     /**
      * The column <code>bithon_alert_record.notification_result</code>. JSON

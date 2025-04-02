@@ -52,23 +52,18 @@ public class AlertState {
         @Setter
         private Map<Label, SeriesState> series;
 
-        @Getter
-        @Setter
-        private long lastEvaluationTimestamp;
-
         public Payload() {
-            this(new HashMap<>(), 0L);
+            this(new HashMap<>());
         }
 
         @JsonCreator
-        public Payload(@JsonProperty("series") Map<Label, SeriesState> series,
-                       @JsonProperty("lastEvaluationTimestamp") long lastEvaluationTimestamp) {
+        public Payload(@JsonProperty("series") Map<Label, SeriesState> series) {
             this.series = series;
-            this.lastEvaluationTimestamp = lastEvaluationTimestamp;
         }
     }
 
     private AlertStatus status;
+    private LocalDateTime lastEvaluatedAt;
     private LocalDateTime lastAlertAt;
     private String lastRecordId;
     private Payload payload;
