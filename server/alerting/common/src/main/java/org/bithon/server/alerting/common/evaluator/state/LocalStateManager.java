@@ -45,6 +45,28 @@ public class LocalStateManager implements IEvaluationStateManager {
             this.alertState.setPayload(new AlertState.Payload());
         } else {
             this.alertState = prevState;
+
+            // Expire old states
+            Iterator<Map.Entry<Label, AlertState.SeriesState>> i = alertState.getPayload()
+                                                                             .getSeries()
+                                                                             .entrySet()
+                                                                             .iterator();
+            while (i.hasNext()) {
+                AlertState.SeriesState state = i.next().getValue();
+
+                long now = System.currentTimeMillis();
+                if (state.getMatchExpiredAt() < now) {
+                    // The match expired, remove it
+                    i.remove();
+                    continue;
+                }
+
+                if (state.getStatus() == AlertStatus.RESOLVED
+                    // If it has been resolved for more than 5 minutes, remove it from the list
+                    && (now - state.getResolvedAt()) > 5 * 60 * 1000) {
+                    i.remove();
+                }
+            }
         }
     }
 
@@ -136,20 +158,6 @@ public class LocalStateManager implements IEvaluationStateManager {
             Label label = entry.getKey();
             AlertState.SeriesState oldState = entry.getValue();
 
-            long now = System.currentTimeMillis();
-            if (oldState.getMatchExpiredAt() < now) {
-                // The match expired, remove it
-                i.remove();
-                continue;
-            }
-
-            if (oldState.getStatus() == AlertStatus.RESOLVED
-                // If it has been resolved for more than 5 minutes, remove it from the list
-                && (now - oldState.getResolvedAt()) > 5 * 60 * 1000) {
-                i.remove();
-                continue;
-            }
-
             EvaluationOutputs newState = newStates.get(label);
             if (newState == null) {
                 // no new state for this label, remove it
@@ -159,14 +167,19 @@ public class LocalStateManager implements IEvaluationStateManager {
 
         for (Map.Entry<Label, EvaluationOutputs> newState : newStates.entrySet()) {
             // Update status for each label
-            AlertState.SeriesState seriesState = alertState.getPayload()
-                                                           .getSeries()
-                                                           .get(newState.getKey());
-            if (seriesState == null) {
+            AlertState.SeriesState oldState = alertState.getPayload()
+                                                        .getSeries()
+                                                        .get(newState.getKey());
+            if (oldState == null) {
                 // SHOULD be error because for this newState, incrMatchCount should have created the label
                 continue;
             }
-            seriesState.setStatus(newState.getValue().getStatus());
+
+            if (newState.getValue().getStatus() == AlertStatus.RESOLVED && newState.getValue().getStatus() != oldState.getStatus()) {
+                oldState.setResolvedAt(System.currentTimeMillis());
+            }
+
+            oldState.setStatus(newState.getValue().getStatus());
         }
         alertState.setStatus(status);
 
