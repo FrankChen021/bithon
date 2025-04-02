@@ -693,6 +693,14 @@ public class AlertEvaluatorTest {
         Assert.assertTrue(stateObject.getPayload().getSeries().isEmpty());
     }
 
+    /**
+     * round 1
+     *  series 1: READY -> PENDING
+     *  series 2: READY -> PENDING
+     * round 2
+     *  series 1: PENDING -> RESOLVED
+     *  series 2: PENDING -> ALERTING
+     */
     @Test
     public void test_GroupBy_1_SeriesMatches_PendingToAlerting() throws Exception {
         Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
@@ -755,14 +763,26 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check the series status
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
                .groupByV3(Mockito.any());
-        Mockito.verify(notificationApiStub, Mockito.times(1))
-               .notify(Mockito.any(), Mockito.any());
+
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+            Mockito.verify(notificationApiStub, Mockito.times(1))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            // Only one series will be notified
+            Assert.assertEquals(AlertStatus.ALERTING, notificationMessage.getStatus());
+
+            // ALERTING message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+        }
     }
 
     @Test
@@ -1408,8 +1428,10 @@ public class AlertEvaluatorTest {
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
         // because series 1 is RESOLVED, ONLY series-2 will be kept
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
         Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
         // Verify notification message
         {
             ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
@@ -1419,13 +1441,13 @@ public class AlertEvaluatorTest {
             // Only one series will be notified
             Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
 
-            // TODO: RESOLVED message SHOULD contain the series info
-            // RESOLVED message has no output
-            Assert.assertEquals(0, notificationMessage.getEvaluationOutputs().size());
+            // RESOLVED message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assert.assertEquals(Map.of("appName", "test-app-1"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
         }
 
         //
-        // 5th round, both are RESOLVED
+        // 5th round, both are RESOLVED, but only series 2 will be notified
         //
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            alertRule,
@@ -1443,8 +1465,9 @@ public class AlertEvaluatorTest {
             // Only one series will be notified
             Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
 
-            // RESOLVED message has no output
-            Assert.assertEquals(0, notificationMessage.getEvaluationOutputs().size());
+            // RESOLVED message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assert.assertEquals(Map.of("appName", "test-app-2"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
         }
 
         Mockito.verify(dataSourceApiStub, Mockito.times(5))

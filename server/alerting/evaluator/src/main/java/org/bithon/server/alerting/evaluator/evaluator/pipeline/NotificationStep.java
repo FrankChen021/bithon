@@ -74,8 +74,15 @@ public class NotificationStep implements IPipelineStep {
                     notificationStatus.put(label, newStatus);
                     entry.getValue().setStatus(newStatus);
                 } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
+
                     notificationStatus.put(label, newStatus);
                     entry.getValue().setStatus(newStatus);
+
+                    // Add the Label to the outputs for notification purpose
+                    EvaluationOutput output = new EvaluationOutput(false, label, null, null, null, null);
+                    output.setExpressionId("");
+                    entry.getValue().add(output);
+
                 } else {
                     entry.getValue().setStatus(newStatus);
                 }
@@ -112,9 +119,7 @@ public class NotificationStep implements IPipelineStep {
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions());
-
-        // TODO: REMOVE non-alerting outputs
-        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context));
+        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context, AlertStatus.ALERTING));
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -153,7 +158,7 @@ public class NotificationStep implements IPipelineStep {
         notification.setStatus(AlertStatus.RESOLVED);
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions());
-        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context));
+        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context, AlertStatus.RESOLVED));
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
@@ -208,14 +213,11 @@ public class NotificationStep implements IPipelineStep {
         return alertRecord.getRecordId();
     }
 
-    private Map<String, EvaluationOutputs> getEvaluationOutputsByExpressionId(EvaluationContext context) {
+    private Map<String, EvaluationOutputs> getEvaluationOutputsByExpressionId(EvaluationContext context, AlertStatus status) {
         Map<String, EvaluationOutputs> result = new HashMap<>();
         for (Map.Entry<Label, EvaluationOutputs> state : context.getOutputs().entrySet()) {
             EvaluationOutputs outputs = state.getValue();
-            if (!outputs.isMatched()) {
-                continue;
-            }
-            if (!(outputs.getStatus().equals(AlertStatus.ALERTING))) {
+            if (!(outputs.getStatus().equals(status))) {
                 continue;
             }
 

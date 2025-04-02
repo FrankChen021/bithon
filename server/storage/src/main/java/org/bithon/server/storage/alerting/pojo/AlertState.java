@@ -40,8 +40,8 @@ public class AlertState {
 
         private long matchCount;
         private long matchExpiredAt;
-
         private long silenceExpiredAt;
+        private long resolvedAt;
     }
 
     public static class Payload {

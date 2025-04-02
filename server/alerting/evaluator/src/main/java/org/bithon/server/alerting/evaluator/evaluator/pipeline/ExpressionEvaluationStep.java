@@ -43,65 +43,72 @@ import java.util.Map;
 public class ExpressionEvaluationStep implements IPipelineStep {
 
     static class CombinableOutput {
-        private final EvaluationOutputs nonGroupedOutputs;
-        private Map<Label, EvaluationOutputs> groupedOutputs;
+        /**
+         * Typically the outputs for scalar expressions or non-GROUP-BY expressions
+         */
+        private final EvaluationOutputs scalarOutputs;
+
+        /**
+         * Typically the outputs for GROUP-BY expressions
+         */
+        private Map<Label, EvaluationOutputs> vectorOutputs;
 
         public CombinableOutput() {
-            this.nonGroupedOutputs = new EvaluationOutputs();
-            this.groupedOutputs = null;
+            this.scalarOutputs = new EvaluationOutputs();
+            this.vectorOutputs = null;
         }
 
         public CombinableOutput(EvaluationOutputs outputs) {
             if (outputs.size() == 1 && outputs.get(0).getLabel().isEmpty()) {
-                this.nonGroupedOutputs = outputs;
-                this.groupedOutputs = null;
+                this.scalarOutputs = outputs;
+                this.vectorOutputs = null;
             } else {
-                this.nonGroupedOutputs = new EvaluationOutputs();
+                this.scalarOutputs = new EvaluationOutputs();
 
-                this.groupedOutputs = new HashMap<>();
+                this.vectorOutputs = new HashMap<>();
                 for (EvaluationOutput output : outputs) {
-                    groupedOutputs.computeIfAbsent(output.getLabel(), v -> new EvaluationOutputs())
-                                  .add(output);
+                    vectorOutputs.computeIfAbsent(output.getLabel(), v -> new EvaluationOutputs())
+                                 .add(output);
                 }
             }
         }
 
         public void combine(CombinableOutput other) {
-            this.nonGroupedOutputs.addAll(other.nonGroupedOutputs);
+            this.scalarOutputs.addAll(other.scalarOutputs);
 
-            if (other.groupedOutputs != null) {
-                if (this.groupedOutputs == null) {
-                    this.groupedOutputs = new HashMap<>(other.groupedOutputs);
+            if (other.vectorOutputs != null) {
+                if (this.vectorOutputs == null) {
+                    this.vectorOutputs = new HashMap<>(other.vectorOutputs);
                 } else {
-                    merge(this.groupedOutputs, other.groupedOutputs);
+                    merge(this.vectorOutputs, other.vectorOutputs);
                 }
             }
         }
 
         public boolean isMatched() {
-            if (!this.nonGroupedOutputs.isEmpty()) {
-                if (!this.nonGroupedOutputs.isMatched()) {
+            if (!this.scalarOutputs.isEmpty()) {
+                if (!this.scalarOutputs.isMatched()) {
                     return false;
                 }
             }
 
-            if (groupedOutputs != null) {
-                return groupedOutputs.values()
-                                     .stream()
-                                     // Since we merge all series together including non-matched, we use 'any' to find the matched one
-                                     .anyMatch(EvaluationOutputs::isMatched);
+            if (vectorOutputs != null) {
+                return vectorOutputs.values()
+                                    .stream()
+                                    // Since we merge all series together including non-matched, we use 'any' to find the matched one
+                                    .anyMatch(EvaluationOutputs::isMatched);
             }
 
-            return !this.nonGroupedOutputs.isEmpty();
+            return !this.scalarOutputs.isEmpty();
         }
 
         public Map<Label, EvaluationOutputs> getFinalizedCombination() {
             Map<Label, EvaluationOutputs> outputs = new HashMap<>();
-            if (this.groupedOutputs != null) {
-                outputs.putAll(this.groupedOutputs);
+            if (this.vectorOutputs != null) {
+                outputs.putAll(this.vectorOutputs);
             }
-            if (!this.nonGroupedOutputs.isEmpty()) {
-                outputs.put(Label.EMPTY, this.nonGroupedOutputs);
+            if (!this.scalarOutputs.isEmpty()) {
+                outputs.put(Label.EMPTY, this.scalarOutputs);
             }
             return outputs;
         }

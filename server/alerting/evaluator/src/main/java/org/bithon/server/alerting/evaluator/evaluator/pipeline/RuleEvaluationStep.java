@@ -17,6 +17,7 @@
 package org.bithon.server.alerting.evaluator.evaluator.pipeline;
 
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.common.model.AlertRule;
@@ -49,7 +50,7 @@ public class RuleEvaluationStep implements IPipelineStep {
         for (Map.Entry<Label, AlertState.SeriesState> entry : context.getStateManager().getSeriesState().entrySet()) {
             Label label = entry.getKey();
 
-            context.getOutputs().computeIfAbsent(label, label1 -> {
+            context.getOutputs().computeIfAbsent(label, k -> {
                 EvaluationOutputs outputs = new EvaluationOutputs();
                 outputs.setStatus(AlertStatus.RESOLVED);
                 return outputs;
