@@ -86,7 +86,7 @@ public class AlertCommandService {
             this.setEvery(obj.getPayload().getEvery());
             this.setExpr(obj.getPayload().getExpr());
             this.setSilence(obj.getPayload().getSilence());
-            this.setNotifications(obj.getPayload().getNotifications());
+            this.setNotificationProps(obj.getPayload().getNotificationProps());
             this.setForTimes(obj.getPayload().getForTimes());
             this.enabled = !obj.isDisabled();
         }
