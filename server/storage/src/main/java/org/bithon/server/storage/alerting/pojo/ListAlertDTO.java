@@ -38,6 +38,7 @@ public class ListAlertDTO {
     private String lastOperator;
 
     // From bithon_alert_state
+    private Timestamp lastEvaluatedAt;
     private Timestamp lastAlertAt;
     private String lastRecordId;
     private AlertStatus alertStatus;

@@ -36,6 +36,7 @@ public class ListAlertVO {
     private long createdAt;
     private long updatedAt;
 
+    private long lastEvaluatedAt;
     private Long lastAlertAt;
     private String lastRecordId;
     private AlertStatus alertStatus;

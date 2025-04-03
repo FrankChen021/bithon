@@ -275,6 +275,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                                              Tables.BITHON_ALERT_OBJECT.APP_NAME,
                                                              Tables.BITHON_ALERT_OBJECT.CREATED_AT,
                                                              Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
+                                                             Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT,
                                                              Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
                                                              Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
                                                              Tables.BITHON_ALERT_STATE.ALERT_STATUS,
@@ -332,6 +333,11 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                  obj.setLastAlertAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
                              }
                              obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
+
+                             timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT);
+                             if (timestamp != null) {
+                                 obj.setLastEvaluatedAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
+                             }
 
                              Integer status = record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS);
                              obj.setAlertStatus(status == null ? AlertStatus.READY : AlertStatus.fromCode(status));
