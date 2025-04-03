@@ -142,6 +142,7 @@ public class AlertStateJdbcStorage implements IAlertStateStorage {
                       .set(Tables.BITHON_ALERT_STATE.ALERT_STATUS, state.getStatus().statusCode())
                       .set(Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT, now)
                       .onDuplicateKeyUpdate()
+                      .set(Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT, now)
                       .set(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT, state.getLastAlertAt() == null ? new Timestamp(0).toLocalDateTime() : state.getLastAlertAt())
                       .set(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID, state.getLastRecordId() == null ? "" : state.getLastRecordId())
                       .set(Tables.BITHON_ALERT_STATE.UPDATE_AT, now)
