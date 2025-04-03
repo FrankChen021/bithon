@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 
 import javax.annotation.Nullable;
@@ -62,4 +63,6 @@ public class IntervalRequest {
      * And this parameter has higher priority than {@param bucketCount}
      */
     private Integer step;
+
+    private HumanReadableDuration window;
 }

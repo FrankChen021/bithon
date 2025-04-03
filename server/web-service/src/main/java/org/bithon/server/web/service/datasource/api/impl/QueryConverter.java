@@ -141,7 +141,7 @@ public class QueryConverter {
                       .selectors(selectorList)
                       .schema(schema)
                       .filter(QueryFilter.build(schema, query.getFilterExpression()))
-                      .interval(Interval.of(start, end, step, new IdentifierExpression(timestampColumn)))
+                      .interval(Interval.of(start, end, step, query.getInterval().getWindow(), new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .offset(query.getOffset())
