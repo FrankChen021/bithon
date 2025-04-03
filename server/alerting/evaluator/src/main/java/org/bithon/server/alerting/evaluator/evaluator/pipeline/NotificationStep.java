@@ -21,10 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.Label;
@@ -33,6 +33,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,12 +57,12 @@ public class NotificationStep implements IPipelineStep {
     }
 
     @Override
-    public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+    public void evaluate(EvaluationContext context) {
         Map<Label, AlertStatus> notificationStatus = new HashMap<>();
-        for (Map.Entry<Label, AlertStatus> entry : context.getSeriesStatus().entrySet()) {
+        for (Map.Entry<Label, EvaluationOutputs> entry : context.getOutputs().entrySet()) {
             Label label = entry.getKey();
-            AlertStatus newStatus = entry.getValue();
-            AlertStatus prevStatus = context.getPrevState() == null ? AlertStatus.READY : context.getPrevState().getStatusByLabel(label);
+            AlertStatus newStatus = entry.getValue().getStatus();
+            AlertStatus prevStatus = context.getStateManager().getStatusByLabel(label);
 
             if (prevStatus.canTransitTo(newStatus)) {
                 context.log(NotificationStep.class, "Update alert status%s: [%s] ---> [%s]",
@@ -71,15 +72,22 @@ public class NotificationStep implements IPipelineStep {
 
                 if (newStatus == AlertStatus.ALERTING) {
                     notificationStatus.put(label, newStatus);
-                    context.getSeriesStatus().put(label, newStatus);
+                    entry.getValue().setStatus(newStatus);
                 } else if ((prevStatus == AlertStatus.ALERTING || prevStatus == AlertStatus.SUPPRESSING) && newStatus == AlertStatus.RESOLVED) {
+
                     notificationStatus.put(label, newStatus);
-                    context.getSeriesStatus().put(label, newStatus);
+                    entry.getValue().setStatus(newStatus);
+
+                    // Add the Label to the outputs for notification purpose
+                    EvaluationOutput output = new EvaluationOutput(false, label, null, null, null, null);
+                    output.setExpressionId("");
+                    entry.getValue().add(output);
+
                 } else {
-                    context.getSeriesStatus().put(label, newStatus);
+                    entry.getValue().setStatus(newStatus);
                 }
             } else {
-                context.getSeriesStatus().put(label, prevStatus);
+                entry.getValue().setStatus(prevStatus);
                 context.log(NotificationStep.class, "%sstay in alert status: [%s]", label.formatIfNotEmpty("Series {%s} "), prevStatus);
             }
         }
@@ -111,16 +119,14 @@ public class NotificationStep implements IPipelineStep {
         notification.setAlertRule(alertRule);
         notification.setStatus(AlertStatus.ALERTING);
         notification.setExpressions(alertRule.getFlattenExpressions());
-
-        // TODO: REMOVE non-alerting outputs
-        notification.setEvaluationOutputs(context.getEvaluationOutputs().toMap());
+        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context, AlertStatus.ALERTING));
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // Save alerting records
             context.log(NotificationStep.class, "Saving alert record");
             String id = saveAlertRecord(context, alertAt, notification);
-            context.setRecordId(id);
+            context.getStateManager().setLastRecordId(id);
 
             // notification
             notification.setLastAlertAt(alertAt.getTime());
@@ -152,13 +158,13 @@ public class NotificationStep implements IPipelineStep {
         notification.setStatus(AlertStatus.RESOLVED);
         notification.setAlertRule(alertRule);
         notification.setExpressions(alertRule.getFlattenExpressions());
-        notification.setEvaluationOutputs(context.getEvaluationOutputs().toMap());
+        notification.setEvaluationOutputs(getEvaluationOutputsByExpressionId(context, AlertStatus.RESOLVED));
 
         Timestamp alertAt = new Timestamp(System.currentTimeMillis());
         try {
             // notification
             notification.setLastAlertAt(alertAt.getTime());
-            notification.setAlertRecordId(context.getPrevState().getLastRecordId());
+            notification.setAlertRecordId(context.getStateManager().getLastRecordId());
             for (String channelName : alertRule.getNotificationProps().getChannels()) {
                 context.log(NotificationStep.class, "Sending RESOLVED notification to channel [%s]", channelName);
 
@@ -183,8 +189,10 @@ public class NotificationStep implements IPipelineStep {
         alertRecord.setDataSource("{}");
         alertRecord.setCreatedAt(lastAlertAt);
 
-        long startOfThisEvaluation = context.getEvaluationOutputs()
+        long startOfThisEvaluation = context.getOutputs()
+                                            .values()
                                             .stream()
+                                            .flatMap(Collection::stream)
                                             .map(EvaluationOutput::getStart)
                                             .min(Comparator.comparingLong((v) -> v))
                                             .get();
@@ -203,5 +211,21 @@ public class NotificationStep implements IPipelineStep {
         alertRecord.setNotificationStatus(IAlertRecordStorage.STATUS_CODE_UNCHECKED);
         alertRecordStorage.addAlertRecord(alertRecord);
         return alertRecord.getRecordId();
+    }
+
+    private Map<String, EvaluationOutputs> getEvaluationOutputsByExpressionId(EvaluationContext context, AlertStatus status) {
+        Map<String, EvaluationOutputs> result = new HashMap<>();
+        for (Map.Entry<Label, EvaluationOutputs> state : context.getOutputs().entrySet()) {
+            EvaluationOutputs outputs = state.getValue();
+            if (!(outputs.getStatus().equals(status))) {
+                continue;
+            }
+
+            for (EvaluationOutput output : outputs) {
+                result.computeIfAbsent(output.getExpressionId(), k -> new EvaluationOutputs())
+                      .add(output);
+            }
+        }
+        return result;
     }
 }

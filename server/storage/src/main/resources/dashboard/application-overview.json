@@ -178,8 +178,8 @@
         "type": "groupBy",
         "fields": [
           {
-            "name": "consumedByteRate",
-            "expression": "round(sum(consumedBytes) * 1.0/{interval}, 2)"
+            "name": "consumedRecords",
+            "expression": "sum(consumedRecords)"
           }
         ],
         "precondition": {

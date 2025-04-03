@@ -14,14 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.evaluator.state;
+package org.bithon.server.alerting.common.evaluator.state;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 
@@ -29,21 +30,20 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/14 2:51 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IEvaluationStateManager {
 
     /**
      * @param duration The duration of an alert rule
      * @return The successive match count of each Label
      */
-    Map<Label, Long> setMatches(String alertId, Collection<Label> series, Duration duration);
+    Map<Label, Long> setMatches(Collection<Label> series, Duration duration);
 
     /**
      * Check if there's an alert sending out in the past {@param silencePeriod} minutes.
      */
-    boolean tryEnterSilence(String alertId, Label label, Duration silenceDuration);
+    boolean tryEnterSilence(Label label, Duration silenceDuration);
 
-    Duration getSilenceRemainTime(String alertId, Label label);
+    Duration getSilenceRemainTime(Label label);
 
     /**
      * Set the last evaluation time of an alert.
@@ -51,22 +51,32 @@ public interface IEvaluationStateManager {
      * @param timestamp the timestamp when the alert is evaluated
      * @param interval  the interval of two consecutive evaluations
      */
-    void setLastEvaluationTime(String alertId, long timestamp, Duration interval);
+    void setLastEvaluationTime(long timestamp, Duration interval);
 
     /**
      * Get the timestamp when the alert is evaluated last time in milliseconds
      */
-    long getLastEvaluationTimestamp(String alertId);
+    long getLastEvaluationTimestamp();
+
+    AlertState updateState(AlertStatus status,
+                           Map<Label, EvaluationOutputs> seriesStatus);
 
     /**
-     * Restore alert states from external storage
+     * @return the timestamp or NULL
      */
-    void restoreAlertStates();
+    LocalDateTime getLastAlertAt();
 
-    AlertState getAlertState(String alertId);
+    /**
+     * @return If the label is not found, it returns {@link AlertStatus#READY}
+     */
+    AlertStatus getStatusByLabel(Label label);
 
-    void setState(String alertId,
-                  String recordId,
-                  AlertStatus status,
-                  Map<Label, AlertStatus> seriesStatus);
+    void setLastRecordId(String recordId);
+
+    /**
+     * @return Nullable
+     */
+    String getLastRecordId();
+
+    Map<Label, AlertState.SeriesState> getSeriesState();
 }

@@ -23,6 +23,8 @@ import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -45,16 +47,27 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AlertRepository {
 
     private final IAlertObjectStorage alertObjectStorage;
+    private final IAlertStateStorage alertStateStorage;
     private final Map<String, AlertRule> loadedAlerts = new ConcurrentHashMap<>();
     private final List<IAlertChangeListener> changeListeners = Collections.synchronizedList(new ArrayList<>());
     private Timestamp lastLoadedAt = new Timestamp(0);
 
-    public AlertRepository(IAlertObjectStorage alertObjectStorage) {
+    public AlertRepository(IAlertObjectStorage alertObjectStorage,
+                           IAlertStateStorage alertStateStorage) {
         this.alertObjectStorage = alertObjectStorage;
+        this.alertStateStorage = alertStateStorage;
     }
 
     public Map<String, AlertRule> getLoadedAlerts() {
         return this.loadedAlerts;
+    }
+
+    public Map<String, AlertState> getAlertStates() {
+        return this.alertStateStorage.getAlertStates();
+    }
+
+    public void setAlertState(String alertId, AlertState state) {
+        this.alertStateStorage.updateAlertStates(Map.of(alertId, state));
     }
 
     public void loadChanges() {

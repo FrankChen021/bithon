@@ -20,16 +20,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
+import org.bithon.server.alerting.common.evaluator.state.IEvaluationStateManager;
+import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +39,6 @@ import java.util.Map;
  */
 @Getter
 public class EvaluationContext implements IEvaluationContext {
-
-    private final @Nullable AlertState prevState;
 
     private final TimeSpan intervalEnd;
     private final AlertRule alertRule;
@@ -55,23 +53,14 @@ public class EvaluationContext implements IEvaluationContext {
     private boolean isExpressionEvaluatedAsTrue = false;
 
     /**
-     * The outputs of whole alert rule.
-     * For simple expression, it's the SAME as above.
-     * For complex expression like A AND B, it's the intersection result set of A and B
+     * The status of each (group-by) series.
+     * For complex logical expression like, A by (appName) AND B by (appName), the value of the key holds the merged outputs from both A and B sub expressions
      */
-    @Setter
-    private EvaluationOutputs evaluationOutputs;
-
-    /**
-     * The status of each (group-by) series
-     */
-    private final Map<Label, AlertStatus> seriesStatus = new HashMap<>();
-
-    @Setter
-    private String recordId;
+    private final Map<Label, EvaluationOutputs> outputs = new HashMap<>();
 
     private final EvaluationLogger evaluationLogger;
     private final IDataSourceApi dataSourceApi;
+    private final IEvaluationStateManager stateManager;
 
     public EvaluationContext(TimeSpan intervalEnd,
                              IEvaluationLogWriter logger,
@@ -82,7 +71,7 @@ public class EvaluationContext implements IEvaluationContext {
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogger = new EvaluationLogger(logger);
         this.alertRule = alertRule;
-        this.prevState = prevState;
+        this.stateManager = new LocalStateManager(prevState);
     }
 
     public void log(Class<?> loggerClass, String message) {

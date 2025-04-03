@@ -63,7 +63,6 @@ public class AlertRule {
     @NotBlank
     private String name;
 
-
     @JsonProperty
     private String expr;
 

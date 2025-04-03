@@ -19,10 +19,10 @@ package org.bithon.server.alerting.evaluator.evaluator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
-import lombok.Getter;
 import org.bithon.component.commons.utils.NetworkUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.ExpressionEvaluationStep;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.IPipelineStep;
@@ -32,10 +32,9 @@ import org.bithon.server.alerting.evaluator.evaluator.pipeline.Pipeline;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.RuleEvaluationStep;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IEvaluationLogWriter;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
@@ -44,6 +43,7 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
+import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.Map;
@@ -54,17 +54,15 @@ import java.util.Map;
  */
 public class AlertEvaluator implements DisposableBean {
 
-    @Getter
-    private final IEvaluationStateManager stateManager;
-    private final IEvaluationLogWriter evaluationLogWriter;
+    private final EvaluationLogBatchWriter evaluationLogWriter;
     private final IDataSourceApi dataSourceApi;
     private final ObjectMapper objectMapper;
     private final IAlertRecordStorage recordStorage;
     private final INotificationApiInvoker notificationApiInvoker;
+    private final AlertRepository repository;
 
     public AlertEvaluator(AlertRepository repository,
-                          IEvaluationStateManager stateManager,
-                          IEvaluationLogWriter evaluationLogWriter,
+                          IEvaluationLogStorage logStorage,
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
@@ -75,12 +73,13 @@ public class AlertEvaluator implements DisposableBean {
         // It's a copy of existing ObjectMapper
         // because the injected ObjectMapper has extra serialization/deserialization configurations
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
+        this.repository = repository;
         this.recordStorage = recordStorage;
         this.notificationApiInvoker = notificationApiInvoker;
-        this.stateManager = stateManager;
         this.dataSourceApi = dataSourceApi;
-        this.evaluationLogWriter = evaluationLogWriter;
+        this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
+        this.evaluationLogWriter.start();
 
         if (repository != null) {
             repository.addListener(new IAlertChangeListener() {
@@ -126,16 +125,10 @@ public class AlertEvaluator implements DisposableBean {
         }
     }
 
-    public void evaluate(TimeSpan now, AlertRule rule) {
-        AlertState stateObject = this.getStateManager().getAlertState(rule.getId());
-        this.evaluate(now, rule, stateObject, false);
-    }
-
     /**
      * @param prevState can be null
      */
-    @VisibleForTesting
-    void evaluate(TimeSpan now, AlertRule alertRule, AlertState prevState) {
+    public void evaluate(TimeSpan now, AlertRule alertRule, @Nullable AlertState prevState) {
         this.evaluate(now, alertRule, prevState, false);
     }
 
@@ -155,7 +148,8 @@ public class AlertEvaluator implements DisposableBean {
                     return;
                 }
 
-                TimeSpan lastEvaluationTimestamp = TimeSpan.of(this.stateManager.getLastEvaluationTimestamp(alertRule.getId()))
+                TimeSpan lastEvaluationTimestamp = TimeSpan.of(context.getStateManager()
+                                                                      .getLastEvaluationTimestamp())
                                                            .floor(Duration.ofMinutes(1));
                 long pastSeconds = now.diff(lastEvaluationTimestamp) / 1000;
                 if (pastSeconds < interval.toSeconds()) {
@@ -176,13 +170,14 @@ public class AlertEvaluator implements DisposableBean {
             pipeline.addStep(new NotificationStep(recordStorage, notificationApiInvoker, this.objectMapper));
             pipeline.addStep(new IPipelineStep() {
                 @Override
-                public void evaluate(IEvaluationStateManager stateManager, EvaluationContext context) {
+                public void evaluate(EvaluationContext context) {
                     String ruleId = context.getAlertRule().getId();
-                    stateManager.setLastEvaluationTime(ruleId, System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
-                    stateManager.setState(ruleId, context.getRecordId(), mergeStatus(context.getSeriesStatus()), context.getSeriesStatus());
+                    context.getStateManager().setLastEvaluationTime(System.currentTimeMillis(), context.getAlertRule().getEvery().getDuration());
+                    AlertState alertState = context.getStateManager().updateState(mergeStatus(context.getOutputs()), context.getOutputs());
+                    repository.setAlertState(ruleId, alertState);
                 }
             });
-            pipeline.evaluate(this.stateManager, context);
+            pipeline.evaluate(context);
         } catch (Exception e) {
             context.logException(AlertEvaluator.class, e, "ERROR to evaluate alert %s", alertRule.getName());
         }
@@ -191,7 +186,7 @@ public class AlertEvaluator implements DisposableBean {
     /**
      * Merge status per label into a single status at the rule level
      */
-    private AlertStatus mergeStatus(Map<Label, AlertStatus> status) {
+    private AlertStatus mergeStatus(Map<Label, EvaluationOutputs> status) {
         if (status.isEmpty()) {
             return AlertStatus.READY;
         }
@@ -199,7 +194,8 @@ public class AlertEvaluator implements DisposableBean {
         int isResolved = 0;
         boolean hasSuppressing = false;
         boolean hasPending = false;
-        for (AlertStatus alertStatus : status.values()) {
+        for (EvaluationOutputs outputs : status.values()) {
+            AlertStatus alertStatus = outputs.getStatus();
             if (alertStatus == AlertStatus.ALERTING) {
                 return AlertStatus.ALERTING;
             }

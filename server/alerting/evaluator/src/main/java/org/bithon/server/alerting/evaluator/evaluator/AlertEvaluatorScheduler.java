@@ -22,12 +22,14 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -50,8 +52,8 @@ public class AlertEvaluatorScheduler {
                                    AlertRepository alertRepository) {
         this.alertEvaluator = alertEvaluator;
         this.alertRepository = alertRepository;
-        this.executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
-                                               50,
+        this.executor = new ThreadPoolExecutor(1,
+                                               Runtime.getRuntime().availableProcessors(),
                                                5,
                                                TimeUnit.MINUTES,
                                                new LinkedBlockingQueue<>(128),
@@ -71,11 +73,12 @@ public class AlertEvaluatorScheduler {
             alertRepository.loadChanges();
 
             // Load states of all alert rules
-            alertEvaluator.getStateManager().restoreAlertStates();
+            Map<String, AlertState> alertStates = alertRepository.getAlertStates();
 
             TimeSpan now = TimeSpan.now().floor(Duration.ofMinutes(1));
             for (AlertRule alertRule : alertRepository.getLoadedAlerts().values()) {
-                executor.execute(() -> alertEvaluator.evaluate(now, alertRule));
+                AlertState alertState = alertStates.get(alertRule.getId());
+                executor.execute(() -> alertEvaluator.evaluate(now, alertRule, alertState));
             }
         } finally {
             Thread.currentThread().setName(name);

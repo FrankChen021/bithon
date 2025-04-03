@@ -8,16 +8,16 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertState;
 import org.jooq.Field;
-import org.jooq.Record6;
-import org.jooq.Row6;
+import org.jooq.Record7;
+import org.jooq.Row7;
 import org.jooq.impl.TableRecordImpl;
 
 
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
-public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record6<String, Integer, LocalDateTime, String, LocalDateTime, String> {
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateRecord> implements Record7<String, Integer, LocalDateTime, String, LocalDateTime, LocalDateTime, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -82,11 +82,27 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     }
 
     /**
+     * Setter for <code>bithon_alert_state.last_evaluated_at</code>. The last
+     * time the alert is evaluated
+     */
+    public void setLastEvaluatedAt(LocalDateTime value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_state.last_evaluated_at</code>. The last
+     * time the alert is evaluated
+     */
+    public LocalDateTime getLastEvaluatedAt() {
+        return (LocalDateTime) get(4);
+    }
+
+    /**
      * Setter for <code>bithon_alert_state.update_at</code>. when the record is
      * updated
      */
     public void setUpdateAt(LocalDateTime value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
@@ -94,7 +110,7 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
      * updated
      */
     public LocalDateTime getUpdateAt() {
-        return (LocalDateTime) get(4);
+        return (LocalDateTime) get(5);
     }
 
     /**
@@ -102,7 +118,7 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
      * runtime info. See AlertStateObject$Payload to know more
      */
     public void setPayload(String value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
@@ -110,21 +126,21 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
      * runtime info. See AlertStateObject$Payload to know more
      */
     public String getPayload() {
-        return (String) get(5);
+        return (String) get(6);
     }
 
     // -------------------------------------------------------------------------
-    // Record6 type implementation
+    // Record7 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<String, Integer, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<String, Integer, LocalDateTime, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 
     @Override
-    public Row6<String, Integer, LocalDateTime, String, LocalDateTime, String> valuesRow() {
-        return (Row6) super.valuesRow();
+    public Row7<String, Integer, LocalDateTime, String, LocalDateTime, LocalDateTime, String> valuesRow() {
+        return (Row7) super.valuesRow();
     }
 
     @Override
@@ -149,11 +165,16 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
 
     @Override
     public Field<LocalDateTime> field5() {
+        return BithonAlertState.BITHON_ALERT_STATE.LAST_EVALUATED_AT;
+    }
+
+    @Override
+    public Field<LocalDateTime> field6() {
         return BithonAlertState.BITHON_ALERT_STATE.UPDATE_AT;
     }
 
     @Override
-    public Field<String> field6() {
+    public Field<String> field7() {
         return BithonAlertState.BITHON_ALERT_STATE.PAYLOAD;
     }
 
@@ -179,11 +200,16 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
 
     @Override
     public LocalDateTime component5() {
+        return getLastEvaluatedAt();
+    }
+
+    @Override
+    public LocalDateTime component6() {
         return getUpdateAt();
     }
 
     @Override
-    public String component6() {
+    public String component7() {
         return getPayload();
     }
 
@@ -209,11 +235,16 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
 
     @Override
     public LocalDateTime value5() {
+        return getLastEvaluatedAt();
+    }
+
+    @Override
+    public LocalDateTime value6() {
         return getUpdateAt();
     }
 
     @Override
-    public String value6() {
+    public String value7() {
         return getPayload();
     }
 
@@ -243,24 +274,31 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
 
     @Override
     public BithonAlertStateRecord value5(LocalDateTime value) {
+        setLastEvaluatedAt(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertStateRecord value6(LocalDateTime value) {
         setUpdateAt(value);
         return this;
     }
 
     @Override
-    public BithonAlertStateRecord value6(String value) {
+    public BithonAlertStateRecord value7(String value) {
         setPayload(value);
         return this;
     }
 
     @Override
-    public BithonAlertStateRecord values(String value1, Integer value2, LocalDateTime value3, String value4, LocalDateTime value5, String value6) {
+    public BithonAlertStateRecord values(String value1, Integer value2, LocalDateTime value3, String value4, LocalDateTime value5, LocalDateTime value6, String value7) {
         value1(value1);
         value2(value2);
         value3(value3);
         value4(value4);
         value5(value5);
         value6(value6);
+        value7(value7);
         return this;
     }
 
@@ -278,13 +316,14 @@ public class BithonAlertStateRecord extends TableRecordImpl<BithonAlertStateReco
     /**
      * Create a detached, initialised BithonAlertStateRecord
      */
-    public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId, LocalDateTime updateAt, String payload) {
+    public BithonAlertStateRecord(String alertId, Integer alertStatus, LocalDateTime lastAlertAt, String lastRecordId, LocalDateTime lastEvaluatedAt, LocalDateTime updateAt, String payload) {
         super(BithonAlertState.BITHON_ALERT_STATE);
 
         setAlertId(alertId);
         setAlertStatus(alertStatus);
         setLastAlertAt(lastAlertAt);
         setLastRecordId(lastRecordId);
+        setLastEvaluatedAt(lastEvaluatedAt);
         setUpdateAt(updateAt);
         setPayload(payload);
     }

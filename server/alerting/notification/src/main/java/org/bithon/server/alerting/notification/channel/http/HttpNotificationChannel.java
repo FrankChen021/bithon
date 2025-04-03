@@ -155,6 +155,17 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                            output.getDelta()))
                                        .collect(Collectors.joining("\n"))
                                 + "\n";
+        } else { // RESOLVED
+            evaluationMessage = message.getEvaluationOutputs()
+                                       .values()
+                                       .stream()
+                                       .flatMap(Collection::stream)
+                                       .filter((output) -> !output.getLabel().isEmpty())
+                                       .map((output) -> output.getLabel().toString())
+                                       .collect(Collectors.joining("\n"));
+            if (!evaluationMessage.isEmpty()) {
+                evaluationMessage = "\n" + evaluationMessage + "\n";
+            }
         }
         messageBody = messageBody.replace("{alert.message}", evaluationMessage);
 

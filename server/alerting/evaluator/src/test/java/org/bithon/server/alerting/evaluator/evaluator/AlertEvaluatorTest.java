@@ -16,7 +16,6 @@
 
 package org.bithon.server.alerting.evaluator.evaluator;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -36,7 +35,6 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
 import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
@@ -47,6 +45,7 @@ import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
@@ -69,6 +68,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
@@ -129,11 +129,8 @@ public class AlertEvaluatorTest {
                                                           DeserializationContext ctx,
                                                           BeanProperty forProperty,
                                                           Object beanInstance) {
-                            JacksonInject inject = forProperty.getAnnotation(JacksonInject.class);
-
                             Class<?> targetClass = forProperty.getType().getRawClass();
-                            Object obj = injection.get(targetClass.getName());
-                            return obj;
+                            return injection.get(targetClass.getName());
                         }
                     });
 
@@ -219,11 +216,14 @@ public class AlertEvaluatorTest {
         Mockito.when(dataSourceApiStub.getSchemaByName(schema2.getName()))
                .thenReturn(schema2);
 
+        IEvaluationLogStorage logStorage = Mockito.mock(IEvaluationLogStorage.class);
+        Mockito.when(logStorage.createWriter())
+               .thenReturn(evaluationLogWriterStub);
+
         ServerProperties serverProperties = new ServerProperties();
         serverProperties.setPort(9897);
-        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub),
-                                       new LocalStateManager(alertStateStorageStub),
-                                       evaluationLogWriterStub,
+        evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorageStub, alertStateStorageStub),
+                                       logStorage,
                                        alertRecordStorageStub,
                                        dataSourceApiStub,
                                        serverProperties,
@@ -550,6 +550,12 @@ public class AlertEvaluatorTest {
                .notify(Mockito.any(), Mockito.any());
     }
 
+    /**
+     * 1. READY -> ALERTING
+     * 2. ALERTING -> RESOLVED
+     * 3. RESOLVED -> RESOLVED
+     * 4. RESOLVED -> ALERTING
+     */
     @SneakyThrows
     @Test
     public void test_AlertingToResolved() {
@@ -687,6 +693,14 @@ public class AlertEvaluatorTest {
         Assert.assertTrue(stateObject.getPayload().getSeries().isEmpty());
     }
 
+    /**
+     * round 1
+     * series 1: READY -> PENDING
+     * series 2: READY -> PENDING
+     * round 2
+     * series 1: PENDING -> RESOLVED
+     * series 2: PENDING -> ALERTING
+     */
     @Test
     public void test_GroupBy_1_SeriesMatches_PendingToAlerting() throws Exception {
         Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
@@ -749,18 +763,30 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check the series status
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
                .groupByV3(Mockito.any());
-        Mockito.verify(notificationApiStub, Mockito.times(1))
-               .notify(Mockito.any(), Mockito.any());
+
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+            Mockito.verify(notificationApiStub, Mockito.times(1))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            // Only one series will be notified
+            Assert.assertEquals(AlertStatus.ALERTING, notificationMessage.getStatus());
+
+            // ALERTING message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+        }
     }
 
     @Test
-    public void test_GroupBy_From_Multiple_DataSource() throws IOException {
+    public void test_GroupBy_From_Multiple_DataSource() throws Exception {
         //
         // test-app-2, which meets the alerting threshold, are in 3 data sources
         //
@@ -831,6 +857,20 @@ public class AlertEvaluatorTest {
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(3))
                .groupByV3(Mockito.any());
+
+        Mockito.verify(notificationApiStub, Mockito.times(1))
+               .notify(Mockito.any(), Mockito.any());
+
+        ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+        Mockito.verify(notificationApiStub, Mockito.times(1))
+               .notify(Mockito.any(), notificationMessageCaptor.capture());
+        NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+
+        // There are 3 outputs from 3 sub expressions, and 1 output for each sub expression '1', '2' and '3' respectively
+        Assert.assertEquals(3, notificationMessage.getEvaluationOutputs().size());
+        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("2").size());
+        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("3").size());
     }
 
     @Test
@@ -915,8 +955,7 @@ public class AlertEvaluatorTest {
                    if (queryRequest.getDataSource().equals(schema2.getName())) {
                        return QueryResponse.builder()
                                            // Return a value that DOES satisfy the condition,
-                                           .data(Arrays.asList(ImmutableMap.of("appName", "test-app-2", metric, 88),
-                                                               ImmutableMap.of("appName", "test-app-3", metric, 99)))
+                                           .data(List.of(ImmutableMap.of("appName", "test-app-2", metric, 88)))
                                            .build();
                    }
                    throw new RuntimeException("Unknown data source");
@@ -932,8 +971,7 @@ public class AlertEvaluatorTest {
                                        .expr(StringUtils.format("sum(%s.%s)[1m] by (appName) > 4 "
                                                                 + "AND sum(%s.%s)[1m] > 5 ",
                                                                 schema1.getName(), metric,
-                                                                schema2.getName(), metric,
-                                                                schema3.getName(), metric))
+                                                                schema2.getName(), metric))
                                        .notificationProps(NotificationProps.builder()
                                                                            .channels(List.of("console"))
                                                                            // Silence is 0
@@ -1181,7 +1219,7 @@ public class AlertEvaluatorTest {
      * To test that if SAME series appear in multiple sub-expressions, the state(successive match count) are calculated correctly
      */
     @Test
-    public void test_SameLabel_MatchCount() throws IOException {
+    public void test_SameLabel_MatchCountGreaterThan_One() throws IOException {
         Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
                .thenAnswer((invocation) -> {
                    QueryRequest queryRequest = invocation.getArgument(0);
@@ -1207,7 +1245,9 @@ public class AlertEvaluatorTest {
                                        .name("test-rule-1")
                                        .enabled(true)
                                        .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                       //
                                        // Two sub expression, expected the whole expression are evaluated as true for 2 times
+                                       //
                                        .forTimes(2)
                                        .expr(StringUtils.format("sum(%s.%s)[1m] > 4 "
                                                                 // no match with GROUP-BY
@@ -1250,29 +1290,45 @@ public class AlertEvaluatorTest {
                .groupByV3(Mockito.any());
     }
 
+    /**
+     * 1. series 1, 2 --> {NON, ALERTING}
+     * 2. series 1, 2 --> {ALERTING, SUPPRESSING}
+     * 3. series 1, 2 --> {SUPPRESSING, SUPPRESSING}
+     * 4. series 1, 2 --> {RESOLVED, SUPPRESSING}
+     * 5. series 1, 2 --> {RESOLVED, RESOLVED}
+     */
     @Test
-    public void test_MultipleLabels_One_Alerting_After_Another() throws IOException {
+    public void test_MultipleLabels_One_Alerting_After_Another() throws Exception {
         Mockito.when(dataSourceApiStub.groupByV3(Mockito.any()))
+               // 1
                .thenReturn(QueryResponse.builder()
                                         .data(List.of(
-                                            // NOT Satisfy
-                                            ImmutableMap.of("appName", "test-app-1", metric, 50),
-                                            // Satisfy
-                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                            ImmutableMap.of("appName", "test-app-1", metric, 50),   // Not Satisfy
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100))) // Satisfy --> ALERTING
                                         .build())
+               // 2
                .thenReturn(QueryResponse.builder()
                                         .data(List.of(
-                                            // Satisfy
-                                            ImmutableMap.of("appName", "test-app-1", metric, 100),
-                                            // NOT Satisfy
-                                            ImmutableMap.of("appName", "test-app-2", metric, 50)))
+                                            ImmutableMap.of("appName", "test-app-1", metric, 100), // Satisfy --> ALERTING
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100))) // Satisfy --> SUPPRESSING
                                         .build())
+               // 3
                .thenReturn(QueryResponse.builder()
                                         .data(List.of(
-                                            // Satisfy
-                                            ImmutableMap.of("appName", "test-app-1", metric, 100),
-                                            // Satisfy
-                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))
+                                            ImmutableMap.of("appName", "test-app-1", metric, 100), // Satisfy --> SUPPRESSING
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))// Satisfy --> SUPPRESSING
+                                        .build())
+               // 4
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(
+                                            ImmutableMap.of("appName", "test-app-1", metric, 5), // NOT Satisfy --> RESOLVED
+                                            ImmutableMap.of("appName", "test-app-2", metric, 100)))// Satisfy --> SUPPRESSING
+                                        .build())
+               // 5
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(
+                                            ImmutableMap.of("appName", "test-app-1", metric, 5), // NOT Satisfy --> RESOLVED
+                                            ImmutableMap.of("appName", "test-app-2", metric, 5)))// NOT Satisfy --> RESOLVED
                                         .build());
 
         String id = UUID.randomUUID().toString().replace("-", "");
@@ -1294,7 +1350,9 @@ public class AlertEvaluatorTest {
                                        .build()
                                        .initialize();
 
+        //
         // First round evaluation, series 2 will be in ALERTING
+        //
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            alertRule,
                            null);
@@ -1304,18 +1362,20 @@ public class AlertEvaluatorTest {
         Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
-        // 2nd round, series 1 will be ALERTING
-        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                           alertRule,
-                           stateObject,
-                           true);
-        stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+            Mockito.verify(notificationApiStub, Mockito.times(1))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            Assert.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
+            // Only one series will be notified
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+        }
 
-        // 3rd round, both are under SUPPRESSING
+        //
+        // 2nd round, series 1 will be ALERTING
+        //
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
                            alertRule,
                            stateObject,
@@ -1324,10 +1384,92 @@ public class AlertEvaluatorTest {
         Assert.assertNotNull(stateObject);
         Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
-        Mockito.verify(dataSourceApiStub, Mockito.times(3))
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+
+            Mockito.verify(notificationApiStub, Mockito.times(2))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            Assert.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
+            // Only one series will be notified
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+            Assert.assertEquals(Label.builder().add("appName", "test-app-1").build(), notificationMessage.getEvaluationOutputs().get("1").get(0).getLabel());
+        }
+
+        // 3rd round, both are under SUPPRESSING
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        // Verify notification message
+        // in this case, no notification sent, the expected call is still 2
+        Mockito.verify(notificationApiStub, Mockito.times(2))
+               .notify(Mockito.any(), Mockito.any());
+
+        //
+        // 4th round, series 1 will be RESOLVED
+        //
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
+        // because series 1 is RESOLVED, ONLY series-2 will be kept
+        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+            Mockito.verify(notificationApiStub, Mockito.times(3))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            // Only one series will be notified
+            Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
+
+            // RESOLVED message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assert.assertEquals(Map.of("appName", "test-app-1"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
+        }
+
+        //
+        // 5th round, both are RESOLVED, but only series 2 will be notified
+        //
+        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                           alertRule,
+                           stateObject,
+                           true);
+        stateObject = alertStateStorageStub.getAlertStates().get(id);
+        Assert.assertNotNull(stateObject);
+        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
+        // Verify notification message
+        {
+            ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
+            Mockito.verify(notificationApiStub, Mockito.times(4))
+                   .notify(Mockito.any(), notificationMessageCaptor.capture());
+            NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
+            // Only one series will be notified
+            Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
+
+            // RESOLVED message has 1 output
+            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assert.assertEquals(Map.of("appName", "test-app-2"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
+        }
+
+        Mockito.verify(dataSourceApiStub, Mockito.times(5))
                .groupByV3(Mockito.any());
     }
 }

@@ -28,7 +28,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
 import org.bithon.server.commons.time.TimeSpan;
@@ -40,15 +40,18 @@ import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogWriter;
 import org.bithon.server.storage.alerting.ObjectAction;
+import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
+import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
@@ -63,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 /**
  * @author frank.chen021@outlook.com
@@ -82,7 +86,7 @@ public class AlertCommandService {
             this.setEvery(obj.getPayload().getEvery());
             this.setExpr(obj.getPayload().getExpr());
             this.setSilence(obj.getPayload().getSilence());
-            this.setNotifications(obj.getPayload().getNotifications());
+            this.setNotificationProps(obj.getPayload().getNotificationProps());
             this.setForTimes(obj.getPayload().getForTimes());
             this.enabled = !obj.isDisabled();
         }
@@ -315,7 +319,7 @@ public class AlertCommandService {
             }
         };
 
-        IAlertStateStorage alertStateStorage4Test = new IAlertStateStorage() {
+        IAlertStateStorage alertStateStorage = new IAlertStateStorage() {
             @Override
             public void initialize() {
             }
@@ -327,20 +331,100 @@ public class AlertCommandService {
 
             @Override
             public void updateAlertStates(Map<String, AlertState> states) {
+
             }
         };
+        IAlertObjectStorage alertObjectStorage = new IAlertObjectStorage() {
 
-        AlertEvaluator evaluator = new AlertEvaluator(null,
-                                                      new LocalStateManager(alertStateStorage4Test),
-                                                      logStorage.createWriter(),
+            @Override
+            public List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end) {
+                return List.of();
+            }
+
+            @Override
+            public boolean existAlertById(String alertId) {
+                return false;
+            }
+
+            @Override
+            public boolean existAlertByName(String name) {
+                return false;
+            }
+
+            @Override
+            public AlertStorageObject getAlertById(String alertId) {
+                return null;
+            }
+
+            @Override
+            public void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
+
+            }
+
+            @Override
+            public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
+                return false;
+            }
+
+            @Override
+            public boolean disableAlert(String alertId, String operator) {
+                return false;
+            }
+
+            @Override
+            public boolean enableAlert(String alertId, String operator) {
+                return false;
+            }
+
+            @Override
+            public boolean deleteAlert(String alertId, String operator) {
+                return false;
+            }
+
+            @Override
+            public void addChangelog(String alertId, ObjectAction action, String operator, String beforeJsonString, String afterJsonString) {
+
+            }
+
+            @Override
+            public int getAlertListSize(String appName, String alertName) {
+                return 0;
+            }
+
+            @Override
+            public List<ListAlertDTO> getAlertList(String appName, String alertName, OrderBy orderBy, Limit limit) {
+                return List.of();
+            }
+
+            @Override
+            public ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize) {
+                return null;
+            }
+
+            @Override
+            public <T> T executeTransaction(Callable<T> runnable) {
+                return null;
+            }
+
+            @Override
+            public void initialize() {
+
+            }
+        };
+        AlertEvaluator evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorage, alertStateStorage),
+                                                      logStorage,
                                                       recordStorage4Test,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),
                                                       applicationContext.getBean(INotificationApiInvoker.class),
                                                       this.objectMapper);
-
-        evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
-                           rule);
+        try {
+            evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
+                               rule,
+                               null);
+        } finally {
+            evaluator.destroy();
+        }
 
         return logStorage.getLogs();
     }

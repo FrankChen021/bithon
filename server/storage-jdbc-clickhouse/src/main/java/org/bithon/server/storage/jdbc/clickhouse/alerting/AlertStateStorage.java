@@ -32,6 +32,7 @@ import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.BatchBindStep;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -69,8 +70,11 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
                                                                     Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
                                                                     Tables.BITHON_ALERT_STATE.UPDATE_AT,
                                                                     Tables.BITHON_ALERT_STATE.PAYLOAD,
-                                                                    Tables.BITHON_ALERT_STATE.ALERT_STATUS)
+                                                                    Tables.BITHON_ALERT_STATE.ALERT_STATUS,
+                                                                    Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT
+                                                        )
                                                         .values((String) null,
+                                                                null,
                                                                 null,
                                                                 null,
                                                                 null,
@@ -87,12 +91,14 @@ public class AlertStateStorage extends AlertStateJdbcStorage {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+            LocalDateTime now = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
             step = step.bind(ruleId,
                              state.getLastAlertAt() == null ? new Timestamp(0).toLocalDateTime() : state.getLastAlertAt(),
                              state.getLastRecordId() == null ? "" : state.getLastRecordId(),
-                             new Timestamp(System.currentTimeMillis()).toLocalDateTime(),
+                             now,
                              payloadString,
-                             state.getStatus().statusCode());
+                             state.getStatus().statusCode(),
+                             now);
         }
         step.execute();
     }

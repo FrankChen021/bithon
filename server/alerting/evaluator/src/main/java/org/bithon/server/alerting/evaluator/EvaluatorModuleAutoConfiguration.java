@@ -19,15 +19,12 @@ package org.bithon.server.alerting.evaluator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
-import org.bithon.server.alerting.evaluator.evaluator.EvaluationLogBatchWriter;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
-import org.bithon.server.alerting.evaluator.state.IEvaluationStateManager;
-import org.bithon.server.alerting.evaluator.state.local.LocalStateManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -35,8 +32,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import java.time.Duration;
 
 /**
  * @author Frank Chen
@@ -48,13 +43,7 @@ import java.time.Duration;
 public class EvaluatorModuleAutoConfiguration {
 
     @Bean
-    public IEvaluationStateManager stateManager(IAlertStateStorage stateStorage) {
-        return new LocalStateManager(stateStorage);
-    }
-
-    @Bean
     public AlertEvaluator alertEvaluator(AlertRepository repository,
-                                         IEvaluationStateManager stateManager,
                                          IEvaluationLogStorage logStorage,
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
@@ -62,12 +51,8 @@ public class EvaluatorModuleAutoConfiguration {
                                          INotificationApiInvoker notificationApiInvoker,
                                          ObjectMapper objectMapper) {
 
-        EvaluationLogBatchWriter logWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
-        logWriter.start();
-
         return new AlertEvaluator(repository,
-                                  stateManager,
-                                  logWriter,
+                                  logStorage,
                                   recordStorage,
                                   dataSourceApi,
                                   serverProperties,

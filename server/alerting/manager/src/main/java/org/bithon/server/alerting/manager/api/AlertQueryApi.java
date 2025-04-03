@@ -232,6 +232,7 @@ public class AlertQueryApi {
                                                      vo.setEnabled(!alert.isDisabled());
                                                      vo.setCreatedAt(alert.getCreatedAt().getTime());
                                                      vo.setUpdatedAt(alert.getUpdatedAt().getTime());
+                                                     vo.setLastEvaluatedAt(alert.getLastEvaluatedAt() == null ? 0 : alert.getLastEvaluatedAt().getTime());
                                                      vo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
                                                      vo.setLastOperator(alert.getLastOperator());
                                                      vo.setLastRecordId(alert.getLastRecordId());

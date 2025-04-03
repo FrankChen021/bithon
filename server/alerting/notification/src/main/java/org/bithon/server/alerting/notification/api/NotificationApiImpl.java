@@ -30,6 +30,7 @@ import org.bithon.server.alerting.notification.image.ImageMode;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -81,7 +82,9 @@ public class NotificationApiImpl implements INotificationApi {
 
     @Override
     public void notify(String name, NotificationMessage message) throws Exception {
-        if (imageService.isEnabled()) {
+        if (imageService.isEnabled()
+            // ONLY render image for ALERTING message this is because RESOLVED message is a bit tricky
+            && message.getStatus() == AlertStatus.ALERTING) {
 
             // Find out evaluated expressions
             List<AlertImageRenderService.EvaluatedExpression> expressionList =
