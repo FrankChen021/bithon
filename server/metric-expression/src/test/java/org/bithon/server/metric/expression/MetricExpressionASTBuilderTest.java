@@ -360,6 +360,7 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
 
         // Human readable literal
@@ -367,6 +368,7 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5MiB";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
 
         // Human readable literal
@@ -374,6 +376,7 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
 
         // Human readable literal
@@ -381,6 +384,7 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5G";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
 
         // Percentage literal
@@ -388,6 +392,7 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5%";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
 
         // duration literal
@@ -395,10 +400,8 @@ public class MetricExpressionASTBuilderTest {
             String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5h";
             IExpression ast = MetricExpressionASTBuilder.parse(expr);
             Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals(expr, ast.serializeToText());
         }
-
-        // TODO：need to refactor the serializer, pass serializer to the serializeText method
-        //Assert.assertEquals(expr, ast.serializeToText(new ExpressionSerializer()));
     }
 
     @Test
@@ -406,9 +409,7 @@ public class MetricExpressionASTBuilderTest {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
         Assert.assertTrue(ast instanceof ArithmeticExpression);
-
-        // TODO：need to refactor the serializer, pass serializer to the serializeText method
-        //Assert.assertEquals(expr, ast.serializeToText());
+        Assert.assertEquals(expr, ast.serializeToText());
     }
 
     @Test
@@ -416,9 +417,7 @@ public class MetricExpressionASTBuilderTest {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
         Assert.assertTrue(ast instanceof ArithmeticExpression);
-
-        // TODO：need to refactor the serializer, pass serializer to the serializeText method
-        //Assert.assertEquals(expr, ast.serializeToText());
+        Assert.assertEquals(expr, ast.serializeToText());
     }
 
     @Test
@@ -426,15 +425,13 @@ public class MetricExpressionASTBuilderTest {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
         Assert.assertTrue(ast instanceof ArithmeticExpression);
-
-        // TODO：need to refactor the serializer, pass serializer to the serializeText method
-        //Assert.assertEquals(expr, ast.serializeToText());
+        Assert.assertEquals(expr, ast.serializeToText());
     }
 
     @Test(expected = ArithmeticException.class)
     public void test_DIV_BY_Zero() {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 0";
-        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        MetricExpressionASTBuilder.parse(expr);
     }
 
     @Test
@@ -447,5 +444,6 @@ public class MetricExpressionASTBuilderTest {
         ArithmeticExpression.MUL mul = (ArithmeticExpression.MUL) ast;
         Assert.assertTrue(mul.getLhs() instanceof MetricExpression);
         Assert.assertTrue(mul.getRhs() instanceof ArithmeticExpression.SUB);
+        Assert.assertEquals(expr, ast.serializeToText());
     }
 }

@@ -126,7 +126,7 @@ public class MetricExpression implements IExpression {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
         }
 
-        if (includePredication) {
+        if (includePredication && predicate != null) {
             sb.append(' ');
             sb.append(predicate);
             sb.append(' ');
@@ -204,7 +204,6 @@ public class MetricExpression implements IExpression {
 
     @Override
     public void accept(IExpressionInDepthVisitor visitor) {
-
     }
 
     @Override
