@@ -112,6 +112,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .interval(query.getInterval())
                                                                 .groupBy(query.getGroupBy())
                                                                 .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
+                                                                .offset(query.getOffset())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 
@@ -130,6 +131,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .groupBy(query.getGroupBy())
                                                                 .orderBy(query.getOrderBy())
                                                                 .limit(query.getLimit())
+                                                                .offset(query.getOffset())
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 
