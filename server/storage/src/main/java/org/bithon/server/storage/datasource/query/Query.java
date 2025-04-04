@@ -17,10 +17,12 @@
 package org.bithon.server.storage.datasource.query;
 
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Null;
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.Interval;
@@ -49,6 +51,8 @@ public class Query {
     @Nullable
     private final Limit limit;
 
+    private final HumanReadableDuration offset;
+
     private final ResultFormat resultFormat;
 
     /**
@@ -69,6 +73,7 @@ public class Query {
                  @Nullable List<String> groupBy,
                  @Nullable OrderBy orderBy,
                  @Nullable Limit limit,
+                 @Nullable HumanReadableDuration offset,
                  @Nullable ResultFormat resultFormat) {
         this.schema = schema;
         this.selectors = selectors;
@@ -76,6 +81,7 @@ public class Query {
         this.interval = interval;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;
+        this.offset = offset;
         this.limit = limit;
         this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
     }
@@ -92,6 +98,7 @@ public class Query {
                          this.groupBy,
                          this.orderBy,
                          this.limit,
+                         this.offset,
                          this.resultFormat);
     }
 }

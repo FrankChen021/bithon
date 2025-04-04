@@ -126,20 +126,13 @@ public class MetricQueryApi {
             });
 
             Future<QueryResponse> base = this.executor.submit(() -> {
-                // Offset expression is negative
-                long seconds = -metricExpression.getOffset().getDuration().getSeconds();
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
                                                .filterExpression(filterExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
-                                               .interval(IntervalRequest.builder()
-                                                                        .startISO8601(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .endISO8601(TimeSpan.fromISO8601(request.getInterval().getEndISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .bucketCount(request.getInterval().getBucketCount())
-                                                                        .step(request.getInterval().getStep())
-                                                                        .timestampColumn(request.getInterval().getTimestampColumn())
-                                                                        .build())
+                                               .offset(metricExpression.getOffset())
+                                               .interval(request.getInterval())
                                                .build();
                 try {
                     return dataSourceApi.timeseriesV4(req);
