@@ -9,7 +9,9 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
-  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?
+  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?                               #atomicMetricExpression
+  | metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
+  | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
   ;
 
 aggregatorExpression
@@ -76,6 +78,11 @@ BY: B Y;
 AND : A N D;
 OR: O R;
 ID: [A-Z];
+
+ADD: '+' ;
+SUB: '-';
+MUL: '*' ;
+DIV: '/';
 
 LEFT_PARENTHESIS: '(';
 RIGHT_PARENTHESIS: ')';

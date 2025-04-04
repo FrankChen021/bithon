@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.commons.time.TimeSpan;
@@ -97,7 +98,10 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        MetricExpression metricExpression = MetricExpressionASTBuilder.parse(request.getExpression());
+        IExpression expression = MetricExpressionASTBuilder.parse(request.getExpression());
+        if (!(expression instanceof MetricExpression metricExpression)) {
+            throw new IllegalArgumentException("Invalid metric expression: " + request.getExpression());
+        }
 
         String filterExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
                                         .filter(Objects::nonNull)

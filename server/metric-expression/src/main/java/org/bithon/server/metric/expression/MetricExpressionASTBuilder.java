@@ -20,9 +20,11 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -60,7 +62,7 @@ public class MetricExpressionASTBuilder {
         }
     }
 
-    public static MetricExpression parse(String expression) {
+    public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
         lexer.addErrorListener(SyntaxErrorListener.of(expression));
@@ -84,13 +86,29 @@ public class MetricExpressionASTBuilder {
         return build(ctx);
     }
 
-    public static MetricExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
+    public static IExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    private static class BuilderImpl extends MetricExpressionBaseVisitor<MetricExpression> {
+    private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
         @Override
-        public MetricExpression visitMetricExpression(MetricExpressionParser.MetricExpressionContext ctx) {
+        public IExpression visitArithmeticExpression(MetricExpressionParser.ArithmeticExpressionContext ctx) {
+            String operator = ctx.children.get(1).getText();
+            return switch (operator) {
+                case "+" -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this),
+                                                         ctx.getChild(2).accept(this));
+                case "-" -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this),
+                                                         ctx.getChild(2).accept(this));
+                case "*" -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this),
+                                                         ctx.getChild(2).accept(this));
+                case "/" -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this),
+                                                         ctx.getChild(2).accept(this));
+                default -> throw new InvalidExpressionException("Unsupported arithmetic operator: %s", operator);
+            };
+        }
+
+        @Override
+        public MetricExpression visitAtomicMetricExpression(MetricExpressionParser.AtomicMetricExpressionContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
