@@ -33,7 +33,6 @@ import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,10 +41,10 @@ import java.util.function.Function;
 public class ExpressionSerializer implements IExpressionInDepthVisitor {
     protected final StringBuilder sb = new StringBuilder(512);
 
-    protected final Function<String, String> quoteIdentifier;
+    protected final IdentifierQuotaStrategy quoteIdentifier;
     private final String qualifier;
 
-    public ExpressionSerializer(Function<String, String> quoteIdentifier) {
+    public ExpressionSerializer(IdentifierQuotaStrategy quoteIdentifier) {
         this(null, quoteIdentifier);
     }
 
@@ -53,13 +52,17 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
      * @param qualifier       the qualifier of the identifier if the identifier is not a qualified name
      * @param quoteIdentifier if the identifier should be quoted
      */
-    public ExpressionSerializer(String qualifier, Function<String, String> quoteIdentifier) {
+    public ExpressionSerializer(String qualifier, IdentifierQuotaStrategy quoteIdentifier) {
         this.qualifier = qualifier == null ? null : qualifier.trim();
         this.quoteIdentifier = quoteIdentifier;
     }
 
     public String serialize(IExpression expression) {
         expression.accept(this);
+        return sb.toString();
+    }
+
+    public String getSerializedText() {
         return sb.toString();
     }
 
@@ -134,7 +137,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
 
     protected void quoteIdentifierIfNeeded(String name) {
         if (quoteIdentifier != null) {
-            sb.append(quoteIdentifier.apply(name));
+            sb.append(quoteIdentifier.quoteIdentifier(name));
         } else {
             sb.append(name);
         }
@@ -231,7 +234,7 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         sb.append(str);
     }
 
-    protected boolean serializeBinary(BinaryExpression expression) {
+    public boolean serializeBinary(BinaryExpression expression) {
         IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {
             sb.append('(');

@@ -17,8 +17,7 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
-
-import java.util.function.Function;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,11 +36,14 @@ public interface IExpression {
     <T> T accept(IExpressionVisitor<T> visitor);
 
     default String serializeToText() {
-        return serializeToText((s) -> "\"" + s + "\"");
+        return serializeToText(IdentifierQuotaStrategy.DOUBLE_QUOTE);
     }
 
-    default String serializeToText(Function<String, String> quoteIdentifier) {
-        ExpressionSerializer serializer = new ExpressionSerializer(quoteIdentifier);
-        return serializer.serialize(this);
+    default String serializeToText(IdentifierQuotaStrategy strategy) {
+        ExpressionSerializer serializer = new ExpressionSerializer(strategy);
+        serializeToText(serializer);
+        return serializer.getSerializedText();
     }
+
+    void serializeToText(ExpressionSerializer serializer);
 }

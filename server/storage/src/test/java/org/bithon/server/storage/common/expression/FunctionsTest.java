@@ -19,6 +19,7 @@ package org.bithon.server.storage.common.expression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +49,7 @@ public class FunctionsTest {
     @Test
     public void test_round_ExpressionAsParameter() {
         String expression = "round(a*b/c+d,2)";
-        Assertions.assertEquals("round(((a * b) / c) + d, 2)", builder.build(expression).serializeToText(null));
+        Assertions.assertEquals("round(((a * b) / c) + d, 2)", builder.build(expression).serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -276,7 +277,7 @@ public class FunctionsTest {
     public void test_count() {
         IExpression expr = ExpressionASTBuilder.builder().functions(Functions.getInstance()).build("count(1)");
 
-        Assertions.assertEquals("count(1)", expr.serializeToText(null));
+        Assertions.assertEquals("count(1)", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test

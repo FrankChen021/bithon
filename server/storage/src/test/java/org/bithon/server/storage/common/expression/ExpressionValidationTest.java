@@ -17,6 +17,7 @@
 package org.bithon.server.storage.common.expression;
 
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
@@ -68,18 +69,18 @@ public class ExpressionValidationTest {
                                 ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("5 < a")
-                                                .serializeToText(null));
+                                                .serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertEquals("a > '5'", ExpressionASTBuilder.builder()
                                                            .schema(schema)
                                                            .build("a > 5")
-                                                           .serializeToText(null));
+                                                           .serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertEquals("a > '5.3'",
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("5.3 < a")
-                                                .serializeToText(null));
+                                                .serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -88,13 +89,13 @@ public class ExpressionValidationTest {
         Assertions.assertEquals("intB > 5", ExpressionASTBuilder.builder()
                                                             .schema(schema)
                                                             .build("intB > '5'")
-                                                            .serializeToText(null));
+                                                            .serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("intB > 'valid'")
-                                                      .serializeToText(null));
+                                                      .serializeToText(IdentifierQuotaStrategy.NONE));
 
     }
 
@@ -108,19 +109,19 @@ public class ExpressionValidationTest {
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("timestamp > '2023-01-04 00:00:00'")
-                                                .serializeToText(null));
+                                                .serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("timestamp > 'invalid'")
-                                                      .serializeToText(null));
+                                                      .serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertThrows(ExpressionValidationException.class,
                             () -> ExpressionASTBuilder.builder()
                                                       .schema(schema)
                                                       .build("timestamp > not_defined")
-                                                      .serializeToText(null));
+                                                      .serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -131,7 +132,7 @@ public class ExpressionValidationTest {
                             ExpressionASTBuilder.builder()
                                                 .schema(schema)
                                                 .build("timestamp > " + timeSpan.getMilliseconds())
-                                                .serializeToText(null));
+                                                .serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test

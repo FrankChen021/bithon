@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.ArrayList;
@@ -93,6 +94,11 @@ public class FunctionExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.visit(this);
     }
 
     public static FunctionExpression create(IFunction function, IExpression... args) {

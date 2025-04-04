@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ public class PostgresqlDialectTest {
         IExpression expr = new PostgresqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("startsWith"),
                                                                                     new IdentifierExpression("a"),
                                                                                     LiteralExpression.ofString("1231")));
-        Assertions.assertEquals("a like '1231%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '1231%'", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -44,7 +45,7 @@ public class PostgresqlDialectTest {
         IExpression expr = new PostgresqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("endsWith"),
                                                                                     new IdentifierExpression("a"),
                                                                                     LiteralExpression.ofString("1231")));
-        Assertions.assertEquals("a like '%1231'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%1231'", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -52,6 +53,6 @@ public class PostgresqlDialectTest {
         IExpression expr = new PostgresqlDialect().transform(new FunctionExpression(Functions.getInstance().getFunction("hasToken"),
                                                                                     new IdentifierExpression("a"),
                                                                                     LiteralExpression.ofString("1231")));
-        Assertions.assertEquals("a like '%1231%'", expr.serializeToText(null));
+        Assertions.assertEquals("a like '%1231%'", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 }

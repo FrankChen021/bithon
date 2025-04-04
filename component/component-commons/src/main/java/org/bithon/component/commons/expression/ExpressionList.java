@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -71,5 +73,10 @@ public class ExpressionList implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.visit(this);
     }
 }

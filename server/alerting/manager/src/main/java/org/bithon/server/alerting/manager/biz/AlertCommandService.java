@@ -21,11 +21,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
-import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
 import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
@@ -114,17 +112,6 @@ public class AlertCommandService {
         this.userProvider = userProvider;
         this.notificationChannelStorage = notificationChannelStorage;
         this.applicationContext = applicationContext;
-    }
-
-    static class AlertExpressionSerializer extends ExpressionSerializer implements IAlertInDepthExpressionVisitor {
-        public AlertExpressionSerializer() {
-            super(null);
-        }
-
-        @Override
-        public void visit(AlertExpression expression) {
-            sb.append(expression.serializeToText(true));
-        }
     }
 
     private AlertStorageObject toAlertStorageObject(AlertRule alertRule) throws BizException {

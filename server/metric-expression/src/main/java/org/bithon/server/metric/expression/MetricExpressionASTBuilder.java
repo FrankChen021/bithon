@@ -89,6 +89,10 @@ public class MetricExpressionASTBuilder {
         return metricExpression.accept(new BuilderImpl());
     }
 
+    public static IExpression build(MetricExpressionParser.AtomicMetricExpressionImplContext metricExpression) {
+        return metricExpression.accept(new BuilderImpl());
+    }
+
     private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
         @Override
         public IExpression visitMetricLiteralExpression(MetricExpressionParser.MetricLiteralExpressionContext ctx) {
@@ -117,7 +121,12 @@ public class MetricExpressionASTBuilder {
         }
 
         @Override
-        public MetricExpression visitAtomicMetricExpression(MetricExpressionParser.AtomicMetricExpressionContext ctx) {
+        public IExpression visitAtomicMetricExpression(MetricExpressionParser.AtomicMetricExpressionContext ctx) {
+            return visitAtomicMetricExpressionImpl(ctx.atomicMetricExpressionImpl());
+        }
+
+        @Override
+        public IExpression visitAtomicMetricExpressionImpl(MetricExpressionParser.AtomicMetricExpressionImplContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];

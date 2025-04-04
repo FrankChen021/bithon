@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,7 +52,7 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
                 && !dataType.equals(IDataType.DOUBLE)
                 && !dataType.equals(IDataType.LONG)) {
                 throw new ExpressionValidationException("The expression [%s] in the logical expression should be a conditional expression.",
-                                                        operand.serializeToText(null));
+                                                        operand.serializeToText(IdentifierQuotaStrategy.NONE));
             }
         }
         return true;
@@ -87,16 +88,16 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
                 expression.setRhs(rhs.castTo(lhsType));
             } catch (ExpressionValidationException e) {
                 throw new ExpressionValidationException("Can't convert [%s] into type of [%s] in the expression: %s",
-                                                        rhs.serializeToText(null),
+                                                        rhs.serializeToText(IdentifierQuotaStrategy.NONE),
                                                         lhsType,
-                                                        expression.serializeToText(null));
+                                                        expression.serializeToText(IdentifierQuotaStrategy.NONE));
             }
             return true;
         }
 
         if (!lhsType.canCastFrom(rhsType)) {
             throw new ExpressionValidationException("The data types of the two operators in the expression [%s] are not compatible (%s vs %s).",
-                                                    expression.serializeToText(null),
+                                                    expression.serializeToText(IdentifierQuotaStrategy.NONE),
                                                     lhsType.name(),
                                                     rhsType == null ? "null" : rhsType.name());
         }
@@ -112,7 +113,7 @@ class ExpressionTypeValidator implements IExpressionInDepthVisitor {
         for (int i = 1, size = expression.getExpressions().size(); i < size; i++) {
             if (!dataType.canCastFrom(expression.getExpressions().get(i).getDataType())) {
                 throw new ExpressionValidationException("The data types of elements in the expression list %s are not the same.",
-                                                        expression.serializeToText(null));
+                                                        expression.serializeToText(IdentifierQuotaStrategy.NONE));
             }
         }
         return true;

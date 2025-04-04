@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:17
@@ -54,5 +56,10 @@ public abstract class BinaryExpression implements IExpression {
     @Override
     public String getType() {
         return type;
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serializeBinary(this);
     }
 }

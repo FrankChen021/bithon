@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author Frank Chen
  * @date 26/8/23 9:37 pm
@@ -59,5 +61,10 @@ public class MacroExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.visit(this);
     }
 }

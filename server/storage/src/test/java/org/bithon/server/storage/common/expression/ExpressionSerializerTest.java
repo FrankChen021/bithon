@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +44,7 @@ public class ExpressionSerializerTest {
     public void testUnQuotedIdentifier() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1");
 
-        Assertions.assertEquals("a = 1", expr.serializeToText(null));
+        Assertions.assertEquals("a = 1", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -51,13 +52,13 @@ public class ExpressionSerializerTest {
         IExpression expr = ExpressionASTBuilder.builder().build("a = 1");
 
         Assertions.assertEquals("default.a = 1", new ExpressionSerializer("default", null).serialize(expr));
-        Assertions.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", (s) -> "\"" + s + "\"").serialize(expr));
+        Assertions.assertEquals("\"default\".\"a\" = 1", new ExpressionSerializer("default", IdentifierQuotaStrategy.DOUBLE_QUOTE).serialize(expr));
     }
 
     @Test
     public void testMapAccessExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a ['b']");
-        Assertions.assertEquals("a['b']", expr.serializeToText(null));
+        Assertions.assertEquals("a['b']", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         expr = ExpressionASTBuilder.builder().build("i > 5 AND colors['today'] = 'red'");
         Assertions.assertInstanceOf(LogicalExpression.AND.class, expr);

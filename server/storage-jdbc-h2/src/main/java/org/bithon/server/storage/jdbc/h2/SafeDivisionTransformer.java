@@ -27,8 +27,6 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 
-import java.util.function.Function;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 12/9/24 4:51 pm
@@ -112,8 +110,14 @@ public class SafeDivisionTransformer {
         }
 
         @Override
-        public String serializeToText(Function<String, String> quoteIdentifier) {
-            throw new UnsupportedOperationException();
+        public void serializeToText(ExpressionSerializer serializer) {
+            serializer.append("CASE WHEN ( ");
+            whenExpression.accept(serializer);
+            serializer.append(" ) THEN ( ");
+            thenExpression.accept(serializer);
+            serializer.append(" ) ELSE ( ");
+            elseExpression.accept(serializer);
+            serializer.append(" ) END ");
         }
     }
 }

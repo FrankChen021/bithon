@@ -22,10 +22,9 @@ import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
 import org.bithon.server.metric.expression.MetricExpression;
-
-import java.util.function.Function;
 
 /**
  * NOTE: When changes are made to this class,
@@ -93,8 +92,8 @@ public class AlertExpression implements IExpression {
     }
 
     @Override
-    public String serializeToText(Function<String, String> quoteIdentifier) {
-        return serializeToText(true);
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.append(serializeToText(true));
     }
 
     public String serializeToText(boolean includePredication) {
