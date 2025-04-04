@@ -180,53 +180,51 @@ public class QueryExpressionBuilder {
         @Override
         public String serialize(IExpression expression) {
             // Apply optimization for different DBMS first
-            sqlDialect.transform(expression).accept(this);
+            sqlDialect.transform(expression).serializeToText(this);
             return sb.toString();
         }
 
         @Override
-        public boolean visit(MacroExpression expression) {
+        public void serialize(MacroExpression expression) {
             Object variableValue = variables.get(expression.getMacro());
             if (variableValue == null) {
                 throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
                                                               expression.getMacro()));
             }
             sb.append(variableValue);
-
-            return false;
         }
 
         @Override
-        public boolean visit(FunctionExpression expression) {
+        public void serialize(FunctionExpression expression) {
             if (expression.getFunction() instanceof QueryStageFunctions.Cardinality) {
                 sb.append("count(distinct ");
-                expression.getArgs().get(0).accept(this);
+                expression.getArgs().get(0).serializeToText(this);
                 sb.append(")");
-                return false;
+                return;
             }
 
             if (expression.getFunction() instanceof QueryStageFunctions.GroupConcat) {
                 // Currently, only identifier expression is supported in the group concat aggregator
                 String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
                 sb.append(this.sqlDialect.stringAggregator(column));
-                return false;
+                return;
             }
 
             if (expression.getFunction() instanceof AggregateFunction.Last) {
                 // Currently, only identifier expression is supported in the last aggregator
                 String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
                 sb.append(this.sqlDialect.lastAggregator(column, windowFunctionLength));
-                return false;
+                return;
             }
 
             if (expression.getFunction() instanceof AggregateFunction.First) {
                 // Currently, only identifier expression is supported in the first aggregator
                 String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
                 sb.append(this.sqlDialect.firstAggregator(column, windowFunctionLength));
-                return false;
+                return;
             }
 
-            return super.visit(expression);
+            super.serialize(expression);
         }
     }
 
@@ -584,7 +582,7 @@ public class QueryExpressionBuilder {
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(aggregator.aggregateFunction)), aggregator.output, IDataType.DOUBLE)
+                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize((IExpression) aggregator.aggregateFunction)), aggregator.output, IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {

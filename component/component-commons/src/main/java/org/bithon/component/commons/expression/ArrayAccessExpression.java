@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.Collection;
@@ -140,5 +141,13 @@ public class ArrayAccessExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        this.array.serializeToText(serializer);
+        serializer.append('[');
+        serializer.append(index);
+        serializer.append(']');
     }
 }

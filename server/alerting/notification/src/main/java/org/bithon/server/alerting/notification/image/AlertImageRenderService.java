@@ -32,6 +32,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -181,7 +182,7 @@ public class AlertImageRenderService implements ApplicationContextAware {
                 multipleGroups.add(new LogicalExpression.AND(oneGroup));
             }
 
-            seriesSelector = '(' + new LogicalExpression.OR(multipleGroups).serializeToText(null) + ')';
+            seriesSelector = '(' + new LogicalExpression.OR(multipleGroups).serializeToText(IdentifierQuotaStrategy.NONE) + ')';
         }
 
         QueryResponse response = metricQueryApi.timeSeries(MetricQueryApi.MetricQueryRequest.builder()

@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -92,6 +93,11 @@ public abstract class LogicalExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);

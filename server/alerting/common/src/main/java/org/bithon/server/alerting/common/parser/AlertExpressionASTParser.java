@@ -87,7 +87,11 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
-            MetricExpression metricExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            IExpression expression = MetricExpressionASTBuilder.build(ctx.atomicMetricExpressionImpl());
+            if (!(expression instanceof MetricExpression metricExpression)) {
+                throw new InvalidExpressionException("Complex expression is not supported now.");
+            }
+
             if (metricExpression.getPredicate() == null) {
                 // the general metric expression allows null predicate, but for alerting, it's a compulsory field
                 throw new InvalidExpressionException("Missing predicate expression");

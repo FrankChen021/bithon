@@ -22,6 +22,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +59,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_FlipGT() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 > a");
-        Assertions.assertEquals("a < 5", expr.serializeToText(null));
+        Assertions.assertEquals("a < 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertFalse((boolean) expr.evaluate(a -> 6));
         Assertions.assertFalse((boolean) expr.evaluate(a -> 5));
@@ -68,7 +69,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_FlipGTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 >= a");
-        Assertions.assertEquals("a <= 5", expr.serializeToText(null));
+        Assertions.assertEquals("a <= 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertFalse((boolean) expr.evaluate(a -> 6));
         Assertions.assertTrue((boolean) expr.evaluate(a -> 5));
@@ -78,7 +79,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_FlipLT() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 < a");
-        Assertions.assertEquals("a > 5", expr.serializeToText(null));
+        Assertions.assertEquals("a > 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertTrue((boolean) expr.evaluate(a -> 6));
         Assertions.assertFalse((boolean) expr.evaluate(a -> 5));
@@ -88,7 +89,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_FlipLTE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 <= a");
-        Assertions.assertEquals("a >= 5", expr.serializeToText(null));
+        Assertions.assertEquals("a >= 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertTrue((boolean) expr.evaluate(a -> 6));
         Assertions.assertTrue((boolean) expr.evaluate(a -> 5));
@@ -98,7 +99,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_FlipNE() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 <> a");
-        Assertions.assertEquals("a <> 5", expr.serializeToText(null));
+        Assertions.assertEquals("a <> 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertTrue((boolean) expr.evaluate(a -> 6));
         Assertions.assertFalse((boolean) expr.evaluate(a -> 5));
@@ -108,7 +109,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_Flip_EQ() {
         IExpression expr = ExpressionASTBuilder.builder().build("5 = a");
-        Assertions.assertEquals("a = 5", expr.serializeToText(null));
+        Assertions.assertEquals("a = 5", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertFalse((boolean) expr.evaluate(a -> 6));
         Assertions.assertTrue((boolean) expr.evaluate(a -> 5));
@@ -118,7 +119,7 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_ComparisonExpression_Flip_Non_Literal() {
         IExpression expr = ExpressionASTBuilder.builder().build("a = b");
-        Assertions.assertEquals("a = b", expr.serializeToText(null));
+        Assertions.assertEquals("a = b", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -139,7 +140,7 @@ public class ExpressionASTBuilderTest {
 
         // Logical AND is flattened
         Assertions.assertEquals(4, ((LogicalExpression.AND) expr).getOperands().size());
-        Assertions.assertEquals("(a = 1) AND (b = 1) AND (c = 1) AND (d = 1)", expr.serializeToText(null));
+        Assertions.assertEquals("(a = 1) AND (b = 1) AND (c = 1) AND (d = 1)", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -208,14 +209,14 @@ public class ExpressionASTBuilderTest {
         // The business layer (the layer that uses the AST) needs to handle the escaping
         Assertions.assertEquals("message contains 'a''", ExpressionASTBuilder.builder()
                                                                          .build("message contains 'a\\''")
-                                                                         .serializeToText(null));
+                                                                         .serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
     public void test_TernaryExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a > b ? 1 : 2");
 
-        Assertions.assertEquals("a > b ? 1 : 2", expr.serializeToText(null));
+        Assertions.assertEquals("a > b ? 1 : 2", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         long v = (long) expr.evaluate(name -> {
             if ("a".equals(name)) {
                 return 4;
@@ -229,7 +230,7 @@ public class ExpressionASTBuilderTest {
     public void test_IsNullExpression() {
         IExpression expr = ExpressionASTBuilder.builder().build("a is null");
 
-        Assertions.assertEquals("a IS null", expr.serializeToText(null));
+        Assertions.assertEquals("a IS null", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertTrue((boolean) expr.evaluate((name) -> null));
         Assertions.assertFalse((boolean) expr.evaluate((name) -> "value of a"));
@@ -239,7 +240,7 @@ public class ExpressionASTBuilderTest {
     public void test_LiteralExpression_DurationLiteral() {
         {
             IExpression expr = ExpressionASTBuilder.builder().build("a >= 5m");
-            Assertions.assertEquals("a >= 5m", expr.serializeToText(null));
+            Assertions.assertEquals("a >= 5m", expr.serializeToText(IdentifierQuotaStrategy.NONE));
             Assertions.assertTrue((boolean) expr.evaluate((name) -> 301));
             Assertions.assertTrue((boolean) expr.evaluate((name) -> 300));
             Assertions.assertFalse((boolean) expr.evaluate((name) -> 299));
@@ -247,43 +248,43 @@ public class ExpressionASTBuilderTest {
 
         {
             IExpression expr = ExpressionASTBuilder.builder().build("1h");
-            Assertions.assertEquals("1h", expr.serializeToText(null));
+            Assertions.assertEquals("1h", expr.serializeToText(IdentifierQuotaStrategy.NONE));
             Assertions.assertEquals(1, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toHours());
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("7d");
-            Assertions.assertEquals("7d", expr.serializeToText(null));
+            Assertions.assertEquals("7d", expr.serializeToText(IdentifierQuotaStrategy.NONE));
             Assertions.assertEquals(7, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toDays());
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("69s");
-            Assertions.assertEquals("69s", expr.serializeToText(null));
+            Assertions.assertEquals("69s", expr.serializeToText(IdentifierQuotaStrategy.NONE));
             Assertions.assertEquals(69, ((LiteralExpression.ReadableDurationLiteral) expr).getValue().getDuration().toSeconds());
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("69s.toMilliSeconds");
 
             // The 69s.toMilli is interpreted as toMilliSeconds(69s), which has been optimized to 69_000
-            Assertions.assertEquals("69000", expr.serializeToText(null));
+            Assertions.assertEquals("69000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("1d .toMicroSeconds");
 
             // The 69s.toMicro is interpreted as toMicroSeconds(1d), which has been optimized to 86400_000_000
-            Assertions.assertEquals("86400000000", expr.serializeToText(null));
+            Assertions.assertEquals("86400000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
         {
             IExpression expr = ExpressionASTBuilder.builder().build("3m. toNanoSeconds");
 
             // The 69s.toNano is interpreted as toNanoSeconds(3m), which has been optimized to 180_000_000_000
-            Assertions.assertEquals("180000000000", expr.serializeToText(null));
+            Assertions.assertEquals("180000000000", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         }
     }
 
     @Test
     public void test_LiteralExpression_PercentageLiteral() {
         IExpression expr = ExpressionASTBuilder.builder().build("a >= 5%");
-        Assertions.assertEquals("a >= 5%", expr.serializeToText(null));
+        Assertions.assertEquals("a >= 5%", expr.serializeToText(IdentifierQuotaStrategy.NONE));
 
         Assertions.assertTrue((boolean) expr.evaluate((name) -> 0.051f));
         Assertions.assertTrue((boolean) expr.evaluate((name) -> 0.05f));
@@ -293,22 +294,22 @@ public class ExpressionASTBuilderTest {
     @Test
     public void test_LiteralExpression_SizeLiteral() {
         IExpression expr = ExpressionASTBuilder.builder().build("a >= 5Ki");
-        Assertions.assertEquals("a >= 5Ki", expr.serializeToText(null));
+        Assertions.assertEquals("a >= 5Ki", expr.serializeToText(IdentifierQuotaStrategy.NONE));
         Assertions.assertTrue((boolean) expr.evaluate((name) -> 5 * 1024 + 1));
         Assertions.assertTrue((boolean) expr.evaluate((name) -> 5 * 1024));
         Assertions.assertFalse((boolean) expr.evaluate((name) -> 5 * 1024 - 1));
 
-        Assertions.assertEquals("a >= 5K", ExpressionASTBuilder.builder().build("a >= 5K").serializeToText(null));
-        Assertions.assertEquals("a >= 5KiB", ExpressionASTBuilder.builder().build("a >= 5KiB").serializeToText(null));
-        Assertions.assertEquals("a >= 5G", ExpressionASTBuilder.builder().build("a >= 5G").serializeToText(null));
-        Assertions.assertEquals("a >= 5Gi", ExpressionASTBuilder.builder().build("a >= 5Gi").serializeToText(null));
-        Assertions.assertEquals("a >= 5GiB", ExpressionASTBuilder.builder().build("a >= 5GiB").serializeToText(null));
-        Assertions.assertEquals("a >= 5M", ExpressionASTBuilder.builder().build("a >= 5M").serializeToText(null));
-        Assertions.assertEquals("a >= 5Mi", ExpressionASTBuilder.builder().build("a >= 5Mi").serializeToText(null));
-        Assertions.assertEquals("a >= 5MiB", ExpressionASTBuilder.builder().build("a >= 5MiB").serializeToText(null));
-        Assertions.assertEquals("a >= 5P", ExpressionASTBuilder.builder().build("a >= 5P").serializeToText(null));
-        Assertions.assertEquals("a >= 5Pi", ExpressionASTBuilder.builder().build("a >= 5Pi").serializeToText(null));
-        Assertions.assertEquals("a >= 5PiB", ExpressionASTBuilder.builder().build("a >= 5PiB").serializeToText(null));
+        Assertions.assertEquals("a >= 5K", ExpressionASTBuilder.builder().build("a >= 5K").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5KiB", ExpressionASTBuilder.builder().build("a >= 5KiB").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5G", ExpressionASTBuilder.builder().build("a >= 5G").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5Gi", ExpressionASTBuilder.builder().build("a >= 5Gi").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5GiB", ExpressionASTBuilder.builder().build("a >= 5GiB").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5M", ExpressionASTBuilder.builder().build("a >= 5M").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5Mi", ExpressionASTBuilder.builder().build("a >= 5Mi").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5MiB", ExpressionASTBuilder.builder().build("a >= 5MiB").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5P", ExpressionASTBuilder.builder().build("a >= 5P").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5Pi", ExpressionASTBuilder.builder().build("a >= 5Pi").serializeToText(IdentifierQuotaStrategy.NONE));
+        Assertions.assertEquals("a >= 5PiB", ExpressionASTBuilder.builder().build("a >= 5PiB").serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test

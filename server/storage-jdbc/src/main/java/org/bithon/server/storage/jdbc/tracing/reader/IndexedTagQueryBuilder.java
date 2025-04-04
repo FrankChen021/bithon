@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.tracing.reader;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -67,21 +66,6 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             }
         } else {
             return this.in;
-        }
-    }
-
-    static class TagFilterSerializer extends Expression2Sql {
-        private final int index;
-
-        TagFilterSerializer(ISqlDialect sqlDialect, int index) {
-            super(null, sqlDialect);
-            this.index = index;
-        }
-
-        @Override
-        public boolean visit(IdentifierExpression expression) {
-            sb.append(this.quoteIdentifier.apply("f" + index));
-            return false;
         }
     }
 }

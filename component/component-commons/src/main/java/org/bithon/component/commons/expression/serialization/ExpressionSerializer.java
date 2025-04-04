@@ -16,36 +16,26 @@
 
 package org.bithon.component.commons.expression.serialization;
 
-import org.bithon.component.commons.expression.ArithmeticExpression;
-import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
-import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.MapAccessExpression;
-import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.utils.StringUtils;
-
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/8/18 21:08
  */
-public class ExpressionSerializer implements IExpressionInDepthVisitor {
+public class ExpressionSerializer {
     protected final StringBuilder sb = new StringBuilder(512);
-
-    protected final Function<String, String> quoteIdentifier;
+    protected final IdentifierQuotaStrategy quoteIdentifier;
     private final String qualifier;
 
-    public ExpressionSerializer(Function<String, String> quoteIdentifier) {
+    public ExpressionSerializer(IdentifierQuotaStrategy quoteIdentifier) {
         this(null, quoteIdentifier);
     }
 
@@ -53,18 +43,33 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
      * @param qualifier       the qualifier of the identifier if the identifier is not a qualified name
      * @param quoteIdentifier if the identifier should be quoted
      */
-    public ExpressionSerializer(String qualifier, Function<String, String> quoteIdentifier) {
+    public ExpressionSerializer(String qualifier, IdentifierQuotaStrategy quoteIdentifier) {
         this.qualifier = qualifier == null ? null : qualifier.trim();
         this.quoteIdentifier = quoteIdentifier;
     }
 
     public String serialize(IExpression expression) {
-        expression.accept(this);
+        expression.serializeToText(this);
         return sb.toString();
     }
 
-    @Override
-    public boolean visit(LiteralExpression<?> expression) {
+    public final void append(int index) {
+        sb.append(index);
+    }
+
+    public final void append(char c) {
+        sb.append(c);
+    }
+
+    public final void append(String str) {
+        sb.append(str);
+    }
+
+    public final String getSerializedText() {
+        return sb.toString();
+    }
+
+    public void serialize(LiteralExpression<?> expression) {
         Object value = expression.getValue();
         if (expression instanceof LiteralExpression.StringLiteral) {
             sb.append('\'');
@@ -73,13 +78,10 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
         } else {
             sb.append(value);
         }
-        return false;
     }
 
-    @Override
-    public boolean visit(LogicalExpression expression) {
+    public void serialize(LogicalExpression expression) {
         boolean needClose = false;
-
         String concatOperator = expression.getOperator();
         if (expression instanceof LogicalExpression.NOT) {
             sb.append("NOT ");
@@ -89,34 +91,28 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
                 sb.append('(');
             }
         }
-
         for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
             if (i > 0) {
                 sb.append(' ');
                 sb.append(concatOperator);
                 sb.append(' ');
             }
-
             IExpression operand = expression.getOperands().get(i);
             if (operand instanceof ConditionalExpression || operand instanceof LogicalExpression) {
                 sb.append('(');
-                operand.accept(this);
+                operand.serializeToText(this);
                 sb.append(')');
             } else {
                 // Might be FunctionExpression
-                operand.accept(this);
+                operand.serializeToText(this);
             }
         }
-
         if (needClose) {
             sb.append(')');
         }
-
-        return false;
     }
 
-    @Override
-    public boolean visit(IdentifierExpression expression) {
+    public void serialize(IdentifierExpression expression) {
         if (StringUtils.hasText(qualifier)
             && !expression.isQualified()) {
             quoteIdentifierIfNeeded(qualifier);
@@ -129,47 +125,17 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
             }
             quoteIdentifierIfNeeded(expression.getIdentifier());
         }
-        return false;
     }
 
     protected void quoteIdentifierIfNeeded(String name) {
         if (quoteIdentifier != null) {
-            sb.append(quoteIdentifier.apply(name));
+            sb.append(quoteIdentifier.quoteIdentifier(name));
         } else {
             sb.append(name);
         }
     }
 
-    @Override
-    public boolean visit(ConditionalExpression expression) {
-        serializeBinary(expression);
-        return false;
-    }
-
-    @Override
-    public boolean visit(ArithmeticExpression expression) {
-        serializeBinary(expression);
-        return false;
-    }
-
-    @Override
-    public boolean visit(ExpressionList expression) {
-        sb.append('(');
-        {
-            List<IExpression> expressionList = expression.getExpressions();
-            for (int i = 0, size = expressionList.size(); i < size; i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                }
-                expressionList.get(i).accept(this);
-            }
-        }
-        sb.append(')');
-        return false;
-    }
-
-    @Override
-    public boolean visit(FunctionExpression expression) {
+    public void serialize(FunctionExpression expression) {
         boolean first = true;
         sb.append(expression.getName());
         sb.append('(');
@@ -179,80 +145,36 @@ public class ExpressionSerializer implements IExpressionInDepthVisitor {
             } else {
                 sb.append(", ");
             }
-            p.accept(this);
+            p.serializeToText(this);
         }
         sb.append(')');
-        return false;
     }
 
-    @Override
-    public boolean visit(ArrayAccessExpression expression) {
-        expression.getArray().accept(this);
-        sb.append('[');
-        sb.append(expression.getIndex());
-        sb.append(']');
-        return false;
-    }
-
-    @Override
-    public boolean visit(MapAccessExpression expression) {
-        expression.getMap().accept(this);
-        sb.append('[');
-        sb.append('\'');
-        sb.append(expression.getKey());
-        sb.append('\'');
-        sb.append(']');
-        return false;
-    }
-
-    @Override
-    public boolean visit(MacroExpression expression) {
+    public void serialize(MacroExpression expression) {
         sb.append('{');
         sb.append(expression.getMacro());
         sb.append('}');
-        return false;
     }
 
-    @Override
-    public boolean visit(TernaryExpression expression) {
-        expression.getConditionExpression().accept(this);
-        sb.append(' ');
-        sb.append('?');
-        sb.append(' ');
-        expression.getTrueExpression().accept(this);
-        sb.append(' ');
-        sb.append(':');
-        sb.append(' ');
-        expression.getFalseExpression().accept(this);
-        return false;
-    }
-
-    public void append(String str) {
-        sb.append(str);
-    }
-
-    protected boolean serializeBinary(BinaryExpression expression) {
+    public void serialize(BinaryExpression expression) {
         IExpression left = expression.getLhs();
         if (left instanceof BinaryExpression) {
             sb.append('(');
         }
-        left.accept(this);
+        left.serializeToText(this);
         if (left instanceof BinaryExpression) {
             sb.append(')');
         }
         sb.append(' ');
         sb.append(expression.getType());
         sb.append(' ');
-
         IExpression right = expression.getRhs();
         if (right instanceof BinaryExpression) {
             sb.append('(');
         }
-        right.accept(this);
+        right.serializeToText(this);
         if (right instanceof BinaryExpression) {
             sb.append(')');
         }
-
-        return false;
     }
 }

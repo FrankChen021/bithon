@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:16
@@ -91,6 +93,11 @@ public class IdentifierExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
     }
 
     @Override

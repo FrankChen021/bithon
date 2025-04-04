@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
@@ -37,7 +38,6 @@ import org.bithon.server.web.service.datasource.api.QueryField;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * <p>
@@ -70,7 +70,7 @@ public class MetricExpression implements IExpression {
      * Post filter
      */
     private PredicateEnum predicate;
-    private LiteralExpression expected;
+    private LiteralExpression<?> expected;
 
     /**
      * The offset time duration of the expected value.
@@ -101,8 +101,8 @@ public class MetricExpression implements IExpression {
     }
 
     @Override
-    public String serializeToText(Function<String, String> quoteIdentifier) {
-        return serializeToText(true);
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.append(serializeToText(true));
     }
 
     public String serializeToText(boolean includePredication) {
@@ -126,7 +126,7 @@ public class MetricExpression implements IExpression {
             sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
         }
 
-        if (includePredication) {
+        if (includePredication && predicate != null) {
             sb.append(' ');
             sb.append(predicate);
             sb.append(' ');
@@ -146,7 +146,7 @@ public class MetricExpression implements IExpression {
         }
 
         @Override
-        public boolean visit(LiteralExpression<?> expression) {
+        public void serialize(LiteralExpression<?> expression) {
             if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('\'');
                 sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '\''));
@@ -154,30 +154,28 @@ public class MetricExpression implements IExpression {
             } else {
                 sb.append(expression.getValue());
             }
-            return false;
         }
     }
 
     static class LabelSelectorExpressionSerializer extends ExpressionSerializer {
 
         public LabelSelectorExpressionSerializer() {
-            super(null);
+            super(IdentifierQuotaStrategy.NONE);
         }
 
         @Override
-        public boolean visit(LogicalExpression expression) {
+        public void serialize(LogicalExpression expression) {
             for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
-                expression.getOperands().get(i).accept(this);
+                expression.getOperands().get(i).serializeToText(this);
             }
-            return false;
         }
 
         // Use double quote to serialize the expression by default
         @Override
-        public boolean visit(LiteralExpression<?> expression) {
+        public void serialize(LiteralExpression<?> expression) {
             if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('"');
                 sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '"'));
@@ -185,7 +183,6 @@ public class MetricExpression implements IExpression {
             } else {
                 sb.append(expression.getValue());
             }
-            return false;
         }
     }
 
@@ -207,7 +204,6 @@ public class MetricExpression implements IExpression {
 
     @Override
     public void accept(IExpressionInDepthVisitor visitor) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

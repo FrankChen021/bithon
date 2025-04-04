@@ -28,6 +28,7 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
@@ -51,7 +52,7 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public String timeFloorExpression(IExpression timestampExpression, long intervalSeconds) {
-        return StringUtils.format("UNIX_TIMESTAMP(`%s`) div %d * %d", timestampExpression.serializeToText(null), intervalSeconds, intervalSeconds);
+        return StringUtils.format("UNIX_TIMESTAMP(`%s`) div %d * %d", timestampExpression.serializeToText(IdentifierQuotaStrategy.NONE), intervalSeconds, intervalSeconds);
     }
 
     @Override

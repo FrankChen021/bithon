@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.Map;
@@ -81,5 +82,15 @@ public class MapAccessExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        this.map.serializeToText(serializer);
+        serializer.append('[');
+        serializer.append('\'');
+        serializer.append(this.key);
+        serializer.append('\'');
+        serializer.append(']');
     }
 }

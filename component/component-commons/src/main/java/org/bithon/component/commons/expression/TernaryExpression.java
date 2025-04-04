@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 16/7/24 3:36 pm
@@ -88,5 +90,18 @@ public class TernaryExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        this.conditionExpression.serializeToText(serializer);
+        serializer.append(' ');
+        serializer.append('?');
+        serializer.append(' ');
+        this.trueExpression.serializeToText(serializer);
+        serializer.append(' ');
+        serializer.append(':');
+        serializer.append(' ');
+        this.falseExpression.serializeToText(serializer);
     }
 }

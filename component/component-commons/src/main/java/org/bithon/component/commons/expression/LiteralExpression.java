@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
@@ -154,6 +155,11 @@ public abstract class LiteralExpression<T> implements IExpression {
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
     }
 
     public static class StringLiteral extends LiteralExpression<String> {
