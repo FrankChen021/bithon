@@ -16,6 +16,7 @@
 
 package org.bithon.server.metric.expression;
 
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.utils.HumanReadableNumber;
@@ -350,5 +351,100 @@ public class MetricExpressionASTBuilderTest {
         Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]",
                             MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]")
                                                       .serializeToText());
+    }
+
+    @Test
+    public void test_ADD_Literal() {
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // Human readable literal
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5MiB";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // Human readable literal
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // Human readable literal
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5G";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // Percentage literal
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5%";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // duration literal
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5h";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+        }
+
+        // TODO：need to refactor the serializer, pass serializer to the serializeText method
+        //Assert.assertEquals(expr, ast.serializeToText(new ExpressionSerializer()));
+    }
+
+    @Test
+    public void test_SUB_Literal() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertTrue(ast instanceof ArithmeticExpression);
+
+        // TODO：need to refactor the serializer, pass serializer to the serializeText method
+        //Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test
+    public void test_MUL_Literal() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertTrue(ast instanceof ArithmeticExpression);
+
+        // TODO：need to refactor the serializer, pass serializer to the serializeText method
+        //Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test
+    public void test_DIV_Literal() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertTrue(ast instanceof ArithmeticExpression);
+
+        // TODO：need to refactor the serializer, pass serializer to the serializeText method
+        //Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test(expected = ArithmeticException.class)
+    public void test_DIV_BY_Zero() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 0";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+    }
+
+    @Test
+    public void test_HybridExpression() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * "
+                      + "(avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m])";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+
+        Assert.assertTrue(ast instanceof ArithmeticExpression.MUL);
+        ArithmeticExpression.MUL mul = (ArithmeticExpression.MUL) ast;
+        Assert.assertTrue(mul.getLhs() instanceof MetricExpression);
+        Assert.assertTrue(mul.getRhs() instanceof ArithmeticExpression.SUB);
     }
 }

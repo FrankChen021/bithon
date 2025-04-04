@@ -141,7 +141,17 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     public static class DIV extends ArithmeticExpression {
         public DIV(IExpression lhs, IExpression rhs) {
-            super("/", lhs, rhs);
+            super("/", lhs, validNotZero(rhs));
+        }
+
+        private static IExpression validNotZero(IExpression rhs) {
+            if (rhs instanceof LiteralExpression) {
+                Object value = ((LiteralExpression<?>) rhs).getValue();
+                if (value instanceof Number && ((Number) value).doubleValue() == 0) {
+                    throw new ArithmeticException("Divisor CAN'T be ZERO");
+                }
+            }
+            return rhs;
         }
 
         @Override

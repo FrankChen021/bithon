@@ -9,9 +9,11 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
-  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?                               #atomicMetricExpression
+  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?  #atomicMetricExpression
   | metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
   | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
+  | '(' metricExpression ')'                          #parenthesisMetricExpression
+  | (INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | SIZE_LITERAL | DURATION_LITERAL) #metricLiteralExpression // This allows to use literal expression in arithmetic expression
   ;
 
 aggregatorExpression

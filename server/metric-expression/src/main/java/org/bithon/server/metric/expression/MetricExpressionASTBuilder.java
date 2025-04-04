@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
-import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -92,6 +91,11 @@ public class MetricExpressionASTBuilder {
 
     private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
         @Override
+        public IExpression visitMetricLiteralExpression(MetricExpressionParser.MetricLiteralExpressionContext ctx) {
+            return LiteralExpressionBuilder.toLiteralASTExpression(ctx.getChild(TerminalNode.class, 0).getSymbol());
+        }
+
+        @Override
         public IExpression visitArithmeticExpression(MetricExpressionParser.ArithmeticExpressionContext ctx) {
             String operator = ctx.children.get(1).getText();
             return switch (operator) {
@@ -105,6 +109,11 @@ public class MetricExpressionASTBuilder {
                                                          ctx.getChild(2).accept(this));
                 default -> throw new InvalidExpressionException("Unsupported arithmetic operator: %s", operator);
             };
+        }
+
+        @Override
+        public IExpression visitParenthesisMetricExpression(MetricExpressionParser.ParenthesisMetricExpressionContext ctx) {
+            return ctx.metricExpression().accept(this);
         }
 
         @Override
@@ -333,16 +342,11 @@ public class MetricExpressionASTBuilder {
 
     private static class LiteralExpressionBuilder extends MetricExpressionBaseVisitor<IExpression> {
 
-        @Override
-        public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
-            Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
+        public static LiteralExpression<?> toLiteralASTExpression(Token symbol) {
             return switch (symbol.getType()) {
-                case MetricExpressionParser.DECIMAL_LITERAL ->
-                    LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
-                case MetricExpressionParser.INTEGER_LITERAL ->
-                    LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
-                case MetricExpressionParser.PERCENTAGE_LITERAL ->
-                    LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
+                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
+                case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
+                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
                 case MetricExpressionParser.STRING_LITERAL -> {
                     String input = symbol.getText();
                     if (!input.isEmpty()) {
@@ -358,10 +362,17 @@ public class MetricExpressionASTBuilder {
                     yield LiteralExpression.ofString(input);
                 }
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
-                case MetricExpressionParser.SIZE_LITERAL ->
-                    LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));
+                case MetricExpressionParser.SIZE_LITERAL -> LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));
+                case MetricExpressionParser.DURATION_LITERAL -> LiteralExpression.of(HumanReadableDuration.parse(symbol.getText()));
+
                 default -> throw new RuntimeException("Unsupported terminal type");
             };
+        }
+
+        @Override
+        public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
+            Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
+            return toLiteralASTExpression(symbol);
         }
 
         @Override
