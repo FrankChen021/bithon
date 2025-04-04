@@ -86,17 +86,7 @@ public class SafeDivisionTransformer {
 
         @Override
         public void accept(IExpressionInDepthVisitor visitor) {
-            if (!(visitor instanceof ExpressionSerializer serializer)) {
-                throw new UnsupportedOperationException();
-            }
-
-            serializer.append("IF( ");
-            whenExpression.accept(serializer);
-            serializer.append(", ");
-            thenExpression.accept(serializer);
-            serializer.append(", ");
-            elseExpression.accept(serializer);
-            serializer.append(")");
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -112,11 +102,11 @@ public class SafeDivisionTransformer {
         @Override
         public void serializeToText(ExpressionSerializer serializer) {
             serializer.append("IF( ");
-            whenExpression.accept(serializer);
+            whenExpression.serializeToText(serializer);
             serializer.append(", ");
-            thenExpression.accept(serializer);
+            thenExpression.serializeToText(serializer);
             serializer.append(", ");
-            elseExpression.accept(serializer);
+            elseExpression.serializeToText(serializer);
             serializer.append(")");
         }
     }

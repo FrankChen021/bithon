@@ -94,6 +94,14 @@ public class TernaryExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        this.conditionExpression.serializeToText(serializer);
+        serializer.append(' ');
+        serializer.append('?');
+        serializer.append(' ');
+        this.trueExpression.serializeToText(serializer);
+        serializer.append(' ');
+        serializer.append(':');
+        serializer.append(' ');
+        this.falseExpression.serializeToText(serializer);
     }
 }

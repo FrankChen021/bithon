@@ -60,6 +60,6 @@ public abstract class BinaryExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.serializeBinary(this);
+        serializer.serialize(this);
     }
 }

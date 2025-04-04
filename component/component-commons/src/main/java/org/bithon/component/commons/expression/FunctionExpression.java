@@ -98,7 +98,7 @@ public class FunctionExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        serializer.serialize(this);
     }
 
     public static FunctionExpression create(IFunction function, IExpression... args) {

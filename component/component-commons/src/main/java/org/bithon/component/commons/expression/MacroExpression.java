@@ -65,6 +65,6 @@ public class MacroExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        serializer.serialize(this);
     }
 }

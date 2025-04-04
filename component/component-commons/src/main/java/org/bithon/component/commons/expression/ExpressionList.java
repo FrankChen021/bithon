@@ -77,6 +77,15 @@ public class ExpressionList implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        serializer.append('(');
+        {
+            for (int i = 0, size = expressions.size(); i < size; i++) {
+                if (i > 0) {
+                    serializer.append(", ");
+                }
+                expressions.get(i).serializeToText(serializer);
+            }
+        }
+        serializer.append(')');
     }
 }

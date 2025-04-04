@@ -145,6 +145,9 @@ public class ArrayAccessExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        this.array.serializeToText(serializer);
+        serializer.append('[');
+        serializer.append(index);
+        serializer.append(']');
     }
 }

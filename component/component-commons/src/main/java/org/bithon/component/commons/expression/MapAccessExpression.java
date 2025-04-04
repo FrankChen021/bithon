@@ -86,6 +86,11 @@ public class MapAccessExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        this.map.serializeToText(serializer);
+        serializer.append('[');
+        serializer.append('\'');
+        serializer.append(this.key);
+        serializer.append('\'');
+        serializer.append(']');
     }
 }

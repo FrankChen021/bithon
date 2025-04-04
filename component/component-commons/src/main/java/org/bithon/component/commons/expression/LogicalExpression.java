@@ -97,7 +97,7 @@ public abstract class LogicalExpression implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        serializer.serialize(this);
     }
 
     public abstract LogicalExpression copy(List<IExpression> expressionList);

@@ -146,7 +146,7 @@ public class MetricExpression implements IExpression {
         }
 
         @Override
-        public boolean visit(LiteralExpression<?> expression) {
+        public void serialize(LiteralExpression<?> expression) {
             if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('\'');
                 sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '\''));
@@ -154,7 +154,6 @@ public class MetricExpression implements IExpression {
             } else {
                 sb.append(expression.getValue());
             }
-            return false;
         }
     }
 
@@ -165,19 +164,18 @@ public class MetricExpression implements IExpression {
         }
 
         @Override
-        public boolean visit(LogicalExpression expression) {
+        public void serialize(LogicalExpression expression) {
             for (int i = 0, size = expression.getOperands().size(); i < size; i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
-                expression.getOperands().get(i).accept(this);
+                expression.getOperands().get(i).serializeToText(this);
             }
-            return false;
         }
 
         // Use double quote to serialize the expression by default
         @Override
-        public boolean visit(LiteralExpression<?> expression) {
+        public void serialize(LiteralExpression<?> expression) {
             if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
                 sb.append('"');
                 sb.append(StringUtils.escape(stringLiteral.getValue(), '\\', '"'));
@@ -185,7 +183,6 @@ public class MetricExpression implements IExpression {
             } else {
                 sb.append(expression.getValue());
             }
-            return false;
         }
     }
 

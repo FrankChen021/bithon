@@ -159,7 +159,7 @@ public abstract class LiteralExpression<T> implements IExpression {
 
     @Override
     public void serializeToText(ExpressionSerializer serializer) {
-        serializer.visit(this);
+        serializer.serialize(this);
     }
 
     public static class StringLiteral extends LiteralExpression<String> {

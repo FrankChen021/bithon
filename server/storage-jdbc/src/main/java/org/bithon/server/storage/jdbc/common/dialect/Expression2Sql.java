@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.common.dialect;
 
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -55,7 +56,7 @@ public class Expression2Sql extends ExpressionSerializer {
     }
 
     @Override
-    public boolean visit(LiteralExpression<?> expression) {
+    public void serialize(LiteralExpression<?> expression) {
         if (expression instanceof LiteralExpression.StringLiteral stringLiteral) {
             sb.append('\'');
             // Escape the single quote to ensure the user input is safe
@@ -81,20 +82,18 @@ public class Expression2Sql extends ExpressionSerializer {
         } else {
             throw new RuntimeException("Not supported type " + expression.getDataType());
         }
-
-        return false;
     }
 
     @Override
-    public boolean visit(FunctionExpression expression) {
+    public void serialize(FunctionExpression expression) {
         if (expression.getFunction() instanceof AggregateFunction.Count
             && expression.getArgs().isEmpty()) {
             // Some DBMSs require parameter on the 'count' function
             sb.append("count(1)");
-            return false;
+            return;
         }
 
-        return super.visit(expression);
+        super.serialize(expression);
     }
 
     /**
@@ -102,17 +101,15 @@ public class Expression2Sql extends ExpressionSerializer {
      * The pattern in the 'contains' operator will be escaped if necessary.
      */
     @Override
-    public boolean visit(ConditionalExpression expression) {
-        if (!(expression instanceof ConditionalExpression.Contains)) {
-            return super.visit(expression);
+    public void serialize(BinaryExpression expression) {
+        if (expression instanceof ConditionalExpression.Contains) {
+            String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
+
+            super.serialize(new LikeOperator(expression.getLhs(),
+                                             LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
+        } else {
+            super.serialize(expression);
         }
-
-        String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
-
-        serializeBinary(new LikeOperator(expression.getLhs(),
-                                         LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
-
-        return false;
     }
 }
 
