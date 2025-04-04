@@ -18,7 +18,6 @@ package org.bithon.server.metric.expression.ast;
 
 
 import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.server.metric.expression.MetricExpression;
 
 /**
  * @author frank.chen021@outlook.com

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression;
+package org.bithon.server.metric.expression.ast;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -35,6 +35,9 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
+import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
+import org.bithon.server.metric.expression.MetricExpressionLexer;
+import org.bithon.server.metric.expression.MetricExpressionParser;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;

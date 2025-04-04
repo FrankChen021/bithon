@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression;
+package org.bithon.server.metric.expression.ast;
 
 import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
@@ -31,7 +31,6 @@ import org.bithon.component.commons.expression.serialization.IdentifierQuotaStra
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;

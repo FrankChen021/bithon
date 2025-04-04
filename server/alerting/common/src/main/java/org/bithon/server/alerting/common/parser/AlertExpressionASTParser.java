@@ -41,11 +41,11 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPr
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
-import org.bithon.server.metric.expression.MetricExpression;
-import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
+import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 
 import java.util.List;
 
