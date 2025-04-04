@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -166,14 +167,14 @@ public class MetricQueryApi {
         }
     }
 
-    private QueryResponse merge(boolean usePercentage,
-                                HumanReadableDuration offset,
-                                QueryResponse baseResponse,
-                                QueryResponse currentResponse) {
-        TimeSeriesMetric base = (TimeSeriesMetric) baseResponse.getData().iterator().next();
+    private QueryResponse<?> merge(boolean usePercentage,
+                                   HumanReadableDuration offset,
+                                   QueryResponse<Collection<TimeSeriesMetric>> baseResponse,
+                                   QueryResponse<Collection<TimeSeriesMetric>> currentResponse) {
+        TimeSeriesMetric base = baseResponse.getData().iterator().next();
         base.getTags().add(0, offset.toString());
 
-        TimeSeriesMetric curr = (TimeSeriesMetric) currentResponse.getData().iterator().next();
+        TimeSeriesMetric curr = currentResponse.getData().iterator().next();
         curr.getTags().add(0, "curr");
 
         // Calculate delta
