@@ -85,24 +85,27 @@ public class EvaluatorBuilder {
                                            .build();
 
             if (expression.getOffset() != null) {
-                QueryRequest base = QueryRequest.builder()
-                                                .dataSource(expression.getFrom())
-                                                .filterExpression(filterExpression)
-                                                .groupBy(expression.getGroupBy())
-                                                .fields(List.of(expression.getMetric()))
-                                                .interval(intervalRequest)
-                                                .offset(expression.getOffset())
-                                                .build();
-
                 // Create expression as: ( current - base ) / base
                 // TODO: produce the delta and base series in the result
-                MetricExpressionEvaluator basePipeline = new MetricExpressionEvaluator(base, dataSourceApi);
+                MetricExpressionEvaluator base = new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                                           .dataSource(expression.getFrom())
+                                                                                           .filterExpression(filterExpression)
+                                                                                           .groupBy(expression.getGroupBy())
+                                                                                           .fields(List.of(expression.getMetric()))
+                                                                                           .interval(intervalRequest)
+                                                                                           .offset(expression.getOffset())
+                                                                                           .build(),
+                                                                               dataSourceApi);
                 return new BinaryExpressionEvaluator.Div(
                     new BinaryExpressionEvaluator.Sub(
                         new MetricExpressionEvaluator(req, dataSourceApi),
-                        basePipeline
+                        base,
+                        "delta",
+                        true
                     ),
-                    basePipeline
+                    base,
+                    null,
+                    true
                 );
             } else {
                 return new MetricExpressionEvaluator(req, dataSourceApi);

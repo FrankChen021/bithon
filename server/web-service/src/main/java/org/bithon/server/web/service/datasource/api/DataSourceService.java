@@ -142,9 +142,9 @@ public class DataSourceService {
                                                                    Collections.emptyList());
 
             return ColumnarResponse.builder()
-                .startTimestamp(ts.getStartTimestamp())
-                .endTimestamp(ts.getEndTimestamp())
-                .interval(ts.getInterval())
+                                   .startTimestamp(ts.getStartTimestamp())
+                                   .endTimestamp(ts.getEndTimestamp())
+                                   .interval(ts.getInterval())
                                    .rows(result.size())
                                    .keyNames(keyNames.toArray(new String[0]))
                                    .keys(keys)

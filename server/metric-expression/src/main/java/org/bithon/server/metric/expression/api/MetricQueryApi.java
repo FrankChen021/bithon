@@ -32,8 +32,8 @@ import org.bithon.server.metric.expression.ast.MetricExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.evaluation.EvaluatorBuilder;
 import org.bithon.server.metric.expression.evaluation.IEvaluator;
+import org.bithon.server.metric.expression.evaluation.mutation.FillEmptyBucketMutation;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -163,16 +163,15 @@ public class MetricQueryApi {
 
     @Experimental
     @PostMapping("/api/metric/timeseries/v2")
-    public ColumnarResponse timeSeriesV2(@Validated @RequestBody MetricQueryRequest request) throws Exception {
+    public QueryResponse timeSeriesV2(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         IEvaluator evaluator = EvaluatorBuilder.builder()
                                                .dataSourceApi(dataSourceApi)
                                                .intervalRequest(request.getInterval())
                                                .condition(request.getCondition())
                                                .build(request.getExpression());
 
-        return evaluator.evaluate().get();
+        return new FillEmptyBucketMutation(evaluator).evaluate();
     }
-
 
     private QueryResponse<?> merge(boolean usePercentage,
                                    HumanReadableDuration offset,

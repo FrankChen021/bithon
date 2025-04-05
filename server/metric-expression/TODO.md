@@ -1,5 +1,5 @@
 ## Must to be done
-- [ ] In MetricQueryApi, convert ColumnarResponse to QueryResponse
+- [x] In MetricQueryApi, convert ColumnarResponse to QueryResponse
 - [ ] For base line comparison, returns the base/delta columns
  
 ## Optimization

@@ -29,10 +29,12 @@ import java.util.Map;
 /// | {k1} | value1 |
 /// | {k2} | value2 |
 ///
-/// |appName, instanceName | value |
-/// |-----------------------|-----------------|
-/// | {k1, k2} | value1 |
-/// | {k3, k4} | value2 |
+/// List | Map<String, List>
+///
+/// |appName, instanceName | metric1 | metric2 |
+/// |-----------------------|--------|---------|
+/// | {key1, key2} | value1 | value2 |
+/// | {key3, key4} | value3 | value4 |
 ///
 ///
 /// @author frank.chen021@outlook.com

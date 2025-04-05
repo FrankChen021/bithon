@@ -23,11 +23,20 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 3:47 pm
+ * @date 5/4/25 8:48 pm
  */
-public interface IEvaluator {
+public class Mutation implements IEvaluator {
+    @Override
+    public boolean isScalar() {
+        return false;
+    }
 
-    boolean isScalar();
+    @Override
+    public CompletableFuture<ColumnarResponse> evaluate() throws Exception {
+        return null;
+    }
 
-    CompletableFuture<ColumnarResponse> evaluate() throws Exception;
+    public static class AddColumn extends Mutation {
+
+    }
 }

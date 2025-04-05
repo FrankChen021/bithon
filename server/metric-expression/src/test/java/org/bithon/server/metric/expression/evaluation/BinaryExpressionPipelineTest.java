@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -1253,5 +1254,53 @@ public class BinaryExpressionPipelineTest {
         List<Object> values = response.getValues().get("value");
         Assert.assertEquals(1, values.size());
         Assert.assertEquals(5.0 / 22 * 101 + 5, ((Number) values.get(0)).doubleValue(), .0000000001);
+    }
+
+    @Test
+    public void test_RelativeComparison() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   HumanReadableDuration offset = answer.getArgument(0, QueryRequest.class)
+                                                        .getOffset();
+
+                   if (offset == null) {
+                       return QueryResponse.builder()
+                                           .data(ColumnarResponse.builder()
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app1")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
+                                                                 .build()
+                                           )
+                                           .build();
+                   }
+
+                   return QueryResponse.builder()
+                                       .data(ColumnarResponse.builder()
+                                                             .keyNames(List.of("appName"))
+                                                             .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                             .valueNames(List.of("activeThreads"))
+                                                             .values(Map.of("activeThreads", new ArrayList<>(List.of(21, 22, 23))))
+                                                             .build())
+                                       .build();
+
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+        ColumnarResponse response = evaluator.evaluate().get();
+
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
+
+        // Only the overlapped series will be returned
+        List<Object> values = response.getValues().get("curr");
+        Assert.assertEquals(2, values.size());
+        Assert.assertEquals(3, ((Number) values.get(0)).doubleValue(), .0000000001);
+        Assert.assertEquals(4, ((Number) values.get(1)).doubleValue(), .0000000001);
     }
 }

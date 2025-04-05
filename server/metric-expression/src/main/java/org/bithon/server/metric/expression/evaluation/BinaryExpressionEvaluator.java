@@ -22,6 +22,7 @@ import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +37,22 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     private final IEvaluator lhs;
     private final IEvaluator rhs;
 
+    /**
+     * Nullable, if NULL, then the name of {@link #lhs} will be used
+     */
+    private final String resultColumn;
+    private final boolean keepSourceColumns;
+
     public static class Add extends BinaryExpressionEvaluator {
         public Add(IEvaluator left, IEvaluator right) {
-            super(left, right);
+            super(left, right, null, false);
+        }
+
+        public Add(IEvaluator left,
+                   IEvaluator right,
+                   String resultColumn,
+                   boolean keepSourceColumns) {
+            super(left, right, resultColumn, keepSourceColumns);
         }
 
         @Override
@@ -49,7 +63,14 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     public static class Sub extends BinaryExpressionEvaluator {
         public Sub(IEvaluator left, IEvaluator right) {
-            super(left, right);
+            super(left, right, null, false);
+        }
+
+        public Sub(IEvaluator left,
+                   IEvaluator right,
+                   String resultColumn,
+                   boolean keepSourceColumns) {
+            super(left, right, resultColumn, keepSourceColumns);
         }
 
         @Override
@@ -60,7 +81,14 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     public static class Mul extends BinaryExpressionEvaluator {
         public Mul(IEvaluator left, IEvaluator right) {
-            super(left, right);
+            super(left, right, null, false);
+        }
+
+        public Mul(IEvaluator left,
+                   IEvaluator right,
+                   String resultColumn,
+                   boolean keepSourceColumns) {
+            super(left, right, resultColumn, keepSourceColumns);
         }
 
         @Override
@@ -71,7 +99,14 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     public static class Div extends BinaryExpressionEvaluator {
         public Div(IEvaluator left, IEvaluator right) {
-            super(left, right);
+            super(left, right, null, false);
+        }
+
+        public Div(IEvaluator left,
+                   IEvaluator right,
+                   String resultColumn,
+                   boolean keepSourceColumns) {
+            super(left, right, resultColumn, keepSourceColumns);
         }
 
         @Override
@@ -80,13 +115,18 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         }
     }
 
-    protected BinaryExpressionEvaluator(IEvaluator left, IEvaluator right) {
+    protected BinaryExpressionEvaluator(IEvaluator left,
+                                        IEvaluator right,
+                                        String resultColumn,
+                                        boolean keepSourceColumns) {
         this.lhs = left;
         this.rhs = right;
+        this.resultColumn = resultColumn;
+        this.keepSourceColumns = keepSourceColumns;
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> evaluate() {
+    public CompletableFuture<ColumnarResponse> evaluate() throws Exception {
         CompletableFuture<ColumnarResponse> leftFuture = this.lhs.evaluate();
         CompletableFuture<ColumnarResponse> rightFuture = this.rhs.evaluate();
 
@@ -95,19 +135,21 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                     try {
                                         ColumnarResponse l = leftFuture.get();
                                         ColumnarResponse r = rightFuture.get();
+                                        ColumnarResponse result = null;
                                         if (lhs.isScalar()) {
                                             if (rhs.isScalar()) {
-                                                return applyScalarOverScalar(l, r);
+                                                result = applyScalarOverScalar(l, r);
                                             } else {
-                                                return applyScalarOverVector(l, r, true);
+                                                result = applyScalarOverVector(l, r, true);
                                             }
                                         } else {
                                             if (rhs.isScalar()) {
-                                                return applyScalarOverVector(r, l, false);
+                                                result = applyScalarOverVector(r, l, false);
                                             } else {
-                                                return applyVectorOverVector(l, r);
+                                                result = applyVectorOverVector(l, r);
                                             }
                                         }
+                                        return transformResult(result, l, r);
                                     } catch (InterruptedException | ExecutionException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -121,7 +163,33 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     abstract double apply(double l, double r);
 
-    private ColumnarResponse applyScalarOverScalar(ColumnarResponse left, ColumnarResponse right) {
+    private ColumnarResponse transformResult(ColumnarResponse result, ColumnarResponse lResponse, ColumnarResponse rResponse) {
+        if (this.resultColumn != null) {
+            String col = result.getValueNames()[0];
+            if (result.getValues().getClass().getName().contains("Immutable")) {
+                result.setValues(new HashMap<>(result.getValues()));
+            }
+            List<Object> values = result.getValues().remove(col);
+            result.getValues().put(this.resultColumn, values);
+            result.getValueNames()[0] = this.resultColumn;
+        }
+        if (this.keepSourceColumns) {
+            String lName = lResponse.getValueNames()[0];
+            if (result.getValues().getClass().getName().contains("Immutable")) {
+                result.setValues(new HashMap<>(result.getValues()));
+            }
+            result.getValues().put(lName, lResponse.getValues().get(lName));
+
+            String rName = lResponse.getValueNames()[0];
+            result.getValues().put(rName, rResponse.getValues().get(lName));
+
+            result.setValueNames(new String[]{result.getValueNames()[0], lName, rName});
+        }
+        return result;
+    }
+
+    private ColumnarResponse applyScalarOverScalar(ColumnarResponse left,
+                                                   ColumnarResponse right) {
         String lValueName = left.getValueNames()[0];
         List<Object> lValues = left.getValues().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
@@ -171,7 +239,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         // join these two maps by its keyNames
         //
         List<List<Object>> keys = new ArrayList<>();
-        List<Object> values = new ArrayList<>();
+        List<Object> resultColumn = new ArrayList<>();
 
         for (Map.Entry<List<Object>, Object> lEntry : lmap.entrySet()) {
             List<Object> rowKey = lEntry.getKey();
@@ -183,7 +251,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                 double result = apply(leftValue, rightValue);
 
                 keys.add(rowKey);
-                values.add(result);
+                resultColumn.add(result);
             }
         }
 
@@ -195,7 +263,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                .keyNames(left.getKeyNames())
                                .keys(keys)
                                .valueNames("value")
-                               .values(Map.of("value", values))
+                               .values(Map.of("value", resultColumn))
                                .build();
     }
 
