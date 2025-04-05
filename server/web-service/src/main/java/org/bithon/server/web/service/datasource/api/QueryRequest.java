@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
@@ -69,6 +70,9 @@ public class QueryRequest {
     @Valid
     @Nullable
     private Limit limit;
+
+    @Nullable
+    private HumanReadableDuration offset;
 
     private Query.ResultFormat resultFormat;
 }

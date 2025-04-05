@@ -30,6 +30,9 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,6 +87,70 @@ public class DataSourceService {
                                                TimestampSpec.COLUMN_ALIAS,
                                                query.getGroupBy(),
                                                metrics);
+        }
+    }
+
+    public ColumnarResponse timeseriesQuery2(Query query) throws IOException {
+        // Remove any dimensions
+        List<String> metrics = query.getSelectors()
+                                    .stream()
+                                    .filter((selectColumn) -> {
+                                        if (selectColumn.getSelectExpression() instanceof Expression) {
+                                            // Support the metrics defined directly at the client side.
+                                            // TODO: check if the fields involved in the expression are all metrics
+                                            return true;
+                                        }
+
+                                        IColumn column = query.getSchema().getColumnByName(selectColumn.getOutputName());
+                                        return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
+                                    })
+                                    .map((Selector::getOutputName))
+                                    .collect(Collectors.toList());
+
+        List<String> keyNames = new ArrayList<>();
+        keyNames.add("_timestamp");
+        keyNames.addAll(query.getGroupBy());
+
+        List<List<Object>> keys = new ArrayList<>();
+        Map<String, List<Object>> values = new HashMap<>();
+        try (IDataSourceReader reader = query.getSchema()
+                                             .getDataStoreSpec()
+                                             .createReader()) {
+            List<Map<String, Object>> result = reader.timeseries(query);
+            for (Map<String, Object> row : result) {
+
+                List<Object> rowKey = new ArrayList<>();
+                for (String col : keyNames) {
+                    Object val = row.get(col);
+                    rowKey.add(val);
+                }
+                keys.add(rowKey);
+
+                for (String col : metrics) {
+                    Object val = row.get(col);
+                    values.computeIfAbsent(col, k -> new ArrayList<>())
+                          .add(val);
+                }
+            }
+
+            TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
+                                                                   query.getInterval().getEndTime(),
+                                                                   query.getInterval().getStep().getSeconds(),
+                                                                   Collections.emptyList(),
+                                                                   TimestampSpec.COLUMN_ALIAS,
+                                                                   Collections.emptyList(),
+                                                                   Collections.emptyList());
+
+            return ColumnarResponse.builder()
+                .startTimestamp(ts.getStartTimestamp())
+                .endTimestamp(ts.getEndTimestamp())
+                .interval(ts.getInterval())
+                                   .rows(result.size())
+                                   .keyNames(keyNames.toArray(new String[0]))
+                                   .keys(keys)
+                                   .valueNames(metrics)
+                                   .values(values)
+                                   .build();
         }
     }
 

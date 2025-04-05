@@ -28,10 +28,12 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.metric.expression.MetricExpression;
-import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.evaluation.EvaluatorBuilder;
+import org.bithon.server.metric.expression.evaluation.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -47,13 +49,13 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,20 +127,13 @@ public class MetricQueryApi {
             });
 
             Future<QueryResponse> base = this.executor.submit(() -> {
-                // Offset expression is negative
-                long seconds = -metricExpression.getOffset().getDuration().getSeconds();
                 QueryRequest req = QueryRequest.builder()
                                                .dataSource(metricExpression.getFrom())
                                                .filterExpression(filterExpression)
                                                .groupBy(metricExpression.getGroupBy())
                                                .fields(List.of(metricExpression.getMetric()))
-                                               .interval(IntervalRequest.builder()
-                                                                        .startISO8601(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .endISO8601(TimeSpan.fromISO8601(request.getInterval().getEndISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .bucketCount(request.getInterval().getBucketCount())
-                                                                        .step(request.getInterval().getStep())
-                                                                        .timestampColumn(request.getInterval().getTimestampColumn())
-                                                                        .build())
+                                               .offset(metricExpression.getOffset())
+                                               .interval(request.getInterval())
                                                .build();
                 try {
                     return dataSourceApi.timeseriesV4(req);
@@ -166,14 +161,27 @@ public class MetricQueryApi {
         }
     }
 
-    private QueryResponse merge(boolean usePercentage,
-                                HumanReadableDuration offset,
-                                QueryResponse baseResponse,
-                                QueryResponse currentResponse) {
-        TimeSeriesMetric base = (TimeSeriesMetric) baseResponse.getData().iterator().next();
+    @Experimental
+    @PostMapping("/api/metric/timeseries/v2")
+    public ColumnarResponse timeSeriesV2(@Validated @RequestBody MetricQueryRequest request) throws Exception {
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(request.getInterval())
+                                               .condition(request.getCondition())
+                                               .build(request.getExpression());
+
+        return evaluator.evaluate().get();
+    }
+
+
+    private QueryResponse<?> merge(boolean usePercentage,
+                                   HumanReadableDuration offset,
+                                   QueryResponse<Collection<TimeSeriesMetric>> baseResponse,
+                                   QueryResponse<Collection<TimeSeriesMetric>> currentResponse) {
+        TimeSeriesMetric base = baseResponse.getData().iterator().next();
         base.getTags().add(0, offset.toString());
 
-        TimeSeriesMetric curr = (TimeSeriesMetric) currentResponse.getData().iterator().next();
+        TimeSeriesMetric curr = currentResponse.getData().iterator().next();
         curr.getTags().add(0, "curr");
 
         // Calculate delta
