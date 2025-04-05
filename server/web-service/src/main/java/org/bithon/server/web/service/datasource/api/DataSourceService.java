@@ -126,12 +126,14 @@ public class DataSourceService {
                     columns.computeIfAbsent(col, k -> new ArrayList<>()).add(val);
                 }
             }
+
+            return ColumnarResponse.builder()
+                                   .columns(columns)
+                                   .keys(keys.toArray(new String[0]))
+                                   .rows(result.size())
+                                   .values(metrics)
+                                   .build();
         }
-        return ColumnarResponse.builder()
-                               .columns(columns)
-                               .keys(keys)
-                               .values(metrics)
-                               .build();
     }
 
     public List<String> getBaseline() {
