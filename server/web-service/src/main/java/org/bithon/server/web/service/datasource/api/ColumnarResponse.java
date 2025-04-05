@@ -24,54 +24,82 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 4/4/25 6:23 pm
- */
+/// |appName | value |
+/// |-----------------------|-----------------|
+/// | {k1} | value1 |
+/// | {k2} | value2 |
+///
+/// |appName, instanceName | value |
+/// |-----------------------|-----------------|
+/// | {k1, k2} | value1 |
+/// | {k3, k4} | value2 |
+///
+///
+/// @author frank.chen021@outlook.com
+/// @date 4/4/25 6:23 pm
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ColumnarResponse {
-    private String[] keys;
-    private String[] values;
     private int rows;
-    private Map<String, List<Object>> columns;
+
+    private String[] keyNames;
+    private List<List<Object>> keys;
+
+    private String[] valueNames;
+    private Map<String, List<Object>> values;
+
+    private long startTimestamp;
+    private long endTimestamp;
+    private long interval;
 
     public static ColumnarResponseBuilder builder() {
         return new ColumnarResponseBuilder();
     }
 
     public static class ColumnarResponseBuilder {
-        private String[] keys;
-        private String[] values;
-        private Map<String, List<Object>> columns;
+        private String[] keyNames;
+        private String[] valueNames;
+        private List<List<Object>> keys;
+        private Map<String, List<Object>> values;
         private int rows;
+        private long startTimestamp;
+        private long endTimestamp;
+        private long interval;
 
-        public ColumnarResponseBuilder keys(String... keys) {
+        public ColumnarResponseBuilder keyNames(String... keyNames) {
+            this.keyNames = keyNames;
+            return this;
+        }
+
+        public ColumnarResponseBuilder keyNames(List<String> keyNames) {
+            this.keyNames = keyNames.toArray(new String[0]);
+            return this;
+        }
+
+        public ColumnarResponseBuilder valueNames(List<String> valueNames) {
+            this.valueNames = valueNames.toArray(new String[0]);
+            return this;
+        }
+
+        public ColumnarResponseBuilder valueNames(String... values) {
+            this.valueNames = values;
+            return this;
+        }
+
+        public ColumnarResponseBuilder keys(List<List<Object>> keys) {
             this.keys = keys;
+            if (!keys.isEmpty()) {
+                this.rows = keys.size();
+            }
             return this;
         }
 
-        public ColumnarResponseBuilder keys(List<String> keys) {
-            this.keys = keys.toArray(new String[0]);
-            return this;
-        }
-
-        public ColumnarResponseBuilder values(List<String> values) {
-            this.values = values.toArray(new String[0]);
-            return this;
-        }
-
-        public ColumnarResponseBuilder values(String... values) {
+        public ColumnarResponseBuilder values(Map<String, List<Object>> values) {
             this.values = values;
-            return this;
-        }
-
-        public ColumnarResponseBuilder columns(Map<String, List<Object>> columns) {
-            this.columns = columns;
-            if (!columns.isEmpty()) {
-                List<Object> values = columns.entrySet().iterator().next().getValue();
-                this.rows = values.size();
+            if (!values.isEmpty()) {
+                List<Object> col = values.entrySet().iterator().next().getValue();
+                this.rows = col.size();
             }
             return this;
         }
@@ -81,8 +109,23 @@ public class ColumnarResponse {
             return this;
         }
 
+        public ColumnarResponseBuilder startTimestamp(long startTimestamp) {
+            this.startTimestamp = startTimestamp;
+            return this;
+        }
+
+        public ColumnarResponseBuilder endTimestamp(long endTimestamp) {
+            this.endTimestamp = endTimestamp;
+            return this;
+        }
+
+        public ColumnarResponseBuilder interval(long interval) {
+            this.interval = interval;
+            return this;
+        }
+
         public ColumnarResponse build() {
-            return new ColumnarResponse(keys, values, rows, columns);
+            return new ColumnarResponse(rows, keyNames, keys, valueNames, values, startTimestamp, endTimestamp, interval);
         }
     }
 }

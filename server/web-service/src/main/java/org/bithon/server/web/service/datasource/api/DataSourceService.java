@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,32 +107,49 @@ public class DataSourceService {
                                     .map((Selector::getOutputName))
                                     .collect(Collectors.toList());
 
-        List<String> keys = new ArrayList<>();
-        keys.add("_timestamp");
-        keys.addAll(query.getGroupBy());
+        List<String> keyNames = new ArrayList<>();
+        keyNames.add("_timestamp");
+        keyNames.addAll(query.getGroupBy());
 
-        List<String> columnNames = new ArrayList<>();
-        columnNames.addAll(keys);
-        columnNames.addAll(metrics);
-
-        Map<String, List<Object>> columns = new HashMap<>();
+        List<List<Object>> keys = new ArrayList<>();
+        Map<String, List<Object>> values = new HashMap<>();
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {
             List<Map<String, Object>> result = reader.timeseries(query);
             for (Map<String, Object> row : result) {
 
-                for (String col : columnNames) {
+                List<Object> rowKey = new ArrayList<>();
+                for (String col : keyNames) {
                     Object val = row.get(col);
-                    columns.computeIfAbsent(col, k -> new ArrayList<>()).add(val);
+                    rowKey.add(val);
+                }
+                keys.add(rowKey);
+
+                for (String col : metrics) {
+                    Object val = row.get(col);
+                    values.computeIfAbsent(col, k -> new ArrayList<>())
+                          .add(val);
                 }
             }
 
+            TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
+                                                                   query.getInterval().getEndTime(),
+                                                                   query.getInterval().getStep().getSeconds(),
+                                                                   Collections.emptyList(),
+                                                                   TimestampSpec.COLUMN_ALIAS,
+                                                                   Collections.emptyList(),
+                                                                   Collections.emptyList());
+
             return ColumnarResponse.builder()
-                                   .columns(columns)
-                                   .keys(keys.toArray(new String[0]))
+                .startTimestamp(ts.getStartTimestamp())
+                .endTimestamp(ts.getEndTimestamp())
+                .interval(ts.getInterval())
                                    .rows(result.size())
-                                   .values(metrics)
+                                   .keyNames(keyNames.toArray(new String[0]))
+                                   .keys(keys)
+                                   .valueNames(metrics)
+                                   .values(values)
                                    .build();
         }
     }

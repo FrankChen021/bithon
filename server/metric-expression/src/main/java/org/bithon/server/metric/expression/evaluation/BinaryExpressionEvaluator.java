@@ -22,7 +22,6 @@ import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,12 +122,12 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     abstract double apply(double l, double r);
 
     private ColumnarResponse applyScalarOverScalar(ColumnarResponse left, ColumnarResponse right) {
-        String lValueName = left.getValues()[0];
-        List<Object> lValues = left.getColumns().get(lValueName);
+        String lValueName = left.getValueNames()[0];
+        List<Object> lValues = left.getValues().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
 
-        String rValueName = right.getValues()[0];
-        List<Object> rValues = right.getColumns().get(rValueName);
+        String rValueName = right.getValueNames()[0];
+        List<Object> rValues = right.getValues().get(rValueName);
         double rValue = ((Number) rValues.get(0)).doubleValue();
 
         double result = apply(lValue, rValue);
@@ -138,12 +137,12 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     private ColumnarResponse applyScalarOverVector(ColumnarResponse left, ColumnarResponse right, boolean sign) {
-        String lValueName = left.getValues()[0];
-        List<Object> lValues = left.getColumns().get(lValueName);
+        String lValueName = left.getValueNames()[0];
+        List<Object> lValues = left.getValues().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
 
-        String rValueName = right.getValues()[0];
-        List<Object> rValues = right.getColumns().get(rValueName);
+        String rValueName = right.getValueNames()[0];
+        List<Object> rValues = right.getValues().get(rValueName);
 
         for (int i = 0, size = rValues.size(); i < size; i++) {
             double rValue = ((Number) rValues.get(i)).doubleValue();
@@ -156,18 +155,12 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     private ColumnarResponse applyVectorOverVector(ColumnarResponse left, ColumnarResponse right) {
-        if (left.getKeys().length != right.getKeys().length) {
+        if (!CollectionUtils.isArrayEqual(left.getKeyNames(), right.getKeyNames())) {
             return ColumnarResponse.builder()
-                                   .keys(new String[0])
-                                   .values(new String[0])
-                                   .columns(Collections.emptyMap())
-                                   .build();
-        }
-        if (!CollectionUtils.isArrayEqual(left.getKeys(), right.getKeys())) {
-            return ColumnarResponse.builder()
-                                   .keys(new String[0])
-                                   .values(new String[0])
-                                   .columns(Collections.emptyMap())
+                                   .keyNames()
+                                   .keys(Collections.emptyList())
+                                   .valueNames()
+                                   .values(Collections.emptyMap())
                                    .build();
         }
 
@@ -175,42 +168,34 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         Map<List<Object>, Object> rmap = toMap(right);
 
         //
-        // join these two maps by its keys
+        // join these two maps by its keyNames
         //
-        // Create result structure
-        Map<String, List<Object>> resultColumns = new HashMap<>();
-        String[] keys = left.getKeys();
+        List<List<Object>> keys = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
 
-        String valueColumn = "value";
+        for (Map.Entry<List<Object>, Object> lEntry : lmap.entrySet()) {
+            List<Object> rowKey = lEntry.getKey();
 
-        // Initialize result columns
-        for (String key : keys) {
-            resultColumns.put(key, new ArrayList<>());
-        }
-        resultColumns.put(valueColumn, new ArrayList<>());
-
-        // Join maps by keys and compute results
-        for (Map.Entry<List<Object>, Object> entry : lmap.entrySet()) {
-            List<Object> keyValues = entry.getKey();
-            if (rmap.containsKey(keyValues)) {
-                // Add dimension keys to result
-                for (int i = 0; i < keys.length; i++) {
-                    resultColumns.get(keys[i]).add(keyValues.get(i));
-                }
-
-                // Calculate and add value
-                double leftValue = ((Number) entry.getValue()).doubleValue();
-                double rightValue = ((Number) rmap.get(keyValues)).doubleValue();
+            Object rValue = rmap.get(rowKey);
+            if (rValue != null) {
+                double leftValue = ((Number) lEntry.getValue()).doubleValue();
+                double rightValue = ((Number) rValue).doubleValue();
                 double result = apply(leftValue, rightValue);
-                resultColumns.get(valueColumn).add(result);
+
+                keys.add(rowKey);
+                values.add(result);
             }
         }
 
         // Build response
         return ColumnarResponse.builder()
+                               .startTimestamp(left.getStartTimestamp())
+                               .endTimestamp(left.getEndTimestamp())
+                               .interval(left.getInterval())
+                               .keyNames(left.getKeyNames())
                                .keys(keys)
-                               .values("value")
-                               .columns(resultColumns)
+                               .valueNames("value")
+                               .values(Map.of("value", values))
                                .build();
     }
 
@@ -219,15 +204,12 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         Map<List<Object>, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < response.getRows(); i++) {
 
-            List<Object> rowKey = new ArrayList<>(response.getRows());
-            for (int j = 0; j < response.getKeys().length; j++) {
-                String key = response.getKeys()[j];
-                Object value = response.getColumns().get(key).get(i);
-                rowKey.add(value);
-            }
+            List<Object> rowKey = response.getKeys().get(i);
 
-            String valName = response.getValues()[0];
-            map.put(rowKey, response.getColumns().get(valName).get(i));
+            String valName = response.getValueNames()[0];
+            Object val = response.getValues().get(valName).get(i);
+
+            map.put(rowKey, val);
         }
         return map;
     }
