@@ -17,8 +17,9 @@
 package org.bithon.server.web.service.datasource.api;
 
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,60 @@ import java.util.Map;
  * @date 4/4/25 6:23 pm
  */
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ColumnarResponse {
-    private List<String> keys;
-    private List<String> values;
+    private String[] keys;
+    private String[] values;
+    private int rows;
     private Map<String, List<Object>> columns;
+
+    public static ColumnarResponseBuilder builder() {
+        return new ColumnarResponseBuilder();
+    }
+
+    public static class ColumnarResponseBuilder {
+        private String[] keys;
+        private String[] values;
+        private Map<String, List<Object>> columns;
+        private int rows;
+
+        public ColumnarResponseBuilder keys(String... keys) {
+            this.keys = keys;
+            return this;
+        }
+
+        public ColumnarResponseBuilder keys(List<String> keys) {
+            this.keys = keys.toArray(new String[0]);
+            return this;
+        }
+
+        public ColumnarResponseBuilder values(List<String> values) {
+            this.values = values.toArray(new String[0]);
+            return this;
+        }
+
+        public ColumnarResponseBuilder values(String... values) {
+            this.values = values;
+            return this;
+        }
+
+        public ColumnarResponseBuilder columns(Map<String, List<Object>> columns) {
+            this.columns = columns;
+            if (!columns.isEmpty()) {
+                List<Object> values = columns.entrySet().iterator().next().getValue();
+                this.rows = values.size();
+            }
+            return this;
+        }
+
+        public ColumnarResponseBuilder rows(int rows) {
+            this.rows = rows;
+            return this;
+        }
+
+        public ColumnarResponse build() {
+            return new ColumnarResponse(keys, values, rows, columns);
+        }
+    }
 }

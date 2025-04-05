@@ -17,9 +17,15 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -117,11 +123,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     abstract double apply(double l, double r);
 
     private ColumnarResponse applyScalarOverScalar(ColumnarResponse left, ColumnarResponse right) {
-        String lValueName = left.getValues().get(0);
+        String lValueName = left.getValues()[0];
         List<Object> lValues = left.getColumns().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
 
-        String rValueName = right.getValues().get(0);
+        String rValueName = right.getValues()[0];
         List<Object> rValues = right.getColumns().get(rValueName);
         double rValue = ((Number) rValues.get(0)).doubleValue();
 
@@ -132,12 +138,13 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     private ColumnarResponse applyScalarOverVector(ColumnarResponse left, ColumnarResponse right, boolean sign) {
-        String lValueName = left.getValues().get(0);
+        String lValueName = left.getValues()[0];
         List<Object> lValues = left.getColumns().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
 
-        String rValueName = right.getValues().get(0);
+        String rValueName = right.getValues()[0];
         List<Object> rValues = right.getColumns().get(rValueName);
+
         for (int i = 0, size = rValues.size(); i < size; i++) {
             double rValue = ((Number) rValues.get(i)).doubleValue();
 
@@ -149,24 +156,79 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     private ColumnarResponse applyVectorOverVector(ColumnarResponse left, ColumnarResponse right) {
-        // Implement the logic for scalar and vector operation
-        /*
-                Map<Map<String, Object>, Double> leftMap = toKeyValueMap(left);
-        Map<Map<String, Object>, Double> rightMap = toKeyValueMap(right);
-        Set<Map<String, Object>> allKeys = new HashSet<>(leftMap.keySet());
-        allKeys.retainAll(rightMap.keySet()); // strict PromQL behavior: only operate on intersected label sets
-
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map<String, Object> key : allKeys) {
-            double lv = leftMap.getOrDefault(key, 0.0);
-            double rv = rightMap.getOrDefault(key, 0.0);
-            double computed = operator.apply(lv, rv);
-
-            Map<String, Object> row = new HashMap<>(key);
-            row.put("value", computed);
-            result.add(row);
+        if (left.getKeys().length != right.getKeys().length) {
+            return ColumnarResponse.builder()
+                                   .keys(new String[0])
+                                   .values(new String[0])
+                                   .columns(Collections.emptyMap())
+                                   .build();
         }
-        return result;*/
-        return null;
+        if (!CollectionUtils.isArrayEqual(left.getKeys(), right.getKeys())) {
+            return ColumnarResponse.builder()
+                                   .keys(new String[0])
+                                   .values(new String[0])
+                                   .columns(Collections.emptyMap())
+                                   .build();
+        }
+
+        Map<List<Object>, Object> lmap = toMap(left);
+        Map<List<Object>, Object> rmap = toMap(right);
+
+        //
+        // join these two maps by its keys
+        //
+        // Create result structure
+        Map<String, List<Object>> resultColumns = new HashMap<>();
+        String[] keys = left.getKeys();
+
+        String valueColumn = "value";
+
+        // Initialize result columns
+        for (String key : keys) {
+            resultColumns.put(key, new ArrayList<>());
+        }
+        resultColumns.put(valueColumn, new ArrayList<>());
+
+        // Join maps by keys and compute results
+        for (Map.Entry<List<Object>, Object> entry : lmap.entrySet()) {
+            List<Object> keyValues = entry.getKey();
+            if (rmap.containsKey(keyValues)) {
+                // Add dimension keys to result
+                for (int i = 0; i < keys.length; i++) {
+                    resultColumns.get(keys[i]).add(keyValues.get(i));
+                }
+
+                // Calculate and add value
+                double leftValue = ((Number) entry.getValue()).doubleValue();
+                double rightValue = ((Number) rmap.get(keyValues)).doubleValue();
+                double result = apply(leftValue, rightValue);
+                resultColumns.get(valueColumn).add(result);
+            }
+        }
+
+        // Build response
+        return ColumnarResponse.builder()
+                               .keys(keys)
+                               .values("value")
+                               .columns(resultColumns)
+                               .build();
+    }
+
+    private Map<List<Object>, Object> toMap(ColumnarResponse response) {
+        // Use LinkedHashMap to maintain insertion order
+        Map<List<Object>, Object> map = new LinkedHashMap<>();
+        for (int i = 0; i < response.getRows(); i++) {
+
+            List<Object> rowKey = new ArrayList<>(response.getRows());
+            for (int j = 0; j < response.getKeys().length; j++) {
+                String key = response.getKeys()[j];
+                Object value = response.getColumns().get(key).get(i);
+                rowKey.add(value);
+            }
+
+            String valName = response.getValues()[0];
+            map.put(rowKey, response.getColumns().get(valName).get(i));
+        }
+        return map;
     }
 }
