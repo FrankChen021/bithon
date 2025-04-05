@@ -30,13 +30,15 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:48 pm
  */
-public class MetricExpressionPipeline implements IPipeline {
+public class MetricExpressionEvaluator implements IEvaluator {
     private final QueryRequest queryRequest;
     private final IDataSourceApi dataSourceApi;
     private final boolean isScalar;
 
-    public MetricExpressionPipeline(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
+    // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
+    private volatile CompletableFuture<ColumnarResponse> cachedResponse;
 
+    public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
         this.isScalar = CollectionUtils.isEmpty(queryRequest.getGroupBy())
@@ -51,14 +53,21 @@ public class MetricExpressionPipeline implements IPipeline {
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> execute() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                QueryResponse<?> response = dataSourceApi.timeseriesV5(queryRequest);
-                return (ColumnarResponse) response.getData();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+    public CompletableFuture<ColumnarResponse> evaluate() {
+        if (cachedResponse == null) {
+            synchronized (this) {
+                if (cachedResponse == null) {
+                    cachedResponse = CompletableFuture.supplyAsync(() -> {
+                        try {
+                            QueryResponse<?> response = dataSourceApi.timeseriesV5(queryRequest);
+                            return (ColumnarResponse) response.getData();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
             }
-        });
+        }
+        return cachedResponse;
     }
 }

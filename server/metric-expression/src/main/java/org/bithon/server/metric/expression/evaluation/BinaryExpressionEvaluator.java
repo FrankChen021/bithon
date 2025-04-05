@@ -27,12 +27,12 @@ import java.util.concurrent.ExecutionException;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:49 pm
  */
-public abstract class BinaryExpressionPipeline implements IPipeline {
-    private final IPipeline lhs;
-    private final IPipeline rhs;
+public abstract class BinaryExpressionEvaluator implements IEvaluator {
+    private final IEvaluator lhs;
+    private final IEvaluator rhs;
 
-    public static class Add extends BinaryExpressionPipeline {
-        public Add(IPipeline left, IPipeline right) {
+    public static class Add extends BinaryExpressionEvaluator {
+        public Add(IEvaluator left, IEvaluator right) {
             super(left, right);
         }
 
@@ -42,8 +42,8 @@ public abstract class BinaryExpressionPipeline implements IPipeline {
         }
     }
 
-    public static class Sub extends BinaryExpressionPipeline {
-        public Sub(IPipeline left, IPipeline right) {
+    public static class Sub extends BinaryExpressionEvaluator {
+        public Sub(IEvaluator left, IEvaluator right) {
             super(left, right);
         }
 
@@ -53,8 +53,8 @@ public abstract class BinaryExpressionPipeline implements IPipeline {
         }
     }
 
-    public static class Mul extends BinaryExpressionPipeline {
-        public Mul(IPipeline left, IPipeline right) {
+    public static class Mul extends BinaryExpressionEvaluator {
+        public Mul(IEvaluator left, IEvaluator right) {
             super(left, right);
         }
 
@@ -64,8 +64,8 @@ public abstract class BinaryExpressionPipeline implements IPipeline {
         }
     }
 
-    public static class Div extends BinaryExpressionPipeline {
-        public Div(IPipeline left, IPipeline right) {
+    public static class Div extends BinaryExpressionEvaluator {
+        public Div(IEvaluator left, IEvaluator right) {
             super(left, right);
         }
 
@@ -75,15 +75,15 @@ public abstract class BinaryExpressionPipeline implements IPipeline {
         }
     }
 
-    protected BinaryExpressionPipeline(IPipeline left, IPipeline right) {
+    protected BinaryExpressionEvaluator(IEvaluator left, IEvaluator right) {
         this.lhs = left;
         this.rhs = right;
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> execute() {
-        CompletableFuture<ColumnarResponse> leftFuture = this.lhs.execute();
-        CompletableFuture<ColumnarResponse> rightFuture = this.rhs.execute();
+    public CompletableFuture<ColumnarResponse> evaluate() {
+        CompletableFuture<ColumnarResponse> leftFuture = this.lhs.evaluate();
+        CompletableFuture<ColumnarResponse> rightFuture = this.rhs.evaluate();
 
         return CompletableFuture.allOf(leftFuture, rightFuture)
                                 .thenApply(v -> {

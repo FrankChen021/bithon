@@ -36,42 +36,42 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:53 pm
  */
-public class QueryPipelineBuilder {
+public class EvaluatorBuilder {
 
     private IDataSourceApi dataSourceApi;
     private IntervalRequest intervalRequest;
     private String condition;
 
-    public static QueryPipelineBuilder builder() {
-        return new QueryPipelineBuilder();
+    public static EvaluatorBuilder builder() {
+        return new EvaluatorBuilder();
     }
 
-    public QueryPipelineBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
+    public EvaluatorBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
         return this;
     }
 
-    public QueryPipelineBuilder intervalRequest(IntervalRequest intervalRequest) {
+    public EvaluatorBuilder intervalRequest(IntervalRequest intervalRequest) {
         this.intervalRequest = intervalRequest;
         return this;
     }
 
-    public QueryPipelineBuilder condition(String condition) {
+    public EvaluatorBuilder condition(String condition) {
         this.condition = condition;
         return this;
     }
 
-    public IPipeline build(String expression) {
+    public IEvaluator build(String expression) {
         return this.build(MetricExpressionASTBuilder.parse(expression));
     }
 
-    public IPipeline build(IExpression expression) {
+    public IEvaluator build(IExpression expression) {
         return expression.accept(new Builder());
     }
 
-    private class Builder implements IMetricExpressionVisitor<IPipeline> {
+    private class Builder implements IMetricExpressionVisitor<IEvaluator> {
         @Override
-        public IPipeline visit(MetricExpression expression) {
+        public IEvaluator visit(MetricExpression expression) {
             String filterExpression = Stream.of(expression.getWhereText(), condition)
                                             .filter(Objects::nonNull)
                                             .collect(Collectors.joining(" AND "));
@@ -84,23 +84,43 @@ public class QueryPipelineBuilder {
                                            .interval(intervalRequest)
                                            .build();
 
-            // TODO: handling relative comparison
+            if (expression.getOffset() != null) {
+                QueryRequest base = QueryRequest.builder()
+                                                .dataSource(expression.getFrom())
+                                                .filterExpression(filterExpression)
+                                                .groupBy(expression.getGroupBy())
+                                                .fields(List.of(expression.getMetric()))
+                                                .interval(intervalRequest)
+                                                .offset(expression.getOffset())
+                                                .build();
 
-            return new MetricExpressionPipeline(req, dataSourceApi);
+                // Create expression as: ( current - base ) / base
+                // TODO: produce the delta and base series in the result
+                MetricExpressionEvaluator basePipeline = new MetricExpressionEvaluator(base, dataSourceApi);
+                return new BinaryExpressionEvaluator.Div(
+                    new BinaryExpressionEvaluator.Sub(
+                        new MetricExpressionEvaluator(req, dataSourceApi),
+                        basePipeline
+                    ),
+                    basePipeline
+                );
+            } else {
+                return new MetricExpressionEvaluator(req, dataSourceApi);
+            }
         }
 
         @Override
-        public IPipeline visit(LiteralExpression<?> expression) {
-            return new LiteralPipeline(expression);
+        public IEvaluator visit(LiteralExpression<?> expression) {
+            return new LiteralEvaluator(expression);
         }
 
         @Override
-        public IPipeline visit(ArithmeticExpression expression) {
+        public IEvaluator visit(ArithmeticExpression expression) {
             return switch (expression.getType()) {
-                case "+" -> new BinaryExpressionPipeline.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "-" -> new BinaryExpressionPipeline.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "*" -> new BinaryExpressionPipeline.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "/" -> new BinaryExpressionPipeline.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "+" -> new BinaryExpressionEvaluator.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "-" -> new BinaryExpressionEvaluator.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "*" -> new BinaryExpressionEvaluator.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "/" -> new BinaryExpressionEvaluator.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
             };
         }
