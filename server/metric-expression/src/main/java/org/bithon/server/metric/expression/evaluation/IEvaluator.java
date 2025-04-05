@@ -17,34 +17,17 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
-import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 9:36 pm
+ * @date 4/4/25 3:47 pm
  */
-public class LiteralPipeline implements IPipeline {
-    private final Object value;
+public interface IEvaluator {
 
-    public LiteralPipeline(LiteralExpression<?> value) {
-        this.value = value.getValue();
-    }
+    boolean isScalar();
 
-    @Override
-    public boolean isScalar() {
-        return true;
-    }
-
-    @Override
-    public CompletableFuture<ColumnarResponse> execute() {
-        return CompletableFuture.completedFuture(ColumnarResponse.builder()
-                                                                 .values(List.of("value"))
-                                                                 .columns(Map.of("value", List.of(value)))
-                                                                 .build());
-    }
+    CompletableFuture<ColumnarResponse> evaluate();
 }
