@@ -17,7 +17,6 @@
 package org.bithon.server.storage.datasource.query;
 
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Null;
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;

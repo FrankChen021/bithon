@@ -49,9 +49,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -63,7 +63,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(6, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -72,9 +72,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -86,7 +86,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -95,9 +95,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -109,7 +109,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(1.9, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -118,9 +118,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -132,7 +132,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(3601, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -141,9 +141,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -155,7 +155,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(-4, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -164,9 +164,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -178,7 +178,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -187,9 +187,9 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1))))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1))))
                                                               .build())
                                         .build());
 
@@ -201,7 +201,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(0.2, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -210,10 +210,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -227,7 +227,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) + 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(6, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(7, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(8, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -238,10 +238,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -255,7 +255,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) - 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(-4, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(-3, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(-2, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -266,10 +266,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -283,7 +283,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) * 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(10, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(15, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -294,10 +294,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -311,7 +311,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) / 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(0.2, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(0.4, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(0.6, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -322,10 +322,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -339,7 +339,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("5 - avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(4, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(3, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(2, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -350,10 +350,10 @@ public class BinaryExpressionPipelineTest {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenReturn(QueryResponse.builder()
                                         .data(ColumnarResponse.builder()
-                                                              .values(List.of("activeThreads"))
-                                                              .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 4.0)),
-                                                                              "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-                                                                              "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                              .valueNames(List.of("activeThreads"))
+                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 4.0)),
+                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
+                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                               ))
                                                               .build())
                                         .build());
@@ -367,7 +367,7 @@ public class BinaryExpressionPipelineTest {
                                                .build("5 / avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(2.5, ((Number) values.get(1)).doubleValue(), .0000000001);
         Assert.assertEquals(1.25, ((Number) values.get(2)).doubleValue(), .0000000001);
@@ -380,20 +380,20 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(11))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(11))))
                                                                  .build())
                                            .build();
                    }
@@ -412,7 +412,7 @@ public class BinaryExpressionPipelineTest {
         ColumnarResponse response = evaluator.evaluate().get();
 
         // Use the name of left expression as the output column name
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(12, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -424,20 +424,20 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(1.0))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(11))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(11))))
                                                                  .build())
                                            .build();
                    }
@@ -456,7 +456,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(-10, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -467,20 +467,20 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(2.0))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(2.0))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(11))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(11))))
                                                                  .build())
                                            .build();
                    }
@@ -498,7 +498,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(22, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -509,20 +509,20 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(55))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(55))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(11))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(11))))
                                                                  .build())
                                            .build();
                    }
@@ -540,7 +540,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
     }
 
@@ -551,22 +551,22 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5))))
                                                                  .build())
                                            .build();
                    }
@@ -584,7 +584,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(8, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(9, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -598,22 +598,22 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5))))
                                                                  .build())
                                            .build();
                    }
@@ -631,7 +631,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(-2, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(-1, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -645,22 +645,22 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(3))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(3))))
                                                                  .build())
                                            .build();
                    }
@@ -678,7 +678,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(9, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(12, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -692,22 +692,22 @@ public class BinaryExpressionPipelineTest {
                    QueryRequest request = answer.getArgument(0, QueryRequest.class);
 
                    String metric = request.getFields().get(0).getName();
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(55, 121, 66)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(55, 121, 66)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(11))))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(11))))
                                                                  .build())
                                            .build();
                    }
@@ -725,7 +725,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("activeThreads");
+        List<Object> values = response.getValues().get("activeThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(11, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -740,22 +740,22 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                                  ))
                                                                  .build())
                                            .build();
@@ -774,7 +774,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("totalThreads");
+        List<Object> values = response.getValues().get("totalThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(8, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(9, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -789,22 +789,22 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                                  ))
                                                                  .build())
                                            .build();
@@ -824,7 +824,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("totalThreads");
+        List<Object> values = response.getValues().get("totalThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(-2, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(-3, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -839,22 +839,22 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5, 6, 7)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                                  ))
                                                                  .build())
                                            .build();
@@ -874,7 +874,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("totalThreads");
+        List<Object> values = response.getValues().get("totalThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(15, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(18, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -889,22 +889,22 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(100))))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(100))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(5, 20, 25)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(5, 20, 25)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
                                                                  ))
                                                                  .build())
                                            .build();
@@ -924,7 +924,7 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        List<Object> values = response.getColumns().get("totalThreads");
+        List<Object> values = response.getValues().get("totalThreads");
         Assert.assertEquals(3, values.size());
         Assert.assertEquals(20, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(5, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -940,25 +940,24 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23)),
-                                                                                 "appName", new ArrayList<>(List.of("app2", "app3", "app4"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
                                                                  .build())
                                            .build();
                    }
@@ -976,10 +975,10 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeys());
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
         // Only the overlapped series will be returned
-        List<Object> values = response.getColumns().get("value");
+        List<Object> values = response.getValues().get("value");
         Assert.assertEquals(2, values.size());
         Assert.assertEquals(4 + 21, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(5 + 22, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -993,25 +992,24 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23)),
-                                                                                 "appName", new ArrayList<>(List.of("app2", "app3", "app4"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
                                                                  .build())
                                            .build();
                    }
@@ -1029,10 +1027,10 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeys());
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
         // Only the overlapped series will be returned
-        List<Object> values = response.getColumns().get("value");
+        List<Object> values = response.getValues().get("value");
         Assert.assertEquals(2, values.size());
         Assert.assertEquals(4 - 21, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(5 - 22, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -1046,25 +1044,24 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23)),
-                                                                                 "appName", new ArrayList<>(List.of("app2", "app3", "app4"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
                                                                  .build())
                                            .build();
                    }
@@ -1082,10 +1079,10 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeys());
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
         // Only the overlapped series will be returned
-        List<Object> values = response.getColumns().get("value");
+        List<Object> values = response.getValues().get("value");
         Assert.assertEquals(2, values.size());
         Assert.assertEquals(4 * 21, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(5 * 22, ((Number) values.get(1)).doubleValue(), .0000000001);
@@ -1099,25 +1096,25 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
+                                                                                "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23)),
-                                                                                 "appName", new ArrayList<>(List.of("app2", "app3", "app4"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
                                                                  .build())
                                            .build();
                    }
@@ -1135,13 +1132,62 @@ public class BinaryExpressionPipelineTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeys());
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
         // Only the overlapped series will be returned
-        List<Object> values = response.getColumns().get("value");
+        List<Object> values = response.getValues().get("value");
         Assert.assertEquals(2, values.size());
         Assert.assertEquals(4.0 / 21, ((Number) values.get(0)).doubleValue(), .0000000001);
         Assert.assertEquals(5.0 / 22, ((Number) values.get(1)).doubleValue(), .0000000001);
+    }
+
+    @Test
+    public void test_VectorOverVector_NoIntersection() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   String metric = answer.getArgument(0, QueryRequest.class)
+                                         .getFields()
+                                         .get(0).getName();
+
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(ColumnarResponse.builder()
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
+                                                                 .build()
+                                           )
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(ColumnarResponse.builder()
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app4"), List.of("app5"), List.of("app6")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
+                                                                 .build())
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "/"
+                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+        ColumnarResponse response = evaluator.evaluate().get();
+
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
+        Assert.assertEquals(0, response.getRows());
+        List<Object> values = response.getValues().get("value");
+        Assert.assertEquals(0, values.size());
     }
 
     @Test
@@ -1152,37 +1198,35 @@ public class BinaryExpressionPipelineTest {
                                          .getFields()
                                          .get(0).getName();
 
-                   if (metric.equals("activeThreads")) {
+                   if ("activeThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("activeThreads"))
-                                                                 .columns(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5)),
-                                                                                 "appName", new ArrayList<>(List.of("app1", "app2", "app3"))))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .valueNames(List.of("activeThreads"))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
                                                                  .build()
                                            )
                                            .build();
                    }
-                   if (metric.equals("totalThreads")) {
+                   if ("totalThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("totalThreads"))
-                                                                 .columns(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23)),
-                                                                                 "appName", new ArrayList<>(List.of("app2", "app3", "app4"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
+                                                                 .valueNames(List.of("totalThreads"))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
                                                                  .build())
                                            .build();
                    }
 
-                   if (metric.equals("newThreads")) {
+                   if ("newThreads".equals(metric)) {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
-                                                                 .keys(List.of("appName"))
-                                                                 .values(List.of("newThreads"))
-                                                                 .columns(Map.of("newThreads", new ArrayList<>(List.of(101, 102, 103)),
-                                                                                 "appName", new ArrayList<>(List.of("app3", "app4", "app5"))
-                                                                 ))
+                                                                 .keyNames(List.of("appName"))
+                                                                 .keys(List.of(List.of("app3"), List.of("app4"), List.of("app5")))
+                                                                 .valueNames(List.of("newThreads"))
+                                                                 .values(Map.of("newThreads", new ArrayList<>(List.of(101, 102, 103))))
                                                                  .build())
                                            .build();
                    }
@@ -1203,10 +1247,10 @@ public class BinaryExpressionPipelineTest {
                                                       + "+ 5");
         ColumnarResponse response = evaluator.evaluate().get();
 
-        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeys());
+        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
         // Only the overlapped series will be returned
-        List<Object> values = response.getColumns().get("value");
+        List<Object> values = response.getValues().get("value");
         Assert.assertEquals(1, values.size());
         Assert.assertEquals(5.0 / 22 * 101 + 5, ((Number) values.get(0)).doubleValue(), .0000000001);
     }

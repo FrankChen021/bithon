@@ -28,10 +28,12 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.ast.MetricExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.evaluation.EvaluatorBuilder;
+import org.bithon.server.metric.expression.evaluation.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
+import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -54,7 +56,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -159,6 +160,19 @@ public class MetricQueryApi {
             return dataSourceApi.timeseriesV4(req);
         }
     }
+
+    @Experimental
+    @PostMapping("/api/metric/timeseries/v2")
+    public ColumnarResponse timeSeriesV2(@Validated @RequestBody MetricQueryRequest request) throws Exception {
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(request.getInterval())
+                                               .condition(request.getCondition())
+                                               .build(request.getExpression());
+
+        return evaluator.evaluate().get();
+    }
+
 
     private QueryResponse<?> merge(boolean usePercentage,
                                    HumanReadableDuration offset,

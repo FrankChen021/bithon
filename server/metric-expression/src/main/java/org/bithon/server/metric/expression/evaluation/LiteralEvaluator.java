@@ -43,8 +43,8 @@ public class LiteralEvaluator implements IEvaluator {
     @Override
     public CompletableFuture<ColumnarResponse> evaluate() {
         return CompletableFuture.completedFuture(ColumnarResponse.builder()
-                                                                 .values(List.of("value"))
-                                                                 .columns(Map.of("value", List.of(value)))
+                                                                 .valueNames(List.of("value"))
+                                                                 .values(Map.of("value", List.of(value)))
                                                                  .build());
     }
 }
