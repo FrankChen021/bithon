@@ -162,7 +162,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         serializer.serialize(this);
     }
 
-    public abstract boolean isNegatable();
+    public abstract boolean canNegate();
 
     public LiteralExpression<T> negate() {
         throw new UnsupportedOperationException("Not support negation for " + this.getClass().getSimpleName());
@@ -179,7 +179,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return false;
         }
 
@@ -263,7 +263,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -310,7 +310,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -360,7 +360,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -389,7 +389,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -437,7 +437,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -476,7 +476,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return false;
         }
     }
@@ -510,7 +510,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return false;
         }
     }
@@ -536,7 +536,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             return true;
         }
 
@@ -568,7 +568,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             // TODO: to be implemented
             return false;
         }
@@ -595,7 +595,7 @@ public abstract class LiteralExpression<T> implements IExpression {
         }
 
         @Override
-        public boolean isNegatable() {
+        public boolean canNegate() {
             // TODO: to be implemented
             return false;
         }

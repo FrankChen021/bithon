@@ -136,24 +136,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
                                                                    rhsValue.getClass().getSimpleName()));
     }
 
-    public Object evalute(LiteralExpression<?> lhs, LiteralExpression<?> rhs) {
-        Object lhsValue = lhs.evaluate(null);
-        Object rhsValue = rhs.evaluate(null);
-
-        if (lhsValue instanceof Number) {
-            Number rValue = asNumber(rhsValue);
-            if (lhsValue instanceof Double || rhsValue instanceof Double) {
-                return evaluate(((Number) lhsValue).doubleValue(), rValue.doubleValue());
-            }
-            return evaluate(((Number) lhsValue).longValue(), rValue.longValue());
+    public Number evaluate(Number lhsValue, Number rhsValue) {
+        if (lhsValue instanceof Double || rhsValue instanceof Double) {
+            return evaluate(lhsValue.doubleValue(), rhsValue.doubleValue());
         }
-        if (lhsValue instanceof String) {
-            return lhsValue + rhs.evaluate(null).toString();
-        }
-
-        throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
-                                                                   lhsValue.getClass().getSimpleName(),
-                                                                   rhsValue.getClass().getSimpleName()));
+        return evaluate(lhsValue.longValue(), rhsValue.longValue());
     }
 
     @Override

@@ -238,7 +238,7 @@ public class ExpressionOptimizer {
             // Turn 'a - (-b)' into 'a + b', where b is a literal, for further constant folding optimization
             if (expression.getOperator() == ArithmeticExpression.ArithmeticOperator.SUB
                 && expression.getRhs() instanceof LiteralExpression
-                && ((LiteralExpression<?>) expression.getRhs()).isNegatable()
+                && ((LiteralExpression<?>) expression.getRhs()).canNegate()
             ) {
                 expression = new ArithmeticExpression.ADD(
                     expression.getLhs(),
@@ -282,34 +282,33 @@ public class ExpressionOptimizer {
                 //
                 // Flatten and fold for associative ops (like +, *)
                 //
-                LiteralExpression<?> foldedExpression = LiteralExpression.of(arithmeticExpression.getOperator().identity());
+                Number foldedValue = arithmeticExpression.getOperator().identity();
 
                 List<IExpression> flattenList = flatten(arithmeticExpression.getOperator(), lhs, rhs);
                 List<IExpression> nonConstExpressions = new ArrayList<>();
                 for (IExpression expr : flattenList) {
                     if (expr instanceof LiteralExpression) {
-                        Object val = arithmeticExpression.evalute(foldedExpression, (LiteralExpression<?>) expr);
-                        foldedExpression = LiteralExpression.of(val);
+                        foldedValue = arithmeticExpression.evaluate(foldedValue, (Number) expr.evaluate(null));
                     } else {
                         nonConstExpressions.add(expr);
                     }
                 }
 
                 IExpression result = nonConstExpressions.isEmpty()
-                                     ? foldedExpression
+                                     ? LiteralExpression.of(foldedValue)
                                      : reduce(nonConstExpressions, arithmeticExpression.getOperator());
 
                 //
                 // Only if the folded expression is not the identity value, should we add it to the result
                 // This helps avoid returning an expression like: sum(a) + 0
                 //
-                if (foldedExpression.getDataType() == IDataType.LONG
-                    && (long) foldedExpression.getValue() == arithmeticExpression.getOperator().identity()) {
+                if (foldedValue instanceof Long
+                    && (long) foldedValue == arithmeticExpression.getOperator().identity()) {
                     return result;
                 }
 
                 return arithmeticExpression.getOperator()
-                                           .newArithmeticExpression(result, foldedExpression);
+                                           .newArithmeticExpression(result, LiteralExpression.of(foldedValue));
             }
 
             return expression;
