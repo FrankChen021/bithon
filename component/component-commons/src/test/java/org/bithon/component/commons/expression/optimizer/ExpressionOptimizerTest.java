@@ -318,4 +318,27 @@ public class ExpressionOptimizerTest {
         ast = ExpressionOptimizer.optimize(ast);
         Assertions.assertEquals("3.5", ast.serializeToText(IdentifierQuotaStrategy.NONE));
     }
+
+    @Test
+    public void testConstantFolding_In_FunctionArgs() {
+        IExpression ast = new FunctionExpression(
+            Functions.getInstance().getFunction("substring"),
+            LiteralExpression.of("123456789"),
+
+            // index : 3
+            new ArithmeticExpression.ADD(
+                LiteralExpression.ofLong(1),
+                LiteralExpression.ofLong(2)
+            ),
+
+            // len: 4
+            new ArithmeticExpression.ADD(
+                LiteralExpression.ofLong(-1),
+                LiteralExpression.ofLong(5)
+            )
+        );
+
+        ast = ExpressionOptimizer.optimize(ast);
+        Assertions.assertEquals("'4567'", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
 }
