@@ -81,8 +81,9 @@ public class IdentifierExpression implements IExpression {
         return dataType;
     }
 
-    public void setDataType(IDataType dataType) {
+    public IdentifierExpression setDataType(IDataType dataType) {
         this.dataType = dataType;
+        return this;
     }
 
     @Override

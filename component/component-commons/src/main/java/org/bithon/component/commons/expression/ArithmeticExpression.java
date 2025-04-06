@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.sql.Timestamp;
@@ -26,9 +27,76 @@ import java.sql.Timestamp;
  */
 public abstract class ArithmeticExpression extends BinaryExpression {
 
+    public enum ArithmeticOperator {
+        ADD("+", true, 0) {
+            @Override
+            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+                return new ADD(lhs, rhs);
+            }
+        },
+        SUB("-", false, 0) {
+            @Override
+            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+                return new SUB(lhs, rhs);
+            }
+        },
+        MUL("*", true, 1) {
+            @Override
+            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+                return new MUL(lhs, rhs);
+            }
+        },
+        DIV("/", false, 1) {
+            @Override
+            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+                return new DIV(lhs, rhs);
+            }
+        };
+
+        private final String symbol;
+        private final boolean associative;
+
+        /**
+         * it’s the value that does nothing to the result of the operation.
+         * For example, 0 is the identity for addition and 1 is the identity for multiplication.
+         */
+        private final long identity;
+
+        ArithmeticOperator(String symbol,
+                           boolean associative,
+                           long identity) {
+            this.symbol = symbol;
+            this.associative = associative;
+            this.identity = identity;
+        }
+
+        public boolean isAssociative() {
+            return associative;
+        }
+
+        public long identity() {
+            return identity;
+        }
+
+        public abstract IExpression newArithmeticExpression(IExpression lhs, IExpression rhs);
+
+        @Override
+        public String toString() {
+            return symbol;
+        }
+    }
+
     protected ArithmeticExpression(String operator, IExpression lhs, IExpression rhs) {
         super(operator, lhs, rhs);
     }
+
+    /// An operator op is associative if:
+    ///
+    ///   (a op b) op c == a op (b op c)
+    ///
+    /// (1 + 2) + 3 == 1 + (2 + 3) == 6, ADD is associative, so is MUL
+    /// (5 - 2) - 1 = 2 ≠ 5 - (2 - 1) = 4, SUB is not associative, so is DIV
+    public abstract ArithmeticOperator getOperator();
 
     @Override
     public IDataType getDataType() {
@@ -50,13 +118,37 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
         if (lhsValue instanceof Number) {
             Number rValue = asNumber(rhsValue);
-            if (lhsValue instanceof Double || rhsValue instanceof Double) {
+            if (lhsValue instanceof Double
+                || lhsValue instanceof HumanReadablePercentage
+                || rhsValue instanceof Double
+                || rhsValue instanceof HumanReadablePercentage
+            ) {
                 return evaluate(((Number) lhsValue).doubleValue(), rValue.doubleValue());
             }
             return evaluate(((Number) lhsValue).longValue(), rValue.longValue());
         }
         if (lhsValue instanceof String) {
             return lhsValue + rhs.evaluate(context).toString();
+        }
+
+        throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
+                                                                   lhsValue.getClass().getSimpleName(),
+                                                                   rhsValue.getClass().getSimpleName()));
+    }
+
+    public Object evalute(LiteralExpression<?> lhs, LiteralExpression<?> rhs) {
+        Object lhsValue = lhs.evaluate(null);
+        Object rhsValue = rhs.evaluate(null);
+
+        if (lhsValue instanceof Number) {
+            Number rValue = asNumber(rhsValue);
+            if (lhsValue instanceof Double || rhsValue instanceof Double) {
+                return evaluate(((Number) lhsValue).doubleValue(), rValue.doubleValue());
+            }
+            return evaluate(((Number) lhsValue).longValue(), rValue.longValue());
+        }
+        if (lhsValue instanceof String) {
+            return lhsValue + rhs.evaluate(null).toString();
         }
 
         throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
@@ -97,6 +189,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
 
         @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.ADD;
+        }
+
+        @Override
         protected double evaluate(double v1, double v2) {
             return v1 + v2;
         }
@@ -113,6 +210,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
 
         @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.SUB;
+        }
+
+        @Override
         protected double evaluate(double v1, double v2) {
             return v1 - v2;
         }
@@ -126,6 +228,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     public static class MUL extends ArithmeticExpression {
         public MUL(IExpression lhs, IExpression rhs) {
             super("*", lhs, rhs);
+        }
+
+        @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.MUL;
         }
 
         @Override
@@ -162,6 +269,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         @Override
         protected long evaluate(long v1, long v2) {
             return v1 / v2;
+        }
+
+        @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.DIV;
         }
 
         @Override

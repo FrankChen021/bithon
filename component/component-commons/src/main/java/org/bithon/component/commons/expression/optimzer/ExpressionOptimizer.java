@@ -33,6 +33,7 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -70,8 +71,8 @@ public class ExpressionOptimizer {
                     operands.remove(i);
                     i--;
                 } else if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
-                    || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)
-                    || (expression instanceof LogicalExpression.NOT && subExpression instanceof LogicalExpression.AND)
+                           || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)
+                           || (expression instanceof LogicalExpression.NOT && subExpression instanceof LogicalExpression.AND)
                 ) {
                     operands.remove(i);
 
@@ -170,7 +171,7 @@ public class ExpressionOptimizer {
         }
     }
 
-    static class ConstantFoldingOptimizer extends AbstractOptimizer {
+    public static class ConstantFoldingOptimizer extends AbstractOptimizer {
         @Override
         public IExpression visit(LogicalExpression expression) {
             int literalCount = 0;
@@ -234,10 +235,18 @@ public class ExpressionOptimizer {
         public IExpression visit(ArithmeticExpression expression) {
             super.visit(expression);
 
-            if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
-                return LiteralExpression.of(expression.evaluate(null));
+            // Turn 'a - (-b)' into 'a + b', where b is a literal, for further constant folding optimization
+            if (expression.getOperator() == ArithmeticExpression.ArithmeticOperator.SUB
+                && expression.getRhs() instanceof LiteralExpression
+                && ((LiteralExpression<?>) expression.getRhs()).isNegatable()
+            ) {
+                expression = new ArithmeticExpression.ADD(
+                    expression.getLhs(),
+                    ((LiteralExpression<?>) expression.getRhs()).negate()
+                );
             }
-            return expression;
+
+            return fold(expression);
         }
 
         @Override
@@ -248,6 +257,93 @@ public class ExpressionOptimizer {
                 return LiteralExpression.of(expression.evaluate(null));
             }
             return expression;
+        }
+
+        public IExpression fold(IExpression expression) {
+            if (expression instanceof ArithmeticExpression) {
+                ArithmeticExpression arithmeticExpression = (ArithmeticExpression) expression;
+
+                IExpression lhs = fold(arithmeticExpression.getLhs());
+                IExpression rhs = fold(arithmeticExpression.getRhs());
+
+                // Fold constants directly
+                if (arithmeticExpression.getLhs() instanceof LiteralExpression
+                    && arithmeticExpression.getRhs() instanceof LiteralExpression) {
+                    return LiteralExpression.of(expression.evaluate(null));
+                }
+
+                if (!arithmeticExpression.getOperator().isAssociative()) {
+                    // For non-associative ops (-, /), only fold adjacent constants
+                    return arithmeticExpression.getOperator()
+                                               .newArithmeticExpression(lhs, rhs);
+                }
+
+
+                //
+                // Flatten and fold for associative ops (like +, *)
+                //
+                LiteralExpression<?> foldedExpression = LiteralExpression.of(arithmeticExpression.getOperator().identity());
+
+                List<IExpression> flattenList = flatten(arithmeticExpression.getOperator(), lhs, rhs);
+                List<IExpression> nonConstExpressions = new ArrayList<>();
+                for (IExpression expr : flattenList) {
+                    if (expr instanceof LiteralExpression) {
+                        Object val = arithmeticExpression.evalute(foldedExpression, (LiteralExpression<?>) expr);
+                        foldedExpression = LiteralExpression.of(val);
+                    } else {
+                        nonConstExpressions.add(expr);
+                    }
+                }
+
+                IExpression result = nonConstExpressions.isEmpty()
+                                     ? foldedExpression
+                                     : reduce(nonConstExpressions, arithmeticExpression.getOperator());
+
+                //
+                // Only if the folded expression is not the identity value, should we add it to the result
+                // This helps avoid returning an expression like: sum(a) + 0
+                //
+                if (foldedExpression.getDataType() == IDataType.LONG
+                    && (long) foldedExpression.getValue() == arithmeticExpression.getOperator().identity()) {
+                    return result;
+                }
+
+                return arithmeticExpression.getOperator()
+                                           .newArithmeticExpression(result, foldedExpression);
+            }
+
+            return expression;
+        }
+
+        /**
+         * Flatten all ArithmeticExpression expressions of the same operator
+         */
+        private List<IExpression> flatten(ArithmeticExpression.ArithmeticOperator operator,
+                                          IExpression... nodes) {
+            List<IExpression> result = new ArrayList<>();
+            for (IExpression node : nodes) {
+                if (node instanceof ArithmeticExpression && ((ArithmeticExpression) node).getOperator() == operator) {
+                    result.addAll(flatten(operator,
+                                          ((ArithmeticExpression) node).getLhs(),
+                                          ((ArithmeticExpression) node).getRhs()));
+                } else {
+                    result.add(node);
+                }
+            }
+            return result;
+        }
+
+        private IExpression reduce(List<IExpression> expressionList,
+                                   ArithmeticExpression.ArithmeticOperator op) {
+            if (expressionList.isEmpty()) {
+                return LiteralExpression.of(op.identity());
+            }
+
+            IExpression result = expressionList.get(0);
+            for (int i = 1; i < expressionList.size(); i++) {
+                result = op.newArithmeticExpression(result, expressionList.get(i));
+            }
+            return result;
         }
     }
 

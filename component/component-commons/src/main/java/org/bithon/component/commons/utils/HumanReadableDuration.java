@@ -64,7 +64,7 @@ public class HumanReadableDuration extends Number {
         return text;
     }
 
-    public static HumanReadableDuration of(int duration, TimeUnit timeUnit) {
+    public static HumanReadableDuration of(long duration, TimeUnit timeUnit) {
         if (timeUnit == TimeUnit.NANOSECONDS) {
             return new HumanReadableDuration(duration + "ns", Duration.ofNanos(duration), timeUnit);
         }
@@ -85,6 +85,31 @@ public class HumanReadableDuration extends Number {
         }
         if (timeUnit == TimeUnit.DAYS) {
             return new HumanReadableDuration(duration + "d", Duration.ofDays(duration), timeUnit);
+        }
+        throw new RuntimeException("Invalid timeunit");
+    }
+
+    public static HumanReadableDuration of(Duration duration, TimeUnit timeUnit) {
+        if (timeUnit == TimeUnit.NANOSECONDS) {
+            return new HumanReadableDuration(duration + "ns", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.MICROSECONDS) {
+            return new HumanReadableDuration(duration + "us", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.MILLISECONDS) {
+            return new HumanReadableDuration(duration + "ms", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.SECONDS) {
+            return new HumanReadableDuration(duration + "s", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.MINUTES) {
+            return new HumanReadableDuration(duration + "m", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.HOURS) {
+            return new HumanReadableDuration(duration + "h", duration, timeUnit);
+        }
+        if (timeUnit == TimeUnit.DAYS) {
+            return new HumanReadableDuration(duration + "d", duration, timeUnit);
         }
         throw new RuntimeException("Invalid timeunit");
     }
