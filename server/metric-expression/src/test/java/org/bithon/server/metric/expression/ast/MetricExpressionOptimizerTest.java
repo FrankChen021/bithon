@@ -56,4 +56,13 @@ public class MetricExpressionOptimizerTest {
         ast = MetricExpressionOptimizer.optimize(ast);
         Assert.assertEquals("sum(dataSource.metric) + 10", ast.serializeToText());
     }
+
+    @Test
+    public void test_Optimize_ConstantFolding_3() {
+        String expression = "2 + sum(dataSource.metric) - 2 - 3 + 3";
+        IExpression ast = MetricExpressionASTBuilder.parse(expression);
+
+        ast = MetricExpressionOptimizer.optimize(ast);
+        Assert.assertEquals("sum(dataSource.metric)", ast.serializeToText());
+    }
 }

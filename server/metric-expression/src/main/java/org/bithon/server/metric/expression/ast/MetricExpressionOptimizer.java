@@ -18,7 +18,7 @@ package org.bithon.server.metric.expression.ast;
 
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.optimzer.ConstantFoldingOptimizer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,7 +27,7 @@ import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 public class MetricExpressionOptimizer {
 
     static class ExtendedConstantFoldingOptimizer
-        extends ExpressionOptimizer.ConstantFoldingOptimizer
+        extends ConstantFoldingOptimizer
         implements IMetricExpressionVisitor<IExpression> {
 
         @Override
