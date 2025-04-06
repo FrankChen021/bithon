@@ -28,32 +28,31 @@ import java.sql.Timestamp;
 public abstract class ArithmeticExpression extends BinaryExpression {
 
     public enum ArithmeticOperator {
-        ADD("+", true, 0) {
+        ADD(true, 0) {
             @Override
-            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
                 return new ADD(lhs, rhs);
             }
         },
-        SUB("-", false, 0) {
+        SUB(false, 0) {
             @Override
-            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
                 return new SUB(lhs, rhs);
             }
         },
-        MUL("*", true, 1) {
+        MUL(true, 1) {
             @Override
-            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
                 return new MUL(lhs, rhs);
             }
         },
-        DIV("/", false, 1) {
+        DIV(false, 1) {
             @Override
-            public IExpression newArithmeticExpression(IExpression lhs, IExpression rhs) {
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
                 return new DIV(lhs, rhs);
             }
         };
 
-        private final String symbol;
         private final boolean associative;
 
         /**
@@ -62,10 +61,8 @@ public abstract class ArithmeticExpression extends BinaryExpression {
          */
         private final long identity;
 
-        ArithmeticOperator(String symbol,
-                           boolean associative,
+        ArithmeticOperator(boolean associative,
                            long identity) {
-            this.symbol = symbol;
             this.associative = associative;
             this.identity = identity;
         }
@@ -74,16 +71,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
             return associative;
         }
 
-        public long identity() {
+        public long getIdentity() {
             return identity;
         }
 
-        public abstract IExpression newArithmeticExpression(IExpression lhs, IExpression rhs);
-
-        @Override
-        public String toString() {
-            return symbol;
-        }
+        public abstract IExpression newExpression(IExpression lhs, IExpression rhs);
     }
 
     protected ArithmeticExpression(String operator, IExpression lhs, IExpression rhs) {

@@ -275,14 +275,14 @@ public class ExpressionOptimizer {
                 if (!arithmeticExpression.getOperator().isAssociative()) {
                     // For non-associative ops (-, /), only fold adjacent constants
                     return arithmeticExpression.getOperator()
-                                               .newArithmeticExpression(lhs, rhs);
+                                               .newExpression(lhs, rhs);
                 }
 
 
                 //
                 // Flatten and fold for associative ops (like +, *)
                 //
-                Number foldedValue = arithmeticExpression.getOperator().identity();
+                Number foldedValue = arithmeticExpression.getOperator().getIdentity();
 
                 List<IExpression> flattenList = flatten(arithmeticExpression.getOperator(), lhs, rhs);
                 List<IExpression> nonConstExpressions = new ArrayList<>();
@@ -303,12 +303,12 @@ public class ExpressionOptimizer {
                 // This helps avoid returning an expression like: sum(a) + 0
                 //
                 if (foldedValue instanceof Long
-                    && (long) foldedValue == arithmeticExpression.getOperator().identity()) {
+                    && (long) foldedValue == arithmeticExpression.getOperator().getIdentity()) {
                     return result;
                 }
 
                 return arithmeticExpression.getOperator()
-                                           .newArithmeticExpression(result, LiteralExpression.of(foldedValue));
+                                           .newExpression(result, LiteralExpression.of(foldedValue));
             }
 
             return expression;
@@ -335,12 +335,12 @@ public class ExpressionOptimizer {
         private IExpression reduce(List<IExpression> expressionList,
                                    ArithmeticExpression.ArithmeticOperator op) {
             if (expressionList.isEmpty()) {
-                return LiteralExpression.of(op.identity());
+                return LiteralExpression.of(op.getIdentity());
             }
 
             IExpression result = expressionList.get(0);
             for (int i = 1; i < expressionList.size(); i++) {
-                result = op.newArithmeticExpression(result, expressionList.get(i));
+                result = op.newExpression(result, expressionList.get(i));
             }
             return result;
         }
