@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.Functions;
+import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -58,7 +59,7 @@ public class ExpressionOptimizerTest {
             )
         );
 
-        expr.accept(new ExpressionOptimizer.AbstractOptimizer());
+        expr.accept(new AbstractOptimizer());
 
         Assertions.assertEquals(5, expr.getOperands().size());
         Assertions.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4) AND (e = 5)", expr.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -75,7 +76,7 @@ public class ExpressionOptimizerTest {
             )
         );
 
-        expr.accept(new ExpressionOptimizer.AbstractOptimizer());
+        expr.accept(new AbstractOptimizer());
 
         Assertions.assertEquals(3, expr.getOperands().size());
         Assertions.assertEquals("(a = 1) OR (b = 2) OR (c = 3)", expr.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -92,7 +93,7 @@ public class ExpressionOptimizerTest {
             )
         );
 
-        expr.accept(new ExpressionOptimizer.AbstractOptimizer());
+        expr.accept(new AbstractOptimizer());
 
         Assertions.assertEquals(2, expr.getOperands().size());
         Assertions.assertEquals("(a = 1) AND ((b = 2) OR (c = 3))", expr.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -116,7 +117,7 @@ public class ExpressionOptimizerTest {
             )
         );
 
-        expr.accept(new ExpressionOptimizer.AbstractOptimizer());
+        expr.accept(new AbstractOptimizer());
 
         Assertions.assertEquals(4, expr.getOperands().size());
         Assertions.assertEquals("(a = 1) AND (b = 2) AND (c = 3) AND (d = 4)", expr.serializeToText(IdentifierQuotaStrategy.NONE));
