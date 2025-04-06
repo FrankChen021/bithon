@@ -47,7 +47,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
-          cache: maven
 
       # Execute UT after compilation
       - name: UT

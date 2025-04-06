@@ -27,7 +27,7 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
@@ -100,7 +100,7 @@ public class MySQLSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(IExpression expression) {
-        return expression == null ? null : expression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+        return expression == null ? null : expression.accept(new AbstractOptimizer() {
             /**
              * MYSQL does not support Map, the JSON formatted string is stored in the column.
              * So we turn the MapAccessExpression into a LIKE expression

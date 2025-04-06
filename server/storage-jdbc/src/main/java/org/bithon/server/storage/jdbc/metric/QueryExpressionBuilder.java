@@ -28,7 +28,7 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.ISchema;
@@ -340,7 +340,7 @@ public class QueryExpressionBuilder {
      * avgResponse = 5 OR maxResponse = 10
      * avgResponse = 5
      */
-    static class FilterSplitter extends ExpressionOptimizer.AbstractOptimizer {
+    static class FilterSplitter extends AbstractOptimizer {
         private final QueryExpression queryExpression;
         private final List<IExpression> postFilters;
 
@@ -522,7 +522,7 @@ public class QueryExpressionBuilder {
                 // Case 2: round(sum(a)/sum(b), 2) ===> round(a/b, 2), sum(a), sum(b)
                 // Case 3: round(sum(a+b), 2) ===> round(a, 2), sum(a+b)
                 // Case 4: avg(sum(b)) ===> aggregator is not allowed in another aggregator
-                parsedExpression = parsedExpression.accept(new ExpressionOptimizer.AbstractOptimizer() {
+                parsedExpression = parsedExpression.accept(new AbstractOptimizer() {
                     @Override
                     public IExpression visit(FunctionExpression functionCallExpression) {
                         if (!functionCallExpression.getFunction().isAggregator()) {
@@ -756,7 +756,7 @@ public class QueryExpressionBuilder {
         }
     }
 
-    static class QualifyExpressionTransformer extends ExpressionOptimizer.AbstractOptimizer {
+    static class QualifyExpressionTransformer extends AbstractOptimizer {
         private final String qualifier;
 
         public QualifyExpressionTransformer(ISchema schema) {

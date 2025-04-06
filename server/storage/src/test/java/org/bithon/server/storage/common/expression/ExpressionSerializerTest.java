@@ -68,6 +68,9 @@ public class ExpressionSerializerTest {
 
         expr = ExpressionASTBuilder.builder().build("5 * colors['today']");
         Assertions.assertInstanceOf(ArithmeticExpression.class, expr);
-        Assertions.assertInstanceOf(MapAccessExpression.class, ((ArithmeticExpression) expr).getRhs());
+
+        // The constant expression optimizer will convert the expression to colors['today'] * 5
+        // Maybe in such as case where OPTIMIZATION does not apply, we should not optimize the expression
+        Assertions.assertInstanceOf(MapAccessExpression.class, ((ArithmeticExpression) expr).getLhs());
     }
 }

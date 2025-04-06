@@ -24,6 +24,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,7 @@ public class ZooKeeperClientMetricStorage extends AbstractMetricStorage<ZooKeepe
 
     @ConfigurationProperties(path = "agent.observability.metrics.zookeeper-client-metrics")
     public static class ZKClientMetricsConfig {
-        private HumanReadableDuration responseTime = HumanReadableDuration.of(3, TimeUnit.SECONDS);
+        private HumanReadableDuration responseTime = HumanReadableDuration.of(Duration.ofSeconds(3), TimeUnit.SECONDS);
 
         public HumanReadableDuration getResponseTime() {
             return responseTime;

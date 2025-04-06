@@ -22,7 +22,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
-import org.bithon.component.commons.expression.optimzer.ExpressionOptimizer;
+import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 
@@ -33,7 +33,7 @@ import java.util.List;
  * @author frank chen
  * @date 02/05/24 22:11pm
  */
-public class ClickHouseExpressionOptimizer extends ExpressionOptimizer.AbstractOptimizer {
+public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
 
     @Override
     public IExpression visit(ConditionalExpression expression) {
