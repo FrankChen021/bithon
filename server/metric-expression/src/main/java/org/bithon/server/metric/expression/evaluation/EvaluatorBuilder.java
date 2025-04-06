@@ -76,39 +76,49 @@ public class EvaluatorBuilder {
                                             .filter(Objects::nonNull)
                                             .collect(Collectors.joining(" AND "));
 
-            QueryRequest req = QueryRequest.builder()
-                                           .dataSource(expression.getFrom())
-                                           .filterExpression(filterExpression)
-                                           .groupBy(expression.getGroupBy())
-                                           .fields(List.of(expression.getMetric()))
-                                           .interval(intervalRequest)
-                                           .build();
-
             if (expression.getOffset() != null) {
                 // Create expression as: ( current - base ) / base
-                // TODO: produce the delta and base series in the result
+                MetricExpressionEvaluator curr = new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                                           .dataSource(expression.getFrom())
+                                                                                           .filterExpression(filterExpression)
+                                                                                           .groupBy(expression.getGroupBy())
+                                                                                           .fields(List.of(expression.getMetric().withName("curr")))
+                                                                                           .interval(intervalRequest)
+                                                                                           .build(),
+                                                                               dataSourceApi);
                 MetricExpressionEvaluator base = new MetricExpressionEvaluator(QueryRequest.builder()
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(expression.getMetric()))
+                                                                                           .fields(List.of(expression.getMetric().withName("base")))
                                                                                            .interval(intervalRequest)
                                                                                            .offset(expression.getOffset())
                                                                                            .build(),
                                                                                dataSourceApi);
                 return new BinaryExpressionEvaluator.Div(
                     new BinaryExpressionEvaluator.Sub(
-                        new MetricExpressionEvaluator(req, dataSourceApi),
+                        curr,
                         base,
-                        "delta",
-                        true
+                        null,
+
+                        // Returns 'curr' as well as the computed result set
+                        "curr"
                     ),
                     base,
-                    null,
-                    true
+                    "delta",
+
+                    // Returns 'curr' from lhs, and 'base' from rhs as well as the computed result set
+                    "curr", "base"
                 );
             } else {
-                return new MetricExpressionEvaluator(req, dataSourceApi);
+                return new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                 .dataSource(expression.getFrom())
+                                                                 .filterExpression(filterExpression)
+                                                                 .groupBy(expression.getGroupBy())
+                                                                 .fields(List.of(expression.getMetric()))
+                                                                 .interval(intervalRequest)
+                                                                 .build(),
+                                                     dataSourceApi);
             }
         }
 

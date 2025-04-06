@@ -37,7 +37,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 9:27 pm
  */
-public class BinaryExpressionPipelineTest {
+public class BinaryExpressionEvaluatorTest {
     private IDataSourceApi dataSourceApi;
 
     @Before
@@ -945,9 +945,9 @@ public class BinaryExpressionPipelineTest {
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
                                                                  .keyNames(List.of("appName"))
-                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
+                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app1")))
                                                                  .valueNames(List.of("activeThreads"))
-                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
+                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(1, 5, 9))))
                                                                  .build()
                                            )
                                            .build();
@@ -958,7 +958,7 @@ public class BinaryExpressionPipelineTest {
                                                                  .keyNames(List.of("appName"))
                                                                  .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
                                                                  .valueNames(List.of("totalThreads"))
-                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
+                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 32, 43))))
                                                                  .build())
                                            .build();
                    }
@@ -981,8 +981,8 @@ public class BinaryExpressionPipelineTest {
         // Only the overlapped series will be returned
         List<Object> values = response.getValues().get("value");
         Assert.assertEquals(2, values.size());
-        Assert.assertEquals(4 + 21, ((Number) values.get(0)).doubleValue(), .0000000001);
-        Assert.assertEquals(5 + 22, ((Number) values.get(1)).doubleValue(), .0000000001);
+        Assert.assertEquals(1 + 21, ((Number) values.get(0)).doubleValue(), .0000000001);
+        Assert.assertEquals(5 + 32, ((Number) values.get(1)).doubleValue(), .0000000001);
     }
 
     @Test
@@ -1260,27 +1260,29 @@ public class BinaryExpressionPipelineTest {
     public void test_RelativeComparison() throws Exception {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
                .thenAnswer((answer) -> {
-                   HumanReadableDuration offset = answer.getArgument(0, QueryRequest.class)
-                                                        .getOffset();
+                   QueryRequest req = answer.getArgument(0, QueryRequest.class);
 
+                   HumanReadableDuration offset = req.getOffset();
                    if (offset == null) {
+                       String name = req.getFields().get(0).getName();
                        return QueryResponse.builder()
                                            .data(ColumnarResponse.builder()
                                                                  .keyNames(List.of("appName"))
                                                                  .keys(List.of(List.of("app2"), List.of("app3"), List.of("app1")))
-                                                                 .valueNames(List.of("activeThreads"))
-                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
+                                                                 .valueNames(List.of(name))
+                                                                 .values(Map.of(name, new ArrayList<>(List.of(3, 4, 5))))
                                                                  .build()
                                            )
                                            .build();
                    }
 
+                   String name = req.getFields().get(0).getName();
                    return QueryResponse.builder()
                                        .data(ColumnarResponse.builder()
                                                              .keyNames(List.of("appName"))
                                                              .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
-                                                             .valueNames(List.of("activeThreads"))
-                                                             .values(Map.of("activeThreads", new ArrayList<>(List.of(21, 22, 23))))
+                                                             .valueNames(List.of(name))
+                                                             .values(Map.of(name, new ArrayList<>(List.of(21, 22, 23))))
                                                              .build())
                                        .build();
 
@@ -1297,11 +1299,24 @@ public class BinaryExpressionPipelineTest {
 
         Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
 
-        // TODO: fix me
-        // Only the overlapped series will be returned
-        //List<Object> values = response.getValues().get("curr");
-        //Assert.assertEquals(2, values.size());
-        //Assert.assertEquals(3, ((Number) values.get(0)).doubleValue(), .0000000001);
-        //Assert.assertEquals(4, ((Number) values.get(1)).doubleValue(), .0000000001);
+        // Only the overlapped series(app2,app3) will be returned
+        {
+            List<Object> values = response.getValues().get("curr");
+            Assert.assertEquals(2, values.size());
+            Assert.assertEquals(3, ((Number) values.get(0)).doubleValue(), .0000000001);
+            Assert.assertEquals(4, ((Number) values.get(1)).doubleValue(), .0000000001);
+        }
+        {
+            List<Object> values = response.getValues().get("base");
+            Assert.assertEquals(2, values.size());
+            Assert.assertEquals(21, ((Number) values.get(0)).doubleValue(), .0000000001);
+            Assert.assertEquals(22, ((Number) values.get(1)).doubleValue(), .0000000001);
+        }
+        {
+            List<Object> values = response.getValues().get("delta");
+            Assert.assertEquals(2, values.size());
+            Assert.assertEquals((3.0 - 21) / 21, ((Number) values.get(0)).doubleValue(), .0000000001);
+            Assert.assertEquals((4.0 - 22) / 22, ((Number) values.get(1)).doubleValue(), .0000000001);
+        }
     }
 }
