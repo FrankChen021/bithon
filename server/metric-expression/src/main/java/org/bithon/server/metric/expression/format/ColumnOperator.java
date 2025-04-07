@@ -173,6 +173,95 @@ public interface ColumnOperator {
                 }
                 return new Column.LongColumn(result);
             };
+
+            // long and double
+            // Plus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                double[] vector = ((Column.DoubleColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v + vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+                double v = ((Column.DoubleColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v + vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+
+            // Minus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                double[] vector = ((Column.DoubleColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v - vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+                double v = ((Column.DoubleColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v - vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+
+            // Multiply
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                double[] vector = ((Column.DoubleColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v * vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+                double v = ((Column.DoubleColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v * vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+
+            // Divide
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                double[] vector = ((Column.DoubleColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = vector[i] == 0 ? 0 : v / vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+                double v = ((Column.DoubleColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                double[] result = new double[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = vector[i] == 0 ? 0 : v / vector[i];
+                }
+                return new Column.DoubleColumn(result);
+            };
         }
 
         public static Column apply(Column left, Column right, int operator) {
