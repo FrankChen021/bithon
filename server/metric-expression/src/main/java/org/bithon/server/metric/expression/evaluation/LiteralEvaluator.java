@@ -18,7 +18,6 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,8 @@ public class LiteralEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> evaluate() {
-        return CompletableFuture.completedFuture(ColumnarResponse.builder()
+    public CompletableFuture<EvaluationResult> evaluate() {
+        return CompletableFuture.completedFuture(EvaluationResult.builder()
                                                                  .valueNames(List.of("value"))
                                                                  .values(Map.of("value", List.of(value)))
                                                                  .build());

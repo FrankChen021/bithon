@@ -18,7 +18,6 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
@@ -36,7 +35,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
     private final boolean isScalar;
 
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
-    private volatile CompletableFuture<ColumnarResponse> cachedResponse;
+    private volatile CompletableFuture<EvaluationResult> cachedResponse;
 
     public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
@@ -53,14 +52,14 @@ public class MetricExpressionEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> evaluate() {
+    public CompletableFuture<EvaluationResult> evaluate() {
         if (cachedResponse == null) {
             synchronized (this) {
                 if (cachedResponse == null) {
                     cachedResponse = CompletableFuture.supplyAsync(() -> {
                         try {
                             QueryResponse<?> response = dataSourceApi.timeseriesV5(queryRequest);
-                            return (ColumnarResponse) response.getData();
+                            return (EvaluationResult) response.getData();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

@@ -90,7 +90,7 @@ public class DataSourceService {
         }
     }
 
-    public ColumnarResponse timeseriesQuery2(Query query) throws IOException {
+    public TimeSeriesQueryResult timeseriesQuery2(Query query) throws IOException {
         // Remove any dimensions
         List<String> metrics = query.getSelectors()
                                     .stream()
@@ -140,17 +140,11 @@ public class DataSourceService {
                                                                    TimestampSpec.COLUMN_ALIAS,
                                                                    Collections.emptyList(),
                                                                    Collections.emptyList());
-
-            return ColumnarResponse.builder()
-                                   .startTimestamp(ts.getStartTimestamp())
-                                   .endTimestamp(ts.getEndTimestamp())
-                                   .interval(ts.getInterval())
-                                   .rows(result.size())
-                                   .keyNames(keyNames.toArray(new String[0]))
-                                   .keys(keys)
-                                   .valueNames(metrics)
-                                   .values(values)
-                                   .build();
+            return new TimeSeriesQueryResult(result.size(),
+                                             ts.getStartTimestamp(),
+                                             ts.getEndTimestamp(),
+                                             ts.getInterval(),
+                                             result);
         }
     }
 

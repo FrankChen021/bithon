@@ -14,18 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluation;
+package org.bithon.server.metric.expression.format;
 
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 3:47 pm
+ * @date 7/4/25 10:17 am
  */
-public interface IEvaluator {
+public class CompositeKey {
+    private final Object[] parts;
 
-    boolean isScalar();
+    public CompositeKey(Object[] parts) {
+        this.parts = parts;
+    }
 
-    CompletableFuture<EvaluationResult> evaluate() throws Exception;
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof CompositeKey)) return false;
+        return Arrays.equals(parts, ((CompositeKey) o).parts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(parts);
+    }
 }
+

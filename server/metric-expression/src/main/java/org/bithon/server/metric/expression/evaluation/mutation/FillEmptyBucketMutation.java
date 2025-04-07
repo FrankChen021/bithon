@@ -18,7 +18,7 @@ package org.bithon.server.metric.expression.evaluation.mutation;
 
 
 import org.bithon.server.metric.expression.evaluation.IEvaluator;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
+import org.bithon.server.metric.expression.evaluation.EvaluationResult;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 
@@ -60,21 +60,21 @@ public class FillEmptyBucketMutation {
     ///  4. if not found from the map, then create an empty double[] and put it into the map
     ///  5. set the value based the index calculated in step 1 to the double[]
     public QueryResponse<?> evaluate() throws Exception {
-        ColumnarResponse columnarResponse = evaluator.evaluate().get();
+        EvaluationResult evaluationResult = evaluator.evaluate().get();
 
-        int count = (int) ((columnarResponse.getEndTimestamp() - columnarResponse.getStartTimestamp()) / columnarResponse.getInterval());
+        int count = (int) ((evaluationResult.getEndTimestamp() - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval());
 
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
-        for (int i = 0; i < columnarResponse.getRows(); i++) {
-            List<Object> key = columnarResponse.getKeys().get(i);
-            String[] keyNames = columnarResponse.getKeyNames();
-            String[] valueNames = columnarResponse.getValueNames();
+        for (int i = 0; i < evaluationResult.getRows(); i++) {
+            List<Object> key = evaluationResult.getKeys().get(i);
+            String[] keyNames = evaluationResult.getKeyNames();
+            String[] valueNames = evaluationResult.getValueNames();
 
-            List<Object> keys = columnarResponse.getKeys().get(i);
+            List<Object> keys = evaluationResult.getKeys().get(i);
 
             // the timestamp is seconds
             long timestamp = ((Number) keys.get(0)).longValue() * 1000;
-            long index = (timestamp - columnarResponse.getStartTimestamp()) / columnarResponse.getInterval();
+            long index = (timestamp - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval();
 
             for (String valueName : valueNames) {
                 List<String> tags = new ArrayList<>(key.size());
@@ -84,16 +84,16 @@ public class FillEmptyBucketMutation {
                 }
                 tags.add(valueName);
 
-                List<Object> valueColumn = columnarResponse.getValues().get(valueName);
+                List<Object> valueColumn = evaluationResult.getValues().get(valueName);
                 map.computeIfAbsent(tags, k -> new TimeSeriesMetric(tags, count))
                    .set((int) index, valueColumn.get(i));
             }
         }
 
         return QueryResponse.builder()
-                            .interval(columnarResponse.getInterval())
-                            .startTimestamp(columnarResponse.getStartTimestamp())
-                            .endTimestamp(columnarResponse.getEndTimestamp())
+                            .interval(evaluationResult.getInterval())
+                            .startTimestamp(evaluationResult.getStartTimestamp())
+                            .endTimestamp(evaluationResult.getEndTimestamp())
                             .data(map.values())
                             .build();
     }

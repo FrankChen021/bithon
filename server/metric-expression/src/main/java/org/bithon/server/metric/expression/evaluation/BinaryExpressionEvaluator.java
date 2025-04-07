@@ -18,7 +18,6 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,16 +127,16 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<ColumnarResponse> evaluate() throws Exception {
-        CompletableFuture<ColumnarResponse> leftFuture = this.lhs.evaluate();
-        CompletableFuture<ColumnarResponse> rightFuture = this.rhs.evaluate();
+    public CompletableFuture<EvaluationResult> evaluate() throws Exception {
+        CompletableFuture<EvaluationResult> leftFuture = this.lhs.evaluate();
+        CompletableFuture<EvaluationResult> rightFuture = this.rhs.evaluate();
 
         return CompletableFuture.allOf(leftFuture, rightFuture)
                                 .thenApply(v -> {
                                     try {
-                                        ColumnarResponse l = leftFuture.get();
-                                        ColumnarResponse r = rightFuture.get();
-                                        ColumnarResponse result = null;
+                                        EvaluationResult l = leftFuture.get();
+                                        EvaluationResult r = rightFuture.get();
+                                        EvaluationResult result = null;
                                         if (lhs.isScalar()) {
                                             if (rhs.isScalar()) {
                                                 result = applyScalarOverScalar(l, r);
@@ -165,12 +164,12 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     abstract double apply(double l, double r);
 
-    private ColumnarResponse transformResult(ColumnarResponse result, ColumnarResponse lResponse, ColumnarResponse rResponse) {
+    private EvaluationResult transformResult(EvaluationResult result, EvaluationResult lResponse, EvaluationResult rResponse) {
         return result;
     }
 
-    private ColumnarResponse applyScalarOverScalar(ColumnarResponse left,
-                                                   ColumnarResponse right) {
+    private EvaluationResult applyScalarOverScalar(EvaluationResult left,
+                                                   EvaluationResult right) {
         String lValueName = left.getValueNames()[0];
         List<Object> lValues = left.getValues().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
@@ -185,7 +184,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         return left;
     }
 
-    private ColumnarResponse applyScalarOverVector(ColumnarResponse left, ColumnarResponse right, boolean sign) {
+    private EvaluationResult applyScalarOverVector(EvaluationResult left, EvaluationResult right, boolean sign) {
         String lValueName = left.getValueNames()[0];
         List<Object> lValues = left.getValues().get(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
@@ -206,9 +205,9 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     /**
      * join these two maps by its keyNames
      */
-    private ColumnarResponse applyVectorOverVector(ColumnarResponse left, ColumnarResponse right) {
+    private EvaluationResult applyVectorOverVector(EvaluationResult left, EvaluationResult right) {
         if (!CollectionUtils.isArrayEqual(left.getKeyNames(), right.getKeyNames())) {
-            return ColumnarResponse.builder()
+            return EvaluationResult.builder()
                                    .keyNames()
                                    .keys(Collections.emptyList())
                                    .valueNames()
@@ -285,7 +284,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         }
 
         // Build response
-        return ColumnarResponse.builder()
+        return EvaluationResult.builder()
                                .startTimestamp(left.getStartTimestamp())
                                .endTimestamp(left.getEndTimestamp())
                                .interval(left.getInterval())
@@ -299,7 +298,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     /**
      * @return a Map where key is the keyNames and value is the index
      */
-    private Map<List<Object>, Integer> toMap(ColumnarResponse response) {
+    private Map<List<Object>, Integer> toMap(EvaluationResult response) {
         // Use LinkedHashMap to maintain insertion order
         Map<List<Object>, Integer> map = new LinkedHashMap<>();
         for (int i = 0; i < response.getRows(); i++) {

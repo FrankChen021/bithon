@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.datasource.api;
+package org.bithon.server.metric.expression.evaluation;
 
 
 import lombok.AllArgsConstructor;
@@ -42,7 +42,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ColumnarResponse {
+public class EvaluationResult {
     private int rows;
 
     private String[] keyNames;
@@ -126,8 +126,8 @@ public class ColumnarResponse {
             return this;
         }
 
-        public ColumnarResponse build() {
-            return new ColumnarResponse(rows, keyNames, keys, valueNames, values, startTimestamp, endTimestamp, interval);
+        public EvaluationResult build() {
+            return new EvaluationResult(rows, keyNames, keys, valueNames, values, startTimestamp, endTimestamp, interval);
         }
     }
 }

@@ -40,7 +40,6 @@ import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.datasource.api.ColumnarResponse;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
@@ -141,10 +140,13 @@ public class DataSourceApi implements IDataSourceApi {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         Query query = QueryConverter.toQuery(schema, request, true, true);
-        ColumnarResponse columnarResponse = this.dataSourceService.timeseriesQuery2(query);
+        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery2(query);
         return QueryResponse.builder()
                             .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
-                            .data(columnarResponse)
+                            .data(result.getMetrics())
+                            .startTimestamp(result.getStartTimestamp())
+                            .endTimestamp(result.getEndTimestamp())
+                            .interval(result.getInterval())
                             .build();
     }
 
