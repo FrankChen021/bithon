@@ -43,17 +43,13 @@ public interface Column<T> {
         addObject(value);
     }
 
+    double getDouble(int row);
+    int getInt(int row);
+    long getLong(int row);
+
     void set(int index, T value);
 
     int size();
-
-    void copyFrom(Column<?> source, int index);
-
-    /**
-     * Create a new column with the same type and size as this column.
-     * NO data will be copied
-     */
-    Column<T> copy();
 
     static Column<?> create(String type, int size) {
         if (type.equals(IDataType.STRING.name())) {
@@ -119,6 +115,21 @@ public interface Column<T> {
         }
 
         @Override
+        public double getDouble(int row) {
+            return data[row];
+        }
+
+        @Override
+        public int getInt(int row) {
+            return (int) data[row];
+        }
+
+        @Override
+        public long getLong(int row) {
+            return data[row];
+        }
+
+        @Override
         public void set(int index, Long value) {
             data[index] = value;
         }
@@ -127,22 +138,8 @@ public interface Column<T> {
             return size;
         }
 
-        @Override
-        public void copyFrom(Column<?> source, int index) {
-            Object v = source.get(index);
-            if (v instanceof Number) {
-                addInternal(((Number) v).longValue());
-            }
-            throw new IllegalArgumentException("Unsupported column type: " + v.getClass().getSimpleName());
-        }
-
         public long[] getData() {
             return data;
-        }
-
-        @Override
-        public Column<Long> copy() {
-            return new LongColumn(size);
         }
 
         private void addInternal(long value) {
@@ -198,26 +195,27 @@ public interface Column<T> {
             addInternal(value);
         }
 
+        @Override
+        public double getDouble(int row) {
+            return data[row];
+        }
+
+        @Override
+        public int getInt(int row) {
+            return (int) data[row];
+        }
+
+        @Override
+        public long getLong(int row) {
+            return (long) data[row];
+        }
+
         public void set(int index, Double value) {
             data[index] = value;
         }
 
         public int size() {
             return size;
-        }
-
-        @Override
-        public void copyFrom(Column<?> source, int index) {
-            Object v = source.get(index);
-            if (v instanceof Number) {
-                addInternal(((Number) v).doubleValue());
-            }
-            throw new IllegalArgumentException("Unsupported column type: " + v.getClass().getSimpleName());
-        }
-
-        @Override
-        public Column<Double> copy() {
-            return new DoubleColumn(size);
         }
 
         public double[] getData() {
@@ -271,6 +269,21 @@ public interface Column<T> {
             this.data.add(String.valueOf(value));
         }
 
+        @Override
+        public double getDouble(int row) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getInt(int row) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getLong(int row) {
+            throw new UnsupportedOperationException();
+        }
+
         public void set(int index, String value) {
             data.set(index, value);
         }
@@ -281,17 +294,6 @@ public interface Column<T> {
 
         public List<String> getData() {
             return data;
-        }
-
-        @Override
-        public void copyFrom(Column<?> source, int index) {
-            Object v = source.get(index);
-            data.add(v.toString());
-        }
-
-        @Override
-        public Column<String> copy() {
-            return new StringColumn(this.data.size());
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.metric.expression.format.ColumnarTable;
@@ -29,10 +30,10 @@ import java.util.concurrent.CompletableFuture;
  * @date 4/4/25 9:36 pm
  */
 public class LiteralEvaluator implements IEvaluator {
-    private final Object value;
+    private final LiteralExpression<?> expression;
 
-    public LiteralEvaluator(LiteralExpression<?> value) {
-        this.value = value.getValue();
+    public LiteralEvaluator(LiteralExpression<?> expression) {
+        this.expression = expression;
     }
 
     @Override
@@ -42,9 +43,19 @@ public class LiteralEvaluator implements IEvaluator {
 
     @Override
     public CompletableFuture<EvaluationResult> evaluate() {
+
         ColumnarTable table = new ColumnarTable();
-        table.addColumn("value", new Column.LongColumn(1))
-             .addObject((long) value);
+        if (expression.getDataType() == IDataType.LONG) {
+            table.addColumn("value", new Column.LongColumn(1))
+                 // Convert to Number because it might be Customized Number
+                 .addLong(((Number) expression.getValue()).longValue());
+        } else if (expression.getDataType() == IDataType.DOUBLE) {
+            table.addColumn("value", new Column.DoubleColumn(1))
+                 // Convert to Number because it might be Customized Number
+                 .addDouble(((Number) expression.getValue()).doubleValue());
+        } else {
+            throw new IllegalStateException("Unsupported literal type: " + expression.getDataType());
+        }
 
         return CompletableFuture.completedFuture(EvaluationResult.builder()
                                                                  .rows(1)

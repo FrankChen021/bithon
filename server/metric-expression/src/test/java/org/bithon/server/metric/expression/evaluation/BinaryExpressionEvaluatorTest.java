@@ -18,6 +18,7 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -55,8 +56,7 @@ public class BinaryExpressionEvaluatorTest {
                                                       QueryResponse.QueryResponseColumn.builder()
                                                                                        .name("activeThreads")
                                                                                        .dataType(IDataType.LONG.name())
-                                                                                       .build()
-                                        ))
+                                                                                       .build()))
                                         .build());
 
         IEvaluator evaluator = EvaluatorBuilder.builder()
@@ -67,79 +67,94 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         EvaluationResult response = evaluator.evaluate().get();
 
-        Column values = response.getTable().getColumn("value");
-        Assert.assertEquals(6, ((Number) values.get(0)).doubleValue(), .0000000001);
+        Column valueCol = response.getTable().getColumn("value");
+        Assert.assertEquals(6, valueCol.getDouble(0), .0000000001);
     }
-//
-//    @Test
-//    public void test_ScalarOverSizeLiteral_Add() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1))))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, ((Number) values.get(0)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_ScalarOverPercentageLiteral_Add() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1))))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(1.9, ((Number) values.get(0)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_ScalarOverDurationLiteral_Add() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1))))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(3601, ((Number) values.get(0)).doubleValue(), .0000000001);
-//    }
-//
+
+    @Test
+    public void test_ScalarOverSizeLiteral_Add() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(Map.of("_timestamp", 1,
+                                                             "activeThreads", 1.0)))
+                                        .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("_timestamp")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build(),
+                                                      QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("activeThreads")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build()))
+                                        .build());
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column valueCol = response.getTable().getColumn("value");
+        Assert.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, valueCol.getDouble(0), .0000000001);
+    }
+
+    @Test
+    public void test_ScalarOverPercentageLiteral_Add() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(Map.of("_timestamp", 1,
+                                                             "activeThreads", 1.0)))
+                                        .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("_timestamp")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build(),
+                                                      QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("activeThreads")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build()))
+                                        .build());
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column valueCol = response.getTable().getColumn("value");
+        Assert.assertEquals(1.9, valueCol.getDouble(0), .0000000001);
+    }
+
+    @Test
+    public void test_ScalarOverDurationLiteral_Add() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenReturn(QueryResponse.builder()
+                                        .data(List.of(Map.of("_timestamp", 1,
+                                                             "activeThreads", 1.0)))
+                                        .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("_timestamp")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build(),
+                                                      QueryResponse.QueryResponseColumn.builder()
+                                                                                       .name("activeThreads")
+                                                                                       .dataType(IDataType.LONG.name())
+                                                                                       .build()))
+                                        .build());
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column valueCol = response.getTable().getColumn("value");
+        Assert.assertEquals(3601, valueCol.getDouble(0), .0000000001);
+    }
+
 //    @Test
 //    public void test_ScalarOverLiteral_Sub() throws Exception {
 //        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
