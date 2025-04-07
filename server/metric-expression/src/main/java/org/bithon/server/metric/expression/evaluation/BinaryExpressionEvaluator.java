@@ -108,7 +108,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
         @Override
         int getOperatorIndex() {
-            return 3;
+            return 2;
         }
     }
 
@@ -131,7 +131,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
         @Override
         int getOperatorIndex() {
-            return 4;
+            return 3;
         }
     }
 

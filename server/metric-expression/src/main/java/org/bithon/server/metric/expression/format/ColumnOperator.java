@@ -17,7 +17,6 @@
 package org.bithon.server.metric.expression.format;
 
 
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IDataTypeIndex;
 import org.bithon.component.commons.utils.StringUtils;
 
@@ -71,20 +70,41 @@ public interface ColumnOperator {
                 double ret = ((Column.LongColumn) a).data[0] + ((Column.DoubleColumn) b).data[0];
                 return new Column.DoubleColumn(new double[]{ret});
             };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] + ((Column.LongColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+
             // Minus
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
                 double ret = ((Column.LongColumn) a).data[0] - ((Column.DoubleColumn) b).data[0];
                 return new Column.DoubleColumn(new double[]{ret});
             };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] - ((Column.LongColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+
             // Multiply
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
                 double ret = ((Column.LongColumn) a).data[0] * ((Column.DoubleColumn) b).data[0];
                 return new Column.DoubleColumn(new double[]{ret});
             };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] * ((Column.LongColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+
             // Divide
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
                 double dividend = ((Column.LongColumn) a).data[0];
                 double divisor = ((Column.DoubleColumn) b).data[0];
+                double ret = divisor == 0 ? 0 : dividend / divisor;
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+                double dividend = ((Column.DoubleColumn) a).data[0];
+                double divisor = ((Column.LongColumn) b).data[0];
                 double ret = divisor == 0 ? 0 : dividend / divisor;
                 return new Column.DoubleColumn(new double[]{ret});
             };
@@ -93,7 +113,7 @@ public interface ColumnOperator {
         public static Column apply(Column left, Column right, int operator) {
             ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
             if (columnOperator == null) {
-                throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left, right));
+                throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
             }
             return columnOperator.apply(left, right);
         }
