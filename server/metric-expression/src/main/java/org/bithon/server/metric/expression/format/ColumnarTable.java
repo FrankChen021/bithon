@@ -73,6 +73,4 @@ public class ColumnarTable {
         }
         return result;
     }
-
-    public final static ColumnarTable EMPTY = new ColumnarTable();
 }

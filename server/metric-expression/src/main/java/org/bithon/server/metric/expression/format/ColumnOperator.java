@@ -108,6 +108,29 @@ public interface ColumnOperator {
                 double ret = divisor == 0 ? 0 : dividend / divisor;
                 return new Column.DoubleColumn(new double[]{ret});
             };
+
+            // Plus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] + ((Column.DoubleColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+            // Minus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] - ((Column.DoubleColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+            // Multiply
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+                double ret = ((Column.DoubleColumn) a).data[0] * ((Column.DoubleColumn) b).data[0];
+                return new Column.DoubleColumn(new double[]{ret});
+            };
+            // Divide
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+                double dividend = ((Column.DoubleColumn) a).data[0];
+                double divisor = ((Column.DoubleColumn) b).data[0];
+                double ret = divisor == 0 ? 0 : dividend / divisor;
+                return new Column.DoubleColumn(new double[]{ret});
+            };
         }
 
         public static Column apply(Column left, Column right, int operator) {
@@ -174,6 +197,7 @@ public interface ColumnOperator {
                 return new Column.LongColumn(result);
             };
 
+            //
             // long and double
             // Plus
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
@@ -262,6 +286,8 @@ public interface ColumnOperator {
                 }
                 return new Column.DoubleColumn(result);
             };
+
+            // TODO: double and double
         }
 
         public static Column apply(Column left, Column right, int operator) {
