@@ -19,9 +19,6 @@ package org.bithon.server.metric.expression.format;
 
 import org.bithon.component.commons.expression.IDataType;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 7/4/25 10:18 am
@@ -44,8 +41,14 @@ public interface Column<T> {
     }
 
     double getDouble(int row);
+
     int getInt(int row);
+
     long getLong(int row);
+
+    default String getString(int row) {
+        throw new UnsupportedOperationException();
+    }
 
     void set(int index, T value);
 
@@ -231,14 +234,16 @@ public interface Column<T> {
     }
 
     class StringColumn implements Column<String> {
-        private final List<String> data;
+        final String[] data;
+        private int size;
 
-        public StringColumn(int size) {
-            this.data = new ArrayList<>(size);
+        public StringColumn(int capacity) {
+            this.data = new String[capacity];
+            this.size = 0;
         }
 
         public String get(int row) {
-            return data.get(row);
+            return data[row];
         }
 
         @Override
@@ -248,25 +253,25 @@ public interface Column<T> {
 
         public void addObject(Object value) {
             if (value instanceof String) {
-                data.add((String) value);
+                addInternal((String) value);
             } else {
-                data.add(value.toString());
+                addInternal(value.toString());
             }
         }
 
         @Override
         public void addInt(int value) {
-            this.data.add(String.valueOf(value));
+            addInternal(String.valueOf(value));
         }
 
         @Override
         public void addLong(long value) {
-            this.data.add(String.valueOf(value));
+            addInternal(String.valueOf(value));
         }
 
         @Override
         public void addDouble(double value) {
-            this.data.add(String.valueOf(value));
+            addInternal(String.valueOf(value));
         }
 
         @Override
@@ -284,16 +289,28 @@ public interface Column<T> {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public String getString(int row) {
+            return data[row];
+        }
+
         public void set(int index, String value) {
-            data.set(index, value);
+            data[index] = value;
         }
 
         public int size() {
-            return data.size();
+            return size;
         }
 
-        public List<String> getData() {
+        public String[] getData() {
             return data;
+        }
+
+        private void addInternal(String value) {
+            if (size >= data.length) {
+                throw new ArrayIndexOutOfBoundsException("Array is full");
+            }
+            data[size++] = value;
         }
     }
 }

@@ -28,8 +28,8 @@ public interface ColumnOperator {
 
     Column apply(Column a, Column b);
 
-    class ScalarOnScalarOperation {
-        private static ColumnOperator[][][] OPERATORS = new ColumnOperator[IDataTypeIndex.TYPE_INDEX_SIZE][IDataTypeIndex.TYPE_INDEX_SIZE][4];
+    class ScalarOverScalarOperator {
+        private static final ColumnOperator[][][] OPERATORS = new ColumnOperator[IDataTypeIndex.TYPE_INDEX_SIZE][IDataTypeIndex.TYPE_INDEX_SIZE][4];
 
         static {
             //
@@ -107,6 +107,136 @@ public interface ColumnOperator {
                 double divisor = ((Column.LongColumn) b).data[0];
                 double ret = divisor == 0 ? 0 : dividend / divisor;
                 return new Column.DoubleColumn(new double[]{ret});
+            };
+        }
+
+        public static Column apply(Column left, Column right, int operator) {
+            ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
+            if (columnOperator == null) {
+                throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
+            }
+            return columnOperator.apply(left, right);
+        }
+    }
+
+    class ScalarOverVectorOperator {
+        private static final ColumnOperator[][][] OPERATORS = new ColumnOperator[IDataTypeIndex.TYPE_INDEX_SIZE][IDataTypeIndex.TYPE_INDEX_SIZE][4];
+
+        static {
+            //
+            // long and long
+            //
+            // Plus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v + vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Minus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v - vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Multiply
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v * vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Divide
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = vector[i] == 0 ? 0 : v / vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+        }
+
+        public static Column apply(Column left, Column right, int operator) {
+            ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
+            if (columnOperator == null) {
+                throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
+            }
+            return columnOperator.apply(left, right);
+        }
+    }
+
+    class VectorOverScalarOperator {
+        private static final ColumnOperator[][][] OPERATORS = new ColumnOperator[IDataTypeIndex.TYPE_INDEX_SIZE][IDataTypeIndex.TYPE_INDEX_SIZE][4];
+
+        static {
+            //
+            // long and long
+            //
+            // Plus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v + vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Minus
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v - vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Multiply
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = v - vector[i];
+                }
+                return new Column.LongColumn(result);
+            };
+
+            // Divide
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+                long v = ((Column.LongColumn) a).data[0];
+                long[] vector = ((Column.LongColumn) b).data;
+                int size = b.size();
+                long[] result = new long[size];
+                for (int i = 0; i < b.size(); i++) {
+                    result[i] = vector[i] == 0 ? 0 : v / vector[i];
+                }
+                return new Column.LongColumn(result);
             };
         }
 

@@ -160,11 +160,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                             if (rhs.isScalar()) {
                                                 result = applyScalarOverScalar(l, r);
                                             } else {
-                                                result = applyScalarOverVector(l, r, true);
+                                                result = applyScalarOverVector(l, r);
                                             }
                                         } else {
                                             if (rhs.isScalar()) {
-                                                result = applyScalarOverVector(r, l, false);
+                                                result = applyVectorOverScalar(r, l);
                                             } else {
                                                 result = applyVectorOverVector(l, r);
                                             }
@@ -191,13 +191,13 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     private EvaluationResult applyScalarOverScalar(EvaluationResult left,
                                                    EvaluationResult right) {
-        String lValueName = left.getValColumns().get(0);
-        Column leftColumn = left.getTable().getColumn(lValueName);
+        String leftColName = left.getValColumns().get(0);
+        Column leftColumn = left.getTable().getColumn(leftColName);
 
-        String rValueName = right.getValColumns().get(0);
-        Column rightColumn = right.getTable().getColumn(rValueName);
+        String rightColName = right.getValColumns().get(0);
+        Column rightColumn = right.getTable().getColumn(rightColName);
 
-        Column result = ColumnOperator.ScalarOnScalarOperation.apply(leftColumn, rightColumn, this.getOperatorIndex());
+        Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.getOperatorIndex());
 
         return EvaluationResult.builder()
                                .startTimestamp(left.getStartTimestamp())
@@ -207,22 +207,37 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                .build();
     }
 
-    private EvaluationResult applyScalarOverVector(EvaluationResult left, EvaluationResult right, boolean sign) {
-        String lValueName = left.getValColumns().get(0);
-        Column lValues = left.getTable().getColumn(lValueName);
-        double lValue = ((Number) lValues.get(0)).doubleValue();
+    private EvaluationResult applyScalarOverVector(EvaluationResult left, EvaluationResult right) {
+        ColumnarTable table = new ColumnarTable();
 
-        String rValueName = right.getValColumns().get(0);
-        Column rValues = right.getTable().getColumn(rValueName);
-
-        for (int i = 0, size = rValues.size(); i < size; i++) {
-            double rValue = ((Number) rValues.get(i)).doubleValue();
-
-            double v = sign ? apply(lValue, rValue) : apply(rValue, lValue);
-            rValues.set(i, v);
+        // Retain all key columns on the right, which is the vector
+        for (String colName : right.getKeyColumns()) {
+            Column col = right.getTable().getColumn(colName);
+            table.addColumn(colName, col);
         }
 
-        return right;
+        //
+        // Apply operator on ALL value columns on the right
+        //
+        String lName = left.getValColumns().get(0);
+        Column lColumn = left.getTable().getColumn(lName);
+
+        for (String colName : right.getValColumns()) {
+            Column col = right.getTable().getColumn(colName);
+            Column result = ColumnOperator.ScalarOverVectorOperator.apply(lColumn, col, this.getOperatorIndex());
+            table.addColumn(colName, result);
+        }
+
+        return EvaluationResult.builder()
+                               .startTimestamp(left.getStartTimestamp())
+                               .endTimestamp(left.getEndTimestamp())
+                               .interval(left.getInterval())
+                               .table(table)
+                               .build();
+    }
+
+    private EvaluationResult applyVectorOverScalar(EvaluationResult left, EvaluationResult right) {
+        return left;
     }
 
     /**
