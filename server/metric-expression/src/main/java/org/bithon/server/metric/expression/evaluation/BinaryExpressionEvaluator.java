@@ -164,7 +164,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                             }
                                         } else {
                                             if (rhs.isScalar()) {
-                                                result = applyVectorOverScalar(r, l);
+                                                result = applyVectorOverScalar(l, r);
                                             } else {
                                                 result = applyVectorOverVector(l, r);
                                             }
@@ -237,7 +237,32 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     private EvaluationResult applyVectorOverScalar(EvaluationResult left, EvaluationResult right) {
-        return left;
+        ColumnarTable table = new ColumnarTable();
+
+        // Retain all key columns on the right, which is the vector
+        for (String colName : left.getKeyColumns()) {
+            Column col = left.getTable().getColumn(colName);
+            table.addColumn(colName, col);
+        }
+
+        //
+        // Apply operator on ALL value columns on the right
+        //
+        String rName = right.getValColumns().get(0);
+        Column rColumn = right.getTable().getColumn(rName);
+
+        for (String colName : left.getValColumns()) {
+            Column col = left.getTable().getColumn(colName);
+            Column result = ColumnOperator.VectorOverScalarOperator.apply(col, rColumn, this.getOperatorIndex());
+            table.addColumn(colName, result);
+        }
+
+        return EvaluationResult.builder()
+                               .startTimestamp(left.getStartTimestamp())
+                               .endTimestamp(left.getEndTimestamp())
+                               .interval(left.getInterval())
+                               .table(table)
+                               .build();
     }
 
     /**
