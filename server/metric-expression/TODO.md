@@ -2,8 +2,8 @@
 - [x] In MetricQueryApi, convert ColumnarResponse to QueryResponse
 - [x] For base line comparison, returns the base/delta columns
 - [ ] Fix the Grammar to move predicate after arithmetic expression
-- [ ] Define Column structure
-- [ ] Change ColumnarResponse to Table
+- [x] Define Column structure
+- [Doing] Change ColumnarResponse to Table
  
 ## Optimization
 - [ ] Push the literal computation to the storage layer

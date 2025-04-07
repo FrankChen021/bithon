@@ -17,7 +17,9 @@
 package org.bithon.server.metric.expression.format;
 
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,10 +28,18 @@ import java.util.Set;
  * @date 7/4/25 10:16 am
  */
 public class ColumnarTable {
+
+    public static ColumnarTable of(String name, Column<?> column) {
+        ColumnarTable table = new ColumnarTable();
+        table.addColumn(name, column);
+        return table;
+    }
+
     private final Map<String, Column<?>> columns = new LinkedHashMap<>();
 
-    public <T> void addColumn(String name, Column<T> column) {
+    public <T> Column<T> addColumn(String name, Column<T> column) {
         columns.put(name, column);
+        return column;
     }
 
     public Column<?> getColumn(String name) {
@@ -46,11 +56,23 @@ public class ColumnarTable {
     }
 
     public int rowCount() {
-        if (columns.isEmpty()) return 0;
+        if (columns.isEmpty()) {
+            return 0;
+        }
         return columns.values().iterator().next().size();
     }
 
-    public Map<String, Column<?>> getColumns() {
-        return columns;
+    public List<Column> getColumns(List<String> names) {
+        List<Column> result = new ArrayList<>(names.size());
+        for (String name : names) {
+            Column<?> column = columns.get(name);
+            if (column == null) {
+                throw new IllegalArgumentException("Column " + name + " not found");
+            }
+            result.add(column);
+        }
+        return result;
     }
+
+    public final static ColumnarTable EMPTY = new ColumnarTable();
 }

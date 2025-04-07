@@ -80,16 +80,22 @@ public class HashJoiner {
                 continue;
             }
             Object first = data.get(0);
-            if (first instanceof Integer) {
-                Column.IntColumn col = new Column.IntColumn(data.size());
+            if (first instanceof Long) {
+                Column.LongColumn col = new Column.LongColumn(data.size());
                 for (Object o : data) {
-                    col.add((Integer) o);
+                    col.addLong((long) o);
                 }
                 result.addColumn(name, col);
             } else if (first instanceof String) {
-                Column.StringColumn col = new Column.StringColumn();
+                Column.StringColumn col = new Column.StringColumn(data.size());
                 for (Object o : data) {
-                    col.add((String) o);
+                    col.addString((String) o);
+                }
+                result.addColumn(name, col);
+            } else if (first instanceof Double) {
+                Column.DoubleColumn col = new Column.DoubleColumn(data.size());
+                for (Object o : data) {
+                    col.addDouble((double) o);
                 }
                 result.addColumn(name, col);
             }

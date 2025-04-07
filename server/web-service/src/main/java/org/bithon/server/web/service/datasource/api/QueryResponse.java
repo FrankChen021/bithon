@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.storage.datasource.query.Limit;
 
 import java.util.List;

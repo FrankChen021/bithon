@@ -18,11 +18,12 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.metric.expression.format.ColumnarTable;
 
 import java.util.List;
-import java.util.Map;
 
 /// |appName | value |
 /// |-----------------------|-----------------|
@@ -42,92 +43,97 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class EvaluationResult {
     private int rows;
 
-    private String[] keyNames;
-    private List<List<Object>> keys;
+//    private String[] keyNames;
+//    private List<List<Object>> keys;
+//
+//    private String[] valueNames;
+//    private Map<String, List<Object>> values;
 
-    private String[] valueNames;
-    private Map<String, List<Object>> values;
+    private List<String> keyColumns;
+    private List<String> valColumns;
+    private ColumnarTable table;
 
     private long startTimestamp;
     private long endTimestamp;
     private long interval;
 
-    public static ColumnarResponseBuilder builder() {
-        return new ColumnarResponseBuilder();
-    }
+    //public static ColumnarResponseBuilder builder() {
+    //    return new ColumnarResponseBuilder();
+    //}
 
-    public static class ColumnarResponseBuilder {
-        private String[] keyNames;
-        private String[] valueNames;
-        private List<List<Object>> keys;
-        private Map<String, List<Object>> values;
-        private int rows;
-        private long startTimestamp;
-        private long endTimestamp;
-        private long interval;
-
-        public ColumnarResponseBuilder keyNames(String... keyNames) {
-            this.keyNames = keyNames;
-            return this;
-        }
-
-        public ColumnarResponseBuilder keyNames(List<String> keyNames) {
-            this.keyNames = keyNames.toArray(new String[0]);
-            return this;
-        }
-
-        public ColumnarResponseBuilder valueNames(List<String> valueNames) {
-            this.valueNames = valueNames.toArray(new String[0]);
-            return this;
-        }
-
-        public ColumnarResponseBuilder valueNames(String... values) {
-            this.valueNames = values;
-            return this;
-        }
-
-        public ColumnarResponseBuilder keys(List<List<Object>> keys) {
-            this.keys = keys;
-            if (!keys.isEmpty()) {
-                this.rows = keys.size();
-            }
-            return this;
-        }
-
-        public ColumnarResponseBuilder values(Map<String, List<Object>> values) {
-            this.values = values;
-            if (!values.isEmpty()) {
-                List<Object> col = values.entrySet().iterator().next().getValue();
-                this.rows = col.size();
-            }
-            return this;
-        }
-
-        public ColumnarResponseBuilder rows(int rows) {
-            this.rows = rows;
-            return this;
-        }
-
-        public ColumnarResponseBuilder startTimestamp(long startTimestamp) {
-            this.startTimestamp = startTimestamp;
-            return this;
-        }
-
-        public ColumnarResponseBuilder endTimestamp(long endTimestamp) {
-            this.endTimestamp = endTimestamp;
-            return this;
-        }
-
-        public ColumnarResponseBuilder interval(long interval) {
-            this.interval = interval;
-            return this;
-        }
-
-        public EvaluationResult build() {
-            return new EvaluationResult(rows, keyNames, keys, valueNames, values, startTimestamp, endTimestamp, interval);
-        }
-    }
+//    public static class ColumnarResponseBuilder {
+//        private String[] keyNames;
+//        private String[] valueNames;
+//        private List<List<Object>> keys;
+//        private Map<String, List<Object>> values;
+//        private int rows;
+//        private long startTimestamp;
+//        private long endTimestamp;
+//        private long interval;
+//
+//        public ColumnarResponseBuilder keyNames(String... keyNames) {
+//            this.keyNames = keyNames;
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder keyNames(List<String> keyNames) {
+//            this.keyNames = keyNames.toArray(new String[0]);
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder valueNames(List<String> valueNames) {
+//            this.valueNames = valueNames.toArray(new String[0]);
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder valueNames(String... values) {
+//            this.valueNames = values;
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder keys(List<List<Object>> keys) {
+//            this.keys = keys;
+//            if (!keys.isEmpty()) {
+//                this.rows = keys.size();
+//            }
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder values(Map<String, List<Object>> values) {
+//            this.values = values;
+//            if (!values.isEmpty()) {
+//                List<Object> col = values.entrySet().iterator().next().getValue();
+//                this.rows = col.size();
+//            }
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder rows(int rows) {
+//            this.rows = rows;
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder startTimestamp(long startTimestamp) {
+//            this.startTimestamp = startTimestamp;
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder endTimestamp(long endTimestamp) {
+//            this.endTimestamp = endTimestamp;
+//            return this;
+//        }
+//
+//        public ColumnarResponseBuilder interval(long interval) {
+//            this.interval = interval;
+//            return this;
+//        }
+//
+//        public EvaluationResult build() {
+//            return new EvaluationResult(rows, keyNames, keys, valueNames, values, startTimestamp, endTimestamp, interval);
+//        }
+//    }
 }

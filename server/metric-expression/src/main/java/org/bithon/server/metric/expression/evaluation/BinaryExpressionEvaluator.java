@@ -17,15 +17,14 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
-import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.metric.expression.format.Column;
+import org.bithon.server.metric.expression.format.ColumnOperator;
+import org.bithon.server.metric.expression.format.ColumnarTable;
+import org.bithon.server.metric.expression.format.HashJoiner;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +59,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         double apply(double l, double r) {
             return l + r;
         }
+
+        @Override
+        int getOperatorIndex() {
+            return 0;
+        }
     }
 
     public static class Sub extends BinaryExpressionEvaluator {
@@ -77,6 +81,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         @Override
         double apply(double l, double r) {
             return l - r;
+        }
+
+        @Override
+        int getOperatorIndex() {
+            return 1;
         }
     }
 
@@ -96,6 +105,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         double apply(double l, double r) {
             return l * r;
         }
+
+        @Override
+        int getOperatorIndex() {
+            return 3;
+        }
     }
 
     public static class Div extends BinaryExpressionEvaluator {
@@ -113,6 +127,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         @Override
         double apply(double l, double r) {
             return l / r;
+        }
+
+        @Override
+        int getOperatorIndex() {
+            return 4;
         }
     }
 
@@ -164,33 +183,37 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     abstract double apply(double l, double r);
 
+    abstract int getOperatorIndex();
+
     private EvaluationResult transformResult(EvaluationResult result, EvaluationResult lResponse, EvaluationResult rResponse) {
         return result;
     }
 
     private EvaluationResult applyScalarOverScalar(EvaluationResult left,
                                                    EvaluationResult right) {
-        String lValueName = left.getValueNames()[0];
-        List<Object> lValues = left.getValues().get(lValueName);
-        double lValue = ((Number) lValues.get(0)).doubleValue();
+        String lValueName = left.getValColumns().get(0);
+        Column leftColumn = left.getTable().getColumn(lValueName);
 
-        String rValueName = right.getValueNames()[0];
-        List<Object> rValues = right.getValues().get(rValueName);
-        double rValue = ((Number) rValues.get(0)).doubleValue();
+        String rValueName = right.getValColumns().get(0);
+        Column rightColumn = right.getTable().getColumn(rValueName);
 
-        double result = apply(lValue, rValue);
-        lValues.set(0, result);
+        Column result = ColumnOperator.ScalarOnScalarOperation.apply(leftColumn, rightColumn, this.getOperatorIndex());
 
-        return left;
+        return EvaluationResult.builder()
+                               .startTimestamp(left.getStartTimestamp())
+                               .endTimestamp(left.getEndTimestamp())
+                               .interval(left.getInterval())
+                               .table(ColumnarTable.of("value", result))
+                               .build();
     }
 
     private EvaluationResult applyScalarOverVector(EvaluationResult left, EvaluationResult right, boolean sign) {
-        String lValueName = left.getValueNames()[0];
-        List<Object> lValues = left.getValues().get(lValueName);
+        String lValueName = left.getValColumns().get(0);
+        Column lValues = left.getTable().getColumn(lValueName);
         double lValue = ((Number) lValues.get(0)).doubleValue();
 
-        String rValueName = right.getValueNames()[0];
-        List<Object> rValues = right.getValues().get(rValueName);
+        String rValueName = right.getValColumns().get(0);
+        Column rValues = right.getTable().getColumn(rValueName);
 
         for (int i = 0, size = rValues.size(); i < size; i++) {
             double rValue = ((Number) rValues.get(i)).doubleValue();
@@ -206,105 +229,111 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
      * join these two maps by its keyNames
      */
     private EvaluationResult applyVectorOverVector(EvaluationResult left, EvaluationResult right) {
-        if (!CollectionUtils.isArrayEqual(left.getKeyNames(), right.getKeyNames())) {
+        if (!left.getKeyColumns().equals(right.getKeyColumns())) {
             return EvaluationResult.builder()
-                                   .keyNames()
-                                   .keys(Collections.emptyList())
-                                   .valueNames()
-                                   .values(Collections.emptyMap())
+                                   // create an EMPTY table
+                                   .table(new ColumnarTable())
                                    .build();
         }
 
-        // Use LinkedHashMap to maintain insertion order
-        // the result set is the first one
-        Map<String, List<Object>> result = new LinkedHashMap<>();
-
-        List<List<Object>> keys = new ArrayList<>();
-        List<Object> resultColumn = result.computeIfAbsent(this.resultColumnName, k -> new ArrayList<>());
-
-        List<List<Object>> lSourceColumns = null;
-        List<List<Object>> lProjectedColumns = null;
-
-        List<List<Object>> rSourceColumns = null;
-        List<List<Object>> rProjectedColumns = null;
-        if (!this.sourceColumns.isEmpty()) {
-            lSourceColumns = new ArrayList<>();
-            rSourceColumns = new ArrayList<>();
-            lProjectedColumns = new ArrayList<>();
-            rProjectedColumns = new ArrayList<>();
-
-            for (int i = 0; i < left.getValueNames().length; i++) {
-                String col = left.getValueNames()[i];
-                if (this.sourceColumns.contains(col)) {
-                    lSourceColumns.add(left.getValues().get(col));
-                    lProjectedColumns.add(result.computeIfAbsent(col, k -> new ArrayList<>()));
-                }
-            }
-            for (int i = 0; i < right.getValueNames().length; i++) {
-                String col = right.getValueNames()[i];
-                if (this.sourceColumns.contains(col)) {
-                    rSourceColumns.add(right.getValues().get(col));
-                    rProjectedColumns.add(result.computeIfAbsent(col, k -> new ArrayList<>()));
-                }
-            }
-        }
-
-        List<Object> lValueColumn = left.getValues().get(left.getValueNames()[0]);
-        List<Object> rValueColumn = right.getValues().get(right.getValueNames()[0]);
-
-        Map<List<Object>, Integer> lmap = toMap(left);
-        Map<List<Object>, Integer> rmap = toMap(right);
-
-        for (Map.Entry<List<Object>, Integer> lEntry : lmap.entrySet()) {
-            List<Object> rowKey = lEntry.getKey();
-            int lRowIndex = lEntry.getValue();
-
-            Integer rRowIndex = rmap.get(rowKey);
-            if (rRowIndex != null) {
-                double leftValue = ((Number) lValueColumn.get(lRowIndex)).doubleValue();
-                double rightValue = ((Number) rValueColumn.get(rRowIndex)).doubleValue();
-                double v = apply(leftValue, rightValue);
-
-                keys.add(rowKey);
-                resultColumn.add(v);
-
-                if (lSourceColumns != null) {
-                    for (int i = 0; i < lSourceColumns.size(); i++) {
-                        List<Object> sourceColumn = lSourceColumns.get(i);
-                        lProjectedColumns.get(i).add(sourceColumn.get(lRowIndex));
-                    }
-                }
-                if (rSourceColumns != null) {
-                    for (int i = 0; i < rSourceColumns.size(); i++) {
-                        List<Object> sourceColumn = rSourceColumns.get(i);
-                        rProjectedColumns.get(i).add(sourceColumn.get(rRowIndex));
-                    }
-                }
-            }
-        }
-
-        // Build response
+        ColumnarTable table = HashJoiner.hashJoin(left.getTable(), right.getTable(), left.getKeyColumns());
         return EvaluationResult.builder()
+                               .interval(left.getInterval())
                                .startTimestamp(left.getStartTimestamp())
                                .endTimestamp(left.getEndTimestamp())
-                               .interval(left.getInterval())
-                               .keyNames(left.getKeyNames())
-                               .keys(keys)
-                               .valueNames(result.keySet().toArray(new String[0]))
-                               .values(result)
+                               .table(table)
                                .build();
+
+//        // Use LinkedHashMap to maintain insertion order
+//        // the result set is the first one
+//        ColumnarTable result = new ColumnarTable();
+//
+//        List<List<Object>> keys = new ArrayList<>();
+//        Column resultColumn = result.addColumn(this.resultColumnName, Column.create(IDataType.DOUBLE.name(), left.getRows()));
+//
+//        List<Column> lSourceColumns = null;
+//        List<Column> lProjectedColumns = null;
+//
+//        List<List<Object>> rSourceColumns = null;
+//        List<List<Object>> rProjectedColumns = null;
+//        if (!this.sourceColumns.isEmpty()) {
+//            lSourceColumns = new ArrayList<>();
+//            rSourceColumns = new ArrayList<>();
+//            lProjectedColumns = new ArrayList<>();
+//            rProjectedColumns = new ArrayList<>();
+//
+//            for (int i = 0, size = left.getValColumns().size(); i < size; i++) {
+//                String col = left.getValColumns().get(i);
+//                if (this.sourceColumns.contains(col)) {
+//                    lSourceColumns.add(left.getTable().getColumn(col));
+//                    lProjectedColumns.add(result.computeIfAbsent(col, k -> new ));
+//                }
+//            }
+//            for (int i = 0, size = right.getValColumns().size(); i < size; i++) {
+//                String col = right.getValColumns().get(i);
+//                if (this.sourceColumns.contains(col)) {
+//                    rSourceColumns.add(right.getTable().getColumn(col));
+//                    rProjectedColumns.add(result.computeIfAbsent(col, k -> new ArrayList<>()));
+//                }
+//            }
+//        }
+//
+//        List<Object> lValueColumn = left.getTable().getColumn(left.getValColumns().get(0));
+//        List<Object> rValueColumn = right.getTable().getColumn(right.getValColumns().get(0));
+//
+//        Map<List<Object>, Integer> lmap = toMap(left);
+//        Map<List<Object>, Integer> rmap = toMap(right);
+//
+//        for (Map.Entry<List<Object>, Integer> lEntry : lmap.entrySet()) {
+//            List<Object> rowKey = lEntry.getKey();
+//            int lRowIndex = lEntry.getValue();
+//
+//            Integer rRowIndex = rmap.get(rowKey);
+//            if (rRowIndex != null) {
+//                double leftValue = ((Number) lValueColumn.get(lRowIndex)).doubleValue();
+//                double rightValue = ((Number) rValueColumn.get(rRowIndex)).doubleValue();
+//                double v = apply(leftValue, rightValue);
+//
+//                keys.add(rowKey);
+//                resultColumn.add(v);
+//
+//                if (lSourceColumns != null) {
+//                    for (int i = 0; i < lSourceColumns.size(); i++) {
+//                        List<Object> sourceColumn = lSourceColumns.get(i);
+//                        lProjectedColumns.get(i).add(sourceColumn.get(lRowIndex));
+//                    }
+//                }
+//                if (rSourceColumns != null) {
+//                    for (int i = 0; i < rSourceColumns.size(); i++) {
+//                        List<Object> sourceColumn = rSourceColumns.get(i);
+//                        rProjectedColumns.get(i).add(sourceColumn.get(rRowIndex));
+//                    }
+//                }
+//            }
+//        }
+//
+//        // Build response
+//        return EvaluationResult.builder()
+//                               .startTimestamp(left.getStartTimestamp())
+//                               .endTimestamp(left.getEndTimestamp())
+//                               .interval(left.getInterval())
+//                               .keyNames(left.getKeyNames())
+//                               .keys(keys)
+//                               .valueNames(result.keySet().toArray(new String[0]))
+//                               .values(result)
+//                               .build();
     }
 
     /**
      * @return a Map where key is the keyNames and value is the index
      */
-    private Map<List<Object>, Integer> toMap(EvaluationResult response) {
-        // Use LinkedHashMap to maintain insertion order
-        Map<List<Object>, Integer> map = new LinkedHashMap<>();
-        for (int i = 0; i < response.getRows(); i++) {
-            List<Object> rowKey = response.getKeys().get(i);
-            map.put(rowKey, i);
-        }
-        return map;
-    }
+//    private Map<List<Object>, Integer> toMap(EvaluationResult response) {
+//        // Use LinkedHashMap to maintain insertion order
+//        Map<List<Object>, Integer> map = new LinkedHashMap<>();
+//        for (int i = 0; i < response.getRows(); i++) {
+//            List<Object> rowKey = response.getKeys().get(i);
+//            map.put(rowKey, i);
+//        }
+//        return map;
+//    }
 }

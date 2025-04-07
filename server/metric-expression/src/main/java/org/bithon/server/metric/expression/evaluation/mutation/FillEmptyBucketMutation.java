@@ -17,8 +17,9 @@
 package org.bithon.server.metric.expression.evaluation.mutation;
 
 
-import org.bithon.server.metric.expression.evaluation.IEvaluator;
 import org.bithon.server.metric.expression.evaluation.EvaluationResult;
+import org.bithon.server.metric.expression.evaluation.IEvaluator;
+import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 
@@ -64,29 +65,33 @@ public class FillEmptyBucketMutation {
 
         int count = (int) ((evaluationResult.getEndTimestamp() - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval());
 
+        List<String> keys = evaluationResult.getKeyColumns();
+        if (keys.get(0).equals("_timestamp")) {
+            keys.remove(0);
+        } else {
+            throw new IllegalStateException();
+        }
+        Column<Long> timestampCol = evaluationResult.getTable().getColumnTyped("_timestamp", Long.class);
+        List<Column> dimCols = evaluationResult.getTable().getColumns(keys);
+        List<Column> valCols = evaluationResult.getTable().getColumns(evaluationResult.getValColumns());
+
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
         for (int i = 0; i < evaluationResult.getRows(); i++) {
-            List<Object> key = evaluationResult.getKeys().get(i);
-            String[] keyNames = evaluationResult.getKeyNames();
-            String[] valueNames = evaluationResult.getValueNames();
-
-            List<Object> keys = evaluationResult.getKeys().get(i);
 
             // the timestamp is seconds
-            long timestamp = ((Number) keys.get(0)).longValue() * 1000;
+            long timestamp = timestampCol.get(i) * 1000;
             long index = (timestamp - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval();
 
-            for (String valueName : valueNames) {
-                List<String> tags = new ArrayList<>(key.size());
-                // Skip the first element which is the timestamp
-                for (int j = 1; j < key.size(); j++) {
-                    tags.add((String) key.get(j));
+            for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
+                Column valCol = valCols.get(j);
+                List<String> tags = new ArrayList<>(dimCols.size() + 1);
+                for (Column dimCol : dimCols) {
+                    Object v = dimCol.get(i);
                 }
-                tags.add(valueName);
+                tags.add(evaluationResult.getValColumns().get(j));
 
-                List<Object> valueColumn = evaluationResult.getValues().get(valueName);
                 map.computeIfAbsent(tags, k -> new TimeSeriesMetric(tags, count))
-                   .set((int) index, valueColumn.get(i));
+                   .set((int) index, valCol.get(i));
             }
         }
 

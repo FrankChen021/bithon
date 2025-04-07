@@ -111,27 +111,10 @@ public class DataSourceService {
         keyNames.add("_timestamp");
         keyNames.addAll(query.getGroupBy());
 
-        List<List<Object>> keys = new ArrayList<>();
-        Map<String, List<Object>> values = new HashMap<>();
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {
             List<Map<String, Object>> result = reader.timeseries(query);
-            for (Map<String, Object> row : result) {
-
-                List<Object> rowKey = new ArrayList<>();
-                for (String col : keyNames) {
-                    Object val = row.get(col);
-                    rowKey.add(val);
-                }
-                keys.add(rowKey);
-
-                for (String col : metrics) {
-                    Object val = row.get(col);
-                    values.computeIfAbsent(col, k -> new ArrayList<>())
-                          .add(val);
-                }
-            }
 
             TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                                    query.getInterval().getEndTime(),

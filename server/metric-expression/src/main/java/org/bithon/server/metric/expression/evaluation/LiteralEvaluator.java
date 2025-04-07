@@ -18,9 +18,10 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.server.metric.expression.format.Column;
+import org.bithon.server.metric.expression.format.ColumnarTable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -41,9 +42,14 @@ public class LiteralEvaluator implements IEvaluator {
 
     @Override
     public CompletableFuture<EvaluationResult> evaluate() {
+        ColumnarTable table = new ColumnarTable();
+        table.addColumn("value", new Column.LongColumn(1))
+             .addObject((long) value);
+
         return CompletableFuture.completedFuture(EvaluationResult.builder()
-                                                                 .valueNames(List.of("value"))
-                                                                 .values(Map.of("value", List.of(value)))
+                                                                 .rows(1)
+                                                                 .valColumns(List.of("value"))
+                                                                 .table(table)
                                                                  .build());
     }
 }
