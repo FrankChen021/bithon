@@ -29,20 +29,7 @@ import java.util.Map;
  */
 public class HashJoiner {
 
-    public static ColumnarTable hashJoin(
-        ColumnarTable left,
-        ColumnarTable right,
-        List<String> joinKeys,
-        List<String> leftValueColumns,
-        List<String> rightValueColumn) {
-        return hashJoinInternal(left,
-                                right,
-                                joinKeys,
-                                leftValueColumns.stream().map(left::getColumn).toList(),
-                                rightValueColumn.stream().map(right::getColumn).toList());
-    }
-
-    public static ColumnarTable hashJoinInternal(
+    public static List<Column> hashJoin(
         ColumnarTable left,
         ColumnarTable right,
         List<String> joinKeys,
@@ -60,24 +47,23 @@ public class HashJoiner {
         //
         // Prepare result
         //
-        ColumnarTable resultTable = new ColumnarTable();
         List<Column> resultColumns = new ArrayList<>(joinKeys.size() + leftValueColumns.size() + rightValueColumn.size());
         for (String col : joinKeys) {
-            Column c = resultTable.addColumn(Column.create(col,
-                                                           left.getColumn(col).getDataType().name(),
-                                                           hashTable.size()));
+            Column c = Column.create(col,
+                                     left.getColumn(col).getDataType().name(),
+                                     hashTable.size());
             resultColumns.add(c);
         }
         for (Column col : leftValueColumns) {
-            Column c = resultTable.addColumn(Column.create(col.getName(),
-                                                           left.getColumn(col.getName()).getDataType(),
-                                                           hashTable.size()));
+            Column c = Column.create(col.getName(),
+                                     left.getColumn(col.getName()).getDataType(),
+                                     hashTable.size());
             resultColumns.add(c);
         }
         for (Column col : rightValueColumn) {
-            Column c = resultTable.addColumn(Column.create(col.getName(),
-                                                           right.getColumn(col.getName()).getDataType().name(),
-                                                           hashTable.size()));
+            Column c = Column.create(col.getName(),
+                                     right.getColumn(col.getName()).getDataType().name(),
+                                     hashTable.size());
             resultColumns.add(c);
         }
 
@@ -107,17 +93,17 @@ public class HashJoiner {
             }
         }
 
-        return resultTable;
+        return resultColumns;
     }
 
     private static CompositeKey extractKey(ColumnarTable table,
                                            List<Column> columns,
                                            int row) {
-        Object[] parts = new Object[columns.size()];
+        Object[] keys = new Object[columns.size()];
         for (int i = 0, size = columns.size(); i < size; i++) {
-            parts[i] = columns.get(i).getObject(row);
+            keys[i] = columns.get(i).getObject(row);
         }
-        return new CompositeKey(parts);
+        return new CompositeKey(keys);
     }
 
     private static Map<CompositeKey, List<Integer>> toHashTable(ColumnarTable table,

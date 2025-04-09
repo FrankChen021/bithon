@@ -23,27 +23,19 @@ import java.util.Arrays;
  * @author frank.chen021@outlook.com
  * @date 7/4/25 10:17 am
  */
-public class CompositeKey {
-    private final Object[] parts;
-
-    public CompositeKey(Object[] parts) {
-        this.parts = parts;
-    }
+public record CompositeKey(Object[] keys) {
 
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof CompositeKey)) {
             return false;
         }
-        if (getClass() != other.getClass()) {
-            return false;
-        }
-        return Arrays.equals(parts, ((CompositeKey) other).parts);
+        return Arrays.equals(keys, ((CompositeKey) other).keys);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(parts);
+        return Arrays.hashCode(keys);
     }
 }
 

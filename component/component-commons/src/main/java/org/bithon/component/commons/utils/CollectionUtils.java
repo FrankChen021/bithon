@@ -74,4 +74,25 @@ public class CollectionUtils {
         }
         return true;
     }
+
+    public static <T> List<T> slice(List<T> list, int index) {
+        if (index < 0 || index >= list.size()) {
+            return Collections.emptyList();
+        }
+        return list.subList(index, list.size());
+    }
+
+    public static <T> List<T> slice(List<T> list, int index, int length) {
+        if (index < 0 || index >= list.size()) {
+            return Collections.emptyList();
+        }
+        if (length <= 0) {
+            return Collections.emptyList();
+        }
+        if (index + length > list.size()) {
+            return Collections.emptyList();
+        }
+        return list.subList(index, index + length);
+    }
+
 }

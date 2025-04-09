@@ -80,8 +80,8 @@ public interface Column {
         /**
          * declared as package level visibility for performance reason
          */
-        protected long[] data;
-        protected int size;
+        private long[] data;
+        private int size;
         private final String name;
 
         public LongColumn(String name, int capacity) {
@@ -167,7 +167,7 @@ public interface Column {
     }
 
     class DoubleColumn implements Column {
-        double[] data;
+        private double[] data;
         private int size;
         private final String name;
 
@@ -258,7 +258,7 @@ public interface Column {
     }
 
     class StringColumn implements Column {
-        String[] data;
+        private String[] data;
         private int size;
         private final String name;
 

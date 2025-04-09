@@ -17,11 +17,13 @@
 package org.bithon.server.metric.expression.evaluation;
 
 
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.metric.expression.format.ColumnOperator;
 import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.metric.expression.format.HashJoiner;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -264,108 +266,65 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                    .build();
         }
 
-        ColumnarTable table = HashJoiner.hashJoin(left.getTable(),
-                                                  right.getTable(),
-                                                  left.getKeyColumns(),
-                                                  left.getValColumns(),
-                                                  right.getValColumns());
+        // Join ALL columns together
+        List<Column> columns = HashJoiner.hashJoin(left.getTable(),
+                                                   right.getTable(),
+                                                   left.getKeyColumns(),
+                                                   left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
+                                                   right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
+
+        // Apply operator on target columns
+        int leftColIndex = left.getKeyColumns().size();
+        int rightColIndex = leftColIndex + left.getValColumns().size();
+        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex), columns.get(rightColIndex), "value", this.getOperatorIndex());
+
+        ColumnarTable table = new ColumnarTable();
+        int i = 0;
+        for (; i < left.getKeyColumns().size(); i++) {
+            table.addColumn(columns.get(i));
+        }
+
+        table.addColumn(result);
+
+        for (
+            // Skip the first value column on the left column
+            i++;
+            i < left.getValColumns().size();
+            i++) {
+            table.addColumn(columns.get(i));
+        }
+        for (
+            // Skip the first value column on the right column
+            i++;
+            i < left.getValColumns().size();
+            i++) {
+            table.addColumn(columns.get(i));
+        }
+
         return EvaluationResult.builder()
                                .interval(left.getInterval())
                                .startTimestamp(left.getStartTimestamp())
                                .endTimestamp(left.getEndTimestamp())
                                .table(table)
                                .build();
-
-//        // Use LinkedHashMap to maintain insertion order
-//        // the result set is the first one
-//        ColumnarTable result = new ColumnarTable();
-//
-//        List<List<Object>> keys = new ArrayList<>();
-//        Column resultColumn = result.addColumn(this.resultColumnName, Column.create(IDataType.DOUBLE.name(), left.getRows()));
-//
-//        List<Column> lSourceColumns = null;
-//        List<Column> lProjectedColumns = null;
-//
-//        List<List<Object>> rSourceColumns = null;
-//        List<List<Object>> rProjectedColumns = null;
-//        if (!this.sourceColumns.isEmpty()) {
-//            lSourceColumns = new ArrayList<>();
-//            rSourceColumns = new ArrayList<>();
-//            lProjectedColumns = new ArrayList<>();
-//            rProjectedColumns = new ArrayList<>();
-//
-//            for (int i = 0, size = left.getValColumns().size(); i < size; i++) {
-//                String col = left.getValColumns().get(i);
-//                if (this.sourceColumns.contains(col)) {
-//                    lSourceColumns.add(left.getTable().getColumn(col));
-//                    lProjectedColumns.add(result.computeIfAbsent(col, k -> new ));
-//                }
-//            }
-//            for (int i = 0, size = right.getValColumns().size(); i < size; i++) {
-//                String col = right.getValColumns().get(i);
-//                if (this.sourceColumns.contains(col)) {
-//                    rSourceColumns.add(right.getTable().getColumn(col));
-//                    rProjectedColumns.add(result.computeIfAbsent(col, k -> new ArrayList<>()));
-//                }
-//            }
-//        }
-//
-//        List<Object> lValueColumn = left.getTable().getColumn(left.getValColumns().get(0));
-//        List<Object> rValueColumn = right.getTable().getColumn(right.getValColumns().get(0));
-//
-//        Map<List<Object>, Integer> lmap = toMap(left);
-//        Map<List<Object>, Integer> rmap = toMap(right);
-//
-//        for (Map.Entry<List<Object>, Integer> lEntry : lmap.entrySet()) {
-//            List<Object> rowKey = lEntry.getKey();
-//            int lRowIndex = lEntry.getValue();
-//
-//            Integer rRowIndex = rmap.get(rowKey);
-//            if (rRowIndex != null) {
-//                double leftValue = ((Number) lValueColumn.get(lRowIndex)).doubleValue();
-//                double rightValue = ((Number) rValueColumn.get(rRowIndex)).doubleValue();
-//                double v = apply(leftValue, rightValue);
-//
-//                keys.add(rowKey);
-//                resultColumn.add(v);
-//
-//                if (lSourceColumns != null) {
-//                    for (int i = 0; i < lSourceColumns.size(); i++) {
-//                        List<Object> sourceColumn = lSourceColumns.get(i);
-//                        lProjectedColumns.get(i).add(sourceColumn.get(lRowIndex));
-//                    }
-//                }
-//                if (rSourceColumns != null) {
-//                    for (int i = 0; i < rSourceColumns.size(); i++) {
-//                        List<Object> sourceColumn = rSourceColumns.get(i);
-//                        rProjectedColumns.get(i).add(sourceColumn.get(rRowIndex));
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Build response
-//        return EvaluationResult.builder()
-//                               .startTimestamp(left.getStartTimestamp())
-//                               .endTimestamp(left.getEndTimestamp())
-//                               .interval(left.getInterval())
-//                               .keyNames(left.getKeyNames())
-//                               .keys(keys)
-//                               .valueNames(result.keySet().toArray(new String[0]))
-//                               .values(result)
-//                               .build();
     }
 
-    /**
-     * @return a Map where key is the keyNames and value is the index
-     */
-//    private Map<List<Object>, Integer> toMap(EvaluationResult response) {
-//        // Use LinkedHashMap to maintain insertion order
-//        Map<List<Object>, Integer> map = new LinkedHashMap<>();
-//        for (int i = 0; i < response.getRows(); i++) {
-//            List<Object> rowKey = response.getKeys().get(i);
-//            map.put(rowKey, i);
-//        }
-//        return map;
-//    }
+    interface Operator {
+        void apply(Column left, Column right, Column output, int row);
+    }
+
+    private void apply(Column left, Column right, Column output, int row) {
+
+    }
+
+    IDataType determineTargetColumnType(IDataType left, IDataType right) {
+        if (left == IDataType.STRING || right == IDataType.STRING) {
+            return IDataType.STRING;
+        } else if (left == IDataType.DOUBLE || right == IDataType.DOUBLE) {
+            return IDataType.DOUBLE;
+        } else if (left == IDataType.LONG && right == IDataType.LONG) {
+            return IDataType.LONG;
+        }
+        throw new UnsupportedOperationException("Unsupported column type: " + left + ", " + right);
+    }
 }
