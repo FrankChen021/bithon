@@ -31,9 +31,14 @@ public class CompositeKey {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof CompositeKey)) return false;
-        return Arrays.equals(parts, ((CompositeKey) o).parts);
+    public boolean equals(Object other) {
+        if (!(other instanceof CompositeKey)) {
+            return false;
+        }
+        if (getClass() != other.getClass()) {
+            return false;
+        }
+        return Arrays.equals(parts, ((CompositeKey) other).parts);
     }
 
     @Override

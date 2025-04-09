@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
  */
 public interface ColumnOperator {
 
-    Column apply(Column a, Column b);
+    Column apply(Column a, Column b, String name);
 
     class ScalarOverScalarOperator {
         private static final ColumnOperator[][][] OPERATORS = new ColumnOperator[IDataTypeIndex.TYPE_INDEX_SIZE][IDataTypeIndex.TYPE_INDEX_SIZE][4];
@@ -36,29 +36,29 @@ public interface ColumnOperator {
             // long and long
             //
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 long ret = ((Column.LongColumn) a).data[0] + ((Column.LongColumn) b).data[0];
-                return new Column.LongColumn(new long[]{ret});
+                return new Column.LongColumn(name, new long[]{ret});
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 long ret = ((Column.LongColumn) a).data[0] - ((Column.LongColumn) b).data[0];
-                return new Column.LongColumn(new long[]{ret});
+                return new Column.LongColumn(name, new long[]{ret});
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 long ret = ((Column.LongColumn) a).data[0] * ((Column.LongColumn) b).data[0];
-                return new Column.LongColumn(new long[]{ret});
+                return new Column.LongColumn(name, new long[]{ret});
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 long dividend = ((Column.LongColumn) a).data[0];
                 long divisor = ((Column.LongColumn) b).data[0];
                 long ret = divisor == 0 ? 0 : dividend / divisor;
-                return new Column.LongColumn(new long[]{ret});
+                return new Column.LongColumn(name, new long[]{ret});
             };
 
 
@@ -66,79 +66,79 @@ public interface ColumnOperator {
             // long and double
             //
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 double ret = ((Column.LongColumn) a).data[0] + ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] + ((Column.LongColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 double ret = ((Column.LongColumn) a).data[0] - ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] - ((Column.LongColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 double ret = ((Column.LongColumn) a).data[0] * ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] * ((Column.LongColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 double dividend = ((Column.LongColumn) a).data[0];
                 double divisor = ((Column.DoubleColumn) b).data[0];
                 double ret = divisor == 0 ? 0 : dividend / divisor;
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 double dividend = ((Column.DoubleColumn) a).data[0];
                 double divisor = ((Column.LongColumn) b).data[0];
                 double ret = divisor == 0 ? 0 : dividend / divisor;
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
 
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] + ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] - ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 double ret = ((Column.DoubleColumn) a).data[0] * ((Column.DoubleColumn) b).data[0];
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 double dividend = ((Column.DoubleColumn) a).data[0];
                 double divisor = ((Column.DoubleColumn) b).data[0];
                 double ret = divisor == 0 ? 0 : dividend / divisor;
-                return new Column.DoubleColumn(new double[]{ret});
+                return new Column.DoubleColumn(name, new double[]{ret});
             };
         }
 
-        public static Column apply(Column left, Column right, int operator) {
+        public static Column apply(Column left, Column right, String name, int operator) {
             ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
             if (columnOperator == null) {
                 throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
             }
-            return columnOperator.apply(left, right);
+            return columnOperator.apply(left, right, name);
         }
     }
 
@@ -150,7 +150,7 @@ public interface ColumnOperator {
             // long and long
             //
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -158,11 +158,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v + vector[i];
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -170,11 +170,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v - vector[i];
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -182,11 +182,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v * vector[i];
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -194,13 +194,13 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = vector[i] == 0 ? 0 : v / vector[i];
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             //
             // long and double
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 double[] vector = ((Column.DoubleColumn) b).data;
                 int size = b.size();
@@ -208,9 +208,9 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v + vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 double v = ((Column.DoubleColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -218,11 +218,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v + vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 double[] vector = ((Column.DoubleColumn) b).data;
                 int size = b.size();
@@ -230,9 +230,9 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v - vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 double v = ((Column.DoubleColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -240,11 +240,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v - vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 double[] vector = ((Column.DoubleColumn) b).data;
                 int size = b.size();
@@ -252,9 +252,9 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v * vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 double v = ((Column.DoubleColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -262,11 +262,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = v * vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 long v = ((Column.LongColumn) a).data[0];
                 double[] vector = ((Column.DoubleColumn) b).data;
                 int size = b.size();
@@ -274,9 +274,9 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = vector[i] == 0 ? 0 : v / vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 double v = ((Column.DoubleColumn) a).data[0];
                 long[] vector = ((Column.LongColumn) b).data;
                 int size = b.size();
@@ -284,18 +284,18 @@ public interface ColumnOperator {
                 for (int i = 0; i < b.size(); i++) {
                     result[i] = vector[i] == 0 ? 0 : v / vector[i];
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
             };
 
             // TODO: double and double
         }
 
-        public static Column apply(Column left, Column right, int operator) {
+        public static Column apply(Column left, Column right, String name, int operator) {
             ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
             if (columnOperator == null) {
                 throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
             }
-            return columnOperator.apply(left, right);
+            return columnOperator.apply(left, right, name);
         }
     }
 
@@ -307,7 +307,7 @@ public interface ColumnOperator {
             // long and long
             //
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -315,11 +315,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] + v;
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -327,11 +327,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] - v;
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -339,11 +339,11 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] * v;
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -351,12 +351,12 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = v == 0 ? 0 : vector[i] / v;
                 }
-                return new Column.LongColumn(result);
+                return new Column.LongColumn(name, result);
             };
 
             // long and double
             // Plus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 double v = ((Column.DoubleColumn) b).data[0];
                 int size = a.size();
@@ -364,9 +364,10 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] + v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 double[] vector = ((Column.DoubleColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -374,11 +375,12 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] + v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
 
             // Minus
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 double v = ((Column.DoubleColumn) b).data[0];
                 int size = a.size();
@@ -386,9 +388,10 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] - v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 double[] vector = ((Column.DoubleColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -396,11 +399,12 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] - v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
 
             // Multiply
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 double v = ((Column.DoubleColumn) b).data[0];
                 int size = a.size();
@@ -408,9 +412,10 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] * v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 double[] vector = ((Column.DoubleColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -418,11 +423,12 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = vector[i] * v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
 
             // Divide
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 long[] vector = ((Column.LongColumn) a).data;
                 double v = ((Column.DoubleColumn) b).data[0];
                 int size = a.size();
@@ -430,9 +436,10 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = v == 0 ? 0 : vector[i] / v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
-            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b) -> {
+            OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 double[] vector = ((Column.DoubleColumn) a).data;
                 long v = ((Column.LongColumn) b).data[0];
                 int size = a.size();
@@ -440,16 +447,17 @@ public interface ColumnOperator {
                 for (int i = 0; i < size; i++) {
                     result[i] = v == 0 ? 0 : vector[i] / v;
                 }
-                return new Column.DoubleColumn(result);
+                return new Column.DoubleColumn(name, result);
+
             };
         }
 
-        public static Column apply(Column left, Column right, int operator) {
+        public static Column apply(Column left, Column right, String name, int operator) {
             ColumnOperator columnOperator = OPERATORS[left.getDataType().getTypeIndex()][right.getDataType().getTypeIndex()][operator];
             if (columnOperator == null) {
                 throw new IllegalStateException(StringUtils.format("Unsupported operation %s on type %s and %s", operator, left.getDataType(), right.getDataType()));
             }
-            return columnOperator.apply(left, right);
+            return columnOperator.apply(left, right, name);
         }
     }
 

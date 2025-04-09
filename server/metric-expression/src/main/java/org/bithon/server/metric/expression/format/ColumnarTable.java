@@ -31,14 +31,14 @@ public class ColumnarTable {
 
     public static ColumnarTable of(String name, Column column) {
         ColumnarTable table = new ColumnarTable();
-        table.addColumn(name, column);
+        table.addColumn(column);
         return table;
     }
 
     private final Map<String, Column> columns = new LinkedHashMap<>();
 
-    public Column addColumn(String name, Column column) {
-        columns.put(name, column);
+    public Column addColumn(Column column) {
+        columns.put(column.getName(), column);
         return column;
     }
 

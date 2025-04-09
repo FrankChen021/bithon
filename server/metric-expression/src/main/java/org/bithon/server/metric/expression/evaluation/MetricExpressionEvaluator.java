@@ -112,20 +112,20 @@ public class MetricExpressionEvaluator implements IEvaluator {
 
         // Add key columns
         for (QueryResponse.QueryResponseColumn keyColumn : keyColumns) {
-            Column column = Column.create(keyColumn.getDataType(), rows.size());
+            Column column = Column.create(keyColumn.getName(), keyColumn.getDataType(), rows.size());
             for (Map<String, Object> row : rows) {
                 column.addObject(row.get(keyColumn.getName()));
             }
-            table.addColumn(keyColumn.getName(), column);
+            table.addColumn(column);
         }
 
         // Add value columns
         for (QueryResponse.QueryResponseColumn valColumn : valColumns) {
-            Column column = Column.create(valColumn.getDataType(), rows.size());
+            Column column = Column.create(valColumn.getName(), valColumn.getDataType(), rows.size());
             for (Map<String, Object> value : rows) {
                 column.addObject(value.get(valColumn.getName()));
             }
-            table.addColumn(valColumn.getName(), column);
+            table.addColumn(column);
         }
 
         // Create and return the EvaluationResult

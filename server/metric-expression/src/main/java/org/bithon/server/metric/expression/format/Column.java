@@ -24,6 +24,12 @@ import org.bithon.component.commons.expression.IDataType;
  * @date 7/4/25 10:18 am
  */
 public interface Column {
+
+    /**
+     * Get columna name
+     */
+    String getName();
+
     IDataType getDataType();
 
     void addObject(Object value);
@@ -52,15 +58,19 @@ public interface Column {
 
     int size();
 
-    static Column create(String type, int size) {
+    static Column create(String name, IDataType type, int initCapacity) {
+        return Column.create(name, type.name(), initCapacity);
+    }
+
+    static Column create(String name, String type, int initCapacity) {
         if (type.equals(IDataType.STRING.name())) {
-            return new StringColumn(size);
+            return new StringColumn(name, initCapacity);
         }
         if (type.equals(IDataType.LONG.name())) {
-            return new LongColumn(size);
+            return new LongColumn(name, initCapacity);
         }
         if (type.equals(IDataType.DOUBLE.name())) {
-            return new DoubleColumn(size);
+            return new DoubleColumn(name, initCapacity);
         }
 
         throw new IllegalArgumentException("Unsupported column type: " + type);
@@ -70,17 +80,24 @@ public interface Column {
         /**
          * declared as package level visibility for performance reason
          */
-        final long[] data;
-        private int size;
+        protected long[] data;
+        protected int size;
+        private final String name;
 
-        public LongColumn(int size) {
-            this.data = new long[size];
+        public LongColumn(String name, int capacity) {
+            this.data = new long[capacity];
             this.size = 0;
+            this.name = name;
         }
 
-        public LongColumn(long[] data) {
+        public LongColumn(String name, long[] data) {
             this.data = data;
             this.size = data.length;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -139,25 +156,35 @@ public interface Column {
             return data;
         }
 
-        private void addInternal(long value) {
+        protected void addInternal(long value) {
             if (size >= data.length) {
-                throw new ArrayIndexOutOfBoundsException("Array is full");
+                long[] newData = new long[(data.length * 3 / 2)];
+                System.arraycopy(data, 0, newData, 0, data.length);
+                data = newData;
             }
             data[size++] = value;
         }
     }
 
     class DoubleColumn implements Column {
-        final double[] data;
-        int size;
+        double[] data;
+        private int size;
+        private final String name;
 
-        public DoubleColumn(int size) {
-            this.data = new double[size];
+        public DoubleColumn(String name, int capacity) {
+            this.data = new double[capacity];
+            this.size = 0;
+            this.name = name;
         }
 
-        public DoubleColumn(double[] data) {
+        public DoubleColumn(String name, double[] data) {
             this.data = data;
             this.size = data.length;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -222,19 +249,27 @@ public interface Column {
 
         private void addInternal(double value) {
             if (size >= data.length) {
-                throw new ArrayIndexOutOfBoundsException("Array is full");
+                double[] newData = new double[(data.length * 3 / 2)];
+                System.arraycopy(data, 0, newData, 0, data.length);
+                data = newData;
             }
             data[size++] = value;
         }
     }
 
     class StringColumn implements Column {
-        final String[] data;
+        String[] data;
         private int size;
+        private final String name;
 
-        public StringColumn(int capacity) {
+        public StringColumn(String name, int capacity) {
             this.data = new String[capacity];
             this.size = 0;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
 
         public String get(int row) {
@@ -308,7 +343,9 @@ public interface Column {
 
         private void addInternal(String value) {
             if (size >= data.length) {
-                throw new ArrayIndexOutOfBoundsException("Array is full");
+                String[] newData = new String[(data.length * 3 / 2)];
+                System.arraycopy(data, 0, newData, 0, data.length);
+                data = newData;
             }
             data[size++] = value;
         }

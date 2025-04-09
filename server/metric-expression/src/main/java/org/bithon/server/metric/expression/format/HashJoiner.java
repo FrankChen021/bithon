@@ -16,9 +16,10 @@
 
 package org.bithon.server.metric.expression.format;
 
+import org.bithon.component.commons.utils.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,86 +32,103 @@ public class HashJoiner {
     public static ColumnarTable hashJoin(
         ColumnarTable left,
         ColumnarTable right,
-        List<String> joinKeys
-    ) {
-        // Build hash table
-        Map<CompositeKey, List<Integer>> hashTable = new HashMap<>();
-        for (int i = 0; i < left.rowCount(); i++) {
-            CompositeKey key = extractKey(left, joinKeys, i);
-            hashTable.computeIfAbsent(key, k -> new ArrayList<>()).add(i);
-        }
+        List<String> joinKeys,
+        List<String> leftValueColumns,
+        List<String> rightValueColumn) {
+        return hashJoinInternal(left,
+                                right,
+                                joinKeys,
+                                leftValueColumns.stream().map(left::getColumn).toList(),
+                                rightValueColumn.stream().map(right::getColumn).toList());
+    }
 
-        // Prepare result columns
-        Map<String, List<Object>> resultData = new LinkedHashMap<>();
-        for (String col : left.getColumnNames()) {
-            resultData.put("left." + col, new ArrayList<>());
+    public static ColumnarTable hashJoinInternal(
+        ColumnarTable left,
+        ColumnarTable right,
+        List<String> joinKeys,
+        List<Column> leftValueColumns,
+        List<Column> rightValueColumn) {
+        List<Column> leftJoinColumns = joinKeys.stream()
+                                               .map(left::getColumn)
+                                               .toList();
+
+        //
+        // Build hash table for key probe
+        //
+        Map<CompositeKey, List<Integer>> hashTable = toHashTable(left, leftJoinColumns);
+
+        //
+        // Prepare result
+        //
+        ColumnarTable resultTable = new ColumnarTable();
+        List<Column> resultColumns = new ArrayList<>(joinKeys.size() + leftValueColumns.size() + rightValueColumn.size());
+        for (String col : joinKeys) {
+            Column c = resultTable.addColumn(Column.create(col,
+                                                           left.getColumn(col).getDataType().name(),
+                                                           hashTable.size()));
+            resultColumns.add(c);
         }
-        for (String col : right.getColumnNames()) {
-            if (!joinKeys.contains(col)) {
-                resultData.put("right." + col, new ArrayList<>());
-            }
+        for (Column col : leftValueColumns) {
+            Column c = resultTable.addColumn(Column.create(col.getName(),
+                                                           left.getColumn(col.getName()).getDataType(),
+                                                           hashTable.size()));
+            resultColumns.add(c);
+        }
+        for (Column col : rightValueColumn) {
+            Column c = resultTable.addColumn(Column.create(col.getName(),
+                                                           right.getColumn(col.getName()).getDataType().name(),
+                                                           hashTable.size()));
+            resultColumns.add(c);
         }
 
         // Probe and build result
+        List<Column> rightJoinColumns = joinKeys.stream()
+                                                .map(right::getColumn)
+                                                .toList();
+
         for (int i = 0; i < right.rowCount(); i++) {
-            CompositeKey key = extractKey(right, joinKeys, i);
-            List<Integer> matches = hashTable.get(key);
-            if (matches == null) {
+            CompositeKey key = extractKey(right, rightJoinColumns, i);
+            List<Integer> matchedRows = hashTable.get(key);
+            if (CollectionUtils.isEmpty(matchedRows)) {
                 continue;
             }
 
-            for (int li : matches) {
-                for (String col : left.getColumnNames()) {
-                    resultData.get("left." + col).add(left.getColumn(col).getObject(li));
+            for (int row : matchedRows) {
+                int resultColumnIndex = 0;
+                for (Column col : leftJoinColumns) {
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
                 }
-                for (String col : right.getColumnNames()) {
-                    if (!joinKeys.contains(col)) {
-                        resultData.get("right." + col).add(right.getColumn(col).getObject(i));
-                    }
+                for (Column col : leftValueColumns) {
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
+                }
+                for (Column col : rightValueColumn) {
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
                 }
             }
         }
 
-        // Assemble result table
-        ColumnarTable result = new ColumnarTable();
-        for (Map.Entry<String, List<Object>> entry : resultData.entrySet()) {
-            String name = entry.getKey();
-            List<Object> data = entry.getValue();
-            if (data.isEmpty()) {
-                continue;
-            }
-            Object first = data.get(0);
-            if (first instanceof Long) {
-                Column.LongColumn col = new Column.LongColumn(data.size());
-                for (Object o : data) {
-                    col.addLong((long) o);
-                }
-                result.addColumn(name, col);
-            } else if (first instanceof String) {
-                Column.StringColumn col = new Column.StringColumn(data.size());
-                for (Object o : data) {
-                    col.addString((String) o);
-                }
-                result.addColumn(name, col);
-            } else if (first instanceof Double) {
-                Column.DoubleColumn col = new Column.DoubleColumn(data.size());
-                for (Object o : data) {
-                    col.addDouble((double) o);
-                }
-                result.addColumn(name, col);
-            }
-            // Add more type cases as needed
-        }
-
-        return result;
+        return resultTable;
     }
 
-    private static CompositeKey extractKey(ColumnarTable table, List<String> keys, int row) {
-        Object[] parts = new Object[keys.size()];
-        for (int i = 0; i < keys.size(); i++) {
-            parts[i] = table.getColumn(keys.get(i)).getObject(row);
+    private static CompositeKey extractKey(ColumnarTable table,
+                                           List<Column> columns,
+                                           int row) {
+        Object[] parts = new Object[columns.size()];
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            parts[i] = columns.get(i).getObject(row);
         }
         return new CompositeKey(parts);
+    }
+
+    private static Map<CompositeKey, List<Integer>> toHashTable(ColumnarTable table,
+                                                                List<Column> columns) {
+        Map<CompositeKey, List<Integer>> hashTable = new HashMap<>();
+        for (int i = 0, rows = table.rowCount(); i < rows; i++) {
+            CompositeKey key = extractKey(table, columns, i);
+            hashTable.computeIfAbsent(key, k -> new ArrayList<>())
+                     .add(i);
+        }
+        return hashTable;
     }
 }
 

@@ -46,13 +46,15 @@ public class LiteralEvaluator implements IEvaluator {
 
         ColumnarTable table = new ColumnarTable();
         if (expression.getDataType() == IDataType.LONG) {
-            table.addColumn("value", new Column.LongColumn(1))
-                 // Convert to Number because it might be Customized Number
-                 .addLong(((Number) expression.getValue()).longValue());
+            table.addColumn(new Column.LongColumn("value", new long[]{
+                // Convert to Number because it might be Customized Number
+                ((Number) expression.getValue()).longValue()
+            }));
         } else if (expression.getDataType() == IDataType.DOUBLE) {
-            table.addColumn("value", new Column.DoubleColumn(1))
-                 // Convert to Number because it might be Customized Number
-                 .addDouble(((Number) expression.getValue()).doubleValue());
+            table.addColumn(new Column.DoubleColumn("value", new double[]{
+                // Convert to Number because it might be Customized Number
+                ((Number) expression.getValue()).doubleValue()
+            }));
         } else {
             throw new IllegalStateException("Unsupported literal type: " + expression.getDataType());
         }
