@@ -900,7 +900,7 @@ public class BinaryExpressionEvaluatorTest {
         EvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("value");
-        Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
+        Assert.assertEquals(5, values.getDouble(0), .0000000001);
     }
 
     @Test

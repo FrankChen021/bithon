@@ -71,7 +71,7 @@ public class FillEmptyBucketMutation {
         } else {
             throw new IllegalStateException();
         }
-        Column<Long> timestampCol = evaluationResult.getTable().getColumnTyped("_timestamp", Long.class);
+        Column timestampCol = evaluationResult.getTable().getColumn("_timestamp");
         List<Column> dimCols = evaluationResult.getTable().getColumns(keys);
         List<Column> valCols = evaluationResult.getTable().getColumns(evaluationResult.getValColumns());
 
@@ -79,19 +79,19 @@ public class FillEmptyBucketMutation {
         for (int i = 0; i < evaluationResult.getRows(); i++) {
 
             // the timestamp is seconds
-            long timestamp = timestampCol.get(i) * 1000;
+            long timestamp = timestampCol.getLong(i) * 1000;
             long index = (timestamp - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval();
 
             for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
                 Column valCol = valCols.get(j);
                 List<String> tags = new ArrayList<>(dimCols.size() + 1);
                 for (Column dimCol : dimCols) {
-                    Object v = dimCol.get(i);
+                    Object v = dimCol.getObject(i);
                 }
                 tags.add(evaluationResult.getValColumns().get(j));
 
                 map.computeIfAbsent(tags, k -> new TimeSeriesMetric(tags, count))
-                   .set((int) index, valCol.get(i));
+                   .set((int) index, valCol.getObject(i));
             }
         }
 

@@ -29,26 +29,21 @@ import java.util.Set;
  */
 public class ColumnarTable {
 
-    public static ColumnarTable of(String name, Column<?> column) {
+    public static ColumnarTable of(String name, Column column) {
         ColumnarTable table = new ColumnarTable();
         table.addColumn(name, column);
         return table;
     }
 
-    private final Map<String, Column<?>> columns = new LinkedHashMap<>();
+    private final Map<String, Column> columns = new LinkedHashMap<>();
 
-    public <T> Column<T> addColumn(String name, Column<T> column) {
+    public Column addColumn(String name, Column column) {
         columns.put(name, column);
         return column;
     }
 
-    public Column<?> getColumn(String name) {
+    public Column getColumn(String name) {
         return columns.get(name);
-    }
-
-    public <T> Column<T> getColumnTyped(String name, Class<T> clazz) {
-        //noinspection unchecked
-        return (Column<T>) columns.get(name);
     }
 
     public Set<String> getColumnNames() {
@@ -65,7 +60,7 @@ public class ColumnarTable {
     public List<Column> getColumns(List<String> names) {
         List<Column> result = new ArrayList<>(names.size());
         for (String name : names) {
-            Column<?> column = columns.get(name);
+            Column column = columns.get(name);
             if (column == null) {
                 throw new IllegalArgumentException("Column " + name + " not found");
             }

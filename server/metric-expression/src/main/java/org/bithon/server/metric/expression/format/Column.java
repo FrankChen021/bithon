@@ -23,9 +23,7 @@ import org.bithon.component.commons.expression.IDataType;
  * @author frank.chen021@outlook.com
  * @date 7/4/25 10:18 am
  */
-public interface Column<T> {
-    T get(int row);
-
+public interface Column {
     IDataType getDataType();
 
     void addObject(Object value);
@@ -50,11 +48,11 @@ public interface Column<T> {
         throw new UnsupportedOperationException();
     }
 
-    void set(int index, T value);
+    Object getObject(int row);
 
     int size();
 
-    static Column<?> create(String type, int size) {
+    static Column create(String type, int size) {
         if (type.equals(IDataType.STRING.name())) {
             return new StringColumn(size);
         }
@@ -68,7 +66,7 @@ public interface Column<T> {
         throw new IllegalArgumentException("Unsupported column type: " + type);
     }
 
-    class LongColumn implements Column<Long> {
+    class LongColumn implements Column {
         /**
          * declared as package level visibility for performance reason
          */
@@ -83,10 +81,6 @@ public interface Column<T> {
         public LongColumn(long[] data) {
             this.data = data;
             this.size = data.length;
-        }
-
-        public Long get(int row) {
-            return data[row];
         }
 
         @Override
@@ -133,8 +127,8 @@ public interface Column<T> {
         }
 
         @Override
-        public void set(int index, Long value) {
-            data[index] = value;
+        public Object getObject(int row) {
+            return data[row];
         }
 
         public int size() {
@@ -153,7 +147,7 @@ public interface Column<T> {
         }
     }
 
-    class DoubleColumn implements Column<Double> {
+    class DoubleColumn implements Column {
         final double[] data;
         int size;
 
@@ -164,10 +158,6 @@ public interface Column<T> {
         public DoubleColumn(double[] data) {
             this.data = data;
             this.size = data.length;
-        }
-
-        public Double get(int row) {
-            return data[row];
         }
 
         @Override
@@ -213,6 +203,11 @@ public interface Column<T> {
             return (long) data[row];
         }
 
+        @Override
+        public Object getObject(int row) {
+            return data[row];
+        }
+
         public void set(int index, Double value) {
             data[index] = value;
         }
@@ -233,7 +228,7 @@ public interface Column<T> {
         }
     }
 
-    class StringColumn implements Column<String> {
+    class StringColumn implements Column {
         final String[] data;
         private int size;
 
@@ -291,6 +286,11 @@ public interface Column<T> {
 
         @Override
         public String getString(int row) {
+            return data[row];
+        }
+
+        @Override
+        public Object getObject(int row) {
             return data[row];
         }
 

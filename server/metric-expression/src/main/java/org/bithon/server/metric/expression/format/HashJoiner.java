@@ -61,11 +61,11 @@ public class HashJoiner {
 
             for (int li : matches) {
                 for (String col : left.getColumnNames()) {
-                    resultData.get("left." + col).add(left.getColumn(col).get(li));
+                    resultData.get("left." + col).add(left.getColumn(col).getObject(li));
                 }
                 for (String col : right.getColumnNames()) {
                     if (!joinKeys.contains(col)) {
-                        resultData.get("right." + col).add(right.getColumn(col).get(i));
+                        resultData.get("right." + col).add(right.getColumn(col).getObject(i));
                     }
                 }
             }
@@ -108,7 +108,7 @@ public class HashJoiner {
     private static CompositeKey extractKey(ColumnarTable table, List<String> keys, int row) {
         Object[] parts = new Object[keys.size()];
         for (int i = 0; i < keys.size(); i++) {
-            parts[i] = table.getColumn(keys.get(i)).get(row);
+            parts[i] = table.getColumn(keys.get(i)).getObject(row);
         }
         return new CompositeKey(parts);
     }
