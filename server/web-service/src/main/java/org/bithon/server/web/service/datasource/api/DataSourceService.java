@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -105,10 +104,6 @@ public class DataSourceService {
                                     })
                                     .map((Selector::getOutputName))
                                     .collect(Collectors.toList());
-
-        List<String> keyNames = new ArrayList<>();
-        keyNames.add("_timestamp");
-        keyNames.addAll(query.getGroupBy());
 
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
