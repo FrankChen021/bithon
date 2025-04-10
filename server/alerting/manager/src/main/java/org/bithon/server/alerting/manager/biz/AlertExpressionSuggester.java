@@ -260,6 +260,11 @@ public class AlertExpressionSuggester {
             return false;
         });
 
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_numberLiteralExpression, (inputs, expectedToken, suggestions) -> {
+            // No suggestion for number literal expression
+            return false;
+        });
+
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_durationExpression, (inputs, expectedToken, suggestions) -> {
             // No suggestion for duration expression
             return false;
