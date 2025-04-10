@@ -18,6 +18,7 @@ package org.bithon.server.metric.expression.evaluation;
 
 
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -521,175 +522,274 @@ public class BinaryExpressionEvaluatorTest {
         Assert.assertEquals(3.5, valueCol.getDouble(0), .0000000001);
     }
 
-    //
-//    @Test
-//    public void test_VectorOverLiteral_Add() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) + 5");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(6, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(7, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(8, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_VectorOverLiteral_Sub() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) - 5");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(-4, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(-3, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(-2, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_VectorOverLiteral_Mul() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) * 5");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(10, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(15, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_VectorOverLiteral_Div() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName) / 5");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(0.2, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(0.4, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(0.6, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_LiteralOverVector_Sub() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 3.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("5 - avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName)");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(4, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(3, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(2, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_LiteralOverVector_Div() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenReturn(QueryResponse.builder()
-//                                        .data(EvaluationResult.builder()
-//                                                              .valueNames(List.of("activeThreads"))
-//                                                              .values(Map.of("activeThreads", new ArrayList<>(List.of(1.0, 2.0, 4.0)),
-//                                                                             "_timestamp", new ArrayList<>(List.of(1, 2, 3)),
-//                                                                             "appName", new ArrayList<>(List.of("app1", "app2", "app3"))
-//                                                              ))
-//                                                              .build())
-//                                        .build());
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("5 / avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by(appName)");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        List<Object> values = response.getValues().get("activeThreads");
-//        Assert.assertEquals(5, ((Number) values.get(0)).doubleValue(), .0000000001);
-//        Assert.assertEquals(2.5, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        Assert.assertEquals(1.25, ((Number) values.get(2)).doubleValue(), .0000000001);
-//    }
-//
+    @Test
+    public void test_VectorOverLiteral_Add_Long_Long() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+
+                   String metric = request.getFields().get(0).getName();
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 5),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 20),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 25)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1,
+                                                                "totalThreads", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "+"
+                                                      + "5");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column values = response.getTable().getColumn("activeThreads");
+        Assert.assertEquals(3, values.size());
+        Assert.assertEquals(5 + 5, values.getDouble(0), .0000000001);
+        Assert.assertEquals(20 + 5, values.getDouble(1), .0000000001);
+        Assert.assertEquals(25 + 5, values.getDouble(2), .0000000001);
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(3, dimCol.size());
+        Assert.assertEquals("app1", dimCol.getString(0));
+        Assert.assertEquals("app2", dimCol.getString(1));
+        Assert.assertEquals("app3", dimCol.getString(2));
+    }
+
+    @Test
+    public void test_VectorOverLiteral_Sub_Long_Long() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+
+                   String metric = request.getFields().get(0).getName();
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 5),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 20),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 25)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1,
+                                                                "totalThreads", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "-"
+                                                      + " 5");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column values = response.getTable().getColumn("activeThreads");
+        Assert.assertEquals(3, values.size());
+        Assert.assertEquals(5 - 5, values.getDouble(0), .0000000001);
+        Assert.assertEquals(20 - 5, values.getDouble(1), .0000000001);
+        Assert.assertEquals(25 - 5, values.getDouble(2), .0000000001);
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(3, dimCol.size());
+        Assert.assertEquals("app1", dimCol.getString(0));
+        Assert.assertEquals("app2", dimCol.getString(1));
+        Assert.assertEquals("app3", dimCol.getString(2));
+    }
+
+    @Test
+    public void test_VectorOverLiteral_Mul_Long_Long() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+
+                   String metric = request.getFields().get(0).getName();
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 5),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 20),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 25)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1,
+                                                                "totalThreads", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "*"
+                                                      + "5");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column values = response.getTable().getColumn("activeThreads");
+        Assert.assertEquals(3, values.size());
+        Assert.assertEquals(5 * 5, values.getDouble(0), .0000000001);
+        Assert.assertEquals(20 * 5, values.getDouble(1), .0000000001);
+        Assert.assertEquals(25 * 5, values.getDouble(2), .0000000001);
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(3, dimCol.size());
+        Assert.assertEquals("app1", dimCol.getString(0));
+        Assert.assertEquals("app2", dimCol.getString(1));
+        Assert.assertEquals("app3", dimCol.getString(2));
+    }
+
+    @Test
+    public void test_VectorOverLiteral_Div_Long_Long() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   QueryRequest request = answer.getArgument(0, QueryRequest.class);
+
+                   String metric = request.getFields().get(0).getName();
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 5),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 24),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 25)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1,
+                                                                "totalThreads", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "/"
+                                                      + "5");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        Column values = response.getTable().getColumn("activeThreads");
+        Assert.assertEquals(3, values.size());
+        Assert.assertEquals(5 / 5, values.getDouble(0), .0000000001);
+        Assert.assertEquals(24 / 5, values.getDouble(1), .0000000001);
+        Assert.assertEquals(25 / 5, values.getDouble(2), .0000000001);
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(3, dimCol.size());
+        Assert.assertEquals("app1", dimCol.getString(0));
+        Assert.assertEquals("app2", dimCol.getString(1));
+        Assert.assertEquals("app3", dimCol.getString(2));
+    }
+
     @Test
     public void test_ScalarOverScalar_Add_Long_Long() throws Exception {
         Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
@@ -3219,182 +3319,432 @@ public class BinaryExpressionEvaluatorTest {
         Assert.assertEquals("app3", dimCol.getString(1));
     }
 
-//
-//    @Test
-//    public void test_VectorOverVector_NoIntersection() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenAnswer((answer) -> {
-//                   String metric = answer.getArgument(0, QueryRequest.class)
-//                                         .getFields()
-//                                         .get(0).getName();
-//
-//                   if ("activeThreads".equals(metric)) {
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
-//                                                                 .valueNames(List.of("activeThreads"))
-//                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
-//                                                                 .build()
-//                                           )
-//                                           .build();
-//                   }
-//                   if ("totalThreads".equals(metric)) {
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app4"), List.of("app5"), List.of("app6")))
-//                                                                 .valueNames(List.of("totalThreads"))
-//                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
-//                                                                 .build())
-//                                           .build();
-//                   }
-//                   throw new IllegalArgumentException("Invalid metric: " + metric);
-//               });
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
-//                                                      + "/"
-//                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
-//        Assert.assertEquals(0, response.getRows());
-//        List<Object> values = response.getValues().get("value");
-//        Assert.assertEquals(0, values.size());
-//    }
-//
-//    @Test
-//    public void test_MultipleExpressions() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenAnswer((answer) -> {
-//                   String metric = answer.getArgument(0, QueryRequest.class)
-//                                         .getFields()
-//                                         .get(0).getName();
-//
-//                   if ("activeThreads".equals(metric)) {
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app1"), List.of("app2"), List.of("app3")))
-//                                                                 .valueNames(List.of("activeThreads"))
-//                                                                 .values(Map.of("activeThreads", new ArrayList<>(List.of(3, 4, 5))))
-//                                                                 .build()
-//                                           )
-//                                           .build();
-//                   }
-//                   if ("totalThreads".equals(metric)) {
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
-//                                                                 .valueNames(List.of("totalThreads"))
-//                                                                 .values(Map.of("totalThreads", new ArrayList<>(List.of(21, 22, 23))))
-//                                                                 .build())
-//                                           .build();
-//                   }
-//
-//                   if ("newThreads".equals(metric)) {
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app3"), List.of("app4"), List.of("app5")))
-//                                                                 .valueNames(List.of("newThreads"))
-//                                                                 .values(Map.of("newThreads", new ArrayList<>(List.of(101, 102, 103))))
-//                                                                 .build())
-//                                           .build();
-//                   }
-//                   throw new IllegalArgumentException("Invalid metric: " + metric);
-//               });
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-//                                                      + "/ "
-//                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-//                                                      + "* "
-//                                                      + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
-//                                                      + "+ 5");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
-//
-//        // Only the overlapped series will be returned
-//        List<Object> values = response.getValues().get("value");
-//        Assert.assertEquals(1, values.size());
-//        Assert.assertEquals(5.0 / 22 * 101 + 5, ((Number) values.get(0)).doubleValue(), .0000000001);
-//    }
-//
-//    @Test
-//    public void test_RelativeComparison() throws Exception {
-//        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
-//               .thenAnswer((answer) -> {
-//                   QueryRequest req = answer.getArgument(0, QueryRequest.class);
-//
-//                   HumanReadableDuration offset = req.getOffset();
-//                   if (offset == null) {
-//                       String name = req.getFields().get(0).getName();
-//                       return QueryResponse.builder()
-//                                           .data(EvaluationResult.builder()
-//                                                                 .keyNames(List.of("appName"))
-//                                                                 .keys(List.of(List.of("app2"), List.of("app3"), List.of("app1")))
-//                                                                 .valueNames(List.of(name))
-//                                                                 .values(Map.of(name, new ArrayList<>(List.of(3, 4, 5))))
-//                                                                 .build()
-//                                           )
-//                                           .build();
-//                   }
-//
-//                   String name = req.getFields().get(0).getName();
-//                   return QueryResponse.builder()
-//                                       .data(EvaluationResult.builder()
-//                                                             .keyNames(List.of("appName"))
-//                                                             .keys(List.of(List.of("app2"), List.of("app3"), List.of("app4")))
-//                                                             .valueNames(List.of(name))
-//                                                             .values(Map.of(name, new ArrayList<>(List.of(21, 22, 23))))
-//                                                             .build())
-//                                       .build();
-//
-//               });
-//
-//        IEvaluator evaluator = EvaluatorBuilder.builder()
-//                                               .dataSourceApi(dataSourceApi)
-//                                               .intervalRequest(IntervalRequest.builder()
-//                                                                               .bucketCount(1)
-//                                                                               .build())
-//                                               // BY is given so that it produces a vector
-//                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
-//        EvaluationResult response = evaluator.evaluate().get();
-//
-//        Assert.assertArrayEquals(new String[]{"appName"}, response.getKeyNames());
-//
-//        // Only the overlapped series(app2,app3) will be returned
-//        {
-//            List<Object> values = response.getValues().get("curr");
-//            Assert.assertEquals(2, values.size());
-//            Assert.assertEquals(3, ((Number) values.get(0)).doubleValue(), .0000000001);
-//            Assert.assertEquals(4, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        }
-//        {
-//            List<Object> values = response.getValues().get("base");
-//            Assert.assertEquals(2, values.size());
-//            Assert.assertEquals(21, ((Number) values.get(0)).doubleValue(), .0000000001);
-//            Assert.assertEquals(22, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        }
-//        {
-//            List<Object> values = response.getValues().get("delta");
-//            Assert.assertEquals(2, values.size());
-//            Assert.assertEquals((3.0 - 21) / 21, ((Number) values.get(0)).doubleValue(), .0000000001);
-//            Assert.assertEquals((4.0 - 22) / 22, ((Number) values.get(1)).doubleValue(), .0000000001);
-//        }
-//    }
+    @Test
+    public void test_VectorOverVector_NoIntersection() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   String metric = answer.getArgument(0, QueryRequest.class)
+                                         .getFields()
+                                         .get(0).getName();
+
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 12.1),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 25.2),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 200.3)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app4", "totalThreads", 25.6),
+                                                         Map.of("_timestamp", 2, "appName", "app5", "totalThreads", 50.7),
+                                                         Map.of("_timestamp", 3, "appName", "app6", "totalThreads", 100.8)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "/"
+                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        // Only the overlapped series will be returned
+        Column valCol = response.getTable().getColumn("value");
+        Assert.assertEquals(0, valCol.size());
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(0, dimCol.size());
+    }
+
+    /**
+     * TODO: optimization, in this case, the final expression should be optimized to empty
+     * 1 and 2 have no intersection
+     */
+    @Test
+    public void test_VectorOverVector_NoIntersection_2() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   String metric = answer.getArgument(0, QueryRequest.class)
+                                         .getFields()
+                                         .get(0).getName();
+
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 12.1),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 25.2),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 200.3)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 4, "appName", "app4", "totalThreads", 25.6),
+                                                         Map.of("_timestamp", 5, "appName", "app5", "totalThreads", 50.7),
+                                                         Map.of("_timestamp", 6, "appName", "app6", "totalThreads", 100.8)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   if ("newThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 6, "appName", "app6", "newThreads", 106),
+                                                         Map.of("_timestamp", 7, "appName", "app7", "newThreads", 107)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("newThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "/"
+                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "+"
+                                                      + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        // Only the overlapped series will be returned
+        Column valCol = response.getTable().getColumn("value");
+        Assert.assertEquals(0, valCol.size());
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(0, dimCol.size());
+    }
+
+    /**
+     * TODO: optimization, in this case, the final expression should be optimized to empty
+     * 1 and 2 have intersection while 2 and 3 has no intersection
+     */
+    @Test
+    public void test_VectorOverVector_NoIntersection_3() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   String metric = answer.getArgument(0, QueryRequest.class)
+                                         .getFields()
+                                         .get(0).getName();
+
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 12.1),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 25.2),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 200.3)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 3, "appName", "app3", "totalThreads", 25.6),
+                                                         Map.of("_timestamp", 4, "appName", "app4", "totalThreads", 50.7)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   if ("newThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 6, "appName", "app6", "newThreads", 106),
+                                                         Map.of("_timestamp", 7, "appName", "app7", "newThreads", 107)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("newThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "/"
+                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      + "+"
+                                                      + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        // Only the overlapped series will be returned
+        Column valCol = response.getTable().getColumn("value");
+        Assert.assertEquals(0, valCol.size());
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(0, dimCol.size());
+    }
+
+    @Test
+    public void test_MultipleExpressions() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   String metric = answer.getArgument(0, QueryRequest.class)
+                                         .getFields()
+                                         .get(0).getName();
+
+                   if ("activeThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 3),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 4),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("activeThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   if ("totalThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "totalThreads", 25),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "totalThreads", 26),
+                                                         Map.of("_timestamp", 4, "appName", "app4", "totalThreads", 27)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("totalThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   if ("newThreads".equals(metric)) {
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 3, "appName", "app3", "newThreads", 35),
+                                                         Map.of("_timestamp", 4, "appName", "app4", "newThreads", 36),
+                                                         Map.of("_timestamp", 5, "appName", "app5", "newThreads", 37)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("newThreads")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+                   throw new IllegalArgumentException("Invalid metric: " + metric);
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                      + "/ "
+                                                      + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                      + "* "
+                                                      + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                      + "+ 5");
+        EvaluationResult response = evaluator.evaluate().get();
+
+        // Only the overlapped series will be returned
+        Column valCol = response.getTable().getColumn("value");
+        Assert.assertEquals(1, valCol.size());
+        Assert.assertEquals(5.0 / 26 * 35 + 5, valCol.getDouble(0), .0000000001);
+
+        Column dimCol = response.getTable().getColumn("appName");
+        Assert.assertEquals(1, dimCol.size());
+        Assert.assertEquals("app3", dimCol.getString(0));
+    }
+
+    @Test
+    public void test_RelativeComparison() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   QueryRequest req = answer.getArgument(0, QueryRequest.class);
+
+                   HumanReadableDuration offset = req.getOffset();
+                   if (offset == null) {
+                       String name = req.getFields().get(0).getName();
+                       return QueryResponse.builder()
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "curr", 3),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "curr", 4),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "curr", 5)))
+                                           .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("_timestamp")
+                                                                                          .dataType(IDataType.LONG.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("appName")
+                                                                                          .dataType(IDataType.STRING.name())
+                                                                                          .build(),
+                                                         QueryResponse.QueryResponseColumn.builder()
+                                                                                          .name("curr")
+                                                                                          .dataType(IDataType.DOUBLE.name())
+                                                                                          .build()))
+                                           .build();
+                   }
+
+                   String name = req.getFields().get(0).getName();
+                   return QueryResponse.builder()
+                                       .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "base", 21),
+                                                     Map.of("_timestamp", 3, "appName", "app3", "base", 22),
+                                                     Map.of("_timestamp", 3, "appName", "app3", "base", 23)))
+                                       .meta(List.of(QueryResponse.QueryResponseColumn.builder()
+                                                                                      .name("_timestamp")
+                                                                                      .dataType(IDataType.LONG.name())
+                                                                                      .build(),
+                                                     QueryResponse.QueryResponseColumn.builder()
+                                                                                      .name("appName")
+                                                                                      .dataType(IDataType.STRING.name())
+                                                                                      .build(),
+                                                     QueryResponse.QueryResponseColumn.builder()
+                                                                                      .name("base")
+                                                                                      .dataType(IDataType.DOUBLE.name())
+                                                                                      .build()))
+                                       .build();
+
+               });
+
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(IntervalRequest.builder()
+                                                                               .bucketCount(1)
+                                                                               .build())
+                                               // BY is given so that it produces a vector
+                                               .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+        EvaluationResult response = evaluator.evaluate().get();
+
+
+        // Only the overlapped series(app2,app3) will be returned
+        {
+            Column valCol = response.getTable().getColumn("curr");
+            Assert.assertEquals(2, valCol.size());
+            Assert.assertEquals(3, valCol.getDouble(0), .0000000001);
+            Assert.assertEquals(4, valCol.getDouble(1), .0000000001);
+        }
+        {
+            Column valCol = response.getTable().getColumn("base");
+            Assert.assertEquals(2, valCol.size());
+            Assert.assertEquals(21, valCol.getDouble(0), .0000000001);
+            Assert.assertEquals(22, valCol.getDouble(1), .0000000001);
+        }
+        {
+            Column valCol = response.getTable().getColumn("base");
+            Assert.assertEquals(2, valCol.size());
+            Assert.assertEquals((3.0 - 21) / 21, valCol.getDouble(0), .0000000001);
+            Assert.assertEquals((4.0 - 22) / 22, valCol.getDouble(1), .0000000001);
+        }
+    }
 }

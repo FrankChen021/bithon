@@ -72,23 +72,23 @@ public class HashJoiner {
                                                 .map(right::getColumn)
                                                 .toList();
 
-        for (int i = 0; i < right.rowCount(); i++) {
-            CompositeKey key = extractKey(right, rightJoinColumns, i);
-            List<Integer> matchedRows = hashTable.get(key);
-            if (CollectionUtils.isEmpty(matchedRows)) {
+        for (int rightRowIndex = 0; rightRowIndex < right.rowCount(); rightRowIndex++) {
+            CompositeKey key = extractKey(right, rightJoinColumns, rightRowIndex);
+            List<Integer> matchedLeftRows = hashTable.get(key);
+            if (CollectionUtils.isEmpty(matchedLeftRows)) {
                 continue;
             }
 
-            for (int row : matchedRows) {
+            for (int matchedLeftRow : matchedLeftRows) {
                 int resultColumnIndex = 0;
                 for (Column col : leftJoinColumns) {
-                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(matchedLeftRow));
                 }
                 for (Column col : leftValueColumns) {
-                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(matchedLeftRow));
                 }
                 for (Column col : rightValueColumn) {
-                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(row));
+                    resultColumns.get(resultColumnIndex++).addObject(col.getObject(rightRowIndex));
                 }
             }
         }

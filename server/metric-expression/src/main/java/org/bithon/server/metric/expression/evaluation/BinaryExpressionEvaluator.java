@@ -23,6 +23,7 @@ import org.bithon.server.metric.expression.format.ColumnOperator;
 import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.metric.expression.format.HashJoiner;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class BinaryExpressionEvaluator implements IEvaluator {
     private final IEvaluator lhs;
     private final IEvaluator rhs;
+    private final String resultColumnName;
 
     public static class Add extends BinaryExpressionEvaluator {
         public Add(IEvaluator left, IEvaluator right) {
@@ -133,6 +135,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                         String... sourceColumns) {
         this.lhs = left;
         this.rhs = right;
+        this.resultColumnName = resultColumnName == null ? "value" : resultColumnName;
     }
 
     @Override
@@ -159,7 +162,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                                 result = applyVectorOverVector(l, r);
                                             }
                                         }
-                                        return transformResult(result, l, r);
+                                        return result;
                                     } catch (InterruptedException | ExecutionException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -175,10 +178,6 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     abstract int getOperatorIndex();
 
-    private EvaluationResult transformResult(EvaluationResult result, EvaluationResult lResponse, EvaluationResult rResponse) {
-        return result;
-    }
-
     private EvaluationResult applyScalarOverScalar(EvaluationResult left,
                                                    EvaluationResult right) {
         String leftColName = left.getValColumns().get(0);
@@ -187,13 +186,13 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         String rightColName = right.getValColumns().get(0);
         Column rightColumn = right.getTable().getColumn(rightColName);
 
-        Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, "value", this.getOperatorIndex());
+        Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
         return EvaluationResult.builder()
                                .startTimestamp(left.getStartTimestamp())
                                .endTimestamp(left.getEndTimestamp())
                                .interval(left.getInterval())
-                               .table(ColumnarTable.of("value", result))
+                               .table(ColumnarTable.of(this.resultColumnName, result))
                                .build();
     }
 
@@ -276,29 +275,36 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         // Apply operator on target columns
         int leftColIndex = left.getKeyColumns().size();
         int rightColIndex = leftColIndex + left.getValColumns().size();
-        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex), columns.get(rightColIndex), "value", this.getOperatorIndex());
+        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex), columns.get(rightColIndex), this.resultColumnName, this.getOperatorIndex());
 
         ColumnarTable table = new ColumnarTable();
+        List<String> valueColumns = new ArrayList<>();
+
+        //
+        // Key columns
+        //
         int i = 0;
         for (; i < left.getKeyColumns().size(); i++) {
             table.addColumn(columns.get(i));
         }
 
-        table.addColumn(result);
-
+        //
+        // Value columns
+        //
+        valueColumns.add(table.addColumn(result).getName());
         for (
             // Skip the first value column on the left column
             i++;
             i < left.getValColumns().size();
             i++) {
-            table.addColumn(columns.get(i));
+            valueColumns.add(table.addColumn(columns.get(i)).getName());
         }
         for (
             // Skip the first value column on the right column
             i++;
             i < left.getValColumns().size();
             i++) {
-            table.addColumn(columns.get(i));
+            valueColumns.add(table.addColumn(columns.get(i)).getName());
         }
 
         return EvaluationResult.builder()
@@ -306,6 +312,8 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                .startTimestamp(left.getStartTimestamp())
                                .endTimestamp(left.getEndTimestamp())
                                .table(table)
+                               .keyColumns(left.getKeyColumns())
+                               .valColumns(valueColumns)
                                .build();
     }
 

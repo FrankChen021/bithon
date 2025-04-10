@@ -123,7 +123,7 @@ public class MetricExpression implements IExpression {
         }
 
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
-            sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
+            sb.append(StringUtils.format(" BY (%s)", String.join(",", this.groupBy)));
         }
 
         if (includePredication && predicate != null) {
