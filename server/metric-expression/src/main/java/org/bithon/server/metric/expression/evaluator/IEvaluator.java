@@ -27,5 +27,5 @@ public interface IEvaluator {
 
     boolean isScalar();
 
-    CompletableFuture<EvaluationResult> evaluate() throws Exception;
+    CompletableFuture<IntermediateEvaluationResult> evaluate() throws Exception;
 }

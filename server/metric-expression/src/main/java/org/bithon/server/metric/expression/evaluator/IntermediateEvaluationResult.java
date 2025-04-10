@@ -14,12 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator.mutation;
+package org.bithon.server.metric.expression.evaluator;
 
 
-import org.bithon.server.metric.expression.evaluator.EvaluationResult;
-import org.bithon.server.metric.expression.evaluator.IEvaluator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.metric.expression.format.Column;
+import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 
@@ -28,40 +31,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 5/4/25 9:17 pm
- */
-public class FillEmptyBucketMutation {
-    private final IEvaluator evaluator;
+/// @author frank.chen021@outlook.com
+/// @date 4/4/25 6:23 pm
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class IntermediateEvaluationResult {
+    private int rows;
 
-    public FillEmptyBucketMutation(IEvaluator evaluator) {
-        this.evaluator = evaluator;
-    }
+    private List<String> keyColumns;
+    private List<String> valColumns;
+    private ColumnarTable table;
 
-    /// TODO:
-    /// Change the format as:
-    ///     labels -> Map<String, String>
-    ///
-    ///  Input:
-    ///
-    /// |appName, instanceName | metric1 | metric2 |
-    /// |-----------------------|--------|---------|
-    /// | {timestamp1, key1, key2} | value1 | value2 |
-    /// | {timestamp2, key3, key4} | value3 | value4 |
-    ///
-    /// Output:
-    ///   intermediate output: a Map, key is the series labels + metric name, value is a list of values
-    ///   final output: turn the map into a collection
-    ///
-    /// Process:
-    /// for each line, calculate the bucket index by the timestamp,
-    ///  2. create a key by the values of series label(excluding the timestamp) and metric name,
-    ///  3. find the key from map
-    ///  4. if not found from the map, then create an empty double[] and put it into the map
-    ///  5. set the value based the index calculated in step 1 to the double[]
-    public QueryResponse<?> evaluate() throws Exception {
-        EvaluationResult evaluationResult = evaluator.evaluate().get();
+    private long startTimestamp;
+    private long endTimestamp;
+    private long interval;
+
+    public QueryResponse<?> toQueryResponse() throws Exception {
+        IntermediateEvaluationResult evaluationResult = this;
 
         int count = (int) ((evaluationResult.getEndTimestamp() - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval());
 
@@ -103,3 +91,4 @@ public class FillEmptyBucketMutation {
                             .build();
     }
 }
+

@@ -148,16 +148,16 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<EvaluationResult> evaluate() throws Exception {
-        CompletableFuture<EvaluationResult> leftFuture = this.lhs.evaluate();
-        CompletableFuture<EvaluationResult> rightFuture = this.rhs.evaluate();
+    public CompletableFuture<IntermediateEvaluationResult> evaluate() throws Exception {
+        CompletableFuture<IntermediateEvaluationResult> leftFuture = this.lhs.evaluate();
+        CompletableFuture<IntermediateEvaluationResult> rightFuture = this.rhs.evaluate();
 
         return CompletableFuture.allOf(leftFuture, rightFuture)
                                 .thenApply(v -> {
                                     try {
-                                        EvaluationResult l = leftFuture.get();
-                                        EvaluationResult r = rightFuture.get();
-                                        EvaluationResult result;
+                                        IntermediateEvaluationResult l = leftFuture.get();
+                                        IntermediateEvaluationResult r = rightFuture.get();
+                                        IntermediateEvaluationResult result;
                                         if (lhs.isScalar()) {
                                             if (rhs.isScalar()) {
                                                 result = applyScalarOverScalar(l, r);
@@ -187,8 +187,8 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
     abstract int getOperatorIndex();
 
-    private EvaluationResult applyScalarOverScalar(EvaluationResult left,
-                                                   EvaluationResult right) {
+    private IntermediateEvaluationResult applyScalarOverScalar(IntermediateEvaluationResult left,
+                                                               IntermediateEvaluationResult right) {
         String leftColName = left.getValColumns().get(0);
         Column leftColumn = left.getTable().getColumn(leftColName);
 
@@ -197,15 +197,15 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
         Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
-        return EvaluationResult.builder()
-                               .startTimestamp(left.getStartTimestamp())
-                               .endTimestamp(left.getEndTimestamp())
-                               .interval(left.getInterval())
-                               .table(ColumnarTable.of(this.resultColumnName, result))
-                               .build();
+        return IntermediateEvaluationResult.builder()
+                                           .startTimestamp(left.getStartTimestamp())
+                                           .endTimestamp(left.getEndTimestamp())
+                                           .interval(left.getInterval())
+                                           .table(ColumnarTable.of(this.resultColumnName, result))
+                                           .build();
     }
 
-    private EvaluationResult applyScalarOverVector(EvaluationResult left, EvaluationResult right) {
+    private IntermediateEvaluationResult applyScalarOverVector(IntermediateEvaluationResult left, IntermediateEvaluationResult right) {
         ColumnarTable table = new ColumnarTable();
 
         // Retain all key columns on the right, which is the vector
@@ -226,15 +226,15 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
             table.addColumn(result);
         }
 
-        return EvaluationResult.builder()
-                               .startTimestamp(left.getStartTimestamp())
-                               .endTimestamp(left.getEndTimestamp())
-                               .interval(left.getInterval())
-                               .table(table)
-                               .build();
+        return IntermediateEvaluationResult.builder()
+                                           .startTimestamp(left.getStartTimestamp())
+                                           .endTimestamp(left.getEndTimestamp())
+                                           .interval(left.getInterval())
+                                           .table(table)
+                                           .build();
     }
 
-    private EvaluationResult applyVectorOverScalar(EvaluationResult left, EvaluationResult right) {
+    private IntermediateEvaluationResult applyVectorOverScalar(IntermediateEvaluationResult left, IntermediateEvaluationResult right) {
         ColumnarTable table = new ColumnarTable();
 
         // Retain all key columns on the right, which is the vector
@@ -255,31 +255,31 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
             table.addColumn(result);
         }
 
-        return EvaluationResult.builder()
-                               .startTimestamp(left.getStartTimestamp())
-                               .endTimestamp(left.getEndTimestamp())
-                               .interval(left.getInterval())
-                               .table(table)
-                               .build();
+        return IntermediateEvaluationResult.builder()
+                                           .startTimestamp(left.getStartTimestamp())
+                                           .endTimestamp(left.getEndTimestamp())
+                                           .interval(left.getInterval())
+                                           .table(table)
+                                           .build();
     }
 
     /**
      * join these two maps by its keyNames
      */
-    private EvaluationResult applyVectorOverVector(EvaluationResult left, EvaluationResult right) {
+    private IntermediateEvaluationResult applyVectorOverVector(IntermediateEvaluationResult left, IntermediateEvaluationResult right) {
         if (!left.getKeyColumns().equals(right.getKeyColumns())) {
-            return EvaluationResult.builder()
-                                   // create an EMPTY table
-                                   .table(new ColumnarTable())
-                                   .build();
+            return IntermediateEvaluationResult.builder()
+                                               // create an EMPTY table
+                                               .table(new ColumnarTable())
+                                               .build();
         }
 
         // Join ALL columns together
-        List<Column> columns = HashJoiner.hashJoin(left.getTable(),
-                                                   right.getTable(),
-                                                   left.getKeyColumns(),
-                                                   left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
-                                                   right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
+        List<Column> columns = HashJoiner.join(left.getTable(),
+                                               right.getTable(),
+                                               left.getKeyColumns(),
+                                               left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
+                                               right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
 
         // Apply operator on the first column of each table
         int leftColIndex = left.getKeyColumns().size();
@@ -346,13 +346,13 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
             }
         }
 
-        return EvaluationResult.builder()
-                               .interval(left.getInterval())
-                               .startTimestamp(left.getStartTimestamp())
-                               .endTimestamp(left.getEndTimestamp())
-                               .table(table)
-                               .keyColumns(left.getKeyColumns())
-                               .valColumns(valueColumns)
-                               .build();
+        return IntermediateEvaluationResult.builder()
+                                           .interval(left.getInterval())
+                                           .startTimestamp(left.getStartTimestamp())
+                                           .endTimestamp(left.getEndTimestamp())
+                                           .table(table)
+                                           .keyColumns(left.getKeyColumns())
+                                           .valColumns(valueColumns)
+                                           .build();
     }
 }

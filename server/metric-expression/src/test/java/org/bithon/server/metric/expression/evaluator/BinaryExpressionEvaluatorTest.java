@@ -68,7 +68,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(6, valueCol.getDouble(0), .0000000001);
@@ -96,7 +96,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(4.3, valueCol.getDouble(0), .0000000001);
@@ -124,7 +124,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(8.7, valueCol.getDouble(0), .0000000001);
@@ -152,7 +152,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(12.7, valueCol.getDouble(0), .0000000001);
@@ -180,7 +180,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, valueCol.getDouble(0), .0000000001);
@@ -208,7 +208,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(1.9, valueCol.getDouble(0), .0000000001);
@@ -236,7 +236,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(3601, valueCol.getDouble(0), .0000000001);
@@ -264,7 +264,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(-4, valueCol.getDouble(0), .0000000001);
@@ -292,7 +292,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(8.3, valueCol.getDouble(0), .0000000001);
@@ -320,7 +320,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(5, valueCol.getDouble(0), .0000000001);
@@ -348,7 +348,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(27.5, valueCol.getDouble(0), .0000000001);
@@ -376,7 +376,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(5.5, valueCol.getDouble(0), .0000000001);
@@ -404,7 +404,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(10.5, valueCol.getDouble(0), .0000000001);
@@ -432,7 +432,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(2, valueCol.getDouble(0), .0000000001);
@@ -460,7 +460,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
@@ -488,7 +488,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
@@ -516,7 +516,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .bucketCount(1)
                                                                                .build())
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
         Assert.assertEquals(3.5, valueCol.getDouble(0), .0000000001);
@@ -574,7 +574,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -641,7 +641,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + " 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -708,7 +708,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -775,7 +775,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -837,7 +837,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
         Assert.assertEquals(12, valCol.getDouble(0), .0000000001);
@@ -892,7 +892,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
         Assert.assertEquals(-10, valCol.getDouble(0), .0000000001);
@@ -945,7 +945,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
         Assert.assertEquals(22, valCol.getDouble(0), .0000000001);
@@ -998,7 +998,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("value");
         Assert.assertEquals(5, values.getDouble(0), .0000000001);
@@ -1057,7 +1057,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1126,7 +1126,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1195,7 +1195,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1264,7 +1264,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1333,7 +1333,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1402,7 +1402,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1469,7 +1469,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1536,7 +1536,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1603,7 +1603,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1670,7 +1670,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1737,7 +1737,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1804,7 +1804,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
@@ -1871,7 +1871,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -1938,7 +1938,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -2005,7 +2005,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -2073,7 +2073,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -2141,7 +2141,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -2209,7 +2209,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, valCol.size());
@@ -2283,7 +2283,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2356,7 +2356,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2429,7 +2429,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2502,7 +2502,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2575,7 +2575,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2648,7 +2648,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2721,7 +2721,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "-"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2794,7 +2794,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2867,7 +2867,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -2940,7 +2940,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3013,7 +3013,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "*"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3086,7 +3086,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3159,7 +3159,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3232,7 +3232,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3305,7 +3305,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3378,7 +3378,7 @@ public class BinaryExpressionEvaluatorTest {
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "/"
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3472,7 +3472,7 @@ public class BinaryExpressionEvaluatorTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3565,7 +3565,7 @@ public class BinaryExpressionEvaluatorTest {
                                                       + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                       + "+"
                                                       + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3656,7 +3656,7 @@ public class BinaryExpressionEvaluatorTest {
                                                       + "* "
                                                       + "avg(jvm-metrics.newThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                       + "+ 5");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
@@ -3724,7 +3724,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                .build())
                                                // BY is given so that it produces a vector
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
-        EvaluationResult response = evaluator.evaluate().get();
+        IntermediateEvaluationResult response = evaluator.evaluate().get();
 
 
         // Only the overlapped series(app2,app3) will be returned

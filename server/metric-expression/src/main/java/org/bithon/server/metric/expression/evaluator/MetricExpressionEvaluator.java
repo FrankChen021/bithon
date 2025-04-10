@@ -43,7 +43,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
     private final boolean isScalar;
 
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
-    private volatile CompletableFuture<EvaluationResult> cachedResponse;
+    private volatile CompletableFuture<IntermediateEvaluationResult> cachedResponse;
 
     public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
@@ -60,7 +60,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<EvaluationResult> evaluate() {
+    public CompletableFuture<IntermediateEvaluationResult> evaluate() {
         if (cachedResponse == null) {
             synchronized (this) {
                 if (cachedResponse == null) {
@@ -84,9 +84,9 @@ public class MetricExpressionEvaluator implements IEvaluator {
         return cachedResponse;
     }
 
-    private EvaluationResult toEvaluationResult(List<String> keyNames,
-                                                List<String> valNames,
-                                                QueryResponse response) {
+    private IntermediateEvaluationResult toEvaluationResult(List<String> keyNames,
+                                                            List<String> valNames,
+                                                            QueryResponse response) {
         List<QueryResponse.QueryResponseColumn> keyColumns = keyNames.stream()
                                                                      .map((key) -> {
                                                                          List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
@@ -129,14 +129,14 @@ public class MetricExpressionEvaluator implements IEvaluator {
         }
 
         // Create and return the EvaluationResult
-        return EvaluationResult.builder()
-                               .rows(rows.size())
-                               .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
-                               .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
-                               .table(table)
-                               .startTimestamp(response.getStartTimestamp())
-                               .endTimestamp(response.getEndTimestamp())
-                               .interval(response.getInterval())
-                               .build();
+        return IntermediateEvaluationResult.builder()
+                                           .rows(rows.size())
+                                           .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
+                                           .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
+                                           .table(table)
+                                           .startTimestamp(response.getStartTimestamp())
+                                           .endTimestamp(response.getEndTimestamp())
+                                           .interval(response.getInterval())
+                                           .build();
     }
 }

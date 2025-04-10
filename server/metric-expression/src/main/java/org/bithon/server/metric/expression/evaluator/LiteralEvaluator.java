@@ -42,7 +42,7 @@ public class LiteralEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<EvaluationResult> evaluate() {
+    public CompletableFuture<IntermediateEvaluationResult> evaluate() {
 
         ColumnarTable table = new ColumnarTable();
         if (expression.getDataType() == IDataType.LONG) {
@@ -59,10 +59,10 @@ public class LiteralEvaluator implements IEvaluator {
             throw new IllegalStateException("Unsupported literal type: " + expression.getDataType());
         }
 
-        return CompletableFuture.completedFuture(EvaluationResult.builder()
-                                                                 .rows(1)
-                                                                 .valColumns(List.of("value"))
-                                                                 .table(table)
-                                                                 .build());
+        return CompletableFuture.completedFuture(IntermediateEvaluationResult.builder()
+                                                                             .rows(1)
+                                                                             .valColumns(List.of("value"))
+                                                                             .table(table)
+                                                                             .build());
     }
 }

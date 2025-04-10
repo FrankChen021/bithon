@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class HashJoiner {
 
-    public static List<Column> hashJoin(
+    public static List<Column> join(
         ColumnarTable left,
         ColumnarTable right,
         List<String> joinKeys,
@@ -96,6 +96,9 @@ public class HashJoiner {
         return resultColumns;
     }
 
+    /**
+     * Extract keys from given columns at given row
+     */
     private static CompositeKey extractKey(ColumnarTable table,
                                            List<Column> columns,
                                            int row) {

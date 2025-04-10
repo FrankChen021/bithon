@@ -32,7 +32,6 @@ import org.bithon.server.metric.expression.ast.MetricExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
 import org.bithon.server.metric.expression.evaluator.IEvaluator;
-import org.bithon.server.metric.expression.evaluator.mutation.FillEmptyBucketMutation;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -170,7 +169,9 @@ public class MetricQueryApi {
                                                .condition(request.getCondition())
                                                .build(request.getExpression());
 
-        return new FillEmptyBucketMutation(evaluator).evaluate();
+        return evaluator.evaluate()
+                        .get()
+                        .toQueryResponse();
     }
 
     private QueryResponse<?> merge(boolean usePercentage,
