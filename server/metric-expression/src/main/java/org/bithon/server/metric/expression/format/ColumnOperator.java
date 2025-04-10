@@ -61,7 +61,6 @@ public interface ColumnOperator {
                 return new Column.LongColumn(name, new long[]{ret});
             };
 
-
             //
             // long and double
             //
@@ -595,7 +594,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 long[] result = new long[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] + right[i];
@@ -606,7 +605,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 long[] result = new long[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] - right[i];
@@ -617,7 +616,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 long[] result = new long[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] * right[i];
@@ -628,7 +627,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 long[] result = new long[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = right[i] == 0 ? 0 : left[i] / right[i];
@@ -643,7 +642,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] + right[i];
@@ -654,7 +653,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] - right[i];
@@ -665,7 +664,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] * right[i];
@@ -676,7 +675,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_LONG][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 long[] left = ((Column.LongColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = right[i] == 0 ? 0 : left[i] / right[i];
@@ -691,7 +690,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][0] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] + right[i];
@@ -702,7 +701,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][1] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] - right[i];
@@ -713,7 +712,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][2] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] * right[i];
@@ -724,7 +723,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_LONG][3] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 long[] right = ((Column.LongColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = right[i] == 0 ? 0 : left[i] / right[i];
@@ -739,7 +738,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][0] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] + right[i];
@@ -750,7 +749,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][1] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] - right[i];
@@ -761,7 +760,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][2] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = left[i] * right[i];
@@ -772,7 +771,7 @@ public interface ColumnOperator {
             OPERATORS[IDataTypeIndex.TYPE_INDEX_DOUBLE][IDataTypeIndex.TYPE_INDEX_DOUBLE][3] = (a, b, name) -> {
                 double[] left = ((Column.DoubleColumn) a).getData();
                 double[] right = ((Column.DoubleColumn) b).getData();
-                int size = Math.min(a.size(), b.size());// Use min to make it safe
+                int size = Math.min(a.size(), b.size()); // Use min to make it safe
                 double[] result = new double[size];
                 for (int i = 0; i < size; i++) {
                     result[i] = right[i] == 0 ? 0 : left[i] / right[i];

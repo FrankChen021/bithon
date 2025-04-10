@@ -165,7 +165,7 @@ public abstract class LiteralExpression<T> implements IExpression {
     public abstract boolean canNegate();
 
     public LiteralExpression<T> negate() {
-        throw new UnsupportedOperationException("Not support negation for " + this.getClass().getSimpleName());
+        throw new UnsupportedOperationException("Not support negate for " + this.getClass().getSimpleName());
     }
 
     public static class StringLiteral extends LiteralExpression<String> {
