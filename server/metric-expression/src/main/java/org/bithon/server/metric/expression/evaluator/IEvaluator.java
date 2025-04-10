@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluation;
+package org.bithon.server.metric.expression.evaluator;
 
 
 import java.util.concurrent.CompletableFuture;
