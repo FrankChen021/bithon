@@ -779,9 +779,9 @@ public class BinaryExpressionEvaluatorTest {
 
         Column values = response.getTable().getColumn("activeThreads");
         Assert.assertEquals(3, values.size());
-        Assert.assertEquals(5 / 5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(24 / 5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(25 / 5, values.getDouble(2), .0000000001);
+        Assert.assertEquals(5 / 5, values.getLong(0));
+        Assert.assertEquals(24 / 5, values.getLong(1));
+        Assert.assertEquals(25 / 5, values.getLong(2));
 
         Column dimCol = response.getTable().getColumn("appName");
         Assert.assertEquals(3, dimCol.size());
@@ -3091,8 +3091,8 @@ public class BinaryExpressionEvaluatorTest {
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
         Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(50 / 25, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(100 / 50, valCol.getDouble(1), .0000000001);
+        Assert.assertEquals(50.0 / 25, valCol.getDouble(0), .0000000001);
+        Assert.assertEquals(100.0 / 50, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
         Assert.assertEquals(2, dimCol.size());
@@ -3700,7 +3700,7 @@ public class BinaryExpressionEvaluatorTest {
                    return QueryResponse.builder()
                                        .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "base", 21),
                                                      Map.of("_timestamp", 3, "appName", "app3", "base", 22),
-                                                     Map.of("_timestamp", 3, "appName", "app3", "base", 23)))
+                                                     Map.of("_timestamp", 4, "appName", "app4", "base", 23)))
                                        .meta(List.of(QueryResponse.QueryResponseColumn.builder()
                                                                                       .name("_timestamp")
                                                                                       .dataType(IDataType.LONG.name())
@@ -3731,8 +3731,8 @@ public class BinaryExpressionEvaluatorTest {
         {
             Column valCol = response.getTable().getColumn("curr");
             Assert.assertEquals(2, valCol.size());
-            Assert.assertEquals(3, valCol.getDouble(0), .0000000001);
-            Assert.assertEquals(4, valCol.getDouble(1), .0000000001);
+            Assert.assertEquals(4, valCol.getDouble(0), .0000000001);
+            Assert.assertEquals(5, valCol.getDouble(1), .0000000001);
         }
         {
             Column valCol = response.getTable().getColumn("base");
@@ -3741,10 +3741,10 @@ public class BinaryExpressionEvaluatorTest {
             Assert.assertEquals(22, valCol.getDouble(1), .0000000001);
         }
         {
-            Column valCol = response.getTable().getColumn("base");
+            Column valCol = response.getTable().getColumn("delta");
             Assert.assertEquals(2, valCol.size());
-            Assert.assertEquals((3.0 - 21) / 21, valCol.getDouble(0), .0000000001);
-            Assert.assertEquals((4.0 - 22) / 22, valCol.getDouble(1), .0000000001);
+            Assert.assertEquals((4.0 - 21) / 21, valCol.getDouble(0), .0000000001);
+            Assert.assertEquals((5.0 - 22) / 22, valCol.getDouble(1), .0000000001);
         }
     }
 }

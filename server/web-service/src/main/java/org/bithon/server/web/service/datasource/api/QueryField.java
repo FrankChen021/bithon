@@ -84,4 +84,8 @@ public class QueryField {
     public QueryField withName(String name) {
         return new QueryField(name, this.field, this.aggregator, this.expression);
     }
+
+    public QueryField withExpression(String expression) {
+        return new QueryField(name, this.field, this.aggregator, expression);
+    }
 }

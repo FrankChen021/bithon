@@ -82,15 +82,22 @@ public class EvaluatorBuilder {
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(expression.getMetric().withName("curr")))
+                                                                                           .fields(List.of(expression.getMetric()
+                                                                                                                     .withName("curr")
+                                                                                                                     // Convert to double for percentage calculation
+                                                                                                                     .withExpression(expression + " * 1.0")))
                                                                                            .interval(intervalRequest)
                                                                                            .build(),
                                                                                dataSourceApi);
+
                 MetricExpressionEvaluator base = new MetricExpressionEvaluator(QueryRequest.builder()
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(expression.getMetric().withName("base")))
+                                                                                           .fields(List.of(expression.getMetric()
+                                                                                                                     .withName("base")
+                                                                                                                     // Convert to double for percentage calculation
+                                                                                                                     .withExpression(expression + " * 1.0")))
                                                                                            .interval(intervalRequest)
                                                                                            .offset(expression.getOffset())
                                                                                            .build(),

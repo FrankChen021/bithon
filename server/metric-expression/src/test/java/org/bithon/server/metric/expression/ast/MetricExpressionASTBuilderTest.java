@@ -405,19 +405,11 @@ public class MetricExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_ADD_Literal_2() {
-        {
-            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]+5";
-            IExpression ast = MetricExpressionASTBuilder.parse(expr);
-            Assert.assertTrue(ast instanceof ArithmeticExpression);
-            Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5", ast.serializeToText());
-        }
-        {
-            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]-5";
-            IExpression ast = MetricExpressionASTBuilder.parse(expr);
-            Assert.assertTrue(ast instanceof ArithmeticExpression);
-            Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5", ast.serializeToText());
-        }
+    public void test_Negative_and_Sub() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]-5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertTrue(ast instanceof ArithmeticExpression);
+        Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5", ast.serializeToText());
     }
 
     @Test

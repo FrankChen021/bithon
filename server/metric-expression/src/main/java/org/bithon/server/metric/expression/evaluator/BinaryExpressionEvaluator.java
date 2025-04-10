@@ -17,14 +17,18 @@
 package org.bithon.server.metric.expression.evaluator;
 
 
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.metric.expression.format.ColumnOperator;
 import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.metric.expression.format.HashJoiner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -36,6 +40,10 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     private final IEvaluator lhs;
     private final IEvaluator rhs;
     private final String resultColumnName;
+    /**
+     * Extra columns that should be retained in the result set after operation apply
+     */
+    private final Set<String> retainedColumns;
 
     public static class Add extends BinaryExpressionEvaluator {
         public Add(IEvaluator left, IEvaluator right) {
@@ -132,10 +140,11 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
     protected BinaryExpressionEvaluator(IEvaluator left,
                                         IEvaluator right,
                                         String resultColumnName,
-                                        String... sourceColumns) {
+                                        String... retainedColumns) {
         this.lhs = left;
         this.rhs = right;
         this.resultColumnName = resultColumnName == null ? "value" : resultColumnName;
+        this.retainedColumns = retainedColumns == null ? Collections.emptySet() : new LinkedHashSet<>(Arrays.asList(retainedColumns));
     }
 
     @Override
@@ -272,10 +281,13 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                                    left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
                                                    right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
 
-        // Apply operator on target columns
+        // Apply operator on the first column of each table
         int leftColIndex = left.getKeyColumns().size();
         int rightColIndex = leftColIndex + left.getValColumns().size();
-        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex), columns.get(rightColIndex), this.resultColumnName, this.getOperatorIndex());
+        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex),
+                                                                      columns.get(rightColIndex),
+                                                                      this.resultColumnName,
+                                                                      this.getOperatorIndex());
 
         ColumnarTable table = new ColumnarTable();
         List<String> valueColumns = new ArrayList<>();
@@ -289,7 +301,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         }
 
         //
-        // Value columns
+        // Extra Value columns
         //
         valueColumns.add(table.addColumn(result).getName());
         for (
@@ -307,6 +319,33 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
             valueColumns.add(table.addColumn(columns.get(i)).getName());
         }
 
+        //
+        // User defined retained columns
+        //
+        if (!this.retainedColumns.isEmpty()) {
+
+            // Use to check if the column we want to add has already been added
+            Set<String> resultColumns = new HashSet<>();
+            resultColumns.addAll(left.getKeyColumns());
+            resultColumns.addAll(valueColumns);
+
+            for (String retainedColumnName : retainedColumns) {
+                if (resultColumns.contains(retainedColumnName)) {
+                    // The column has already been in the result set
+                    continue;
+                }
+
+                Column col = columns.stream()
+                                    .filter((c) -> c.getName().equals(retainedColumnName))
+                                    .findFirst()
+                                    .orElse(null);
+                if (col != null) {
+                    table.addColumn(col);
+                    valueColumns.add(col.getName());
+                }
+            }
+        }
+
         return EvaluationResult.builder()
                                .interval(left.getInterval())
                                .startTimestamp(left.getStartTimestamp())
@@ -315,24 +354,5 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                .keyColumns(left.getKeyColumns())
                                .valColumns(valueColumns)
                                .build();
-    }
-
-    interface Operator {
-        void apply(Column left, Column right, Column output, int row);
-    }
-
-    private void apply(Column left, Column right, Column output, int row) {
-
-    }
-
-    IDataType determineTargetColumnType(IDataType left, IDataType right) {
-        if (left == IDataType.STRING || right == IDataType.STRING) {
-            return IDataType.STRING;
-        } else if (left == IDataType.DOUBLE || right == IDataType.DOUBLE) {
-            return IDataType.DOUBLE;
-        } else if (left == IDataType.LONG && right == IDataType.LONG) {
-            return IDataType.LONG;
-        }
-        throw new UnsupportedOperationException("Unsupported column type: " + left + ", " + right);
     }
 }
