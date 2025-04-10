@@ -43,7 +43,7 @@ public interface IDataSourceApi {
     QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException;
 
     /**
-     * Internal API that returns column based {@link ColumnarResponse} for internal API use
+     * Internal API that returns row based records for internal API use
      */
     @PostMapping("/api/internal/datasource/timeseries")
     QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;

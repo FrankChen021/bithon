@@ -48,45 +48,46 @@ public class IntermediateEvaluationResult {
     private long endTimestamp;
     private long interval;
 
-    public QueryResponse<?> toQueryResponse() throws Exception {
-        IntermediateEvaluationResult evaluationResult = this;
+    public QueryResponse<?> toTimeSeriesResultSet() {
+        IntermediateEvaluationResult intermediateResult = this;
 
-        int count = (int) ((evaluationResult.getEndTimestamp() - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval());
+        // Because the end timestamp is inclusive, we need to add 1
+        int count = 1 + (int) ((intermediateResult.getEndTimestamp() - intermediateResult.getStartTimestamp()) / intermediateResult.getInterval());
 
-        List<String> keys = evaluationResult.getKeyColumns();
+        List<String> keys = new ArrayList<>(intermediateResult.getKeyColumns());
         if (keys.get(0).equals("_timestamp")) {
             keys.remove(0);
         } else {
             throw new IllegalStateException();
         }
-        Column timestampCol = evaluationResult.getTable().getColumn("_timestamp");
-        List<Column> dimCols = evaluationResult.getTable().getColumns(keys);
-        List<Column> valCols = evaluationResult.getTable().getColumns(evaluationResult.getValColumns());
+        Column timestampCol = intermediateResult.getTable().getColumn("_timestamp");
+        List<Column> dimCols = intermediateResult.getTable().getColumns(keys);
+        List<Column> valCols = intermediateResult.getTable().getColumns(intermediateResult.getValColumns());
 
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
-        for (int i = 0; i < evaluationResult.getRows(); i++) {
+        for (int i = 0; i < intermediateResult.getRows(); i++) {
 
             // the timestamp is seconds
             long timestamp = timestampCol.getLong(i) * 1000;
-            long index = (timestamp - evaluationResult.getStartTimestamp()) / evaluationResult.getInterval();
+            long index = (timestamp - intermediateResult.getStartTimestamp()) / intermediateResult.getInterval();
 
             for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
                 Column valCol = valCols.get(j);
-                List<String> tags = new ArrayList<>(dimCols.size() + 1);
+                List<String> series = new ArrayList<>(dimCols.size() + 1);
                 for (Column dimCol : dimCols) {
-                    Object v = dimCol.getObject(i);
+                    series.add(dimCol.getObject(i).toString());
                 }
-                tags.add(evaluationResult.getValColumns().get(j));
+                series.add(intermediateResult.getValColumns().get(j));
 
-                map.computeIfAbsent(tags, k -> new TimeSeriesMetric(tags, count))
+                map.computeIfAbsent(series, k -> new TimeSeriesMetric(series, count))
                    .set((int) index, valCol.getObject(i));
             }
         }
 
         return QueryResponse.builder()
-                            .interval(evaluationResult.getInterval())
-                            .startTimestamp(evaluationResult.getStartTimestamp())
-                            .endTimestamp(evaluationResult.getEndTimestamp())
+                            .interval(intermediateResult.getInterval())
+                            .startTimestamp(intermediateResult.getStartTimestamp())
+                            .endTimestamp(intermediateResult.getEndTimestamp())
                             .data(map.values())
                             .build();
     }

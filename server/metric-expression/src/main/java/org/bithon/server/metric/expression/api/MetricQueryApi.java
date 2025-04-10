@@ -25,17 +25,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.server.metric.expression.ast.MetricExpression;
-import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
 import org.bithon.server.metric.expression.evaluator.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.springframework.context.annotation.Conditional;
@@ -50,13 +45,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -99,70 +89,6 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IExpression expression = MetricExpressionASTBuilder.parse(request.getExpression());
-        if (!(expression instanceof MetricExpression metricExpression)) {
-            throw new IllegalArgumentException("Invalid metric expression: " + request.getExpression());
-        }
-
-        String filterExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.joining(" AND "));
-
-        if (metricExpression.getOffset() != null) {
-            CountDownLatch latch = new CountDownLatch(2);
-            Future<QueryResponse> current = this.executor.submit(() -> {
-                QueryRequest req = QueryRequest.builder()
-                                               .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filterExpression)
-                                               .groupBy(metricExpression.getGroupBy())
-                                               .fields(List.of(metricExpression.getMetric()))
-                                               .interval(request.getInterval())
-                                               .build();
-                try {
-                    return dataSourceApi.timeseriesV4(req);
-                } finally {
-                    latch.countDown();
-                }
-            });
-
-            Future<QueryResponse> base = this.executor.submit(() -> {
-                QueryRequest req = QueryRequest.builder()
-                                               .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filterExpression)
-                                               .groupBy(metricExpression.getGroupBy())
-                                               .fields(List.of(metricExpression.getMetric()))
-                                               .offset(metricExpression.getOffset())
-                                               .interval(request.getInterval())
-                                               .build();
-                try {
-                    return dataSourceApi.timeseriesV4(req);
-                } finally {
-                    latch.countDown();
-                }
-            });
-
-            latch.await();
-            QueryResponse currentResponse = current.get();
-            QueryResponse baseResponse = base.get();
-            return merge(metricExpression.getExpected().getValue() instanceof HumanReadablePercentage,
-                         metricExpression.getOffset(),
-                         baseResponse,
-                         currentResponse);
-        } else {
-            QueryRequest req = QueryRequest.builder()
-                                           .dataSource(metricExpression.getFrom())
-                                           .filterExpression(filterExpression)
-                                           .groupBy(metricExpression.getGroupBy())
-                                           .fields(List.of(metricExpression.getMetric()))
-                                           .interval(request.getInterval())
-                                           .build();
-            return dataSourceApi.timeseriesV4(req);
-        }
-    }
-
-    @Experimental
-    @PostMapping("/api/metric/timeseries/v2")
-    public QueryResponse timeSeriesV2(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         IEvaluator evaluator = EvaluatorBuilder.builder()
                                                .dataSourceApi(dataSourceApi)
                                                .intervalRequest(request.getInterval())
@@ -171,7 +97,7 @@ public class MetricQueryApi {
 
         return evaluator.evaluate()
                         .get()
-                        .toQueryResponse();
+                        .toTimeSeriesResultSet();
     }
 
     private QueryResponse<?> merge(boolean usePercentage,
