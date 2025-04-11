@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -62,7 +63,13 @@ public class EvaluatorBuilder {
     }
 
     public IEvaluator build(String expression) {
-        return this.build(MetricExpressionASTBuilder.parse(expression));
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        return this.build(expr);
     }
 
     public IEvaluator build(IExpression expression) {

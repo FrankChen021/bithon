@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.ast;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -479,5 +480,19 @@ public class MetricExpressionASTBuilderTest {
         Assert.assertTrue(mul.getLhs() instanceof MetricExpression);
         Assert.assertTrue(mul.getRhs() instanceof ArithmeticExpression.SUB);
         Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test
+    public void test_ArithmeticPrecedence() {
+        String expr = "5 + 3 * 4";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertEquals("5 + (3 * 4)", ast.serializeToText());
+    }
+
+    @Test
+    public void test_ArithmeticPrecedence_2() {
+        String expr = "4 * 5 + 6";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertEquals("(4 * 5) + 6", ast.serializeToText());
     }
 }
