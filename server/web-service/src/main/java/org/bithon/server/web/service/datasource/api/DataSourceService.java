@@ -89,22 +89,6 @@ public class DataSourceService {
     }
 
     public TimeSeriesQueryResult timeseriesQuery2(Query query) throws IOException {
-        // Remove any dimensions
-        List<String> metrics = query.getSelectors()
-                                    .stream()
-                                    .filter((selectColumn) -> {
-                                        if (selectColumn.getSelectExpression() instanceof Expression) {
-                                            // Support the metrics defined directly at the client side.
-                                            // TODO: check if the fields involved in the expression are all metrics
-                                            return true;
-                                        }
-
-                                        IColumn column = query.getSchema().getColumnByName(selectColumn.getOutputName());
-                                        return column instanceof IAggregatableColumn || column instanceof ExpressionColumn;
-                                    })
-                                    .map((Selector::getOutputName))
-                                    .collect(Collectors.toList());
-
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {

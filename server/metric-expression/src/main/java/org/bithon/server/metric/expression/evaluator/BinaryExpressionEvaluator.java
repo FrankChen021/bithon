@@ -314,7 +314,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
         for (
             // Skip the first value column on the right column
             i++;
-            i < left.getValColumns().size();
+            i < right.getValColumns().size();
             i++) {
             valueColumns.add(table.addColumn(columns.get(i)).getName());
         }
