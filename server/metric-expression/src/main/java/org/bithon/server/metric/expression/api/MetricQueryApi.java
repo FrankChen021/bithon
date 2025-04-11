@@ -25,14 +25,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
 import org.bithon.server.metric.expression.evaluator.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -41,10 +39,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nullable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -98,36 +92,5 @@ public class MetricQueryApi {
         return evaluator.evaluate()
                         .get()
                         .toTimeSeriesResultSet();
-    }
-
-    private QueryResponse<?> merge(boolean usePercentage,
-                                   HumanReadableDuration offset,
-                                   QueryResponse<Collection<TimeSeriesMetric>> baseResponse,
-                                   QueryResponse<Collection<TimeSeriesMetric>> currentResponse) {
-        TimeSeriesMetric base = baseResponse.getData().iterator().next();
-        base.getTags().add(0, offset.toString());
-
-        TimeSeriesMetric curr = currentResponse.getData().iterator().next();
-        curr.getTags().add(0, "curr");
-
-        // Calculate delta
-        TimeSeriesMetric delta = new TimeSeriesMetric(List.of("delta", "delta"), base.getValues().length);
-        for (long start = baseResponse.getStartTimestamp(); start <= baseResponse.getEndTimestamp(); start += baseResponse.getInterval()) {
-            int index = (int) ((start - baseResponse.getStartTimestamp()) / baseResponse.getInterval());
-
-            BigDecimal diff = BigDecimal.valueOf(curr.getValues()[index] - base.getValues()[index]);
-            if (usePercentage) {
-                delta.set(index, base.getValues()[index] == 0 ? 0 : diff.divide(BigDecimal.valueOf(base.getValues()[index]), 4, RoundingMode.HALF_UP).doubleValue());
-            } else {
-                delta.set(index, diff);
-            }
-        }
-
-        return QueryResponse.builder()
-                            .interval(currentResponse.getInterval())
-                            .startTimestamp(currentResponse.getStartTimestamp())
-                            .endTimestamp(currentResponse.getEndTimestamp())
-                            .data(List.of(delta, base, curr))
-                            .build();
     }
 }
