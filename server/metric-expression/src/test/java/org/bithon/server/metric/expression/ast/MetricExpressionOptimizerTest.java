@@ -65,4 +65,31 @@ public class MetricExpressionOptimizerTest {
         ast = MetricExpressionOptimizer.optimize(ast);
         Assert.assertEquals("sum(dataSource.metric)", ast.serializeToText());
     }
+
+    @Test
+    public void test_Optimize_ConstantFolding_Percentage() {
+        String expression = "sum(dataSource.metric) + 10% + 10%";
+        IExpression ast = MetricExpressionASTBuilder.parse(expression);
+
+        ast = MetricExpressionOptimizer.optimize(ast);
+        Assert.assertEquals("sum(dataSource.metric) + 0.2", ast.serializeToText());
+    }
+
+    @Test
+    public void test_Optimize_ConstantFolding_ReadableNumber() {
+        String expression = "sum(dataSource.metric) + 2GiB + 3GiB";
+        IExpression ast = MetricExpressionASTBuilder.parse(expression);
+
+        ast = MetricExpressionOptimizer.optimize(ast);
+        Assert.assertEquals("sum(dataSource.metric) + 5368709120", ast.serializeToText());
+    }
+
+    @Test
+    public void test_Optimize_ConstantFolding_Duration() {
+        String expression = "sum(dataSource.metric) + 1d + 1m";
+        IExpression ast = MetricExpressionASTBuilder.parse(expression);
+
+        ast = MetricExpressionOptimizer.optimize(ast);
+        Assert.assertEquals("sum(dataSource.metric) + 86460", ast.serializeToText());
+    }
 }
