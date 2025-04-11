@@ -397,7 +397,7 @@ public class MetricExpressionASTBuilder {
                 Token token = ((TerminalNode) child).getSymbol();
                 return toLiteralASTExpression(token.getType(), token.getText());
             } else if (child instanceof MetricExpressionParser.NumberLiteralExpressionContext numberLiteral) {
-                return child.accept(this);
+                return numberLiteral.accept(this);
             }
             throw new UnsupportedOperationException("Unsupported predicate type: " + ctx.getText());
         }
