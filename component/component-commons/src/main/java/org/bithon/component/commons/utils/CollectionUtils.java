@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -55,4 +56,43 @@ public class CollectionUtils {
     public static <E> List<E> emptyOrOriginal(List<E> collection) {
         return collection == null ? Collections.emptyList() : collection;
     }
+
+    public static boolean isArrayEqual(Object[] a, Object[] b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.length != b.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (!Objects.equals(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static <T> List<T> slice(List<T> list, int index) {
+        if (index < 0 || index >= list.size()) {
+            return Collections.emptyList();
+        }
+        return list.subList(index, list.size());
+    }
+
+    public static <T> List<T> slice(List<T> list, int index, int length) {
+        if (index < 0 || index >= list.size()) {
+            return Collections.emptyList();
+        }
+        if (length <= 0) {
+            return Collections.emptyList();
+        }
+        if (index + length > list.size()) {
+            return Collections.emptyList();
+        }
+        return list.subList(index, index + length);
+    }
+
 }

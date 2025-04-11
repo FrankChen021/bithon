@@ -80,4 +80,12 @@ public class QueryField {
     public static QueryField of(String str, String aggregator) {
         return new QueryField(str, str, aggregator, null);
     }
+
+    public QueryField withName(String name) {
+        return new QueryField(name, this.field, this.aggregator, this.expression);
+    }
+
+    public QueryField withExpression(String expression) {
+        return new QueryField(name, this.field, this.aggregator, expression);
+    }
 }

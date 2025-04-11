@@ -19,6 +19,7 @@ package org.bithon.component.commons.expression;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
@@ -129,7 +130,13 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     }
 
     public Number evaluate(Number lhsValue, Number rhsValue) {
-        if (lhsValue instanceof Double || rhsValue instanceof Double) {
+        if (lhsValue instanceof Double
+            || rhsValue instanceof Double
+            || lhsValue instanceof BigDecimal
+            || rhsValue instanceof BigDecimal
+            || lhsValue instanceof HumanReadablePercentage
+            || rhsValue instanceof HumanReadablePercentage
+        ) {
             return evaluate(lhsValue.doubleValue(), rhsValue.doubleValue());
         }
         return evaluate(lhsValue.longValue(), rhsValue.longValue());

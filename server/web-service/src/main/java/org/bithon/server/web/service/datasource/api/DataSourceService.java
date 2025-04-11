@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,6 +85,27 @@ public class DataSourceService {
                                                TimestampSpec.COLUMN_ALIAS,
                                                query.getGroupBy(),
                                                metrics);
+        }
+    }
+
+    public TimeSeriesQueryResult timeseriesQuery2(Query query) throws IOException {
+        try (IDataSourceReader reader = query.getSchema()
+                                             .getDataStoreSpec()
+                                             .createReader()) {
+            List<Map<String, Object>> result = reader.timeseries(query);
+
+            TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
+                                                                   query.getInterval().getEndTime(),
+                                                                   query.getInterval().getStep().getSeconds(),
+                                                                   Collections.emptyList(),
+                                                                   TimestampSpec.COLUMN_ALIAS,
+                                                                   Collections.emptyList(),
+                                                                   Collections.emptyList());
+            return new TimeSeriesQueryResult(result.size(),
+                                             ts.getStartTimestamp(),
+                                             ts.getEndTimestamp(),
+                                             ts.getInterval(),
+                                             result);
         }
     }
 

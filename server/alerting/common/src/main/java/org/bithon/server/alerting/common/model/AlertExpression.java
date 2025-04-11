@@ -24,7 +24,7 @@ import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.metric.expression.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricExpression;
 
 /**
  * NOTE: When changes are made to this class,

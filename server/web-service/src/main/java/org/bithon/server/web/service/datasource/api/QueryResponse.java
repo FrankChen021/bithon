@@ -22,7 +22,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.query.Limit;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -33,7 +32,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryResponse {
+public class QueryResponse<T> {
 
     /**
      * The number of total records that satisfies the request conditions.
@@ -53,7 +52,7 @@ public class QueryResponse {
      * in milliseconds
      */
     private long interval;
-    private Collection<?> data;
+    private T data;
 
     @Data
     @Builder

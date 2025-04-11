@@ -14,10 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression;
+package org.bithon.server.metric.expression.ast;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.component.commons.utils.HumanReadableNumber;
@@ -404,9 +406,42 @@ public class MetricExpressionASTBuilderTest {
         }
     }
 
+    /**
+     * test -5 in the expression below is properly parsed either as subtraction or as negative number
+     */
+    @Test
+    public void test_Negative_and_Sub() {
+        {
+            String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] -5";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5", ast.serializeToText());
+        }
+        {
+            String expr = "- 5";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof LiteralExpression<?>);
+            Assert.assertEquals("-5", ast.serializeToText());
+        }
+        {
+            String expr = "1 - 5";
+            IExpression ast = MetricExpressionASTBuilder.parse(expr);
+            Assert.assertTrue(ast instanceof ArithmeticExpression);
+            Assert.assertEquals("1 - 5", ast.serializeToText());
+        }
+    }
+
     @Test
     public void test_SUB_Literal() {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertTrue(ast instanceof ArithmeticExpression);
+        Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test
+    public void test_SUB_BY_Literal() {
+        String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] BY (appName) - 5";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
         Assert.assertTrue(ast instanceof ArithmeticExpression);
         Assert.assertEquals(expr, ast.serializeToText());
@@ -445,5 +480,19 @@ public class MetricExpressionASTBuilderTest {
         Assert.assertTrue(mul.getLhs() instanceof MetricExpression);
         Assert.assertTrue(mul.getRhs() instanceof ArithmeticExpression.SUB);
         Assert.assertEquals(expr, ast.serializeToText());
+    }
+
+    @Test
+    public void test_ArithmeticPrecedence() {
+        String expr = "5 + 3 * 4";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertEquals("5 + (3 * 4)", ast.serializeToText());
+    }
+
+    @Test
+    public void test_ArithmeticPrecedence_2() {
+        String expr = "4 * 5 + 6";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assert.assertEquals("(4 * 5) + 6", ast.serializeToText());
     }
 }

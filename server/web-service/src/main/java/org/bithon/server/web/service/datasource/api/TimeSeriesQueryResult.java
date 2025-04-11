@@ -32,7 +32,7 @@ import java.util.Map;
  */
 @Data
 @AllArgsConstructor
-public class TimeSeriesQueryResult {
+public class TimeSeriesQueryResult<T> {
     /**
      * How many data points for one series
      */
@@ -54,7 +54,7 @@ public class TimeSeriesQueryResult {
      * in milliseconds
      */
     private final long interval;
-    private final Collection<TimeSeriesMetric> metrics;
+    private final Collection<T> metrics;
 
     public static TimeSeriesQueryResult build(TimeSpan start,
                                               TimeSpan end,
