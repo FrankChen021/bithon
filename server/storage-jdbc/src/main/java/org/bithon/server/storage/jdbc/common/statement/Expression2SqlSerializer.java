@@ -61,7 +61,7 @@ class Expression2SqlSerializer extends Expression2Sql {
     @Override
     public String serialize(IExpression expression) {
         // Apply optimization for different DBMS first
-        sqlDialect.transform(expression).serializeToText(this);
+        sqlDialect.transform(null, expression).serializeToText(this);
         return sb.toString();
     }
 

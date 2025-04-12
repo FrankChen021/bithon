@@ -19,11 +19,16 @@ package org.bithon.server.storage.jdbc.clickhouse.common.optimizer;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.server.commons.utils.SqlLikeExpression;
+import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.storage.jdbc.clickhouse.schema.AggregateFunctionColumn;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 
 import java.util.ArrayList;
@@ -34,6 +39,15 @@ import java.util.List;
  * @date 02/05/24 22:11pm
  */
 public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
+    private final ISchema schema;
+
+    public ClickHouseExpressionOptimizer() {
+        this.schema = null;
+    }
+
+    public ClickHouseExpressionOptimizer(ISchema schema) {
+        this.schema = schema;
+    }
 
     @Override
     public IExpression visit(ConditionalExpression expression) {
@@ -60,9 +74,39 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
 
     @Override
     public IExpression visit(FunctionExpression expression) {
+
+        // Try to replace the aggregator on AggregateFunction column to sumMerge
+        if (schema != null) {
+            if (expression.getFunction() instanceof AggregateFunction.Sum) {
+                IExpression inputArgs = expression.getArgs().get(0);
+                if (inputArgs instanceof IdentifierExpression identifier) {
+                    IColumn column = schema.getColumnByName(identifier.getIdentifier());
+                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                        return new FunctionExpression(
+                            AggregateFunctionColumn.SumMergeFunction.INSTANCE,
+                            identifier
+                        );
+                    }
+                }
+            } else if (expression.getFunction() instanceof AggregateFunction.Count) {
+                IExpression inputArgs = expression.getArgs().get(0);
+                if (inputArgs instanceof IdentifierExpression identifier) {
+                    IColumn column = schema.getColumnByName(identifier.getIdentifier());
+                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                        return new FunctionExpression(
+                            AggregateFunctionColumn.CountMergeFunction.INSTANCE,
+                            identifier
+                        );
+                    }
+                }
+            }
+        }
+
         if (!(expression.getFunction() instanceof StringFunction.HasToken)) {
             return super.visit(expression);
         }
+
+        // Apply the optimization for hasToken function
         return HasTokenFunctionOptimizer.optimize(expression);
     }
 

@@ -151,7 +151,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         }
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.setLimit(query.getLimit().toLimitClause());
         selectStatement.setOrderBy(query.getOrderBy().toOrderByClause());
         SqlGenerator generator = new SqlGenerator(sqlDialect);
@@ -170,7 +170,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         selectStatement.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
         selectStatement.accept(generator);
         String sql = generator.getSQL();
@@ -226,7 +226,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         selectStatement.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
         SqlGenerator generator = new SqlGenerator(sqlDialect);

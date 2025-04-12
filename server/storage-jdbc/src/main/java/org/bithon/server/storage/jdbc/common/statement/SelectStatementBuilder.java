@@ -350,7 +350,7 @@ public class SelectStatementBuilder {
 
         if (this.filter != null) {
             // Apply dialect's transformation on general AST
-            this.filter = sqlDialect.transform(this.filter);
+            this.filter = sqlDialect.transform(this.schema, this.filter);
 
             this.filter.accept(new IExpressionInDepthVisitor() {
                 @Override
@@ -382,8 +382,11 @@ public class SelectStatementBuilder {
         // Round 1, determine aggregation steps
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
-            if (selectExpression instanceof Expression) {
-                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
+            if (selectExpression instanceof Expression expression) {
+                IExpression parsedExpression = expression.getParsedExpression();
+
+                // Apply dialect's transformation first
+                expression.setParsedExpression(sqlDialect.transform(this.schema, parsedExpression));
 
                 if (parsedExpression instanceof FunctionExpression functionExpression) {
                     if (!functionExpression.getFunction().isAggregator()) {
