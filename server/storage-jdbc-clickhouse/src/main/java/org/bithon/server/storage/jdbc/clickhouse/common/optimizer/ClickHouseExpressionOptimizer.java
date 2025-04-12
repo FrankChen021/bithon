@@ -81,7 +81,7 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 IExpression inputArgs = expression.getArgs().get(0);
                 if (inputArgs instanceof IdentifierExpression identifier) {
                     IColumn column = schema.getColumnByName(identifier.getIdentifier());
-                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                    if (column instanceof AggregateFunctionColumn) {
                         return new FunctionExpression(
                             AggregateFunctionColumn.SumMergeFunction.INSTANCE,
                             identifier
@@ -92,7 +92,7 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 IExpression inputArgs = expression.getArgs().get(0);
                 if (inputArgs instanceof IdentifierExpression identifier) {
                     IColumn column = schema.getColumnByName(identifier.getIdentifier());
-                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                    if (column instanceof AggregateFunctionColumn) {
                         return new FunctionExpression(
                             AggregateFunctionColumn.CountMergeFunction.INSTANCE,
                             identifier
