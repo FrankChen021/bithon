@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.metric;
+package org.bithon.server.storage.jdbc.common.statement;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -27,7 +27,7 @@ import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.LimitClause;
 import org.bithon.server.storage.datasource.query.ast.OrderByClause;
-import org.bithon.server.storage.datasource.query.ast.QueryExpression;
+import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
@@ -57,7 +57,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void before(QueryExpression queryExpression) {
+    public void before(SelectStatement selectStatement) {
         if (nestedSelect++ > 0) {
             sql.append('\n');
             sql.append(indent);
@@ -70,12 +70,12 @@ public class SqlGenerator implements IASTNodeVisitor {
     }
 
     @Override
-    public void visit(QueryExpression select) {
+    public void visit(SelectStatement select) {
         select.accept(this);
     }
 
     @Override
-    public void after(QueryExpression queryExpression) {
+    public void after(SelectStatement selectStatement) {
         if (--nestedSelect > 0) {
             indent = indent.substring(0, indent.length() - 2);
 

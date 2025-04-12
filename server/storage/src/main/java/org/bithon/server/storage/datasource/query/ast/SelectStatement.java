@@ -29,7 +29,7 @@ import lombok.Getter;
  * @date 2022/9/4 14:55
  */
 @Data
-public class QueryExpression implements IASTNode {
+public class SelectStatement implements IASTNode {
     @Getter
     private final SelectorList selectorList = new SelectorList();
 
