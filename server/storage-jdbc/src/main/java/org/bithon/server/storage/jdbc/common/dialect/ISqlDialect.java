@@ -64,6 +64,9 @@ public interface ISqlDialect {
     /**
      * Transform expressions for the target dialect
      */
+    default IExpression transform(IExpression expression) {
+        return transform(null, expression);
+    }
     default IExpression transform(ISchema schema, IExpression expression) {
         return expression;
     }
