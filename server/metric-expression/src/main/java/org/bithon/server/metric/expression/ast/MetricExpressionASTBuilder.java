@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression;
+package org.bithon.server.metric.expression.ast;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -35,6 +36,9 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
+import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
+import org.bithon.server.metric.expression.MetricExpressionLexer;
+import org.bithon.server.metric.expression.MetricExpressionParser;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
@@ -94,9 +98,11 @@ public class MetricExpressionASTBuilder {
     }
 
     private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
+        private final LiteralExpressionBuilder literalExpressionBuilder = new LiteralExpressionBuilder();
+
         @Override
         public IExpression visitMetricLiteralExpression(MetricExpressionParser.MetricLiteralExpressionContext ctx) {
-            return LiteralExpressionBuilder.toLiteralASTExpression(ctx.getChild(TerminalNode.class, 0).getSymbol());
+            return ctx.numberLiteralExpression().accept(literalExpressionBuilder);
         }
 
         @Override
@@ -265,6 +271,12 @@ public class MetricExpressionASTBuilder {
     private static class DurationExpressionBuilder extends MetricExpressionBaseVisitor<HumanReadableDuration> {
         @Override
         public HumanReadableDuration visitDurationExpression(MetricExpressionParser.DurationExpressionContext ctx) {
+            if (ctx.children.size() == 4) {
+                // '[' '-'
+                TerminalNode duration = (TerminalNode) ctx.getChild(2);
+                return HumanReadableDuration.parse("-" + duration.getText());
+            }
+
             TerminalNode duration = (TerminalNode) ctx.getChild(1);
             return HumanReadableDuration.parse(duration.getText());
         }
@@ -351,13 +363,13 @@ public class MetricExpressionASTBuilder {
 
     private static class LiteralExpressionBuilder extends MetricExpressionBaseVisitor<IExpression> {
 
-        public static LiteralExpression<?> toLiteralASTExpression(Token symbol) {
-            return switch (symbol.getType()) {
-                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(symbol.getText()));
-                case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(symbol.getText()));
-                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(symbol.getText()));
+        private static LiteralExpression<?> toLiteralASTExpression(int tokenType, String text) {
+            return switch (tokenType) {
+                case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(text));
+                case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(text));
+                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(text));
                 case MetricExpressionParser.STRING_LITERAL -> {
-                    String input = symbol.getText();
+                    String input = text;
                     if (!input.isEmpty()) {
                         char quote = input.charAt(0);
                         input = input.substring(1, input.length() - 1);
@@ -371,8 +383,8 @@ public class MetricExpressionASTBuilder {
                     yield LiteralExpression.ofString(input);
                 }
                 case MetricExpressionParser.NULL_LITERAL -> LiteralExpression.NullLiteral.INSTANCE;
-                case MetricExpressionParser.SIZE_LITERAL -> LiteralExpression.of(HumanReadableNumber.of(symbol.getText()));
-                case MetricExpressionParser.DURATION_LITERAL -> LiteralExpression.of(HumanReadableDuration.parse(symbol.getText()));
+                case MetricExpressionParser.SIZE_LITERAL -> LiteralExpression.of(HumanReadableNumber.of(text));
+                case MetricExpressionParser.DURATION_LITERAL -> LiteralExpression.of(HumanReadableDuration.parse(text));
 
                 default -> throw new RuntimeException("Unsupported terminal type");
             };
@@ -380,8 +392,25 @@ public class MetricExpressionASTBuilder {
 
         @Override
         public IExpression visitLiteralExpression(MetricExpressionParser.LiteralExpressionContext ctx) {
-            Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
-            return toLiteralASTExpression(symbol);
+            ParseTree child = ctx.getChild(0);
+            if (child instanceof TerminalNode) {
+                Token token = ((TerminalNode) child).getSymbol();
+                return toLiteralASTExpression(token.getType(), token.getText());
+            } else if (child instanceof MetricExpressionParser.NumberLiteralExpressionContext numberLiteral) {
+                return numberLiteral.accept(this);
+            }
+            throw new UnsupportedOperationException("Unsupported predicate type: " + ctx.getText());
+        }
+
+        @Override
+        public IExpression visitNumberLiteralExpression(MetricExpressionParser.NumberLiteralExpressionContext ctx) {
+            if (ctx.children.size() == 2) {
+                Token symbol = ctx.getChild(TerminalNode.class, 1).getSymbol();
+                return LiteralExpressionBuilder.toLiteralASTExpression(symbol.getType(), "-" + symbol.getText());
+            } else {
+                Token symbol = ctx.getChild(TerminalNode.class, 0).getSymbol();
+                return LiteralExpressionBuilder.toLiteralASTExpression(symbol.getType(), symbol.getText());
+            }
         }
 
         @Override

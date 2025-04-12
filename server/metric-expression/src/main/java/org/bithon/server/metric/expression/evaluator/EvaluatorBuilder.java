@@ -1,0 +1,160 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.server.metric.expression.evaluator;
+
+
+import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
+import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
+import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.web.service.datasource.api.QueryField;
+import org.bithon.server.web.service.datasource.api.QueryRequest;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 4/4/25 3:53 pm
+ */
+public class EvaluatorBuilder {
+
+    private IDataSourceApi dataSourceApi;
+    private IntervalRequest intervalRequest;
+    private String condition;
+
+    public static EvaluatorBuilder builder() {
+        return new EvaluatorBuilder();
+    }
+
+    public EvaluatorBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
+        this.dataSourceApi = dataSourceApi;
+        return this;
+    }
+
+    public EvaluatorBuilder intervalRequest(IntervalRequest intervalRequest) {
+        this.intervalRequest = intervalRequest;
+        return this;
+    }
+
+    public EvaluatorBuilder condition(String condition) {
+        this.condition = condition;
+        return this;
+    }
+
+    public IEvaluator build(String expression) {
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        return this.build(expr);
+    }
+
+    public IEvaluator build(IExpression expression) {
+        return expression.accept(new Builder());
+    }
+
+    private class Builder implements IMetricExpressionVisitor<IEvaluator> {
+        @Override
+        public IEvaluator visit(MetricExpression expression) {
+            String filterExpression = Stream.of(expression.getWhereText(), condition)
+                                            .filter(Objects::nonNull)
+                                            .collect(Collectors.joining(" AND "));
+
+            if (expression.getOffset() != null) {
+                // Create expression as: ( current - base ) / base
+                QueryField metricField = expression.getMetric();
+                String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
+                MetricExpressionEvaluator curr = new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                                           .dataSource(expression.getFrom())
+                                                                                           .filterExpression(filterExpression)
+                                                                                           .groupBy(expression.getGroupBy())
+                                                                                           .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
+                                                                                           .interval(intervalRequest)
+                                                                                           .build(),
+                                                                               dataSourceApi);
+
+                MetricExpressionEvaluator base = new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                                           .dataSource(expression.getFrom())
+                                                                                           .filterExpression(filterExpression)
+                                                                                           .groupBy(expression.getGroupBy())
+                                                                                           .fields(List.of(new QueryField(
+                                                                                               // Use offset AS the output name
+                                                                                               expression.getOffset().toString(),
+                                                                                               metricField.getField(),
+                                                                                               null,
+                                                                                               expr)))
+                                                                                           .interval(intervalRequest)
+                                                                                           .offset(expression.getOffset())
+                                                                                           .build(),
+                                                                               dataSourceApi);
+
+                //
+                return new BinaryExpressionEvaluator.Div(
+                    new BinaryExpressionEvaluator.Sub(
+                        curr,
+                        base,
+                        "diff",
+
+                        // Returns 'curr' as well as the computed result set
+                        metricField.getName()
+                    ),
+                    base,
+                    "delta",
+
+                    // Keep the current and base columns in the result set
+                    metricField.getName(), expression.getOffset().toString()
+                );
+            } else {
+                return new MetricExpressionEvaluator(QueryRequest.builder()
+                                                                 .dataSource(expression.getFrom())
+                                                                 .filterExpression(filterExpression)
+                                                                 .groupBy(expression.getGroupBy())
+                                                                 .fields(List.of(expression.getMetric()))
+                                                                 .interval(intervalRequest)
+                                                                 .build(),
+                                                     dataSourceApi);
+            }
+        }
+
+        @Override
+        public IEvaluator visit(LiteralExpression<?> expression) {
+            return new LiteralEvaluator(expression);
+        }
+
+        @Override
+        public IEvaluator visit(ArithmeticExpression expression) {
+            return switch (expression.getType()) {
+                case "+" -> new BinaryExpressionEvaluator.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "-" -> new BinaryExpressionEvaluator.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "*" -> new BinaryExpressionEvaluator.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "/" -> new BinaryExpressionEvaluator.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
+            };
+        }
+    }
+}

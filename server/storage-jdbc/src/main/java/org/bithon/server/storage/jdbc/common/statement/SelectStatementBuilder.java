@@ -27,8 +27,10 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.column.ExpressionColumn;
@@ -53,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -63,10 +66,8 @@ public class SelectStatementBuilder {
     private ISchema schema;
 
     private List<Selector> selectors;
-
     private IExpression filter;
     private Interval interval;
-
     private List<String> groupBy = Collections.emptyList();
 
     @Nullable
@@ -74,6 +75,9 @@ public class SelectStatementBuilder {
 
     @Nullable
     private org.bithon.server.storage.datasource.query.Limit limit;
+
+    @Nullable
+    private HumanReadableDuration offset;
 
     private ISqlDialect sqlDialect;
 
@@ -113,6 +117,11 @@ public class SelectStatementBuilder {
 
     public SelectStatementBuilder limit(@Nullable org.bithon.server.storage.datasource.query.Limit limit) {
         this.limit = limit;
+        return this;
+    }
+
+    public SelectStatementBuilder offset(@Nullable HumanReadableDuration offset) {
+        this.offset = offset;
         return this;
     }
 
@@ -548,8 +557,16 @@ public class SelectStatementBuilder {
 
     private void buildWhere(SelectStatementPipeline pipeline) {
         IExpression timestampExpression = this.interval.getTimestampColumn();
-        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(interval.getStartTime())));
-        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(interval.getEndTime())));
+
+        TimeSpan start = interval.getStartTime();
+        TimeSpan end = interval.getEndTime();
+        if (this.offset != null) {
+            // The offset is negative, use '-' to turn into positive
+            start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+            end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+        }
+        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(start)));
+        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(end)));
 
         if (filter == null) {
             return;
@@ -624,8 +641,14 @@ public class SelectStatementBuilder {
         // We need to group the values in a time bucket
         // See the test: testWindowFunction_TimeSeries to know more
         if (this.interval.getStep() != null) {
-            IExpression timestampExpression = this.interval.getTimestampColumn();
-            TextNode expr = new TextNode(this.sqlDialect.timeFloorExpression(timestampExpression, this.interval.getStep().getSeconds()));
+            String timestamp = this.sqlDialect.timeFloorExpression(this.interval.getTimestampColumn(), this.interval.getStep().getSeconds());
+            if (this.offset != null) {
+                // When offset is provided, the timestamp in result set is still produced as if no offset
+                timestamp = StringUtils.format("%s + %d", timestamp,
+                                               // The offset is negative, so we need to add the offset
+                                               -this.offset.getDuration().getSeconds());
+            }
+            TextNode expr = new TextNode(timestamp);
 
             // The timestamp calculation is pushed down to the window aggregation step if needed
             SelectStatement aggregationStep = pipeline.windowAggregation == null ? pipeline.aggregation : pipeline.windowAggregation;

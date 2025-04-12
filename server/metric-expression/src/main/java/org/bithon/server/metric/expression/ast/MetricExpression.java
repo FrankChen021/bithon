@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression;
+package org.bithon.server.metric.expression.ast;
 
 import lombok.Data;
 import org.bithon.component.commons.expression.IDataType;
@@ -123,7 +123,7 @@ public class MetricExpression implements IExpression {
         }
 
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
-            sb.append(StringUtils.format(" BY (%s) ", String.join(",", this.groupBy)));
+            sb.append(StringUtils.format(" BY (%s)", String.join(",", this.groupBy)));
         }
 
         if (includePredication && predicate != null) {
@@ -208,7 +208,10 @@ public class MetricExpression implements IExpression {
 
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
-        throw new UnsupportedOperationException();
+        if (visitor instanceof IMetricExpressionVisitor<T> metricExpressionVisitor) {
+            return metricExpressionVisitor.visit(this);
+        }
+        throw new UnsupportedOperationException("Evaluate an alert expression is not supported.");
     }
 
     public void validate(Map<String, ISchema> schemas) {

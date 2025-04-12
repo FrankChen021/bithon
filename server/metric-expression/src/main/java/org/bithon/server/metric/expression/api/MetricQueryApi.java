@@ -25,18 +25,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.metric.expression.MetricExpression;
-import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
+import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
+import org.bithon.server.metric.expression.evaluator.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.bithon.server.web.service.datasource.api.TimeSeriesMetric;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -45,17 +39,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nullable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -98,102 +83,14 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IExpression expression = MetricExpressionASTBuilder.parse(request.getExpression());
-        if (!(expression instanceof MetricExpression metricExpression)) {
-            throw new IllegalArgumentException("Invalid metric expression: " + request.getExpression());
-        }
+        IEvaluator evaluator = EvaluatorBuilder.builder()
+                                               .dataSourceApi(dataSourceApi)
+                                               .intervalRequest(request.getInterval())
+                                               .condition(request.getCondition())
+                                               .build(request.getExpression());
 
-        String filterExpression = Stream.of(metricExpression.getWhereText(), request.getCondition())
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.joining(" AND "));
-
-        if (metricExpression.getOffset() != null) {
-            CountDownLatch latch = new CountDownLatch(2);
-            Future<QueryResponse> current = this.executor.submit(() -> {
-                QueryRequest req = QueryRequest.builder()
-                                               .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filterExpression)
-                                               .groupBy(metricExpression.getGroupBy())
-                                               .fields(List.of(metricExpression.getMetric()))
-                                               .interval(request.getInterval())
-                                               .build();
-                try {
-                    return dataSourceApi.timeseriesV4(req);
-                } finally {
-                    latch.countDown();
-                }
-            });
-
-            Future<QueryResponse> base = this.executor.submit(() -> {
-                // Offset expression is negative
-                long seconds = -metricExpression.getOffset().getDuration().getSeconds();
-                QueryRequest req = QueryRequest.builder()
-                                               .dataSource(metricExpression.getFrom())
-                                               .filterExpression(filterExpression)
-                                               .groupBy(metricExpression.getGroupBy())
-                                               .fields(List.of(metricExpression.getMetric()))
-                                               .interval(IntervalRequest.builder()
-                                                                        .startISO8601(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .endISO8601(TimeSpan.fromISO8601(request.getInterval().getEndISO8601()).before(seconds, TimeUnit.SECONDS).toISO8601())
-                                                                        .bucketCount(request.getInterval().getBucketCount())
-                                                                        .step(request.getInterval().getStep())
-                                                                        .timestampColumn(request.getInterval().getTimestampColumn())
-                                                                        .build())
-                                               .build();
-                try {
-                    return dataSourceApi.timeseriesV4(req);
-                } finally {
-                    latch.countDown();
-                }
-            });
-
-            latch.await();
-            QueryResponse currentResponse = current.get();
-            QueryResponse baseResponse = base.get();
-            return merge(metricExpression.getExpected().getValue() instanceof HumanReadablePercentage,
-                         metricExpression.getOffset(),
-                         baseResponse,
-                         currentResponse);
-        } else {
-            QueryRequest req = QueryRequest.builder()
-                                           .dataSource(metricExpression.getFrom())
-                                           .filterExpression(filterExpression)
-                                           .groupBy(metricExpression.getGroupBy())
-                                           .fields(List.of(metricExpression.getMetric()))
-                                           .interval(request.getInterval())
-                                           .build();
-            return dataSourceApi.timeseriesV4(req);
-        }
-    }
-
-    private QueryResponse merge(boolean usePercentage,
-                                HumanReadableDuration offset,
-                                QueryResponse baseResponse,
-                                QueryResponse currentResponse) {
-        TimeSeriesMetric base = (TimeSeriesMetric) baseResponse.getData().iterator().next();
-        base.getTags().add(0, offset.toString());
-
-        TimeSeriesMetric curr = (TimeSeriesMetric) currentResponse.getData().iterator().next();
-        curr.getTags().add(0, "curr");
-
-        // Calculate delta
-        TimeSeriesMetric delta = new TimeSeriesMetric(List.of("delta", "delta"), base.getValues().length);
-        for (long start = baseResponse.getStartTimestamp(); start <= baseResponse.getEndTimestamp(); start += baseResponse.getInterval()) {
-            int index = (int) ((start - baseResponse.getStartTimestamp()) / baseResponse.getInterval());
-
-            BigDecimal diff = BigDecimal.valueOf(curr.getValues()[index] - base.getValues()[index]);
-            if (usePercentage) {
-                delta.set(index, base.getValues()[index] == 0 ? 0 : diff.divide(BigDecimal.valueOf(base.getValues()[index]), 4, RoundingMode.HALF_UP).doubleValue());
-            } else {
-                delta.set(index, diff);
-            }
-        }
-
-        return QueryResponse.builder()
-                            .interval(currentResponse.getInterval())
-                            .startTimestamp(currentResponse.getStartTimestamp())
-                            .endTimestamp(currentResponse.getEndTimestamp())
-                            .data(List.of(delta, base, curr))
-                            .build();
+        return evaluator.evaluate()
+                        .get()
+                        .toTimeSeriesResultSet();
     }
 }

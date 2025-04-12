@@ -47,6 +47,7 @@ public class AlertExpressionSerializerTest {
         JsonNode tree = objectMapper.readTree(val);
 
         Assert.assertEquals("1", tree.get("id").asText());
+        Assert.assertEquals("-7m", tree.get("offset").asText());
         Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
         Assert.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
     }

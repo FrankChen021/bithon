@@ -160,9 +160,8 @@ public class QueryConverter {
                       .interval(Interval.of(start, end, step, new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
-                      .resultFormat(query.getResultFormat() == null
-                                        ? Query.ResultFormat.Object
-                                        : query.getResultFormat())
+                      .offset(query.getOffset())
+                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
                       .build();
     }
 

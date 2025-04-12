@@ -63,7 +63,7 @@ public class AlertExpressionSerializer extends JsonSerializer<AlertExpression> {
             gen.writeObjectField("alertExpected", expression.getMetricExpression().getExpected().getValue());
 
             if (expression.getMetricExpression().getOffset() != null) {
-                serializers.defaultSerializeField("offset", expression.getMetricExpression().getWindow(), gen);
+                serializers.defaultSerializeField("offset", expression.getMetricExpression().getOffset(), gen);
             }
         }
         gen.writeEndObject();

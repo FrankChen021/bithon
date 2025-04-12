@@ -42,6 +42,12 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/timeseries/v4")
     QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException;
 
+    /**
+     * Internal API that returns row based records for internal API use
+     */
+    @PostMapping("/api/internal/datasource/timeseries")
+    QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
+
     @PostMapping("/api/datasource/groupBy/v2")
     QueryResponse groupBy(@Validated @RequestBody QueryRequest request) throws IOException;
 
