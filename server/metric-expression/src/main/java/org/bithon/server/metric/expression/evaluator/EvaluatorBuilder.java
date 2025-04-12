@@ -20,12 +20,14 @@ package org.bithon.server.metric.expression.evaluator;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 
 import java.util.List;
@@ -85,14 +87,13 @@ public class EvaluatorBuilder {
 
             if (expression.getOffset() != null) {
                 // Create expression as: ( current - base ) / base
+                QueryField metricField = expression.getMetric();
+                String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
                 MetricExpressionEvaluator curr = new MetricExpressionEvaluator(QueryRequest.builder()
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(expression.getMetric()
-                                                                                                                     .withName("curr")
-                                                                                                                     // Convert to double for percentage calculation
-                                                                                                                     .withExpression(expression + " * 1.0")))
+                                                                                           .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
                                                                                            .interval(intervalRequest)
                                                                                            .build(),
                                                                                dataSourceApi);
@@ -101,28 +102,32 @@ public class EvaluatorBuilder {
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(expression.getMetric()
-                                                                                                                     .withName("base")
-                                                                                                                     // Convert to double for percentage calculation
-                                                                                                                     .withExpression(expression + " * 1.0")))
+                                                                                           .fields(List.of(new QueryField(
+                                                                                               // Use offset AS the output name
+                                                                                               expression.getOffset().toString(),
+                                                                                               metricField.getField(),
+                                                                                               null,
+                                                                                               expr)))
                                                                                            .interval(intervalRequest)
                                                                                            .offset(expression.getOffset())
                                                                                            .build(),
                                                                                dataSourceApi);
+
+                //
                 return new BinaryExpressionEvaluator.Div(
                     new BinaryExpressionEvaluator.Sub(
                         curr,
                         base,
-                        null,
+                        "diff",
 
                         // Returns 'curr' as well as the computed result set
-                        "curr"
+                        metricField.getName()
                     ),
                     base,
                     "delta",
 
-                    // Returns 'curr' from lhs, and 'base' from rhs as well as the computed result set
-                    "curr", "base"
+                    // Keep the current and base columns in the result set
+                    metricField.getName(), expression.getOffset().toString()
                 );
             } else {
                 return new MetricExpressionEvaluator(QueryRequest.builder()

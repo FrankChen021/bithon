@@ -3678,9 +3678,9 @@ public class BinaryExpressionEvaluatorTest {
                    if (offset == null) {
                        String name = req.getFields().get(0).getName();
                        return QueryResponse.builder()
-                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "curr", 3),
-                                                         Map.of("_timestamp", 2, "appName", "app2", "curr", 4),
-                                                         Map.of("_timestamp", 3, "appName", "app3", "curr", 5)))
+                                           .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 3),
+                                                         Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 4),
+                                                         Map.of("_timestamp", 3, "appName", "app3", "activeThreads", 5)))
                                            .meta(List.of(QueryResponse.QueryResponseColumn.builder()
                                                                                           .name("_timestamp")
                                                                                           .dataType(IDataType.LONG.name())
@@ -3690,7 +3690,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                           .dataType(IDataType.STRING.name())
                                                                                           .build(),
                                                          QueryResponse.QueryResponseColumn.builder()
-                                                                                          .name("curr")
+                                                                                          .name("activeThreads")
                                                                                           .dataType(IDataType.DOUBLE.name())
                                                                                           .build()))
                                            .build();
@@ -3698,9 +3698,9 @@ public class BinaryExpressionEvaluatorTest {
 
                    String name = req.getFields().get(0).getName();
                    return QueryResponse.builder()
-                                       .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "base", 21),
-                                                     Map.of("_timestamp", 3, "appName", "app3", "base", 22),
-                                                     Map.of("_timestamp", 4, "appName", "app4", "base", 23)))
+                                       .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "-1d", 21),
+                                                     Map.of("_timestamp", 3, "appName", "app3", "-1d", 22),
+                                                     Map.of("_timestamp", 4, "appName", "app4", "-1d", 23)))
                                        .meta(List.of(QueryResponse.QueryResponseColumn.builder()
                                                                                       .name("_timestamp")
                                                                                       .dataType(IDataType.LONG.name())
@@ -3710,7 +3710,7 @@ public class BinaryExpressionEvaluatorTest {
                                                                                       .dataType(IDataType.STRING.name())
                                                                                       .build(),
                                                      QueryResponse.QueryResponseColumn.builder()
-                                                                                      .name("base")
+                                                                                      .name("-1d")
                                                                                       .dataType(IDataType.DOUBLE.name())
                                                                                       .build()))
                                        .build();
@@ -3725,17 +3725,17 @@ public class BinaryExpressionEvaluatorTest {
                                                // BY is given so that it produces a vector
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
         IntermediateEvaluationResult response = evaluator.evaluate().get();
-
+        Assert.assertEquals(2, response.getRows());
 
         // Only the overlapped series(app2,app3) will be returned
         {
-            Column valCol = response.getTable().getColumn("curr");
+            Column valCol = response.getTable().getColumn("activeThreads");
             Assert.assertEquals(2, valCol.size());
             Assert.assertEquals(4, valCol.getDouble(0), .0000000001);
             Assert.assertEquals(5, valCol.getDouble(1), .0000000001);
         }
         {
-            Column valCol = response.getTable().getColumn("base");
+            Column valCol = response.getTable().getColumn("-1d");
             Assert.assertEquals(2, valCol.size());
             Assert.assertEquals(21, valCol.getDouble(0), .0000000001);
             Assert.assertEquals(22, valCol.getDouble(1), .0000000001);
