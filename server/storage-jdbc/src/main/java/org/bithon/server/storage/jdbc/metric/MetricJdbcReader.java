@@ -108,7 +108,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .dataSource(query.getSchema())
+                                                                .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
                                                                 .filter(query.getFilter())
                                                                 .interval(query.getInterval())
@@ -125,7 +125,7 @@ public class MetricJdbcReader implements IDataSourceReader {
     @Override
     public List<?> groupBy(Query query) {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .dataSource(query.getSchema())
+                                                                .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
                                                                 .filter(query.getFilter())
                                                                 .interval(query.getInterval())

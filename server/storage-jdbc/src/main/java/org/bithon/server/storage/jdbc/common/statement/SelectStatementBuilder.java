@@ -81,8 +81,8 @@ public class SelectStatementBuilder {
         return new SelectStatementBuilder();
     }
 
-    public SelectStatementBuilder dataSource(ISchema dataSource) {
-        this.schema = dataSource;
+    public SelectStatementBuilder schema(ISchema schema) {
+        this.schema = schema;
         return this;
     }
 

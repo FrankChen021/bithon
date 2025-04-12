@@ -316,7 +316,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -344,7 +344,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -376,7 +376,7 @@ public class SelectStatementBuilderTest {
                                                                                           "timestamp")
                                                                 ))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -407,7 +407,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -445,7 +445,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -486,7 +486,7 @@ public class SelectStatementBuilderTest {
                                                                                       new IdentifierExpression(
                                                                                           "timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -526,7 +526,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -565,7 +565,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -605,7 +605,7 @@ public class SelectStatementBuilderTest {
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "a"), new LiteralExpression.LongLiteral(5)))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -641,7 +641,7 @@ public class SelectStatementBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
@@ -675,7 +675,7 @@ public class SelectStatementBuilderTest {
                                                                                       new IdentifierExpression(
                                                                                           "timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -718,7 +718,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -768,7 +768,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
@@ -811,7 +811,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -861,7 +861,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(mysql);
@@ -912,7 +912,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -956,7 +956,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -989,7 +989,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1039,7 +1039,7 @@ public class SelectStatementBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1085,7 +1085,7 @@ public class SelectStatementBuilderTest {
                                                                     )
                                                                 )
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1131,7 +1131,7 @@ public class SelectStatementBuilderTest {
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "cnt"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1168,7 +1168,7 @@ public class SelectStatementBuilderTest {
                                                                                                     new LiteralExpression.LongLiteral(
                                                                                                         1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1202,7 +1202,7 @@ public class SelectStatementBuilderTest {
                                                                                             .functions(Functions.getInstance())
                                                                                             .build("avgResponseTime > 5"))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
@@ -1251,7 +1251,7 @@ public class SelectStatementBuilderTest {
                                                                                             .functions(Functions.getInstance())
                                                                                             .build("avgResponseTime > 5"))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
