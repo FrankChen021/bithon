@@ -25,10 +25,10 @@ import java.util.concurrent.ForkJoinPool;
  * @date 2024/12/24 17:01
  */
 public class ForkJoinTaskContext {
-    String className;
-    String method;
-    ITraceSpan rootSpan;
-    ForkJoinPool pool;
+    public String className;
+    public String method;
+    public ITraceSpan rootSpan;
+    public ForkJoinPool pool;
 
     public ForkJoinTaskContext(String className, String method) {
         this.className = className;

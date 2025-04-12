@@ -45,6 +45,7 @@
     <module>jdk-thread</module>
     <module>jdk8-thread</module>
     <module>jdk9-thread</module>
+    <module>jdk21-thread</module>
     <module>httpclient/okhttp-3.2</module>
     <module>httpclient/apache-httpcomponents4</module>
     <module>httpclient/apache-httpcomponents5</module>
@@ -205,6 +206,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdk9-thread</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdk21-thread</artifactId>
       <version>${project.version}</version>
     </dependency>
 
