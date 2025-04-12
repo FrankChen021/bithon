@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.metric;
+package org.bithon.server.storage.jdbc.common.statement;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -40,8 +40,8 @@ import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.QueryExpression;
 import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
+import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
@@ -49,7 +49,6 @@ import org.bithon.server.storage.metrics.Interval;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -61,7 +60,7 @@ import java.util.TimeZone;
  * @author frank.chen021@outlook.com
  * @date 26/7/24 10:44 am
  */
-public class QueryExpressionBuilderTest {
+public class SelectStatementBuilderTest {
 
     private final ISchema schema = new DefaultSchema("bithon-jvm-metrics",
                                                      "bithon-jvm-metrics",
@@ -307,7 +306,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testSimpleAggregation_GroupBy() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -317,11 +316,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -335,7 +334,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testExpressionInAggregation_GroupBy() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -345,11 +344,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -363,7 +362,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testSimpleAggregation_TimeSeries() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -377,11 +376,11 @@ public class QueryExpressionBuilderTest {
                                                                                           "timestamp")
                                                                 ))
                                                                 .groupBy(List.of("appName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
@@ -396,7 +395,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostAggregation_GroupBy() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -408,11 +407,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -434,7 +433,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostAggregation_GroupBy_NestedFunction() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -446,11 +445,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -472,7 +471,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostAggregation_TimeSeries() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -487,11 +486,11 @@ public class QueryExpressionBuilderTest {
                                                                                       new IdentifierExpression(
                                                                                           "timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -515,7 +514,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostFunctionExpression_GroupBy() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -527,11 +526,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -553,7 +552,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testDuplicateAggregations() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(List.of(new Selector(new Expression(schema,
                                                                                                             "sum(count4xx) + sum(count5xx)"),
@@ -566,11 +565,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -594,7 +593,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunction_GroupBy() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -606,11 +605,11 @@ public class QueryExpressionBuilderTest {
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "a"), new LiteralExpression.LongLiteral(5)))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -632,7 +631,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunction_GroupBy_NoUseWindowAggregator() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -642,11 +641,11 @@ public class QueryExpressionBuilderTest {
                                                                                       TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -661,7 +660,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunction_TimeSeries() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -676,11 +675,11 @@ public class QueryExpressionBuilderTest {
                                                                                       new IdentifierExpression(
                                                                                           "timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -703,7 +702,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunction_WithAggregator() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -719,11 +718,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -753,7 +752,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunction_NoUseWindowAggregator_WithAggregator() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -769,11 +768,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -796,7 +795,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunctionAfterAggregator() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -812,11 +811,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -846,7 +845,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testWindowFunctionAfterAggregator_MySQL() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(mysql)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -862,11 +861,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("timestamp")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(mysql);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -896,7 +895,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testAggregationWithMacroExpression() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -913,11 +912,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -941,7 +940,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testCardinalityAggregation() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -957,11 +956,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -976,7 +975,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testCountAggregation() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -990,11 +989,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1009,7 +1008,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testHumanReadableLiteral() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1040,11 +1039,11 @@ public class QueryExpressionBuilderTest {
                                                                                 .name("appName")
                                                                                 .order(Order.asc)
                                                                                 .build())
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1062,7 +1061,7 @@ public class QueryExpressionBuilderTest {
      */
     @Test
     public void testPostFilter_UseExpressionVariable() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1086,11 +1085,11 @@ public class QueryExpressionBuilderTest {
                                                                     )
                                                                 )
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT *
@@ -1120,7 +1119,7 @@ public class QueryExpressionBuilderTest {
      */
     @Test
     public void testPostFilter_UseAggregationAliasInFilter() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1132,11 +1131,11 @@ public class QueryExpressionBuilderTest {
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "cnt"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1155,7 +1154,7 @@ public class QueryExpressionBuilderTest {
      */
     @Test
     public void testPostFilter_UseAggregationFilter() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1169,11 +1168,11 @@ public class QueryExpressionBuilderTest {
                                                                                                     new LiteralExpression.LongLiteral(
                                                                                                         1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1189,7 +1188,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_H2() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1203,11 +1202,11 @@ public class QueryExpressionBuilderTest {
                                                                                             .functions(Functions.getInstance())
                                                                                             .build("avgResponseTime > 5"))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
@@ -1238,7 +1237,7 @@ public class QueryExpressionBuilderTest {
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_CK() {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
@@ -1252,11 +1251,11 @@ public class QueryExpressionBuilderTest {
                                                                                             .functions(Functions.getInstance())
                                                                                             .build("avgResponseTime > 5"))
                                                                 .groupBy(List.of("appName", "instanceName"))
-                                                                .dataSource(schema)
+                                                                .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,

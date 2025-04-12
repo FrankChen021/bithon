@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.ISchema;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
@@ -64,6 +65,9 @@ public interface ISqlDialect {
      * Transform expressions for the target dialect
      */
     default IExpression transform(IExpression expression) {
+        return transform(null, expression);
+    }
+    default IExpression transform(ISchema schema, IExpression expression) {
         return expression;
     }
 

@@ -202,6 +202,9 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                            .endTimestamp(left.getEndTimestamp())
                                            .interval(left.getInterval())
                                            .table(ColumnarTable.of(this.resultColumnName, result))
+                                           .rows(result.size())
+                                           .keyColumns(left.getKeyColumns())
+                                           .valColumns(List.of(this.resultColumnName))
                                            .build();
     }
 
@@ -222,7 +225,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
         for (String colName : right.getValColumns()) {
             Column col = right.getTable().getColumn(colName);
-            Column result = ColumnOperator.ScalarOverVectorOperator.apply(lColumn, col, colName, this.getOperatorIndex());
+            Column result = ColumnOperator.ScalarOverVectorOperator.apply(lColumn, col, col.getName(), this.getOperatorIndex());
             table.addColumn(result);
         }
 
@@ -231,6 +234,9 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                            .endTimestamp(left.getEndTimestamp())
                                            .interval(left.getInterval())
                                            .table(table)
+                                           .rows(table.rowCount())
+                                           .keyColumns(right.getKeyColumns())
+                                           .valColumns(right.getValColumns())
                                            .build();
     }
 
@@ -251,7 +257,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
 
         for (String colName : left.getValColumns()) {
             Column col = left.getTable().getColumn(colName);
-            Column result = ColumnOperator.VectorOverScalarOperator.apply(col, rColumn, colName, this.getOperatorIndex());
+            Column result = ColumnOperator.VectorOverScalarOperator.apply(col, rColumn, col.getName(), this.getOperatorIndex());
             table.addColumn(result);
         }
 
@@ -260,6 +266,9 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                            .endTimestamp(left.getEndTimestamp())
                                            .interval(left.getInterval())
                                            .table(table)
+                                           .rows(table.rowCount())
+                                           .keyColumns(left.getKeyColumns())
+                                           .valColumns(left.getValColumns())
                                            .build();
     }
 
@@ -351,6 +360,7 @@ public abstract class BinaryExpressionEvaluator implements IEvaluator {
                                            .startTimestamp(left.getStartTimestamp())
                                            .endTimestamp(left.getEndTimestamp())
                                            .table(table)
+                                           .rows(result.size())
                                            .keyColumns(left.getKeyColumns())
                                            .valColumns(valueColumns)
                                            .build();

@@ -30,11 +30,13 @@ import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.OrderByClause;
-import org.bithon.server.storage.datasource.query.ast.QueryExpression;
+import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.statement.SelectStatementBuilder;
+import org.bithon.server.storage.jdbc.common.statement.SqlGenerator;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -105,8 +107,8 @@ public class MetricJdbcReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
-                                                                .dataSource(query.getSchema())
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
                                                                 .filter(query.getFilter())
                                                                 .interval(query.getInterval())
@@ -117,14 +119,14 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
     }
 
     @Override
     public List<?> groupBy(Query query) {
-        QueryExpression queryExpression = QueryExpressionBuilder.builder()
-                                                                .dataSource(query.getSchema())
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .schema(query.getSchema())
                                                                 .fields(query.getSelectors())
                                                                 .filter(query.getFilter())
                                                                 .interval(query.getInterval())
@@ -136,7 +138,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        queryExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
@@ -144,18 +146,18 @@ public class MetricJdbcReader implements IDataSourceReader {
     public List<?> select(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
-        QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         for (Selector selector : query.getSelectors()) {
-            queryExpression.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
+            selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
         }
-        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        queryExpression.getWhere().and(sqlDialect.transform(query.getFilter()));
-        queryExpression.setLimit(query.getLimit().toLimitClause());
-        queryExpression.setOrderBy(query.getOrderBy().toOrderByClause());
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
+        selectStatement.setLimit(query.getLimit().toLimitClause());
+        selectStatement.setOrderBy(query.getOrderBy().toOrderByClause());
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        queryExpression.accept(generator);
+        selectStatement.accept(generator);
         String sql = generator.getSQL();
 
         return executeSql(sql);
@@ -165,14 +167,14 @@ public class MetricJdbcReader implements IDataSourceReader {
     public int count(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
 
-        QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        queryExpression.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
-        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        queryExpression.getWhere().and(sqlDialect.transform(query.getFilter()));
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        selectStatement.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        queryExpression.accept(generator);
+        selectStatement.accept(generator);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);
@@ -221,16 +223,16 @@ public class MetricJdbcReader implements IDataSourceReader {
 
         String dimension = query.getSelectors().get(0).getOutputName();
 
-        QueryExpression queryExpression = new QueryExpression();
-        queryExpression.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
-        queryExpression.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
-        queryExpression.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        queryExpression.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
-        queryExpression.getWhere().and(sqlDialect.transform(query.getFilter()));
-        queryExpression.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
-        queryExpression.setOrderBy(new OrderByClause(dimension, Order.asc));
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
+        selectStatement.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
+        selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
+        selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        queryExpression.accept(generator);
+        selectStatement.accept(generator);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);

@@ -31,6 +31,7 @@ import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
@@ -98,7 +99,7 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression transform(IExpression expression) {
+    public IExpression transform(ISchema schema, IExpression expression) {
         return expression == null ? null : expression.accept(new AbstractOptimizer() {
             /**
              * H2 does not support Map, the JSON formatted string is stored in the column.
