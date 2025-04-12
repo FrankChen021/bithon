@@ -33,17 +33,23 @@ import org.bithon.server.storage.datasource.ISchema;
  */
 public class Expression2Sql extends ExpressionSerializer {
 
-    public static String from(ISchema dataSource, ISqlDialect sqlDialect, IExpression expression) {
-        return from(dataSource.getDataStoreSpec().getStore(), sqlDialect, expression);
+    public static String from(ISchema schema,
+                              ISqlDialect sqlDialect,
+                              IExpression expression) {
+        return from(schema.getDataStoreSpec().getStore(),
+                    sqlDialect,
+                    expression);
     }
 
-    public static String from(String qualifier, ISqlDialect sqlDialect, IExpression expression) {
+    public static String from(String qualifier,
+                              ISqlDialect sqlDialect,
+                              IExpression expression) {
         if (expression == null) {
             return null;
         }
 
         // Apply DB-related transformation on general AST
-        IExpression transformed = sqlDialect.transform(expression);
+        IExpression transformed = sqlDialect.transform(null, expression);
 
         return new Expression2Sql(qualifier, sqlDialect).serialize(transformed);
     }
