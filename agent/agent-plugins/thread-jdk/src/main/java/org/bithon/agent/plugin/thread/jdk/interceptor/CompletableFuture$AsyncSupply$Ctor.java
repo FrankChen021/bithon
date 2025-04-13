@@ -21,18 +21,20 @@ import org.bithon.agent.instrumentation.aop.IBithonObject;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 
+import java.util.function.Supplier;
+
 /**
- * Support of {@link java.util.concurrent.CompletableFuture#runAsync(Runnable)} to propagate the tracing context
+ * Support of {@link java.util.concurrent.CompletableFuture#supplyAsync(Supplier)} to propagate the task context
  *
  * @author frank.chen021@outlook.com
  * @date 27/3/25 12:13 am
  */
-public class CompletableFuture$AsyncRun$Ctor extends AfterInterceptor {
+public class CompletableFuture$AsyncSupply$Ctor extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) throws Exception {
-        Runnable runnable = aopContext.getArgAs(1);
+        Supplier<?> supplier = aopContext.getArgAs(1);
 
         IBithonObject task = aopContext.getTargetAs();
-        task.setInjectedObject(new ForkJoinTaskContext(runnable.getClass().getName(), "run"));
+        task.setInjectedObject(new ForkJoinTaskContext(supplier.getClass().getName(), "run"));
     }
 }

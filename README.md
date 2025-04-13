@@ -166,6 +166,10 @@ And in theory, this matrix works both for Windows and Linux.
 | JDK 21        | &check;   |
 | JDK 22.0.2    | &check;   |
 | JDK 23.0.2    | &check;   |
+| JDK 24*       | &check;   |
+
+> Note:
+> For JDK 24, as of now, Tracing/Metrics on threads pool are not supported. 
 
 ## JDK 11 and above
 

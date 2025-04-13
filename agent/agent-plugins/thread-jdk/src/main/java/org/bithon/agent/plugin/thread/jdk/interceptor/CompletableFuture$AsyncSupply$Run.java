@@ -18,11 +18,11 @@ package org.bithon.agent.plugin.thread.jdk.interceptor;
 
 
 /**
- * Support of {@link java.util.concurrent.CompletableFuture#runAsync(Runnable)}
- * to restore tracing context built by {@link CompletableFuture$AsyncRun$Ctor}
+ * Support of {@link java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier)}
+ * to restore tracing context built by {@link CompletableFuture$AsyncSupply$Ctor}
  *
  * @author frank.chen021@outlook.com
  * @date 27/3/25 12:15 am
  */
-public class CompletableFuture$AsyncRun$Run extends ForkJoinTask$DoExec {
+public class CompletableFuture$AsyncSupply$Run extends ForkJoinTask$DoExec {
 }

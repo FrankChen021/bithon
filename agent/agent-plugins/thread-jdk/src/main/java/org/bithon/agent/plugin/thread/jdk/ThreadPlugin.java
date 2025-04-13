@@ -111,6 +111,14 @@ public class ThreadPlugin implements IPlugin {
 
                 .onMethod(Matchers.name("run").and(Matchers.argumentSize(0)))
                 .interceptedBy("org.bithon.agent.plugin.thread.jdk.interceptor.CompletableFuture$AsyncRun$Run")
+                .build(),
+
+            forClass("java.util.concurrent.CompletableFuture$AsyncSupply")
+                .onConstructor().andArgsSize(2).andArgs(1, "java.util.function.Supplier")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk.interceptor.CompletableFuture$AsyncSupply$Ctor")
+
+                .onMethod(Matchers.name("run").and(Matchers.argumentSize(0)))
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk.interceptor.CompletableFuture$AsyncSupply$Run")
                 .build()
         );
     }
