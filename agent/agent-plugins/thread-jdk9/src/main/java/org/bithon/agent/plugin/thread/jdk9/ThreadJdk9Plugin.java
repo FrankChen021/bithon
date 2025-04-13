@@ -38,12 +38,12 @@ public class ThreadJdk9Plugin implements IPlugin {
         return new IInterceptorPrecondition() {
             @Override
             public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return JdkUtils.getMajorVersion() > 8 && JdkUtils.getMajorVersion() < 21;
+                return JdkUtils.getMajorVersion() > 8;
             }
 
             @Override
             public String toString() {
-                return "Jdk > 8 && Jdk < 21";
+                return "Jdk > 8";
             }
         };
     }
