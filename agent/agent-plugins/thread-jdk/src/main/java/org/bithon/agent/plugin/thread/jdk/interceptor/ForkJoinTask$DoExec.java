@@ -39,10 +39,12 @@ public class ForkJoinTask$DoExec extends AroundInterceptor {
 
         // task context is injected in the ForkJoinTask ctor
         ForkJoinTaskContext asyncTaskContext = (ForkJoinTaskContext) forkJoinTask.getInjectedObject();
-        if (asyncTaskContext != null
-            // The Span is injected by ForkJoinPool$ExternalPush
-            && asyncTaskContext.rootSpan != null) {
+        if (asyncTaskContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
+        // The Span is injected by ForkJoinPool$ExternalPush
+        if (asyncTaskContext.rootSpan != null) {
             TraceContextHolder.attach(asyncTaskContext.rootSpan.context());
             aopContext.setSpan(asyncTaskContext.rootSpan.start());
         }
