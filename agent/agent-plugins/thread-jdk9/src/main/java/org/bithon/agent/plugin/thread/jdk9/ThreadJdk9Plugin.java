@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.apache.kafka010;
+package org.bithon.agent.plugin.thread.jdk9;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,21 +29,27 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class Kafka010Plugin implements IPlugin {
+public class ThreadJdk9Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
-            forClass("org.apache.kafka.clients.NetworkClient")
-                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                        "version",
-                                                        PropertyFileValuePrecondition.and(
-                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
-                                                                   PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
-                                                               )))
-                .onMethod("handleTimedOutRequests")
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$HandleTimedOutRequests")
+            forClass("java.util.concurrent.ForkJoinPool")
+                .when(JdkVersionPrecondition.gte(9))
+                // JDK 9 Common Pool
+                .onConstructor()
+                .andVisibility(Visibility.PRIVATE)
+                .andArgs("byte")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk9.ForkJoinPool$PrivateCtor")
+
+                // JDK 9
+                .onConstructor()
+                .andArgsSize(10)
+                .andArgs(9, "java.util.concurrent.TimeUnit")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk9.ForkJoinPool$Ctor")
                 .build()
         );
     }
 }
+
+

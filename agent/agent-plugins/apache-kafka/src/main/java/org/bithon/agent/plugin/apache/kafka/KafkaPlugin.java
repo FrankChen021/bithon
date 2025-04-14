@@ -37,7 +37,7 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .whenSatisfy(
+                .when(
                     // From 3.7.0, the KafkaConsumer class is delegated to LegacyKafkaConsumer internally
                     // The instrumentation is moved to Kafka37Plugin and later
                     new PropertyFileValuePrecondition("kafka/kafka-version.properties",
@@ -116,9 +116,9 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
-                .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                               "version",
-                                                               PropertyFileValuePrecondition.VersionGTE.of("1.0.0")))
+                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.VersionGTE.of("1.0.0")))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),

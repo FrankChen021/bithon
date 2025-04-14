@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.apache.kafka010;
+package org.bithon.agent.plugin.thread.jdk21;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,20 +28,16 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class Kafka010Plugin implements IPlugin {
+public class ThreadJdk21Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
-            forClass("org.apache.kafka.clients.NetworkClient")
-                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                        "version",
-                                                        PropertyFileValuePrecondition.and(
-                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
-                                                                   PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
-                                                               )))
-                .onMethod("handleTimedOutRequests")
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$HandleTimedOutRequests")
+            forClass("java.util.concurrent.ForkJoinPool")
+                .when(JdkVersionPrecondition.gte(21))
+                .onMethod("poolSubmit")
+                .andRawArgs("boolean", "java.util.concurrent.ForkJoinTask")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk21.ForkJoinPool$PoolSubmit")
                 .build()
         );
     }

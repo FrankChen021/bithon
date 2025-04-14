@@ -84,7 +84,7 @@ public class InterceptorDescriptorBuilder {
         return this;
     }
 
-    public InterceptorDescriptorBuilder whenSatisfy(IInterceptorPrecondition precondition) {
+    public InterceptorDescriptorBuilder when(IInterceptorPrecondition precondition) {
         this.precondition = precondition;
         return this;
     }

@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.apache.kafka010;
+package org.bithon.agent.plugin.thread.jdk8;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,21 +28,24 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 /**
  * @author frankchen
  */
-public class Kafka010Plugin implements IPlugin {
+public class ThreadJdk8Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
-            forClass("org.apache.kafka.clients.NetworkClient")
-                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                        "version",
-                                                        PropertyFileValuePrecondition.and(
-                                                                   PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
-                                                                   PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
-                                                               )))
-                .onMethod("handleTimedOutRequests")
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka010.network.interceptor.NetworkClient$HandleTimedOutRequests")
+            forClass("java.util.concurrent.ForkJoinPool")
+                .when(JdkVersionPrecondition.eq(8))
+                // JDK 8
+                .onConstructor()
+                .andArgs("int",
+                         "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory",
+                         "java.lang.Thread$UncaughtExceptionHandler",
+                         "int",
+                         "java.lang.String")
+                .interceptedBy("org.bithon.agent.plugin.thread.jdk8.ForkJoinPool$Ctor")
                 .build()
         );
     }
 }
+
+
