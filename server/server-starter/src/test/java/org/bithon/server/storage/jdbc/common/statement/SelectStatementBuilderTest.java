@@ -47,6 +47,7 @@ import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.h2.H2SqlDialect;
 import org.bithon.server.storage.jdbc.mysql.MySQLSqlDialect;
 import org.bithon.server.storage.metrics.Interval;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author frank.chen021@outlook.com
@@ -114,6 +116,15 @@ public class SelectStatementBuilderTest {
     @BeforeAll
     public static void setUp() {
         new QueryStageFunctions().afterPropertiesSet();
+
+        // Set the TimeZone to ensure that the test results are consistent
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+8:00"));
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        // Reset the TimeZone to the default
+        TimeZone.setDefault(TimeZone.getDefault());
     }
 
     @Test
