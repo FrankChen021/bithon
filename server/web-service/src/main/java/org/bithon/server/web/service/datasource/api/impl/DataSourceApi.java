@@ -106,26 +106,10 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse timeseriesV3(@Validated @RequestBody QueryRequest request) throws IOException {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
-
-        Query query = QueryConverter.toQuery(schema, request, false, true);
-        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
-        return QueryResponse.builder()
-                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(),
-                                                                                                                        selector.getDataType().name())).toList())
-                            .data(result.getMetrics())
-                            .startTimestamp(result.getStartTimestamp())
-                            .endTimestamp(result.getEndTimestamp())
-                            .interval(result.getInterval())
-                            .build();
-    }
-
-    @Override
     public QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, true, true);
+        Query query = QueryConverter.toQuery(schema, request, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
                             .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
@@ -140,7 +124,7 @@ public class DataSourceApi implements IDataSourceApi {
     public QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, true, true);
+        Query query = QueryConverter.toQuery(schema, request, true);
 
         List<QueryResponse.QueryResponseColumn> columns = new ArrayList<>();
         columns.add(new QueryResponse.QueryResponseColumn("_timestamp", IDataType.LONG.name()));
@@ -213,25 +197,10 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse groupBy(QueryRequest request) throws IOException {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
-
-        Query query = QueryConverter.toQuery(schema, request, false, false);
-        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return QueryResponse.builder()
-                                .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
-                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                .data(reader.groupBy(query))
-                                .build();
-        }
-    }
-
-    @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, true, false);
+        Query query = QueryConverter.toQuery(schema, request, false);
 
         List<QueryResponse.QueryResponseColumn> groupByColumns = query.getGroupBy()
                                                                       .stream()

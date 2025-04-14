@@ -18,7 +18,6 @@ package org.bithon.server.web.service.datasource.api.impl;
 
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.Functions;
@@ -43,7 +42,6 @@ import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,19 +53,13 @@ import java.util.stream.Collectors;
 public class QueryConverter {
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
-                                boolean useInputGroupBy,
                                 boolean groupByTimestamp) {
 
         validateQueryRequest(schema, query);
 
         Query.QueryBuilder builder = Query.builder();
 
-        Set<String> groupBy;
-        if (useInputGroupBy) {
-            groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
-        } else {
-            groupBy = new HashSet<>(4);
-        }
+        Set<String> groupBy = CollectionUtils.emptyOrOriginal(query.getGroupBy());
 
         // Turn into internal objects (post aggregators...)
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
@@ -117,10 +109,6 @@ public class QueryConverter {
                     selector = selector.withOutput(field.getName());
                 }
                 selectorList.add(selector);
-
-                if (!useInputGroupBy && columnSpec.getDataType().equals(IDataType.STRING)) {
-                    groupBy.add(field.getName());
-                }
             }
         }
 
@@ -137,10 +125,6 @@ public class QueryConverter {
                                                                query.getInterval().getBucketCount()).getLength());
             }
 
-            if (query.getInterval().getMinBucketLength() != null) {
-                Preconditions.checkIfTrue(query.getInterval().getMinBucketLength() > 0, "minBucketLength must be greater than 0");
-                step = Duration.ofSeconds(query.getInterval().getMinBucketLength());
-            }
             if (query.getInterval().getStep() != null) {
                 Preconditions.checkIfTrue(query.getInterval().getStep() > 0, "step must be greater than 0");
                 step = Duration.ofSeconds(query.getInterval().getStep());
