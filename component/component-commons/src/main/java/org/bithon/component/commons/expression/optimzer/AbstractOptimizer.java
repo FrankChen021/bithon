@@ -146,10 +146,6 @@ public class AbstractOptimizer implements IExpressionVisitor<IExpression> {
         return expression;
     }
 
-    protected IExpression noop(IExpression expression) {
-        return expression;
-    }
-
     private void optimizeExpressionList(List<IExpression> expressions) {
         final ListIterator<IExpression> iterator = expressions.listIterator();
         while (iterator.hasNext()) {
