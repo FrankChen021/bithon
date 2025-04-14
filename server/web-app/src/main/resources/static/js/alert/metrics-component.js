@@ -109,14 +109,14 @@ class MetricComponent {
 
         $.ajax({
             type: "POST",
-            url: "/api/datasource/timeseries/v3",
+            url: "/api/datasource/timeseries/v4",
             async: true,
             data: JSON.stringify({
                 dataSource: dataSourceName,
                 interval: {
                     startISO8601: moment(end - 3600 * 1000 * this.option.hours).local().toISOString(true),
                     endISO8601: moment(end).local().toISOString(true),
-                    minBucketLength: window * 60
+                    step: window * 60
                 },
                 filterExpression: filterExpression,
                 fields: [{

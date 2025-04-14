@@ -47,6 +47,7 @@
         ],
         "query": {
           "dataSource": "zookeeper-client-metrics",
+          "type": "groupBy",
           "fields": [
             "qps",
             "totalCount"
@@ -160,6 +161,7 @@
         ],
         "query": {
           "dataSource": "zookeeper-client-metrics",
+          "type": "groupBy",
           "fields": [
             "totalCount",
             "bytesSent",

@@ -36,9 +36,6 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
-    @PostMapping("/api/datasource/timeseries/v3")
-    QueryResponse timeseriesV3(@Validated @RequestBody QueryRequest request) throws IOException;
-
     @PostMapping("/api/datasource/timeseries/v4")
     QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException;
 
@@ -47,9 +44,6 @@ public interface IDataSourceApi {
      */
     @PostMapping("/api/internal/datasource/timeseries")
     QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
-
-    @PostMapping("/api/datasource/groupBy/v2")
-    QueryResponse groupBy(@Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;

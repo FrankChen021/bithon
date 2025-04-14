@@ -57,14 +57,6 @@ public class IntervalRequest {
     private Integer bucketCount;
 
     /**
-     * In second
-     * Use {@param step} instead
-     */
-    @Deprecated
-    @Nullable
-    private Integer minBucketLength;
-
-    /**
      * The step (in seconds) between two adjacent data points.
      * The {@param bucketCount} and this parameter cannot be specified at the same time.
      * And this parameter has higher priority than {@param bucketCount}

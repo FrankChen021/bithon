@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MacroExpression;
+import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 
 /**
@@ -59,14 +60,16 @@ public class SafeDivisionTransformer {
      * Since the expression is only used in the SQL generation, we do not need to implement the evaluate method
      */
     static class CaseWhenStatement implements IExpression {
-        private final IExpression whenExpression;
-        private final IExpression thenExpression;
-        private final IExpression elseExpression;
+        private IExpression whenExpression;
+        private IExpression thenExpression;
+        private IExpression elseExpression;
+        private boolean optimized;
 
         CaseWhenStatement(IExpression whenExpression, IExpression thenExpression, IExpression elseExpression) {
             this.whenExpression = whenExpression;
             this.thenExpression = thenExpression;
             this.elseExpression = elseExpression;
+            this.optimized = false;
         }
 
         @Override
@@ -89,8 +92,27 @@ public class SafeDivisionTransformer {
             throw new UnsupportedOperationException();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <T> T accept(IExpressionVisitor<T> visitor) {
+            // In the SelectStatementBuilder, the parsedExpression is first optimized
+            // This is to support replacing aggregator sum to sumMerge
+            // However, for H2, a DIV might be transformed to a safe division expression here
+            // which does not support visitor pattern
+            // So we need to check if the visitor is AbstractOptimizer
+            if (visitor instanceof AbstractOptimizer) {
+                if (optimized) {
+                    // Don't optimize on the CASE-WHEN as the 'thenExpression' is a DIV expression which should not be optimized again
+                    return (T) this;
+                }
+
+                this.whenExpression = (IExpression) whenExpression.accept(visitor);
+                this.thenExpression = (IExpression) thenExpression.accept(visitor);
+                this.elseExpression = (IExpression) elseExpression.accept(visitor);
+
+                return (T) this;
+            }
+
             throw new UnsupportedOperationException();
         }
 
@@ -107,7 +129,7 @@ public class SafeDivisionTransformer {
             thenExpression.serializeToText(serializer);
             serializer.append(" ) ELSE ( ");
             elseExpression.serializeToText(serializer);
-            serializer.append(" ) END ");
+            serializer.append(" ) END");
         }
     }
 }
