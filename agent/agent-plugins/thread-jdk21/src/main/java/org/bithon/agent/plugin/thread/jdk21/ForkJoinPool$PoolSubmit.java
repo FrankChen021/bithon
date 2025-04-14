@@ -38,6 +38,10 @@ import java.util.concurrent.ForkJoinTask;
  */
 public class ForkJoinPool$PoolSubmit extends AroundInterceptor {
 
+    public ForkJoinPool$PoolSubmit() {
+
+    }
+
     @Override
     public InterceptionDecision before(AopContext aopContext) {
         ITraceSpan span = TraceContextFactory.newSpan("thread-pool");

@@ -18,9 +18,7 @@ package org.bithon.agent.plugin.thread.jdk8;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.component.commons.utils.JdkUtils;
-import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,17 +34,7 @@ public class ThreadJdk8Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("java.util.concurrent.ForkJoinPool")
-                .whenSatisfy(new IInterceptorPrecondition() {
-                    @Override
-                    public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                        return JdkUtils.getMajorVersion() == 8;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "Jdk == 8";
-                    }
-                })
+                .when(JdkVersionPrecondition.eq(8))
                 // JDK 8
                 .onConstructor()
                 .andArgs("int",

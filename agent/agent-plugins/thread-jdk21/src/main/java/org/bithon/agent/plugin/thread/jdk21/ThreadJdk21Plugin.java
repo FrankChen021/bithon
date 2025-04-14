@@ -18,9 +18,7 @@ package org.bithon.agent.plugin.thread.jdk21;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.component.commons.utils.JdkUtils;
-import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,21 +34,9 @@ public class ThreadJdk21Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("java.util.concurrent.ForkJoinPool")
-                .whenSatisfy(new IInterceptorPrecondition() {
-                    @Override
-                    public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                        return JdkUtils.getMajorVersion() >= 21;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "Jdk >= 21";
-                    }
-                })
-
+                .when(JdkVersionPrecondition.gte(21))
                 .onMethod("poolSubmit")
-                .debug()
-                .andArgs(1, "java.util.concurrent.ForkJoinTask")
+                .andRawArgs("boolean", "java.util.concurrent.ForkJoinTask")
                 .interceptedBy("org.bithon.agent.plugin.thread.jdk21.ForkJoinPool$PoolSubmit")
                 .build()
         );

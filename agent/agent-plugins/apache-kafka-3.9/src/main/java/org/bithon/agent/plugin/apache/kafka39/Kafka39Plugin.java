@@ -35,7 +35,7 @@ public class Kafka39Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
-                .whenSatisfy(IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer"))
+                .when(IInterceptorPrecondition.isClassDefined("org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer"))
                 .onConstructor()
                 .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka39.consumer.interceptor.KafkaConsumer$Ctor")

@@ -34,9 +34,9 @@ public class Kafka010Plugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("org.apache.kafka.clients.NetworkClient")
-                .whenSatisfy(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
-                                                               "version",
-                                                               PropertyFileValuePrecondition.and(
+                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.and(
                                                                    PropertyFileValuePrecondition.VersionGTE.of("0.10.0.0"),
                                                                    PropertyFileValuePrecondition.VersionLT.of("0.10.2.0")
                                                                )))

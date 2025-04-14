@@ -18,10 +18,8 @@ package org.bithon.agent.plugin.thread.jdk9;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
-import org.bithon.agent.instrumentation.aop.interceptor.precondition.IInterceptorPrecondition;
-import org.bithon.component.commons.utils.JdkUtils;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.JdkVersionPrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
-import org.bithon.shaded.net.bytebuddy.description.type.TypeDescription;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,24 +32,10 @@ import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.Interc
 public class ThreadJdk9Plugin implements IPlugin {
 
     @Override
-    public IInterceptorPrecondition getPreconditions() {
-        return new IInterceptorPrecondition() {
-            @Override
-            public boolean matches(ClassLoader classLoader, TypeDescription typeDescription) {
-                return JdkUtils.getMajorVersion() > 8;
-            }
-
-            @Override
-            public String toString() {
-                return "Jdk > 8";
-            }
-        };
-    }
-
-    @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.singletonList(
             forClass("java.util.concurrent.ForkJoinPool")
+                .when(JdkVersionPrecondition.gte(9))
                 // JDK 9 Common Pool
                 .onConstructor()
                 .andVisibility(Visibility.PRIVATE)
