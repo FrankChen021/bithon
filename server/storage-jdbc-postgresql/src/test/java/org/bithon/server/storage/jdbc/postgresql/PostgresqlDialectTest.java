@@ -16,7 +16,9 @@
 
 package org.bithon.server.storage.jdbc.postgresql;
 
+import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -54,5 +56,27 @@ public class PostgresqlDialectTest {
                                                                                     new IdentifierExpression("a"),
                                                                                     LiteralExpression.ofString("1231")));
         Assertions.assertEquals("a like '%1231%'", expr.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void test_SafeDivision() {
+        IExpression expr = new PostgresqlDialect().transform(
+            new ArithmeticExpression.DIV(
+                new IdentifierExpression("a"),
+                new IdentifierExpression("b")
+            )
+        );
+        Assertions.assertEquals("CASE WHEN ( b <> 0 ) THEN ( a / b ) ELSE ( 0 ) END", expr.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void test_SafeDivision_2() {
+        IExpression expr = new PostgresqlDialect().transform(
+            new ArithmeticExpression.DIV(
+                new FunctionExpression(Functions.getInstance().getFunction("sum"), new IdentifierExpression("a").setDataType(IDataType.LONG)),
+                new FunctionExpression(Functions.getInstance().getFunction("sum"), new IdentifierExpression("a").setDataType(IDataType.LONG))
+            )
+        );
+        Assertions.assertEquals("CASE WHEN ( sum(a) <> 0 ) THEN ( sum(a) / sum(a) ) ELSE ( 0 ) END", expr.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 }

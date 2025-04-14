@@ -190,9 +190,9 @@ public class SelectStatementBuilder {
          * Add an aggregation.
          * This also checks there's no same aggregation performed on the same column
          */
-        public void add(FunctionExpression functionCallExpression, String output) {
-            if (!contains(functionCallExpression)) {
-                aggregators.add(new Aggregator(functionCallExpression, output));
+        public void add(FunctionExpression aggregatorFunctionCallExpression, String output) {
+            if (!contains(aggregatorFunctionCallExpression)) {
+                aggregators.add(new Aggregator(aggregatorFunctionCallExpression, output));
             }
         }
 
