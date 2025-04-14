@@ -63,11 +63,13 @@ public class SafeDivisionTransformer {
         private IExpression whenExpression;
         private IExpression thenExpression;
         private IExpression elseExpression;
+        private boolean optimized;
 
         CaseWhenStatement(IExpression whenExpression, IExpression thenExpression, IExpression elseExpression) {
             this.whenExpression = whenExpression;
             this.thenExpression = thenExpression;
             this.elseExpression = elseExpression;
+            this.optimized = false;
         }
 
         @Override
@@ -90,6 +92,7 @@ public class SafeDivisionTransformer {
             throw new UnsupportedOperationException();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <T> T accept(IExpressionVisitor<T> visitor) {
             // In the SelectStatementBuilder, the parsedExpression is first optimized
@@ -98,11 +101,15 @@ public class SafeDivisionTransformer {
             // which does not support visitor pattern
             // So we need to check if the visitor is AbstractOptimizer
             if (visitor instanceof AbstractOptimizer) {
+                if (optimized) {
+                    // Don't optimize on the CASE-WHEN as the 'thenExpression' is a DIV expression which should not be optimized again
+                    return (T) this;
+                }
+
                 this.whenExpression = (IExpression) whenExpression.accept(visitor);
                 this.thenExpression = (IExpression) thenExpression.accept(visitor);
                 this.elseExpression = (IExpression) elseExpression.accept(visitor);
 
-                //noinspection unchecked
                 return (T) this;
             }
 

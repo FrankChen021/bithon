@@ -202,6 +202,10 @@ public class SelectStatementBuilder {
                                   if (!lhs.isSimpleAggregation) {
                                       return false;
                                   }
+                                  boolean isRhsSimpleAggregation = rhs.getArgs().isEmpty() || rhs.getArgs().get(0) instanceof IdentifierExpression;
+                                  if (!isRhsSimpleAggregation) {
+                                      return false;
+                                  }
 
                                   FunctionExpression lhsFunction = lhs.aggregateFunction;
                                   if (!lhsFunction.getName().equals(rhs.getName())) {
