@@ -168,6 +168,9 @@ And in theory, this matrix works both for Windows and Linux.
 | JDK 23.0.2    | &check;   |
 | JDK 24        | &check;   |
 
+> NOTE:
+> For applications running on JDK 24, the agent may not work properly to handle tracing across threads.
+
 ## JDK 11 and above
 
 If the target application runs under JDK 11 and above, the following arguments should be added to JVM command to allow the agent to use Java Reflection on corresponding packages.
