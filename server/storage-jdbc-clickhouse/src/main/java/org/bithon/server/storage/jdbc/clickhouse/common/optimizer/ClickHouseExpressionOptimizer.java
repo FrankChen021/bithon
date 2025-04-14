@@ -88,7 +88,9 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                         );
                     }
                 }
-            } else if (expression.getFunction() instanceof AggregateFunction.Count) {
+            } else if (expression.getFunction() instanceof AggregateFunction.Count
+                       // 'count' aggregator can accept zero argument
+                       && !expression.getArgs().isEmpty()) {
                 IExpression inputArgs = expression.getArgs().get(0);
                 if (inputArgs instanceof IdentifierExpression identifier) {
                     IColumn column = schema.getColumnByName(identifier.getIdentifier());
