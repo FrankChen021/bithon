@@ -103,11 +103,10 @@ public class AgentDiagnosisApi {
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                             SqlExecutionEngine sqlExecutionEngine,
                              ObjectMapper objectMapper,
                              ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
-        this.sqlExecutionEngine = sqlExecutionEngine;
+        this.sqlExecutionEngine = new SqlExecutionEngine();
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
         this.applicationContext = applicationContext;
         this.discoveredServiceInvoker = discoveredServiceInvoker;
