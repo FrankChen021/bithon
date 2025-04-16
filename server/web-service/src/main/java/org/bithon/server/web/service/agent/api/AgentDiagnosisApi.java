@@ -124,28 +124,29 @@ public class AgentDiagnosisApi {
 
         SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
             SqlNode whereNode;
-            SqlNode from = null;
+            SqlNode tableNode;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
-                from = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
+                tableNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
-                from = ((SqlSelect) (sqlNode)).getFrom();
+                tableNode = ((SqlSelect) (sqlNode)).getFrom();
             } else if (sqlNode.getKind() == SqlKind.UPDATE) {
                 whereNode = ((SqlUpdate) (sqlNode)).getCondition();
+                tableNode = ((SqlUpdate) sqlNode).getTargetTable();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
 
             Map<String, Boolean> pushdownPredicates = Collections.emptyMap();
-            if (from != null) {
-                if (!(from instanceof SqlIdentifier)) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", from.toString());
+            if (tableNode != null) {
+                if (!(tableNode instanceof SqlIdentifier)) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", tableNode.toString());
                 }
 
-                List<String> names = ((SqlIdentifier) from).names;
+                List<String> names = ((SqlIdentifier) tableNode).names;
                 if (names.size() != 2) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", from.toString());
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", tableNode.toString());
                 }
 
                 Schema schema = queryContext.getRootSchema().getSubSchema(names.get(0));

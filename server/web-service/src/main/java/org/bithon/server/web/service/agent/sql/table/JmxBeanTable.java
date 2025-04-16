@@ -38,8 +38,7 @@ public class JmxBeanTable extends AbstractBaseTable implements IPushdownPredicat
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
-                                                 IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IJvmCommand.class)
                            .getBeans()
                            .stream()
                            .map(IJvmCommand.JmxBean::getObjects)

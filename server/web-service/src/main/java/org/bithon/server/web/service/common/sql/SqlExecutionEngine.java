@@ -105,10 +105,13 @@ public class SqlExecutionEngine {
 
         // Create an SQL parser to parse the query into AST
         SqlNode sqlNode = SqlParser.create(sql,
-                                           SqlParser.config().withQuotedCasing(Casing.UNCHANGED).withUnquotedCasing(Casing.UNCHANGED))
+                                           SqlParser.config()
+                                                    .withQuotedCasing(Casing.UNCHANGED)
+                                                    .withUnquotedCasing(Casing.UNCHANGED))
                                    .parseQuery();
 
         if (onParsed != null) {
+            // Callers may apply some optimization on the raw AST for example removing 'appName' from the WHERE clause
             onParsed.accept(sqlNode, queryContext);
         }
 
@@ -128,24 +131,23 @@ public class SqlExecutionEngine {
                                                                SqlToRelConverter.config());
         RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
 
-        if (sqlNode instanceof SqlUpdate) {
-            SqlUpdate updateNode = (SqlUpdate) sqlNode;
-
-            // Extract the condition from the UPDATE statement
-            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
-
+        if (sqlNode instanceof SqlUpdate updateNode) {
             IUpdatableTable updatableTable = logicPlan.getTable().unwrap(IUpdatableTable.class);
-            if (updatableTable != null) {
-                int totalRows = updatableTable.update(queryContext, filterExpression, getUpdateValues(updateNode));
-                return new SqlExecutionResult(Linq4j.asEnumerable(new Object[][]{{totalRows}}),
-                                              Collections.singletonList(new RelDataTypeFieldImpl("affectedRows",
-                                                                                                 0,
-                                                                                                 catalogReader.getTypeFactory().createSqlType(SqlTypeName.INTEGER))));
-            } else {
+            if (updatableTable == null) {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                                 "Table [%s] does not support UPDATE",
                                                 ((SqlUpdate) sqlNode).getTargetTable().toString());
             }
+
+            // Extract the condition from the UPDATE statement
+            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
+            int totalRows = updatableTable.update(queryContext,
+                                                  filterExpression,
+                                                  getUpdateValues(updateNode));
+            return new SqlExecutionResult(Linq4j.asEnumerable(new Object[][]{{totalRows}}),
+                                          Collections.singletonList(new RelDataTypeFieldImpl("affectedRows",
+                                                                                             0,
+                                                                                             catalogReader.getTypeFactory().createSqlType(SqlTypeName.INTEGER))));
         }
 
         //

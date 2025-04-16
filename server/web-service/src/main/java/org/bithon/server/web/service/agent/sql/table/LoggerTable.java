@@ -67,11 +67,12 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
         return LoggerConfigurationRecord.class;
     }
 
+    /**
+     * Map to {@link LoggerConfiguration} since the LoggerConfiguration contains fields which are type of enum.
+     * These fields are not supported by Calcite default(Maybe there's way to configure the Calcite to support it).
+     */
     public static class LoggerConfigurationRecord {
-
         public String name;
-
-        // For the Schema, the level is declared as String to avoid the Enum problem at Calcite side
         public String level;
         public String effectiveLevel;
     }
@@ -81,7 +82,7 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
         private Object value;
 
         @Override
-        public boolean visit(LiteralExpression expression) {
+        public boolean visit(LiteralExpression<?> expression) {
             value = expression.getValue();
             return false;
         }
@@ -98,7 +99,8 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
                       IExpression filterExpression,
                       Map<String, Object> newValues) {
         Preconditions.checkNotNull(filterExpression, "'name' is missed in the WHERE clause.");
-        Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter.");
+        Preconditions.checkIfTrue(!(filterExpression instanceof LiteralExpression.BooleanLiteral), "WHERE clause must contain filter which is on the 'name' column");
+        Preconditions.checkIfTrue(filterExpression instanceof BinaryExpression, "WHERE clause must only contain one filter which is on the 'name' column.");
 
         BinaryExpression binaryExpression = (BinaryExpression) filterExpression;
         Preconditions.checkIfTrue("=".equals(binaryExpression.getType()), "Logger table does not support operator '%s', only '=' is supported", binaryExpression.getType());
@@ -127,12 +129,12 @@ public class LoggerTable extends AbstractBaseTable implements IUpdatableTable, I
 
         if (newValues.size() > 1) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                            "Only 'level' is allowed to updated");
+                                            "Only 'level' is allowed to be updated");
         }
 
-        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
-                                                 ILoggingCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), ILoggingCommand.class)
                            .setLogger((String) nameFilter.value, loggingLevel)
-                           .stream().reduce(0, Integer::sum);
+                           .stream()
+                           .reduce(0, Integer::sum);
     }
 }
