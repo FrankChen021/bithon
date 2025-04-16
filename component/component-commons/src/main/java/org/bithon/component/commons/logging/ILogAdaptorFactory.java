@@ -16,10 +16,15 @@
 
 package org.bithon.component.commons.logging;
 
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 26/12/21 5:17 PM
  */
 public interface ILogAdaptorFactory {
     ILogAdaptor newLogger(String name);
+
+    List<LoggerConfiguration> getLoggerConfigurations();
+    void setLoggerConfiguration(String loggerName, LoggingLevel level);
 }

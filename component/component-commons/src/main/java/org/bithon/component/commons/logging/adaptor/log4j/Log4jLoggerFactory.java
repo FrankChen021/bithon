@@ -19,11 +19,25 @@ package org.bithon.component.commons.logging.adaptor.log4j;
 import org.apache.log4j.Logger;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.ILogAdaptorFactory;
+import org.bithon.component.commons.logging.LoggerConfiguration;
+import org.bithon.component.commons.logging.LoggingLevel;
+
+import java.util.Collections;
+import java.util.List;
 
 public class Log4jLoggerFactory implements ILogAdaptorFactory {
 
     @Override
     public ILogAdaptor newLogger(String name) {
         return new Log4jLogAdaptor(Logger.getLogger(name));
+    }
+
+    @Override
+    public List<LoggerConfiguration> getLoggerConfigurations() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void setLoggerConfiguration(String loggerName, LoggingLevel level) {
     }
 }

@@ -99,4 +99,10 @@ public class ReflectionUtils {
         f.setAccessible(true);
         f.set(target, value);
     }
+
+    public static <T> T invoke(Object target, String methodName) throws Exception {
+        Method method = target.getClass().getMethod(methodName);
+        method.setAccessible(true);
+        return (T) method.invoke(target);
+    }
 }

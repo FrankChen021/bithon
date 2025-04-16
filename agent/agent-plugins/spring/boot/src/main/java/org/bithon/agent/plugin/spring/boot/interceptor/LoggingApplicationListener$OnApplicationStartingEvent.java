@@ -16,14 +16,11 @@
 
 package org.bithon.agent.plugin.spring.boot.interceptor;
 
-import org.bithon.agent.controller.AgentControllerService;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.logging.LoggerConfiguration;
-import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.logging.LoggingLevel;
-import org.bithon.component.commons.utils.ReflectionUtils;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
@@ -57,13 +54,13 @@ public class LoggingApplicationListener$OnApplicationStartingEvent extends After
 
         ApplicationEvent event = aopContext.getArgAs(0);
         if (event instanceof ApplicationEnvironmentPreparedEvent) {
-            LoggingSystem loggingSystem = (LoggingSystem) ReflectionUtils.getFieldValue(aopContext.getTarget(), "loggingSystem");
+            //LoggingSystem loggingSystem = (LoggingSystem) ReflectionUtils.getFieldValue(aopContext.getTarget(), "loggingSystem");
 
-            LoggerFactory.getLogger("Agent")
-                         .info("Install logging command");
+            //LoggerFactory.getLogger("Agent")
+            //             .info("Install logging command");
 
-            springBootLoggingCommand = new SpringBootLoggingCommand(loggingSystem);
-            AgentControllerService.getControllerInstance().attachCommands(springBootLoggingCommand);
+            //springBootLoggingCommand = new SpringBootLoggingCommand(loggingSystem);
+            //AgentControllerService.getControllerInstance().attachCommands(springBootLoggingCommand);
         }
     }
 
