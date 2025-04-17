@@ -115,6 +115,10 @@
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
+        <Class name="org.bithon.component.commons.logging.adaptor.jdk.JdkLoggerFactory" />
+        <Bug pattern="LG_LOST_LOGGER_DUE_TO_WEAK_REFERENCE" />
+    </Match>
+    <Match>
         <Class name="org.bithon.component.commons.tracing.Tags$Exception" />
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>

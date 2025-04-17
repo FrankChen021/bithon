@@ -19,11 +19,11 @@ package org.bithon.component.commons.logging.adaptor.slf4j;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
-final class Slf4JLogAdaptor implements ILogAdaptor {
+final class Slf4jLogAdaptor implements ILogAdaptor {
 
     private final Logger logger;
 
-    Slf4JLogAdaptor(Logger logger) {
+    Slf4jLogAdaptor(Logger logger) {
         this.logger = logger;
     }
 

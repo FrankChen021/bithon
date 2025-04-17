@@ -44,7 +44,7 @@ public class Slf4jLogAdaptorFactory implements ILogAdaptorFactory {
         Logger slf4jLogger = org.slf4j.LoggerFactory.getLogger(name);
         return slf4jLogger instanceof LocationAwareLogger
                ? new LocationAwareSlf4jLogAdaptor((LocationAwareLogger) slf4jLogger)
-               : new Slf4JLogAdaptor(slf4jLogger);
+               : new Slf4jLogAdaptor(slf4jLogger);
     }
 
     @Override

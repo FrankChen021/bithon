@@ -84,10 +84,6 @@ public class LogbackAdaptorFactory implements ILogAdaptorFactory {
     }
 
     private static LoggerConfiguration toLoggerConfiguration(Logger logger) {
-        if (logger == null) {
-            return null;
-        }
-
         String name = logger.getName();
         if (!StringUtils.hasText(name) || Logger.ROOT_LOGGER_NAME.equals(name)) {
             name = Logger.ROOT_LOGGER_NAME;
