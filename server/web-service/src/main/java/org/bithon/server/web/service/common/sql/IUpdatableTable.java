@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.agent.sql.table;
+package org.bithon.server.web.service.common.sql;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 
 import java.util.Map;
 

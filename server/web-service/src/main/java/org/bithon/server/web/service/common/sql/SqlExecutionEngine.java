@@ -54,7 +54,6 @@ import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.web.service.agent.sql.table.IUpdatableTable;
 import org.springframework.http.HttpStatus;
 
 import javax.annotation.Nullable;

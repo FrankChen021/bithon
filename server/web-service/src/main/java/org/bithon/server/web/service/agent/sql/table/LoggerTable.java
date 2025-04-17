@@ -28,6 +28,7 @@ import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
+import org.bithon.server.web.service.common.sql.IUpdatableTable;
 import org.bithon.server.web.service.common.sql.SqlExecutionContext;
 import org.springframework.http.HttpStatus;
 
