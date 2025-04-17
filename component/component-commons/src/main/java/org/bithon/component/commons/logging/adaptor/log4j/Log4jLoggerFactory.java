@@ -22,7 +22,6 @@ import org.bithon.component.commons.logging.ILogAdaptorFactory;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
 
-import java.util.Collections;
 import java.util.List;
 
 public class Log4jLoggerFactory implements ILogAdaptorFactory {
@@ -34,10 +33,11 @@ public class Log4jLoggerFactory implements ILogAdaptorFactory {
 
     @Override
     public List<LoggerConfiguration> getLoggerConfigurations() {
-        return Collections.emptyList();
+        throw new UnsupportedOperationException("log4j v1 is not supported");
     }
 
     @Override
     public void setLoggerConfiguration(String loggerName, LoggingLevel level) {
+        throw new UnsupportedOperationException("log4j v1 is not supported");
     }
 }
