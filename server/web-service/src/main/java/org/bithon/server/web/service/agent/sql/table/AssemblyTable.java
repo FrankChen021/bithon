@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcilte.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;

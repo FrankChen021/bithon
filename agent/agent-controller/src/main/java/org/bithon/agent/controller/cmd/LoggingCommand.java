@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.controller.logging;
+package org.bithon.agent.controller.cmd;
 
 
-import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggerFactory;
