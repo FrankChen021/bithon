@@ -29,7 +29,7 @@ public class LoggerFactory {
 
     private static volatile ILogAdaptorFactory adaptorFactory;
 
-    private static ILogAdaptorFactory getLogAdaptorFactory() {
+    public static ILogAdaptorFactory getLogAdaptorFactory() {
         if (adaptorFactory != null) {
             return adaptorFactory;
         }

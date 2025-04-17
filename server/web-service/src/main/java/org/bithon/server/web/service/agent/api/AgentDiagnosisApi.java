@@ -54,12 +54,12 @@ import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
 import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.IPushdownPredicateProvider;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionEngine;
+import org.bithon.server.web.service.common.calcite.SqlExecutionResult;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
 import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
-import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
-import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
@@ -103,11 +103,10 @@ public class AgentDiagnosisApi {
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                             SqlExecutionEngine sqlExecutionEngine,
                              ObjectMapper objectMapper,
                              ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
-        this.sqlExecutionEngine = sqlExecutionEngine;
+        this.sqlExecutionEngine = new SqlExecutionEngine();
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
         this.applicationContext = applicationContext;
         this.discoveredServiceInvoker = discoveredServiceInvoker;
@@ -124,28 +123,29 @@ public class AgentDiagnosisApi {
 
         SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
             SqlNode whereNode;
-            SqlNode from = null;
+            SqlNode tableNode;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
-                from = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
+                tableNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
-                from = ((SqlSelect) (sqlNode)).getFrom();
+                tableNode = ((SqlSelect) (sqlNode)).getFrom();
             } else if (sqlNode.getKind() == SqlKind.UPDATE) {
                 whereNode = ((SqlUpdate) (sqlNode)).getCondition();
+                tableNode = ((SqlUpdate) sqlNode).getTargetTable();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
 
             Map<String, Boolean> pushdownPredicates = Collections.emptyMap();
-            if (from != null) {
-                if (!(from instanceof SqlIdentifier)) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", from.toString());
+            if (tableNode != null) {
+                if (!(tableNode instanceof SqlIdentifier)) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", tableNode.toString());
                 }
 
-                List<String> names = ((SqlIdentifier) from).names;
+                List<String> names = ((SqlIdentifier) tableNode).names;
                 if (names.size() != 2) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", from.toString());
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", tableNode.toString());
                 }
 
                 Schema schema = queryContext.getRootSchema().getSubSchema(names.get(0));

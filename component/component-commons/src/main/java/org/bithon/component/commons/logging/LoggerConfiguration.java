@@ -16,6 +16,8 @@
 
 package org.bithon.component.commons.logging;
 
+import org.bithon.component.commons.utils.Preconditions;
+
 /**
  * This class is defined as pojo because it's used in RPC
  *
@@ -24,12 +26,47 @@ package org.bithon.component.commons.logging;
  */
 public class LoggerConfiguration {
     public String name;
-
     public LoggingLevel level;
-
     public LoggingLevel effectiveLevel;
+
+    public LoggerConfiguration() {
+    }
+
+    public LoggerConfiguration(String name, LoggingLevel level, LoggingLevel effectiveLevel) {
+        this.name = name;
+        this.level = level;
+        this.effectiveLevel = effectiveLevel;
+    }
 
     public Object[] toObjects() {
         return new Object[]{name, level, effectiveLevel};
+    }
+
+    public static class Comparator implements java.util.Comparator<LoggerConfiguration> {
+        public static final Comparator INSTANCE = new Comparator("ROOT");
+
+        private final String rootLoggerName;
+
+        /**
+         * Create a new {@link Comparator} instance.
+         *
+         * @param rootLoggerName the name of the "root" logger
+         */
+        public Comparator(String rootLoggerName) {
+            Preconditions.checkNotNull(rootLoggerName, "RootLoggerName must not be null");
+            this.rootLoggerName = rootLoggerName;
+        }
+
+        @Override
+        public int compare(LoggerConfiguration lhs, LoggerConfiguration rhs) {
+            if (this.rootLoggerName.equals(lhs.name)) {
+                return -1;
+            }
+            if (this.rootLoggerName.equals(rhs.name)) {
+                return 1;
+            }
+            return lhs.name.compareTo(rhs.name);
+        }
+
     }
 }

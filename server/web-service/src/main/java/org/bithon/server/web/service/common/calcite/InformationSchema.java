@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.common.sql;
+package org.bithon.server.web.service.common.calcite;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;

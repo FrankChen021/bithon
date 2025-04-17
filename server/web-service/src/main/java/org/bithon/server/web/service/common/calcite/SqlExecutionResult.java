@@ -14,21 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.agent.sql.table;
+package org.bithon.server.web.service.common.calcite;
 
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rel.type.RelDataTypeField;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/7 20:00
+ * @date 2023/4/8 13:19
  */
-public interface IUpdatableTable {
+public class SqlExecutionResult {
+    public final Enumerable<Object[]> rows;
+    public final List<RelDataTypeField> fields;
 
-    int update(SqlExecutionContext executionContext,
-               IExpression filterExpression,
-               Map<String, Object> newValues);
-
+    public SqlExecutionResult(Enumerable<Object[]> rows, List<RelDataTypeField> fields) {
+        this.rows = rows;
+        this.fields = fields;
+    }
 }

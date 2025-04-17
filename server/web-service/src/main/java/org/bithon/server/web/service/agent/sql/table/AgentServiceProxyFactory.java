@@ -232,6 +232,11 @@ public class AgentServiceProxyFactory {
             //
             List<DiscoveredServiceInstance> connectedController = Collections.synchronizedList(new ArrayList<>());
             List<DiscoveredServiceInstance> controllerList = discoveryServiceInvoker.getInstanceList(IAgentControllerApi.class);
+            if (CollectionUtils.isEmpty(controllerList)) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                                "No controller is found in the service discovery registry");
+            }
+
             CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
             for (DiscoveredServiceInstance controller : controllerList) {
                 discoveryServiceInvoker.getExecutor()

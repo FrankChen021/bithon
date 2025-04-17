@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.common.sql;
+package org.bithon.server.web.service.common.calcite;
 
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlIdentifier;
@@ -50,10 +50,9 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
             return null;
         }
 
-        if (!(expression instanceof LogicalExpression)) {
+        if (!(expression instanceof LogicalExpression logicalExpression)) {
             return expression;
         }
-        LogicalExpression logicalExpression = (LogicalExpression) expression;
         if (!"AND".equals(logicalExpression.getOperator())) {
             return expression;
         }
@@ -83,15 +82,14 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
     }
 
     private static boolean isAlwaysTrue(IExpression expression) {
-        if (expression instanceof BinaryExpression) {
-            BinaryExpression binaryExpression = (BinaryExpression) expression;
+        if (expression instanceof BinaryExpression binaryExpression) {
             IExpression left = binaryExpression.getLhs();
             IExpression right = binaryExpression.getRhs();
             if (left instanceof LiteralExpression && right instanceof LiteralExpression) {
-                return ((LiteralExpression) left).getValue().equals(((LiteralExpression) right).getValue());
+                return ((LiteralExpression<?>) left).getValue().equals(((LiteralExpression<?>) right).getValue());
             }
         } else if (expression instanceof LiteralExpression) {
-            return ((LiteralExpression) expression).getValue().equals(true);
+            return ((LiteralExpression<?>) expression).getValue().equals(true);
         }
         return false;
     }
@@ -104,31 +102,23 @@ public class ExpressionConverter extends SqlBasicVisitor<IExpression> {
             IExpression expression = operand.accept(this);
             operands.add(expression);
         }
-        switch (operator.getKind()) {
-            case AND:
-                return new LogicalExpression.AND(operands);
-            case OR:
-                return new LogicalExpression.OR(operands);
-            case NOT:
+        return switch (operator.getKind()) {
+            case AND -> new LogicalExpression.AND(operands);
+            case OR -> new LogicalExpression.OR(operands);
+            case NOT -> {
                 if (operands.size() != 1) {
                     throw new IllegalArgumentException("NOT operator should have exactly one operand");
                 }
-                return new LogicalExpression.NOT(operands);
-            case EQUALS:
-                return new ComparisonExpression.EQ(operands.get(0), operands.get(1));
-            case NOT_EQUALS:
-                return new ComparisonExpression.NE(operands.get(0), operands.get(1));
-            case GREATER_THAN:
-                return new ComparisonExpression.GT(operands.get(0), operands.get(1));
-            case GREATER_THAN_OR_EQUAL:
-                return new ComparisonExpression.GTE(operands.get(0), operands.get(1));
-            case LESS_THAN:
-                return new ComparisonExpression.LT(operands.get(0), operands.get(1));
-            case LESS_THAN_OR_EQUAL:
-                return new ComparisonExpression.LTE(operands.get(0), operands.get(1));
-            default:
-                throw new IllegalArgumentException("Unknown operator: " + operator);
-        }
+                yield new LogicalExpression.NOT(operands);
+            }
+            case EQUALS -> new ComparisonExpression.EQ(operands.get(0), operands.get(1));
+            case NOT_EQUALS -> new ComparisonExpression.NE(operands.get(0), operands.get(1));
+            case GREATER_THAN -> new ComparisonExpression.GT(operands.get(0), operands.get(1));
+            case GREATER_THAN_OR_EQUAL -> new ComparisonExpression.GTE(operands.get(0), operands.get(1));
+            case LESS_THAN -> new ComparisonExpression.LT(operands.get(0), operands.get(1));
+            case LESS_THAN_OR_EQUAL -> new ComparisonExpression.LTE(operands.get(0), operands.get(1));
+            default -> throw new IllegalArgumentException("Unknown operator: " + operator);
+        };
     }
 
     @Override

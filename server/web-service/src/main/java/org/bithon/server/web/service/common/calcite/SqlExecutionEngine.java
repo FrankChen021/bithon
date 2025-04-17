@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.common.sql;
+package org.bithon.server.web.service.common.calcite;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.util.Casing;
@@ -54,9 +54,7 @@ import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.util.NlsString;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.web.service.agent.sql.table.IUpdatableTable;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -69,7 +67,6 @@ import java.util.function.BiConsumer;
  * @author Frank Chen
  * @date 1/3/23 11:32 am
  */
-@Service
 public class SqlExecutionEngine {
 
     private static final RelOptTable.ViewExpander NOOP_EXPANDER = (rowType, queryString, schemaPath, viewPath) -> null;
@@ -105,10 +102,13 @@ public class SqlExecutionEngine {
 
         // Create an SQL parser to parse the query into AST
         SqlNode sqlNode = SqlParser.create(sql,
-                                           SqlParser.config().withQuotedCasing(Casing.UNCHANGED).withUnquotedCasing(Casing.UNCHANGED))
+                                           SqlParser.config()
+                                                    .withQuotedCasing(Casing.UNCHANGED)
+                                                    .withUnquotedCasing(Casing.UNCHANGED))
                                    .parseQuery();
 
         if (onParsed != null) {
+            // Callers may apply some optimization on the raw AST for example removing 'appName' from the WHERE clause
             onParsed.accept(sqlNode, queryContext);
         }
 
@@ -128,24 +128,23 @@ public class SqlExecutionEngine {
                                                                SqlToRelConverter.config());
         RelNode logicPlan = relConverter.convertQuery(sqlNode, true, true).rel;
 
-        if (sqlNode instanceof SqlUpdate) {
-            SqlUpdate updateNode = (SqlUpdate) sqlNode;
-
-            // Extract the condition from the UPDATE statement
-            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
-
+        if (sqlNode instanceof SqlUpdate updateNode) {
             IUpdatableTable updatableTable = logicPlan.getTable().unwrap(IUpdatableTable.class);
-            if (updatableTable != null) {
-                int totalRows = updatableTable.update(queryContext, filterExpression, getUpdateValues(updateNode));
-                return new SqlExecutionResult(Linq4j.asEnumerable(new Object[][]{{totalRows}}),
-                                              Collections.singletonList(new RelDataTypeFieldImpl("affectedRows",
-                                                                                                 0,
-                                                                                                 catalogReader.getTypeFactory().createSqlType(SqlTypeName.INTEGER))));
-            } else {
+            if (updatableTable == null) {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                                 "Table [%s] does not support UPDATE",
                                                 ((SqlUpdate) sqlNode).getTargetTable().toString());
             }
+
+            // Extract the condition from the UPDATE statement
+            IExpression filterExpression = ExpressionConverter.toExpression(updateNode.getCondition());
+            int totalRows = updatableTable.update(queryContext,
+                                                  filterExpression,
+                                                  getUpdateValues(updateNode));
+            return new SqlExecutionResult(Linq4j.asEnumerable(new Object[][]{{totalRows}}),
+                                          Collections.singletonList(new RelDataTypeFieldImpl("affectedRows",
+                                                                                             0,
+                                                                                             catalogReader.getTypeFactory().createSqlType(SqlTypeName.INTEGER))));
         }
 
         //

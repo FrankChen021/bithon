@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql.table;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -38,8 +38,7 @@ public class JmxBeanTable extends AbstractBaseTable implements IPushdownPredicat
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
-                                                 IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IJvmCommand.class)
                            .getBeans()
                            .stream()
                            .map(IJvmCommand.JmxBean::getObjects)

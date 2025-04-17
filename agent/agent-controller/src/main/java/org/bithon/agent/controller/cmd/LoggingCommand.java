@@ -14,26 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.rpc.brpc.cmd;
+package org.bithon.agent.controller.cmd;
 
-import org.bithon.component.brpc.BrpcService;
-import org.bithon.component.brpc.message.serializer.Serializer;
+
+import org.bithon.agent.rpc.brpc.cmd.ILoggingCommand;
 import org.bithon.component.commons.logging.LoggerConfiguration;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.logging.LoggingLevel;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2023/4/1 21:22
+ * @date 16/4/25 8:30 pm
  */
-@BrpcService(name = "agent.logging", serializer = Serializer.JSON_SMILE)
-public interface ILoggingCommand {
+public class LoggingCommand implements ILoggingCommand, IAgentCommand {
+    @Override
+    public List<LoggerConfiguration> getLoggers() {
+        return LoggerFactory.getLogAdaptorFactory().getLoggerConfigurations();
+    }
 
-    List<LoggerConfiguration> getLoggers();
-
-    /**
-     * @return The number of loggers that have been updated
-     */
-    List<Integer> setLogger(String name, LoggingLevel level);
+    @Override
+    public List<Integer> setLogger(String name, LoggingLevel level) {
+        LoggerFactory.getLogAdaptorFactory().setLoggerConfiguration(name, level);
+        return Collections.singletonList(1);
+    }
 }
