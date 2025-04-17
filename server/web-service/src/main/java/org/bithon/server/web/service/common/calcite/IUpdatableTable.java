@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.common.calcilte;
+package org.bithon.server.web.service.common.calcite;
 
 import org.bithon.component.commons.expression.IExpression;
 

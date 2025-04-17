@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.calcilte.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;
