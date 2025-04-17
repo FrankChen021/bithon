@@ -101,8 +101,9 @@ public class ReflectionUtils {
     }
 
     public static <T> T invoke(Object target, String methodName) throws Exception {
-        Method method = target.getClass().getMethod(methodName);
+        Method method = target.getClass().getDeclaredMethod(methodName);
         method.setAccessible(true);
+        //noinspection unchecked
         return (T) method.invoke(target);
     }
 }

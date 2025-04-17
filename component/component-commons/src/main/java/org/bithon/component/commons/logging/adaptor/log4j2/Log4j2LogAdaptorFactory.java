@@ -18,18 +18,21 @@ package org.bithon.component.commons.logging.adaptor.log4j2;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.slf4j.Log4jLoggerFactory;
+import org.apache.logging.log4j.core.impl.Log4jContextFactory;
+import org.apache.logging.log4j.core.selector.ContextSelector;
+import org.apache.logging.log4j.spi.LoggerContextFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.ILogAdaptorFactory;
 import org.bithon.component.commons.logging.LoggerConfiguration;
 import org.bithon.component.commons.logging.LoggingLevel;
-import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.slf4j.ILoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME;
@@ -43,77 +46,78 @@ public final class Log4j2LogAdaptorFactory implements ILogAdaptorFactory {
 
     @Override
     public List<LoggerConfiguration> getLoggerConfigurations() {
-        return getLoggerConfigurationList(getLoggerContext());
+        return getLoggerConfigurationListImpl();
     }
 
     @Override
     public void setLoggerConfiguration(String loggerName, LoggingLevel level) {
-        setLogConfiguration(getLoggerContext(), loggerName, level);
+        setLogConfigurationImpl(loggerName, level);
     }
 
-    public static void setLogConfiguration(ILoggerFactory loggerFactory, String loggerName, LoggingLevel level) {
-        LoggerContext context;
-        try {
-            Log4jLoggerFactory factory = (Log4jLoggerFactory) loggerFactory;
-            context = ReflectionUtils.invoke(factory, "getContext");
-        } catch (Exception e) {
-            context = getLoggerContext();
-        }
-
-        setLogConfiguration(context, loggerName, level);
-    }
-
-    private static void setLogConfiguration(LoggerContext context, String loggerName, LoggingLevel level) {
-        Level nativeLevel = toNativeLevel(level);
-
+    public static void setLogConfigurationImpl(String loggerName, LoggingLevel level) {
         if (!StringUtils.hasText(loggerName) || ROOT_LOGGER_NAME.equals(loggerName)) {
             loggerName = LogManager.ROOT_LOGGER_NAME;
         }
 
-        LoggerConfig loggerConfig = context.getConfiguration()
-                                           .getLoggers()
-                                           .get(loggerName);
-        if (loggerConfig == null) {
-            loggerConfig = new LoggerConfig(loggerName, nativeLevel, true);
-            context.getConfiguration().addLogger(loggerName, loggerConfig);
+        boolean updated = false;
+        List<LoggerContext> contexts = getLoggerContexts();
+        for (LoggerContext context : contexts) {
+            LoggerConfig loggerConfig = context.getConfiguration()
+                                               .getLoggers()
+                                               .get(loggerName);
+            if (loggerConfig != null) {
+                loggerConfig.setLevel(toNativeLevel(level));
+                context.updateLoggers();
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            return;
+        }
+
+        // Set logger in all contexts if the given logger does not exist in ALL contexts
+        for (LoggerContext context : getLoggerContexts()) {
+            LoggerConfig loggerConfig = context.getConfiguration()
+                                               .getLoggers()
+                                               .get(loggerName);
+            if (loggerConfig == null) {
+                loggerConfig = new LoggerConfig(loggerName, toNativeLevel(level), true);
+                context.getConfiguration().addLogger(loggerName, loggerConfig);
+            } else {
+                loggerConfig.setLevel(toNativeLevel(level));
+            }
+            context.updateLoggers();
+        }
+    }
+
+    public static List<LoggerConfiguration> getLoggerConfigurationListImpl() {
+        return getLoggerContexts().stream()
+                                  .flatMap((context) -> context.getLoggers().stream())
+                                  .map(Log4j2LogAdaptorFactory::toLoggerConfiguration)
+                                  // Merge loggers with the SAME name, return the logger with a higher level
+                                  .collect(Collectors.toMap((logger) -> logger.name, Function.identity(), (lhs, rhs) -> lhs.level.intLevel() > rhs.level.intLevel() ? lhs : rhs))
+                                  .values()
+                                  .stream()
+                                  .sorted(LoggerConfiguration.Comparator.INSTANCE)
+                                  .collect(Collectors.toList());
+    }
+
+    private static List<LoggerContext> getLoggerContexts() {
+        LoggerContextFactory contextFactory = LogManager.getFactory();
+        if (contextFactory instanceof Log4jContextFactory) {
+            Log4jContextFactory factory = (Log4jContextFactory) LogManager.getFactory();
+            ContextSelector selector = factory.getSelector();
+            return selector.getLoggerContexts();
         } else {
-            loggerConfig.setLevel(nativeLevel);
+            LoggerContext context = (LoggerContext) LogManager.getContext(ClassLoader.getSystemClassLoader(), false);
+            return Collections.singletonList(context);
         }
-        context.updateLoggers();
     }
 
-    public static List<LoggerConfiguration> getLoggerConfigurationList(ILoggerFactory loggerFactory) {
-        LoggerContext context;
-        try {
-            Log4jLoggerFactory factory = (Log4jLoggerFactory) loggerFactory;
-            context = ReflectionUtils.invoke(factory, "getContext");
-        } catch (Exception e) {
-            context = getLoggerContext();
-        }
-
-        return getLoggerConfigurationList(context);
-    }
-
-    private static List<LoggerConfiguration> getLoggerConfigurationList(LoggerContext loggerContext) {
-        return loggerContext.getConfiguration()
-                            .getLoggers()
-                            .values()
-                            .stream()
-                            .map(Log4j2LogAdaptorFactory::toLoggerConfiguration)
-                            .sorted(LoggerConfiguration.Comparator.INSTANCE)
-                            .collect(Collectors.toList());
-    }
-
-    private static LoggerContext getLoggerContext() {
-        return (LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-    }
-
-    private static LoggerConfiguration toLoggerConfiguration(LoggerConfig loggerConfig) {
-        if (loggerConfig == null) {
-            return null;
-        }
-        LoggingLevel level = toLoggingLevel(loggerConfig.getLevel());
-        String name = loggerConfig.getName();
+    private static LoggerConfiguration toLoggerConfiguration(Logger logger) {
+        LoggingLevel level = toLoggingLevel(logger.getLevel());
+        String name = logger.getName();
         if (!StringUtils.hasText(name) || ROOT_LOGGER_NAME.equals(name)) {
             name = ROOT_LOGGER_NAME;
         }

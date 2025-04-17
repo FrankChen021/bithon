@@ -21,6 +21,21 @@ package org.bithon.component.commons.logging;
  * @date 2023/4/1 20:19
  */
 public enum LoggingLevel {
-    TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
-}
+    OFF(0),
+    TRACE(1),
+    DEBUG(2),
+    INFO(3),
+    WARN(4),
+    ERROR(5),
+    FATAL(6);
 
+    private final int intLevel;
+
+    LoggingLevel(int intLevel) {
+        this.intLevel = intLevel;
+    }
+
+    public int intLevel() {
+        return intLevel;
+    }
+}

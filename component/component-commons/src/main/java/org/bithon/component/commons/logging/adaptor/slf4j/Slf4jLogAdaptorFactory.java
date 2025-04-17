@@ -56,7 +56,7 @@ public class Slf4jLogAdaptorFactory implements ILogAdaptorFactory {
             case "ch.qos.logback.classic.LoggerContext":
                 return LogbackAdaptorFactory.getLoggerConfigurationList(loggerFactory);
             case "org.apache.logging.slf4j.Log4jLoggerFactory":
-                return Log4j2LogAdaptorFactory.getLoggerConfigurationList(loggerFactory);
+                return Log4j2LogAdaptorFactory.getLoggerConfigurationListImpl();
             default:
                 throw new UnsupportedOperationException(StringUtils.format("Unsupported logger factory %s", loggerFactory.getClass().getName()));
         }
@@ -73,7 +73,7 @@ public class Slf4jLogAdaptorFactory implements ILogAdaptorFactory {
                 break;
 
             case "org.apache.logging.slf4j.Log4jLoggerFactory":
-                Log4j2LogAdaptorFactory.setLogConfiguration(loggerFactory, loggerName, level);
+                Log4j2LogAdaptorFactory.setLogConfigurationImpl(loggerName, level);
                 break;
 
             default:
