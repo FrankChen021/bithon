@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@IntervalRequestValidator
 public class IntervalRequest {
     @NotBlank
     private String startISO8601;
