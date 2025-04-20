@@ -31,6 +31,7 @@ import java.util.List;
 class SelectStatementPipeline {
     final SelectStatement aggregation = new SelectStatement();
     SelectStatement windowAggregation;
+    SelectStatement slidingWindowAggregation;
     SelectStatement postAggregation;
     SelectStatement outermost;
     SelectStatement innermost;
@@ -38,12 +39,19 @@ class SelectStatementPipeline {
     int nestIndex = 0;
 
     public void chain(ISqlDialect sqlDialect) {
+        // chain SELECT statement as a pipeline in reverse order,
+        // which means the first SELECT statement is the innermost one
         List<SelectStatement> pipelines = new ArrayList<>();
+
         if (windowAggregation != null) {
             pipelines.add(windowAggregation);
         }
 
         pipelines.add(aggregation);
+
+        if (slidingWindowAggregation != null) {
+            pipelines.add(slidingWindowAggregation);
+        }
 
         if (postAggregation != null) {
             pipelines.add(postAggregation);

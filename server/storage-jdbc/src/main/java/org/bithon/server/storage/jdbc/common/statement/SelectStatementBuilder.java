@@ -81,6 +81,12 @@ public class SelectStatementBuilder {
 
     private ISqlDialect sqlDialect;
 
+    private boolean hasSlidingWindowAggregation() {
+        return interval.getWindow() != null &&
+               interval.getStep() != null
+               && interval.getWindow().getDuration().getSeconds() != interval.getStep().getSeconds();
+    }
+
     public static SelectStatementBuilder builder() {
         return new SelectStatementBuilder();
     }
@@ -392,7 +398,8 @@ public class SelectStatementBuilder {
             });
         }
 
-        // Round 1, determine aggregation steps
+        // Round 1, Determine if there's a post aggregation step
+        // For example: round(sum(a)/sum(b), 2) the `round` function will be put in the post aggregation step
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression expression) {
@@ -526,6 +533,34 @@ public class SelectStatementBuilder {
             }
         }
 
+        // Add a sliding window aggregation step if WINDOW and INTERVAL are different
+        if (hasSlidingWindowAggregation()) {
+            SelectStatement slidingWindowAggregation = new SelectStatement();
+
+            // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
+            List<Selector> aggregatedSelectors = new ArrayList<>(pipeline.aggregation.getSelectorList().getSelectors());
+            if (pipeline.windowAggregation != null) {
+                aggregatedSelectors.addAll(pipeline.windowAggregation.getSelectorList().getSelectors());
+            }
+            for (Selector selector : aggregatedSelectors) {
+                //selector.getOutput().getName()
+                String name = selector.getOutputName();
+                if (selector.getSelectExpression() instanceof Column) {
+                    slidingWindowAggregation.getSelectorList().add(new Column(name), IDataType.STRING);
+                } else {
+                }
+            }
+
+            // The sliding window aggregation is performed on aggregated step which already on floored timestamp,
+            // So we need to floor the start timestamp to make sure time range is correct.
+            // Since the end timestamp is EXCLUSIVE, there's no need to floor it.
+            slidingWindowAggregation.getWhere().and(toTimestampFilter(new IdentifierExpression(TimestampSpec.COLUMN_ALIAS),
+                                                                      interval.getStartTime().floor(interval.getStep()),
+                                                                      interval.getEndTime()));
+
+            pipeline.slidingWindowAggregation = slidingWindowAggregation;
+        }
+
         //
         // Chain the pipelines together
         //
@@ -560,17 +595,11 @@ public class SelectStatementBuilder {
     }
 
     private void buildWhere(SelectStatementPipeline pipeline) {
-        IExpression timestampExpression = this.interval.getTimestampColumn();
-
-        TimeSpan start = interval.getStartTime();
-        TimeSpan end = interval.getEndTime();
-        if (this.offset != null) {
-            // The offset is negative, use '-' to turn into positive
-            start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
-            end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
-        }
-        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(start)));
-        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(end)));
+        // Extend the time range for sliding window
+        // so that the sliding window calculation of first record is correct
+        TimeSpan start = hasSlidingWindowAggregation() ? interval.getStartTime().before(interval.getWindow().getDuration()) : interval.getStartTime();
+        pipeline.innermost.getWhere()
+                          .and(toTimestampFilter(this.interval.getTimestampColumn(), start, interval.getEndTime()));
 
         if (filter == null) {
             return;
@@ -637,6 +666,10 @@ public class SelectStatementBuilder {
 
             pipeline.aggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
 
+            if (pipeline.slidingWindowAggregation != null) {
+                pipeline.slidingWindowAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
+            }
+
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
             }
@@ -665,11 +698,32 @@ public class SelectStatementBuilder {
                 pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
             }
 
+            if (pipeline.slidingWindowAggregation != null) {
+                pipeline.slidingWindowAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
+            }
+
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
             }
         }
+    }
+
+    /**
+     * @param start INCLUSIVE
+     * @param end   EXCLUSIVE
+     */
+    private IExpression[] toTimestampFilter(IExpression timestampColumn, TimeSpan start, TimeSpan end) {
+        if (this.offset != null) {
+            // The offset is negative, use '-' to turn into positive
+            start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+            end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+        }
+
+        return new IExpression[]{
+            new ComparisonExpression.GTE(timestampColumn, sqlDialect.toTimestampExpression(start)),
+            new ComparisonExpression.LT(timestampColumn, sqlDialect.toTimestampExpression(end))
+        };
     }
 
     static class QualifyExpressionTransformer extends AbstractOptimizer {

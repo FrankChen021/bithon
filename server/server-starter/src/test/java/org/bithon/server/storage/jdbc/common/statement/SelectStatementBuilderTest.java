@@ -59,6 +59,9 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
+ *  The test cases are located in this module because it has dependencies on concrete DB implementations.
+ *  And server-starter is the right module that depends on all DB implementations.
+ *
  * @author frank.chen021@outlook.com
  * @date 26/7/24 10:44 am
  */
@@ -131,13 +134,9 @@ public class SelectStatementBuilderTest {
     public void testSimpleAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "sum(totalCount)"), new Alias("t"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("t"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .schema(schema)
                                                                 .build();
@@ -174,12 +173,12 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       sum("totalCount" * 2) AS "t"
-                                FROM "bithon_jvm_metrics"
-                                WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                GROUP BY "appName"
-                                """.trim(),
+                                    SELECT "appName",
+                                           sum("totalCount" * 2) AS "t"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                    GROUP BY "appName"
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -235,20 +234,20 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         sum("totalCount") AS "totalCount",
-                                         sum("responseTime" * 2) AS "_var0"
-                                  FROM "bithon_jvm_metrics"
-                                  WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                  GROUP BY "appName", "instanceName"
-                                )
-                                """.trim(),
+                                    SELECT "appName",
+                                           "instanceName",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime" * 2) AS "_var0"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "appName", "instanceName"
+                                    )
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -273,20 +272,20 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       round(round(CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END, 2), 2) AS "avg"
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         sum("totalCount") AS "totalCount",
-                                         sum("responseTime") AS "responseTime"
-                                  FROM "bithon_jvm_metrics"
-                                  WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                  GROUP BY "appName", "instanceName"
-                                )
-                                """.trim(),
+                                    SELECT "appName",
+                                           "instanceName",
+                                           round(round(CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END, 2), 2) AS "avg"
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime") AS "responseTime"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "appName", "instanceName"
+                                    )
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -294,18 +293,11 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "sum(responseTime)/sum(totalCount)"),
-                                                                                                               new Alias(
-                                                                                                                   "avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800"),
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression(
-                                                                                          "timestamp")))
+                                                                                      new IdentifierExpression("timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
@@ -314,22 +306,69 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "_timestamp",
-                                       "appName",
-                                       "instanceName",
-                                       CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avg"
-                                FROM
-                                (
-                                  SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
-                                         "appName",
-                                         "instanceName",
-                                         sum("totalCount") AS "totalCount",
-                                         sum("responseTime") AS "responseTime"
-                                  FROM "bithon_jvm_metrics"
-                                  WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                  GROUP BY "appName", "instanceName", "_timestamp"
-                                )
-                                """.trim(),
+                                    SELECT "_timestamp",
+                                           "appName",
+                                           "instanceName",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avg"
+                                    FROM
+                                    (
+                                      SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+                                             "appName",
+                                             "instanceName",
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime") AS "responseTime"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "appName", "instanceName", "_timestamp"
+                                    )
+                                    """.trim(),
+                                sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostAggregation_TimeSeries_DifferentWindowAndInterval() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      // 5 minutes window
+                                                                                      HumanReadableDuration.parse("5m"),
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .groupBy(List.of("appName", "instanceName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        selectStatement.accept(sqlGenerator);
+
+        Assertions.assertEquals("""
+                                    SELECT "_timestamp",
+                                           "appName",
+                                           "instanceName",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avg"
+                                    FROM
+                                    (
+                                      SELECT "_timestamp",
+                                             "appName",
+                                             "instanceName",
+                                             sum("totalCount") OVER (PARTITION BY uri ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
+                                             sum("responseTime") OVER (PARTITION BY uri ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
+                                      FROM
+                                      (
+                                        SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+                                               "appName",
+                                               "instanceName",
+                                               sum("totalCount") AS "totalCount",
+                                               sum("responseTime") AS "responseTime"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
+                                        GROUP BY "appName", "instanceName", "_timestamp"
+                                      )
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
+                                    )
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -340,12 +379,9 @@ public class SelectStatementBuilderTest {
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
                                                                     "round(sum(responseTime)/sum(totalCount), 2)"),
-                                                                                                               new Alias(
-                                                                                                                   "avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                                                               new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
@@ -354,20 +390,20 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       round(CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END, 2) AS "avg"
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         sum("totalCount") AS "totalCount",
-                                         sum("responseTime") AS "responseTime"
-                                  FROM "bithon_jvm_metrics"
-                                  WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                  GROUP BY "appName", "instanceName"
-                                )
-                                """.trim(),
+                                    SELECT "appName",
+                                           "instanceName",
+                                           round(CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END, 2) AS "avg"
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime") AS "responseTime"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "appName", "instanceName"
+                                    )
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -457,10 +493,8 @@ public class SelectStatementBuilderTest {
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
                                                                     "first(activeThreads)"), new Alias("a"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
@@ -469,13 +503,13 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       argMin("activeThreads", "timestamp") AS "a"
-                                FROM "bithon_jvm_metrics"
-                                WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                GROUP BY "appName", "instanceName"
-                                """.trim(),
+                                    SELECT "appName",
+                                           "instanceName",
+                                           argMin("activeThreads", "timestamp") AS "a"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName", "instanceName"
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -530,10 +564,8 @@ public class SelectStatementBuilderTest {
                                                                     "first(activeThreads)/sum(totalThreads)"),
                                                                                                                new Alias(
                                                                                                                    "ratio"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("timestamp")
@@ -546,28 +578,28 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       CASE WHEN ( "totalThreads" <> 0 ) THEN ( "activeThreads" / "totalThreads" ) ELSE ( 0 ) END AS "ratio"
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         sum("totalThreads") AS "totalThreads",
-                                         "activeThreads"
-                                  FROM
-                                  (
                                     SELECT "appName",
                                            "instanceName",
-                                           FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
-                                           "totalThreads"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                  )
-                                  GROUP BY "appName", "instanceName", "activeThreads"
-                                )
-                                ORDER BY "timestamp" asc
-                                """.trim(),
+                                           CASE WHEN ( "totalThreads" <> 0 ) THEN ( "activeThreads" / "totalThreads" ) ELSE ( 0 ) END AS "ratio"
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             sum("totalThreads") AS "totalThreads",
+                                             "activeThreads"
+                                      FROM
+                                      (
+                                        SELECT "appName",
+                                               "instanceName",
+                                               FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
+                                               "totalThreads"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      )
+                                      GROUP BY "appName", "instanceName", "activeThreads"
+                                    )
+                                    ORDER BY "timestamp" asc
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -596,21 +628,21 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT "appName",
-                                       "instanceName",
-                                       "activeThreads" / "totalThreads" AS "ratio"
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         argMin("activeThreads", "timestamp") AS "activeThreads",
-                                         sum("totalThreads") AS "totalThreads"
-                                  FROM "bithon_jvm_metrics"
-                                  WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                  GROUP BY "appName", "instanceName"
-                                )
-                                ORDER BY "timestamp" asc
-                                """.trim(),
+                                    SELECT "appName",
+                                           "instanceName",
+                                           "activeThreads" / "totalThreads" AS "ratio"
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             argMin("activeThreads", "timestamp") AS "activeThreads",
+                                             sum("totalThreads") AS "totalThreads"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                      GROUP BY "appName", "instanceName"
+                                    )
+                                    ORDER BY "timestamp" asc
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -689,28 +721,28 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT `appName`,
-                                       `instanceName`,
-                                       `totalThreads` - `activeThreads` AS `daemon`
-                                FROM
-                                (
-                                  SELECT `appName`,
-                                         `instanceName`,
-                                         sum(`totalThreads`) AS `totalThreads`,
-                                         `activeThreads`
-                                  FROM
-                                  (
                                     SELECT `appName`,
                                            `instanceName`,
-                                           FIRST_VALUE(`activeThreads`) OVER (partition by UNIX_TIMESTAMP(`timestamp`) div 600 * 600 ORDER BY `timestamp`) AS `activeThreads`,
-                                           `totalThreads`
-                                    FROM `bithon_jvm_metrics`
-                                    WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00')
-                                  ) AS `tbl0`
-                                  GROUP BY `appName`, `instanceName`, `activeThreads`
-                                ) AS `tbl1`
-                                ORDER BY `timestamp` asc
-                                """.trim(),
+                                           `totalThreads` - `activeThreads` AS `daemon`
+                                    FROM
+                                    (
+                                      SELECT `appName`,
+                                             `instanceName`,
+                                             sum(`totalThreads`) AS `totalThreads`,
+                                             `activeThreads`
+                                      FROM
+                                      (
+                                        SELECT `appName`,
+                                               `instanceName`,
+                                               FIRST_VALUE(`activeThreads`) OVER (partition by UNIX_TIMESTAMP(`timestamp`) div 600 * 600 ORDER BY `timestamp`) AS `activeThreads`,
+                                               `totalThreads`
+                                        FROM `bithon_jvm_metrics`
+                                        WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00')
+                                      ) AS `tbl0`
+                                      GROUP BY `appName`, `instanceName`, `activeThreads`
+                                    ) AS `tbl1`
+                                    ORDER BY `timestamp` asc
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -913,25 +945,25 @@ public class SelectStatementBuilderTest {
         selectStatement.accept(sqlGenerator);
 
         Assertions.assertEquals("""
-                                SELECT *
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
-                                  FROM
-                                  (
-                                    SELECT "appName",
-                                           "instanceName",
-                                           sum("totalCount") AS "totalCount",
-                                           sum("responseTime" * 2) AS "_var0"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
-                                    GROUP BY "appName", "instanceName"
-                                  )
-                                )
-                                WHERE "avg" > 0.2
-                                """.trim(),
+                                    SELECT *
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
+                                      FROM
+                                      (
+                                        SELECT "appName",
+                                               "instanceName",
+                                               sum("totalCount") AS "totalCount",
+                                               sum("responseTime" * 2) AS "_var0"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
+                                        GROUP BY "appName", "instanceName"
+                                      )
+                                    )
+                                    WHERE "avg" > 0.2
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -1033,26 +1065,26 @@ public class SelectStatementBuilderTest {
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
-                                SELECT *
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         "totalCount",
-                                         CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avgResponseTime"
-                                  FROM
-                                  (
-                                    SELECT "appName",
-                                           "instanceName",
-                                           sum("totalCount") AS "totalCount",
-                                           sum("responseTime") AS "responseTime"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                    GROUP BY "appName", "instanceName"
-                                  )
-                                )
-                                WHERE "avgResponseTime" > 5.0
-                                """.trim(),
+                                    SELECT *
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             "totalCount",
+                                             CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avgResponseTime"
+                                      FROM
+                                      (
+                                        SELECT "appName",
+                                               "instanceName",
+                                               sum("totalCount") AS "totalCount",
+                                               sum("responseTime") AS "responseTime"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                        GROUP BY "appName", "instanceName"
+                                      )
+                                    )
+                                    WHERE "avgResponseTime" > 5.0
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 
@@ -1082,26 +1114,26 @@ public class SelectStatementBuilderTest {
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
-                                SELECT *
-                                FROM
-                                (
-                                  SELECT "appName",
-                                         "instanceName",
-                                         "totalCount",
-                                         "responseTime" / "totalCount" AS "avgResponseTime"
-                                  FROM
-                                  (
-                                    SELECT "appName",
-                                           "instanceName",
-                                           sum("totalCount") AS "totalCount",
-                                           sum("responseTime") AS "responseTime"
-                                    FROM "bithon_jvm_metrics"
-                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                    GROUP BY "appName", "instanceName"
-                                  )
-                                )
-                                WHERE "avgResponseTime" > 5.0
-                                """.trim(),
+                                    SELECT *
+                                    FROM
+                                    (
+                                      SELECT "appName",
+                                             "instanceName",
+                                             "totalCount",
+                                             "responseTime" / "totalCount" AS "avgResponseTime"
+                                      FROM
+                                      (
+                                        SELECT "appName",
+                                               "instanceName",
+                                               sum("totalCount") AS "totalCount",
+                                               sum("responseTime") AS "responseTime"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                        GROUP BY "appName", "instanceName"
+                                      )
+                                    )
+                                    WHERE "avgResponseTime" > 5.0
+                                    """.trim(),
                                 sqlGenerator.getSQL());
     }
 

@@ -38,6 +38,17 @@ public class WhereClause implements IASTNode {
         return this;
     }
 
+    public WhereClause and(IExpression... expressions) {
+        if (expressions != null) {
+            for (IExpression expression : expressions) {
+                if (expression != null) {
+                    this.expressions.add(expression);
+                }
+            }
+        }
+        return this;
+    }
+
     public boolean isEmpty() {
         return expressions.isEmpty();
     }
