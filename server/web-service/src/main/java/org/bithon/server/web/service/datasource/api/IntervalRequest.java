@@ -64,5 +64,9 @@ public class IntervalRequest {
      */
     private Integer step;
 
+    /**
+     * Can be null. If null, the step is the same as the window
+     */
+    @Nullable
     private HumanReadableDuration window;
 }

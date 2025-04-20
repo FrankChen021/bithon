@@ -33,6 +33,9 @@ public class Interval {
     private final TimeSpan startTime;
     private final TimeSpan endTime;
 
+    /**
+     * Can be null. If null, the step is the same as the window
+     */
     private final HumanReadableDuration window;
 
     /**
