@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -537,18 +539,22 @@ public class SelectStatementBuilder {
         if (hasSlidingWindowAggregation()) {
             SelectStatement slidingWindowAggregation = new SelectStatement();
 
-            // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
-            List<Selector> aggregatedSelectors = new ArrayList<>(pipeline.aggregation.getSelectorList().getSelectors());
-            if (pipeline.windowAggregation != null) {
-                aggregatedSelectors.addAll(pipeline.windowAggregation.getSelectorList().getSelectors());
+            String partitionBy = this.groupBy.stream().map((groupBy) -> sqlDialect.quoteIdentifier(groupBy)).collect(Collectors.joining(", "));
+            if (!partitionBy.isEmpty()) {
+                partitionBy = "PARTITION BY " + partitionBy + " ";
             }
-            for (Selector selector : aggregatedSelectors) {
-                //selector.getOutput().getName()
-                String name = selector.getOutputName();
-                if (selector.getSelectExpression() instanceof Column) {
-                    slidingWindowAggregation.getSelectorList().add(new Column(name), IDataType.STRING);
-                } else {
-                }
+
+            // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
+            for (Aggregator aggregator : aggregators.aggregators) {
+                //aggregator.output
+                String windowFunction = StringUtils.format("%s(%s) OVER (%sORDER BY %s ASC RANGE BETWEEN %d PRECEDING AND 0 FOLLOWING) AS %s",
+                                                           aggregator.aggregateFunction.getFunction().getName(),
+                                                           sqlDialect.quoteIdentifier(aggregator.output),
+                                                           partitionBy,
+                                                           sqlDialect.quoteIdentifier(TimestampSpec.COLUMN_ALIAS),
+                                                           interval.getWindow().getDuration().getSeconds(),
+                                                           sqlDialect.quoteIdentifier(aggregator.output));
+                slidingWindowAggregation.getSelectorList().add(new TextNode(windowFunction), IDataType.DOUBLE);
             }
 
             // The sliding window aggregation is performed on aggregated step which already on floored timestamp,
@@ -556,7 +562,8 @@ public class SelectStatementBuilder {
             // Since the end timestamp is EXCLUSIVE, there's no need to floor it.
             slidingWindowAggregation.getWhere().and(toTimestampFilter(new IdentifierExpression(TimestampSpec.COLUMN_ALIAS),
                                                                       interval.getStartTime().floor(interval.getStep()),
-                                                                      interval.getEndTime()));
+                                                                      interval.getEndTime(),
+                                                                      false));
 
             pipeline.slidingWindowAggregation = slidingWindowAggregation;
         }
@@ -599,7 +606,7 @@ public class SelectStatementBuilder {
         // so that the sliding window calculation of first record is correct
         TimeSpan start = hasSlidingWindowAggregation() ? interval.getStartTime().before(interval.getWindow().getDuration()) : interval.getStartTime();
         pipeline.innermost.getWhere()
-                          .and(toTimestampFilter(this.interval.getTimestampColumn(), start, interval.getEndTime()));
+                          .and(toTimestampFilter(this.interval.getTimestampColumn(), start, interval.getEndTime(), true));
 
         if (filter == null) {
             return;
@@ -713,7 +720,7 @@ public class SelectStatementBuilder {
      * @param start INCLUSIVE
      * @param end   EXCLUSIVE
      */
-    private IExpression[] toTimestampFilter(IExpression timestampColumn, TimeSpan start, TimeSpan end) {
+    private IExpression[] toTimestampFilter(IExpression timestampColumn, TimeSpan start, TimeSpan end, boolean useTimestampText) {
         if (this.offset != null) {
             // The offset is negative, use '-' to turn into positive
             start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
@@ -721,9 +728,9 @@ public class SelectStatementBuilder {
         }
 
         return new IExpression[]{
-            new ComparisonExpression.GTE(timestampColumn, sqlDialect.toTimestampExpression(start)),
-            new ComparisonExpression.LT(timestampColumn, sqlDialect.toTimestampExpression(end))
-        };
+            new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
+            new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
+            };
     }
 
     static class QualifyExpressionTransformer extends AbstractOptimizer {

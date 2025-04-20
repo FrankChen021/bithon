@@ -326,7 +326,7 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
-    public void testPostAggregation_TimeSeries_DifferentWindowAndInterval() {
+    public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_HasGroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
@@ -353,8 +353,8 @@ public class SelectStatementBuilderTest {
                                       SELECT "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             sum("totalCount") OVER (PARTITION BY uri ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
-                                             sum("responseTime") OVER (PARTITION BY uri ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
+                                             sum("totalCount") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
+                                             sum("responseTime") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
                                       FROM
                                       (
                                         SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
@@ -366,7 +366,47 @@ public class SelectStatementBuilderTest {
                                         WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
                                         GROUP BY "appName", "instanceName", "_timestamp"
                                       )
-                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
+                                      WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000725)
+                                    )
+                                    """.trim(),
+                                sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_NoGroupBy() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      // 5 minutes window
+                                                                                      HumanReadableDuration.parse("5m"),
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .schema(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        selectStatement.accept(sqlGenerator);
+
+        Assertions.assertEquals("""
+                                    SELECT "_timestamp",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avg"
+                                    FROM
+                                    (
+                                      SELECT "_timestamp",
+                                             sum("totalCount") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
+                                             sum("responseTime") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
+                                      FROM
+                                      (
+                                        SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+                                               sum("totalCount") AS "totalCount",
+                                               sum("responseTime") AS "responseTime"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
+                                        GROUP BY "_timestamp"
+                                      )
+                                      WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000725)
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
