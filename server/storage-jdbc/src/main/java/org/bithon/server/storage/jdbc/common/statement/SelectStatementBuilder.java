@@ -86,7 +86,7 @@ public class SelectStatementBuilder {
     private boolean hasSlidingWindowAggregation() {
         return interval.getWindow() != null &&
                interval.getStep() != null
-               && interval.getWindow().getDuration().getSeconds() != interval.getStep().getSeconds();
+               && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
     }
 
     public static SelectStatementBuilder builder() {

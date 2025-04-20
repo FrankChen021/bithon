@@ -18,6 +18,7 @@ package org.bithon.server.metric.expression.evaluator;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -48,10 +49,23 @@ public class MetricExpressionEvaluator implements IEvaluator {
     public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
-        this.isScalar = CollectionUtils.isEmpty(queryRequest.getGroupBy())
-                        && (queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1
-                            // TODO: judge with STEP and INTERVAL LENGTH
-                        );
+        this.isScalar = computeIsScalar(queryRequest);
+    }
+
+    private boolean computeIsScalar(QueryRequest queryRequest) {
+        if (!CollectionUtils.isEmpty(queryRequest.getGroupBy())) {
+            return false;
+        }
+
+        TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
+        long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
+
+        if ((queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1)
+            || (queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
