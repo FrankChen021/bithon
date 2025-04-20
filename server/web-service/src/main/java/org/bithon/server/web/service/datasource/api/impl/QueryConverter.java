@@ -54,7 +54,12 @@ public class QueryConverter {
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
                                 boolean groupByTimestamp) {
-
+        if (query.getInterval().getWindow() != null && query.getInterval().getStep() != null) {
+            Preconditions.checkIfTrue(query.getInterval().getWindow().getDuration().getSeconds() >= query.getInterval().getStep(),
+                                      "The window parameter (%s) in the request is less than the step parameter (%d).",
+                                      query.getInterval().getWindow(),
+                                      query.getInterval().getStep());
+        }
         validateQueryRequest(schema, query);
 
         Query.QueryBuilder builder = Query.builder();
