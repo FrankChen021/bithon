@@ -53,19 +53,20 @@ public class MetricExpressionEvaluator implements IEvaluator {
     }
 
     private boolean computeIsScalar(QueryRequest queryRequest) {
-        if (!CollectionUtils.isEmpty(queryRequest.getGroupBy())) {
+        if (CollectionUtils.isNotEmpty(queryRequest.getGroupBy())) {
+            // If GROUP-BY is not empty, obviously it is not a scalar because the result set contains multiple rows for different groups
             return false;
+        }
+
+        if (queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1) {
+            // ONLY one bucket is requested, the result set is a scalar
+            return true;
         }
 
         TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
         long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
-
-        if ((queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1)
-            || (queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength)) {
-            return true;
-        }
-        return false;
+        return queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength;
     }
 
     @Override
