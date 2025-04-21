@@ -493,7 +493,7 @@ public class SelectStatementBuilder {
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize((IExpression) aggregator.aggregateFunction)), aggregator.output, IDataType.DOUBLE)
+                                    .add(new Expression(aggregator.aggregateFunction), aggregator.output, IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
