@@ -20,27 +20,21 @@ package org.bithon.server.storage.jdbc.common.statement;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.metrics.Interval;
-
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 12/4/25 9:57 am
  */
 class Expression2SqlSerializer extends Expression2Sql {
-    protected final Map<String, Object> variables;
     private long windowFunctionLength;
 
-    Expression2SqlSerializer(ISqlDialect sqlDialect, Map<String, Object> variables, Interval interval) {
+    Expression2SqlSerializer(ISqlDialect sqlDialect, Interval interval) {
         super(null, sqlDialect);
-        this.variables = variables;
 
         if (interval != null) {
             if (interval.getStep() != null) {
@@ -63,18 +57,8 @@ class Expression2SqlSerializer extends Expression2Sql {
     @Override
     public String serialize(IExpression expression) {
         // Apply optimization for different DBMS first
-        sqlDialect.transform(null, expression).serializeToText(this);
+        expression.serializeToText(this);
         return sb.toString();
-    }
-
-    @Override
-    public void serialize(MacroExpression expression) {
-        Object variableValue = variables.get(expression.getMacro());
-        if (variableValue == null) {
-            throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
-                                                          expression.getMacro()));
-        }
-        sb.append(variableValue);
     }
 
     @Override

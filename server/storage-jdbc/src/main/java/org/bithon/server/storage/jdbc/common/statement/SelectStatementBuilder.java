@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.utils.HumanReadableDuration;
@@ -42,6 +43,7 @@ import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.LimitClause;
 import org.bithon.server.storage.datasource.query.ast.OrderByClause;
+import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
@@ -362,8 +364,7 @@ public class SelectStatementBuilder {
     public SelectStatement build() {
         VariableName var = new VariableName("_var");
 
-        Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
-                                            "instanceCount", StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName")));
+        MacroExpressionSubstitution macroExpressionSubstitution = new MacroExpressionSubstitution(interval);
 
         SelectStatementPipeline pipeline = new SelectStatementPipeline();
 
@@ -407,9 +408,6 @@ public class SelectStatementBuilder {
             if (selectExpression instanceof Expression expression) {
                 IExpression parsedExpression = expression.getParsedExpression();
 
-                // Apply dialect's transformation first
-                expression.setParsedExpression(sqlDialect.transform(this.schema, parsedExpression));
-
                 if (parsedExpression instanceof FunctionExpression functionExpression) {
                     if (!functionExpression.getFunction().isAggregator()) {
                         pipeline.postAggregation = new SelectStatement();
@@ -427,6 +425,11 @@ public class SelectStatementBuilder {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression) {
                 IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
+
+                // Replace Macro expressions
+                // Don't merge this replacement with the following aggregator replacement
+                // Because the macro replacement may contain function call expression which needs to be processed by the following optimizer
+                parsedExpression = parsedExpression.accept(macroExpressionSubstitution);
 
                 // Replace all aggregator functions, examples:
                 // Case 1: sum(a) ===> a
@@ -450,12 +453,19 @@ public class SelectStatementBuilder {
                             // If there's no post-aggregation, the output should be the same as the input
                             output = selector.getOutputName();
                         } else {
-                            if (inputArg instanceof IdentifierExpression) {
-                                output = ((IdentifierExpression) inputArg).getIdentifier();
+                            if (functionCallExpression.getFunction() instanceof QueryStageFunctions.Cardinality) {
+                                // the default converted expression for  cardinality(a) is count(distinct a) as a,
+                                // where a usually is a string column which might cause the generated SQL confusion for debugging
+                                // So we generate a new name for the output
+                                output = "cardinality" + var.next();
                             } else {
-                                // This might be the form: sum(a+b)
-                                // Is there such input: sum(round(a/b,2))
-                                output = var.next();
+                                if (inputArg instanceof IdentifierExpression) {
+                                    output = ((IdentifierExpression) inputArg).getIdentifier();
+                                } else {
+                                    // This might be the form: sum(a+b)
+                                    // Is there such input: sum(round(a/b,2))
+                                    output = var.next();
+                                }
                             }
                         }
                         aggregators.add(functionCallExpression, output);
@@ -528,7 +538,7 @@ public class SelectStatementBuilder {
                                                 .setTag(true);
                     } else {
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput(), IDataType.STRING)
+                                                .add(new Expression(parsedExpression), selector.getOutput(), IDataType.STRING)
                                                 .setTag(true);
                     }
                 }
@@ -582,6 +592,24 @@ public class SelectStatementBuilder {
 
         // returns the outermost pipeline
         return pipeline.outermost;
+    }
+
+    static class MacroExpressionSubstitution extends AbstractOptimizer {
+        private final Map<String, IExpression> macros;
+
+        MacroExpressionSubstitution(Interval interval) {
+            this.macros = Map.of("interval", LiteralExpression.ofLong(interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds()),
+                                 "instanceCount", new FunctionExpression(new QueryStageFunctions.Cardinality(), new IdentifierExpression("instanceName")));
+        }
+
+        @Override
+        public IExpression visit(MacroExpression expression) {
+            IExpression replacement = macros.get(expression.getMacro());
+            if (replacement == null) {
+                throw new RuntimeException(StringUtils.format("variable (%s) not provided in context", expression.getMacro()));
+            }
+            return replacement;
+        }
     }
 
     private void buildLimit(SelectStatementPipeline pipeline) {

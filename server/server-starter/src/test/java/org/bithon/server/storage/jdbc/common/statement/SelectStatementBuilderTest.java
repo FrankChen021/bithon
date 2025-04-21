@@ -784,16 +784,14 @@ public class SelectStatementBuilderTest {
     public void testAggregationWithMacroExpression() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "sum(totalCount)/{interval}"), new Alias("qps"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800"),
+                                                                .fields(Arrays.asList(
+                                                                    new Selector(new Expression(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
+                                                                    new Selector(new Expression(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
+                                                                ))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression(
-                                                                                          "timestamp")))
+                                                                                      new IdentifierExpression("timestamp")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("appName")
@@ -809,13 +807,15 @@ public class SelectStatementBuilderTest {
                                     SELECT "_timestamp",
                                            "appName",
                                            "instanceName",
-                                           "totalCount" / 10 AS "qps"
+                                           "totalCount" / 10 AS "qps",
+                                           CASE WHEN ( "cardinality_var0" <> 0 ) THEN ( "totalCount" / "cardinality_var0" ) ELSE ( 0 ) END AS "qpsPerInstance"
                                     FROM
                                     (
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             sum("totalCount") AS "totalCount"
+                                             sum("totalCount") AS "totalCount",
+                                             count(distinct "instanceName") AS "cardinality_var0"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName", "_timestamp"
