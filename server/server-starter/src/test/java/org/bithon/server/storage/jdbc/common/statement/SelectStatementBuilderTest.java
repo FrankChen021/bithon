@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.common.statement;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
@@ -43,6 +44,7 @@ import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
+import org.bithon.server.storage.jdbc.clickhouse.schema.AggregateFunctionColumn;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.h2.H2SqlDialect;
 import org.bithon.server.storage.jdbc.mysql.MySQLSqlDialect;
@@ -59,8 +61,8 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
- *  The test cases are located in this module because it has dependencies on concrete DB implementations.
- *  And server-starter is the right module that depends on all DB implementations.
+ * The test cases are located in this module because it has dependencies on concrete DB implementations.
+ * And server-starter is the right module that depends on all DB implementations.
  *
  * @author frank.chen021@outlook.com
  * @date 26/7/24 10:44 am
@@ -72,20 +74,20 @@ public class SelectStatementBuilderTest {
                                                      new TimestampSpec("timestamp"),
                                                      Arrays.asList(new StringColumn("appName", "appName"),
                                                                    new StringColumn("instance", "instance")),
-                                                     Arrays.asList(new AggregateLongSumColumn("responseTime",
-                                                                                              "responseTime"),
-                                                                   new AggregateLongSumColumn("totalCount",
-                                                                                              "totalCount"),
+                                                     Arrays.asList(new AggregateLongSumColumn("responseTime", "responseTime"),
+                                                                   new AggregateLongSumColumn("totalCount", "totalCount"),
                                                                    new AggregateLongSumColumn("count4xx", "count4xx"),
                                                                    new AggregateLongSumColumn("count5xx", "count5xx"),
-                                                                   new AggregateLongLastColumn("activeThreads",
-                                                                                               "activeThreads"),
-                                                                   new AggregateLongLastColumn("totalThreads",
-                                                                                               "totalThreads"),
+                                                                   new AggregateLongLastColumn("activeThreads", "activeThreads"),
+                                                                   new AggregateLongLastColumn("totalThreads", "totalThreads"),
                                                                    new ExpressionColumn("avgResponseTime",
                                                                                         null,
                                                                                         "sum(responseTime) / sum(totalCount)",
-                                                                                        "double")
+                                                                                        "double"),
+
+                                                                   // For ClickHouse data source
+                                                                   new AggregateFunctionColumn("clickedSum", "clickedSum", "sum", IDataType.LONG),
+                                                                   new AggregateFunctionColumn("clickedCnt", "clickedCnt", "count", IDataType.LONG)
                                                      ),
                                                      null,
                                                      new IDataStoreSpec() {
@@ -516,7 +518,7 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "a"
+                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "a"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
@@ -586,7 +588,7 @@ public class SelectStatementBuilderTest {
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads"
+                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
@@ -596,14 +598,12 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
-    public void testWindowFunction_WithAggregator() {
+    public void testWindowFunction_WithAggregator_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
-                                                                    "first(activeThreads)/sum(totalThreads)"),
-                                                                                                               new Alias(
-                                                                                                                   "ratio"))))
+                                                                    "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -631,7 +631,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT "appName",
                                                "instanceName",
-                                               FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
+                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
@@ -644,18 +644,12 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
-    public void testWindowFunction_NoUseWindowAggregator_WithAggregator_CK() {
+    public void testWindowFunction_WithAggregator_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "first(activeThreads)/sum(totalThreads)"),
-                                                                                                               new Alias(
-                                                                                                                   "ratio"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("timestamp")
@@ -724,7 +718,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT "appName",
                                                "instanceName",
-                                               FIRST_VALUE("activeThreads") OVER (partition by UNIX_TIMESTAMP("timestamp")/ 600 * 600 ORDER BY "timestamp") AS "activeThreads",
+                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
@@ -774,7 +768,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT `appName`,
                                                `instanceName`,
-                                               FIRST_VALUE(`activeThreads`) OVER (partition by UNIX_TIMESTAMP(`timestamp`) div 600 * 600 ORDER BY `timestamp`) AS `activeThreads`,
+                                               FIRST_VALUE(`activeThreads`) OVER (PARTITION BY (UNIX_TIMESTAMP(`timestamp`) DIV 600) * 600 ORDER BY `timestamp`) AS `activeThreads`,
                                                `totalThreads`
                                         FROM `bithon_jvm_metrics`
                                         WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00')
@@ -1173,6 +1167,70 @@ public class SelectStatementBuilderTest {
                                       )
                                     )
                                     WHERE "avgResponseTime" > 5.0
+                                    """.trim(),
+                                sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void testAggregateFunctionColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        selectStatement.accept(sqlGenerator);
+
+        Assertions.assertEquals("""
+                                    SELECT "appName",
+                                           sumMerge("clickedSum") AS "t1",
+                                           countMerge("clickedCnt") AS "t2"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName"
+                                    """.trim(),
+                                sqlGenerator.getSQL());
+    }
+
+    @Test
+    public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      HumanReadableDuration.parse("1m"),
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+        selectStatement.accept(sqlGenerator);
+
+        Assertions.assertEquals("""
+                                    SELECT "_timestamp",
+                                           "appName",
+                                           sum("t1") OVER (PARTITION BY "appName" ORDER BY "_timestamp" ASC RANGE BETWEEN 60 PRECEDING AND 0 FOLLOWING) AS "t1",
+                                           count("t2") OVER (PARTITION BY "appName" ORDER BY "_timestamp" ASC RANGE BETWEEN 60 PRECEDING AND 0 FOLLOWING) AS "t2"
+                                    FROM
+                                    (
+                                      SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                             "appName",
+                                             sumMerge("clickedSum") AS "t1",
+                                             countMerge("clickedCnt") AS "t2"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= fromUnixTimestamp(1722000060)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                      GROUP BY "appName", "_timestamp"
+                                    )
+                                    WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000720)
                                     """.trim(),
                                 sqlGenerator.getSQL());
     }

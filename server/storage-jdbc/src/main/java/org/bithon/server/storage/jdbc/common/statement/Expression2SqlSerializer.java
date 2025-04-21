@@ -42,18 +42,20 @@ class Expression2SqlSerializer extends Expression2Sql {
         super(null, sqlDialect);
         this.variables = variables;
 
-        if (interval.getStep() != null) {
-            windowFunctionLength = interval.getStep().getSeconds();
-        } else {
-            /**
-             * For Window functions, since the timestamp of records might cross two windows,
-             * we need to make sure the record in the given time range has only one window.
-             */
-            long endTime = interval.getEndTime().getMilliseconds();
-            long startTime = interval.getStartTime().getMilliseconds();
-            windowFunctionLength = (endTime - startTime) / 1000;
-            while (startTime / windowFunctionLength != endTime / windowFunctionLength) {
-                windowFunctionLength *= 2;
+        if (interval != null) {
+            if (interval.getStep() != null) {
+                windowFunctionLength = interval.getStep().getSeconds();
+            } else {
+                /**
+                 * For Window functions, since the timestamp of records might cross two windows,
+                 * we need to make sure the record in the given time range has only one window.
+                 */
+                long endTime = interval.getEndTime().getMilliseconds();
+                long startTime = interval.getStartTime().getMilliseconds();
+                windowFunctionLength = (endTime - startTime) / 1000;
+                while (startTime / windowFunctionLength != endTime / windowFunctionLength) {
+                    windowFunctionLength *= 2;
+                }
             }
         }
     }

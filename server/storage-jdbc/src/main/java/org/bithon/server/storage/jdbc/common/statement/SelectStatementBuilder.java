@@ -486,8 +486,8 @@ public class SelectStatementBuilder {
                 }
 
                 String col = identifierExpression.getIdentifier();
-                String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
-                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output, IDataType.DOUBLE);
+                IExpression windowFunctionExpression = sqlDialect.firstWindowFunction(col, interval.getTotalSeconds());
+                pipeline.windowAggregation.getSelectorList().add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
                 pipeline.aggregation.getSelectorList()
                                     .add(new Column(aggregator.output), IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator

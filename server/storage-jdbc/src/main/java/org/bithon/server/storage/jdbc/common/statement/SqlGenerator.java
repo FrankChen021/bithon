@@ -112,7 +112,8 @@ public class SqlGenerator implements IASTNodeVisitor {
 
     @Override
     public void visit(Expression expression) {
-        throw new UnsupportedOperationException();
+        String serialized = new Expression2SqlSerializer(this.sqlDialect, null, null).serialize(expression.getParsedExpression());
+        this.sql.append(serialized);
     }
 
     @Override
