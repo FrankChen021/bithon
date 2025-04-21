@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.springframework.http.HttpStatus;
@@ -54,11 +55,12 @@ public class QueryConverter {
     public static Query toQuery(ISchema schema,
                                 QueryRequest query,
                                 boolean groupByTimestamp) {
-        if (query.getInterval().getWindow() != null && query.getInterval().getStep() != null) {
-            Preconditions.checkIfTrue(query.getInterval().getWindow().getDuration().getSeconds() >= query.getInterval().getStep(),
+        IntervalRequest interval = query.getInterval();
+        if (interval.getWindow() != null && interval.getStep() != null) {
+            Preconditions.checkIfTrue(interval.getWindow().getDuration().getSeconds() >= interval.getStep(),
                                       "The window parameter (%s) in the request is less than the step parameter (%d).",
-                                      query.getInterval().getWindow(),
-                                      query.getInterval().getStep());
+                                      interval.getWindow(),
+                                      interval.getStep());
         }
         validateQueryRequest(schema, query);
 
@@ -117,36 +119,36 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
+        TimeSpan start = TimeSpan.fromISO8601(interval.getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(interval.getEndISO8601());
 
         Duration step = null;
         if (groupByTimestamp) {
-            if (query.getInterval().getBucketCount() == null) {
+            if (interval.getBucketCount() == null) {
                 step = Duration.ofSeconds(TimeBucket.calculate(start, end));
             } else {
                 step = Duration.ofSeconds(TimeBucket.calculate(start.getMilliseconds(),
                                                                end.getMilliseconds(),
-                                                               query.getInterval().getBucketCount()).getLength());
+                                                               interval.getBucketCount()).getLength());
             }
 
-            if (query.getInterval().getStep() != null) {
-                Preconditions.checkIfTrue(query.getInterval().getStep() > 0, "step must be greater than 0");
-                step = Duration.ofSeconds(query.getInterval().getStep());
+            if (interval.getStep() != null) {
+                Preconditions.checkIfTrue(interval.getStep() > 0, "step must be greater than 0");
+                step = Duration.ofSeconds(interval.getStep());
             }
         }
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
-        if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
+        if (StringUtils.hasText(interval.getTimestampColumn())) {
             // Try to use query's timestamp column if provided
-            timestampColumn = query.getInterval().getTimestampColumn();
+            timestampColumn = interval.getTimestampColumn();
         }
 
         return builder.groupBy(new ArrayList<>(groupBy))
                       .selectors(selectorList)
                       .schema(schema)
                       .filter(QueryFilter.build(schema, query.getFilterExpression()))
-                      .interval(Interval.of(start, end, step, query.getInterval().getWindow(), new IdentifierExpression(timestampColumn)))
+                      .interval(Interval.of(start, end, step, interval.getWindow(), new IdentifierExpression(timestampColumn)))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .offset(query.getOffset())
