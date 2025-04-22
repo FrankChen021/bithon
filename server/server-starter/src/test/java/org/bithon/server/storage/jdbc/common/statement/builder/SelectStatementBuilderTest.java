@@ -519,7 +519,7 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "a"
+                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "a"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
@@ -591,7 +591,7 @@ public class SelectStatementBuilderTest {
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads"
+                                             FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "activeThreads"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     )
@@ -634,7 +634,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT "appName",
                                                "instanceName",
-                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads",
+                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
@@ -721,7 +721,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT "appName",
                                                "instanceName",
-                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp") AS "activeThreads",
+                                               FIRST_VALUE("activeThreads") OVER (PARTITION BY (UNIX_TIMESTAMP("timestamp") / 600) * 600 ORDER BY "timestamp" ASC) AS "activeThreads",
                                                "totalThreads"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
@@ -771,7 +771,7 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT `appName`,
                                                `instanceName`,
-                                               FIRST_VALUE(`activeThreads`) OVER (PARTITION BY (UNIX_TIMESTAMP(`timestamp`) DIV 600) * 600 ORDER BY `timestamp`) AS `activeThreads`,
+                                               FIRST_VALUE(`activeThreads`) OVER (PARTITION BY (UNIX_TIMESTAMP(`timestamp`) DIV 600) * 600 ORDER BY `timestamp` ASC) AS `activeThreads`,
                                                `totalThreads`
                                         FROM `bithon_jvm_metrics`
                                         WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00')

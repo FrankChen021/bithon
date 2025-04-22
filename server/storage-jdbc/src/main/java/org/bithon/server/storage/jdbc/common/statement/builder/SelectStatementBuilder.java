@@ -19,7 +19,6 @@ package org.bithon.server.storage.jdbc.common.statement.builder;
 import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
-import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
@@ -51,6 +50,7 @@ import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.statement.ast.OrderByElement;
 import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
 import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionFrame;
 import org.bithon.server.storage.metrics.Interval;
@@ -498,13 +498,12 @@ public class SelectStatementBuilder {
     private void addSlidingWindowAggregationStep(Aggregators aggregators, SelectStatementPipeline pipeline) {
         SelectStatement slidingWindowAggregation = new SelectStatement();
 
-        IExpression partitionByExpression = null;
+        IExpression[] partitionByExpression = null;
         if (CollectionUtils.isNotEmpty(this.groupBy)) {
-            IExpression[] groupByExpressions = this.groupBy.stream()
-                                                           .map(IdentifierExpression::new)
-                                                           .toList()
-                                                           .toArray(new IExpression[0]);
-            partitionByExpression = groupByExpressions.length > 1 ? new ExpressionList(groupByExpressions) : groupByExpressions[0];
+            partitionByExpression = this.groupBy.stream()
+                                                .map(IdentifierExpression::new)
+                                                .toList()
+                                                .toArray(new IExpression[0]);
         }
 
         // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
@@ -513,7 +512,7 @@ public class SelectStatementBuilder {
                                                                            .name(aggregator.aggregateFunction.getName())
                                                                            .args(new ArrayList<>(Collections.singletonList(IdentifierExpression.of(aggregator.output))))
                                                                            .partitionBy(partitionByExpression)
-                                                                           .orderBy(IdentifierExpression.of(TimestampSpec.COLUMN_ALIAS))
+                                                                           .orderBy(new OrderByElement(IdentifierExpression.of(TimestampSpec.COLUMN_ALIAS)))
                                                                            .frame(new WindowFunctionFrame(LiteralExpression.ofLong(interval.getWindow().getDuration().getSeconds()), LiteralExpression.ofLong(0)))
                                                                            .build();
 

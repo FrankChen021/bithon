@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.common.statement.ast;
 
 
 import lombok.Getter;
-import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
@@ -50,14 +49,14 @@ public class WindowFunctionExpression extends FunctionExpression {
         }
     }
 
-    private final IExpression partitionBy;
-    private final IExpression orderBy;
+    private final IExpression[] partitionBy;
+    private final OrderByElement[] orderBy;
     private final WindowFunctionFrame frame;
 
     public WindowFunctionExpression(String functionName,
                                     List<IExpression> args,
-                                    IExpression partitionBy,
-                                    IExpression orderBy,
+                                    IExpression[] partitionBy,
+                                    OrderByElement[] orderBy,
                                     IExpression frame) {
         super(new WindowFunctionAggregator(functionName), args);
         this.partitionBy = partitionBy;
@@ -70,14 +69,27 @@ public class WindowFunctionExpression extends FunctionExpression {
         super.serializeToText(serializer);
         serializer.append(" OVER (");
         {
-            if (partitionBy != null) {
+            if (partitionBy != null && partitionBy.length > 0) {
                 serializer.append("PARTITION BY ");
-                serializer.serialize(partitionBy);
+                for (int i = 0; i < partitionBy.length; i++) {
+                    if (i > 0) {
+                        serializer.append(", ");
+                    }
+                    partitionBy[i].serializeToText(serializer);
+                }
+                serializer.append(" ");
             }
-            if (orderBy != null) {
-                serializer.append(" ORDER BY ");
-                serializer.serialize(orderBy);
+
+            if (orderBy != null && orderBy.length > 0) {
+                serializer.append("ORDER BY ");
+                for (int i = 0; i < orderBy.length; i++) {
+                    if (i > 0) {
+                        serializer.append(", ");
+                    }
+                    orderBy[i].serializeToText(serializer);
+                }
             }
+
             if (frame != null) {
                 serializer.append(" ");
                 serializer.serialize(frame);
@@ -93,8 +105,8 @@ public class WindowFunctionExpression extends FunctionExpression {
     public static class Builder {
         private String name;
         private List<IExpression> args;
-        private IExpression partitionBy;
-        private IExpression orderBy;
+        private IExpression[] partitionBy;
+        private OrderByElement[] orderBy;
         private WindowFunctionFrame frame;
 
         public Builder name(String name) {
@@ -108,16 +120,21 @@ public class WindowFunctionExpression extends FunctionExpression {
         }
 
         public Builder partitionBy(IExpression partitionBy) {
-            this.partitionBy = partitionBy;
+            this.partitionBy = partitionBy == null ? null : new IExpression[]{partitionBy};
             return this;
         }
 
         public Builder partitionBy(IExpression... partitionBys) {
-            this.partitionBy = new ExpressionList(partitionBys);
+            this.partitionBy = partitionBys;
             return this;
         }
 
-        public Builder orderBy(IExpression orderBy) {
+        public Builder orderBy(OrderByElement orderBy) {
+            this.orderBy = orderBy == null ? null : new OrderByElement[]{orderBy};
+            return this;
+        }
+
+        public Builder orderBy(OrderByElement... orderBy) {
             this.orderBy = orderBy;
             return this;
         }

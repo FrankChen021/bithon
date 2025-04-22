@@ -37,6 +37,7 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.storage.jdbc.common.statement.ast.OrderByElement;
 import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
 
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class H2SqlDialect implements ISqlDialect {
                                            new ArithmeticExpression.DIV(new FunctionExpression(new UnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
                                            LiteralExpression.of(window)
                                        ))
-                                       .orderBy(new IdentifierExpression("timestamp"))
+                                       .orderBy(new OrderByElement(IdentifierExpression.of("timestamp")))
                                        .build();
     }
 

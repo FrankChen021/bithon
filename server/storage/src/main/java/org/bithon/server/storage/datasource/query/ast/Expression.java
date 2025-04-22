@@ -24,14 +24,15 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
 import org.bithon.server.storage.datasource.ISchema;
 
+import java.util.function.Supplier;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/11/3 22:18
  */
 public class Expression implements IASTNode {
 
-    @Getter
-    private final String expression;
+    private final Supplier<String> expression;
 
     @Getter
     @Setter
@@ -42,11 +43,11 @@ public class Expression implements IASTNode {
     }
 
     public Expression(String expression) {
-        this.expression = expression;
+        this.expression = () -> expression;
     }
 
     public Expression(ISchema schema, String expression) {
-        this.expression = expression;
+        this.expression = () -> expression;
         this.parsedExpression = ExpressionASTBuilder.builder()
                                                     .functions(Functions.getInstance())
                                                     .schema(schema)
@@ -54,12 +55,12 @@ public class Expression implements IASTNode {
     }
 
     public Expression(IExpression expression) {
-        this.expression = expression.serializeToText();
+        this.expression = () -> this.getParsedExpression().serializeToText();
         this.parsedExpression = expression;
     }
 
-    public IExpression getParsedExpression() {
-        return parsedExpression;
+    public String getExpression() {
+        return expression.get();
     }
 
     @Override
