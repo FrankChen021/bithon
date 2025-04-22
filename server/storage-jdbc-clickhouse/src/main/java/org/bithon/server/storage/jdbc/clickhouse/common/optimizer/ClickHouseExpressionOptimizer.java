@@ -104,12 +104,52 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
             }
         }
 
-        if (!(expression.getFunction() instanceof StringFunction.HasToken)) {
-            return super.visit(expression);
+        if (expression.getFunction() instanceof StringFunction.HasToken) {
+            // Apply the optimization for hasToken function
+            return HasTokenFunctionOptimizer.optimize(expression);
         }
 
-        // Apply the optimization for hasToken function
-        return HasTokenFunctionOptimizer.optimize(expression);
+        if (expression.getFunction() instanceof AggregateFunction.First) {
+            return new FunctionExpression(new ArgMinFunction(), expression.getArgs().get(0), IdentifierExpression.of("timestamp"));
+        }
+
+        if (expression.getFunction() instanceof AggregateFunction.Last) {
+            return new FunctionExpression(new ArgMaxFunction(), expression.getArgs().get(0), IdentifierExpression.of("timestamp"));
+        }
+
+        return super.visit(expression);
+    }
+
+    static class ArgMinFunction extends AggregateFunction {
+        public ArgMinFunction() {
+            super("argMin");
+        }
+
+        @Override
+        public void validateArgs(List<IExpression> args) {
+            validateTrue(args.size() == 2, "Function [argMin] accepts 2 parameters, but got [%d]", args.size());
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    static class ArgMaxFunction extends AggregateFunction {
+        public ArgMaxFunction() {
+            super("argMax");
+        }
+
+        @Override
+        public void validateArgs(List<IExpression> args) {
+            validateTrue(args.size() == 2, "Function [argMax] accepts 2 parameters, but got [%d]", args.size());
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     static class HasTokenFunctionOptimizer {

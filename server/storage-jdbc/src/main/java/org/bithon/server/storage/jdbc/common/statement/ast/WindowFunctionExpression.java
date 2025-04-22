@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.common.statement.ast;
 
 
 import lombok.Getter;
+import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
@@ -108,6 +109,11 @@ public class WindowFunctionExpression extends FunctionExpression {
 
         public Builder partitionBy(IExpression partitionBy) {
             this.partitionBy = partitionBy;
+            return this;
+        }
+
+        public Builder partitionBy(IExpression... partitionBys) {
+            this.partitionBy = new ExpressionList(partitionBys);
             return this;
         }
 

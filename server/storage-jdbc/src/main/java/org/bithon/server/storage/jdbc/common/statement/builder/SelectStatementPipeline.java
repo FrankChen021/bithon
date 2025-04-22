@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.common.statement;
+package org.bithon.server.storage.jdbc.common.statement.builder;
 
 
 import org.bithon.server.storage.datasource.query.ast.FromClause;

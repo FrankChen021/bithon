@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.common.statement;
+package org.bithon.server.storage.jdbc.common.statement.builder;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IDataType;
@@ -46,6 +46,7 @@ import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.storage.jdbc.clickhouse.schema.AggregateFunctionColumn;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.statement.SqlGenerator;
 import org.bithon.server.storage.jdbc.h2.H2SqlDialect;
 import org.bithon.server.storage.jdbc.mysql.MySQLSqlDialect;
 import org.bithon.server.storage.metrics.Interval;
@@ -532,9 +533,10 @@ public class SelectStatementBuilderTest {
     public void testWindowFunction_GroupBy_NoUseWindowAggregator_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "first(activeThreads)"), new Alias("a"))))
+                                                                .fields(List.of(
+                                                                    new Selector(new Expression(schema, "first(activeThreads)"), new Alias("a")),
+                                                                    new Selector(new Expression(schema, "last(activeThreads)"), new Alias("b")))
+                                                                )
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -547,7 +549,8 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
-                                           argMin("activeThreads", "timestamp") AS "a"
+                                           argMin("activeThreads", "timestamp") AS "a",
+                                           argMax("activeThreads", "timestamp") AS "b"
                                     FROM "bithon_jvm_metrics"
                                     WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
                                     GROUP BY "appName", "instanceName"

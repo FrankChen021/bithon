@@ -114,10 +114,7 @@ public class SqlGenerator implements IASTNodeVisitor {
     public void visit(Expression expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
-        // Apply DBMS specific transformation
-        parsedExpression = sqlDialect.transform(null, parsedExpression);
-
-        String serialized = new Expression2SqlSerializer(this.sqlDialect, null).serialize(parsedExpression);
+        String serialized = new Expression2SqlSerializer(this.sqlDialect).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 
