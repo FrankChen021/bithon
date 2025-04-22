@@ -243,8 +243,8 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             sum("totalCount") AS "totalCount",
-                                             sum("responseTime" * 2) AS "_var0"
+                                             sum("responseTime" * 2) AS "_var0",
+                                             sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
@@ -281,8 +281,8 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             sum("totalCount") AS "totalCount",
-                                             sum("responseTime") AS "responseTime"
+                                             sum("responseTime") AS "responseTime",
+                                             sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
@@ -317,8 +317,8 @@ public class SelectStatementBuilderTest {
                                       SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             sum("totalCount") AS "totalCount",
-                                             sum("responseTime") AS "responseTime"
+                                             sum("responseTime") AS "responseTime",
+                                             sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName", "_timestamp"
@@ -355,15 +355,15 @@ public class SelectStatementBuilderTest {
                                       SELECT "_timestamp",
                                              "appName",
                                              "instanceName",
-                                             sum("totalCount") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
-                                             sum("responseTime") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
+                                             sum("responseTime") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime",
+                                             sum("totalCount") OVER (PARTITION BY "appName", "instanceName" ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount"
                                       FROM
                                       (
                                         SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                                "appName",
                                                "instanceName",
-                                               sum("totalCount") AS "totalCount",
-                                               sum("responseTime") AS "responseTime"
+                                               sum("responseTime") AS "responseTime",
+                                               sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
                                         GROUP BY "appName", "instanceName", "_timestamp"
@@ -397,13 +397,13 @@ public class SelectStatementBuilderTest {
                                     FROM
                                     (
                                       SELECT "_timestamp",
-                                             sum("totalCount") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount",
-                                             sum("responseTime") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime"
+                                             sum("responseTime") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime",
+                                             sum("totalCount") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount"
                                       FROM
                                       (
                                         SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
-                                               sum("totalCount") AS "totalCount",
-                                               sum("responseTime") AS "responseTime"
+                                               sum("responseTime") AS "responseTime",
+                                               sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:17:05.000+08:00') AND ("timestamp" < '2024-07-26T21:32:05.000+08:00')
                                         GROUP BY "_timestamp"
@@ -439,8 +439,8 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             sum("totalCount") AS "totalCount",
-                                             sum("responseTime") AS "responseTime"
+                                             sum("responseTime") AS "responseTime",
+                                             sum("totalCount") AS "totalCount"
                                       FROM "bithon_jvm_metrics"
                                       WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                       GROUP BY "appName", "instanceName"
@@ -625,8 +625,8 @@ public class SelectStatementBuilderTest {
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             sum("totalThreads") AS "totalThreads",
-                                             "activeThreads"
+                                             "activeThreads",
+                                             sum("totalThreads") AS "totalThreads"
                                       FROM
                                       (
                                         SELECT "appName",
@@ -952,23 +952,15 @@ public class SelectStatementBuilderTest {
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Collections.singletonList(new Selector(new Expression(
                                                                     schema,
-                                                                    "sum(responseTime*2)/sum(totalCount)"),
-                                                                                                               new Alias(
-                                                                                                                   "avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                    "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(
                                                                     new LogicalExpression.AND(
-                                                                        new ComparisonExpression.EQ(new IdentifierExpression(
-                                                                            "appName"),
-                                                                                                    new LiteralExpression.StringLiteral(
-                                                                                                        "bithon")),
-                                                                        new ComparisonExpression.GT(new IdentifierExpression(
-                                                                            "avg"),
-                                                                                                    new LiteralExpression.DoubleLiteral(
-                                                                                                        0.2))
+                                                                        new ComparisonExpression.EQ(new IdentifierExpression("appName"),
+                                                                                                    new LiteralExpression.StringLiteral("bithon")),
+                                                                        new ComparisonExpression.GT(new IdentifierExpression("avg"),
+                                                                                                    new LiteralExpression.DoubleLiteral(0.2))
                                                                     )
                                                                 )
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -989,8 +981,8 @@ public class SelectStatementBuilderTest {
                                       (
                                         SELECT "appName",
                                                "instanceName",
-                                               sum("totalCount") AS "totalCount",
-                                               sum("responseTime" * 2) AS "_var0"
+                                               sum("responseTime" * 2) AS "_var0",
+                                               sum("totalCount") AS "totalCount"
                                         FROM "bithon_jvm_metrics"
                                         WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
                                         GROUP BY "appName", "instanceName"
