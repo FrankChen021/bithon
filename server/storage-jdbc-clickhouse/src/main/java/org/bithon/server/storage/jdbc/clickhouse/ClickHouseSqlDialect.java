@@ -98,7 +98,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public String lastAggregator(String field, long window) {
-        return StringUtils.format("argMax(%s, %s)", quoteIdentifier(field), quoteIdentifier("timestamp"));
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -86,14 +86,6 @@ public class MySQLSqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(`%s`)", field);
     }
 
-    @Override
-    public String firstAggregator(String field, long window) {
-        return StringUtils.format(
-            "FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp`)",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
-    }
-
     public static class UnixTimestampFunction extends AbstractFunction {
         public UnixTimestampFunction() {
             super("UNIX_TIMESTAMP", IDataType.LONG, IDataType.LONG);
@@ -136,6 +128,9 @@ public class MySQLSqlDialect implements ISqlDialect {
         }
     }
 
+    /**
+     * FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp` ASC)
+     */
     @Override
     public WindowFunctionExpression firstWindowFunction(String field, long window) {
         return WindowFunctionExpression.builder()
@@ -147,15 +142,6 @@ public class MySQLSqlDialect implements ISqlDialect {
                                        ))
                                        .orderBy(new OrderByElement(new IdentifierExpression("timestamp")))
                                        .build();
-    }
-
-    @Override
-    public String lastAggregator(String field, long window) {
-        // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
-        return StringUtils.format(
-            "FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp` DESC)",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
     }
 
     @Override

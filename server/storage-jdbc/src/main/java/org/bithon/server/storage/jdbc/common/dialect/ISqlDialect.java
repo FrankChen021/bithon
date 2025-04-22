@@ -51,16 +51,9 @@ public interface ISqlDialect {
 
     String stringAggregator(String field);
 
-    String firstAggregator(String field, long window);
-
     default WindowFunctionExpression firstWindowFunction(String field, long window) {
         throw new UnsupportedOperationException();
     }
-
-    /**
-     * @param window in seconds
-     */
-    String lastAggregator(String field, long window);
 
     default boolean useWindowFunctionAsAggregator(String aggregator) {
         return false;

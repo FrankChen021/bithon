@@ -35,8 +35,12 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.storage.jdbc.common.statement.ast.OrderByElement;
+import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -76,21 +80,20 @@ public class PostgresqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(\"%s\")", field);
     }
 
+    /**
+     * FIRST_VALUE(`%s`) OVER (partition by %s ORDER BY `timestamp` ASC)
+     */
     @Override
-    public String firstAggregator(String field, long window) {
-        return StringUtils.format(
-            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\")",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
-    }
-
-    @Override
-    public String lastAggregator(String field, long window) {
-        // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
-        return StringUtils.format(
-            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+    public WindowFunctionExpression firstWindowFunction(String field, long window) {
+        return WindowFunctionExpression.builder()
+                                       .name("FIRST_VALUE")
+                                       .args(new ArrayList<>(List.of(new IdentifierExpression(field))))
+                                       .partitionBy(new ArithmeticExpression.MUL(
+                                           new ArithmeticExpression.DIV(new IdentifierExpression("timestamp"), LiteralExpression.of(window)),
+                                           LiteralExpression.of(window)
+                                       ))
+                                       .orderBy(new OrderByElement(new IdentifierExpression("timestamp")))
+                                       .build();
     }
 
     @Override
