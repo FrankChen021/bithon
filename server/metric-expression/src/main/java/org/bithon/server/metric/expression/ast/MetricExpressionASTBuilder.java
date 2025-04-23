@@ -93,10 +93,6 @@ public class MetricExpressionASTBuilder {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    public static IExpression build(MetricExpressionParser.AtomicMetricExpressionImplContext metricExpression) {
-        return metricExpression.accept(new BuilderImpl());
-    }
-
     private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
         private final LiteralExpressionBuilder literalExpressionBuilder = new LiteralExpressionBuilder();
 
@@ -128,11 +124,6 @@ public class MetricExpressionASTBuilder {
 
         @Override
         public IExpression visitAtomicMetricExpression(MetricExpressionParser.AtomicMetricExpressionContext ctx) {
-            return visitAtomicMetricExpressionImpl(ctx.atomicMetricExpressionImpl());
-        }
-
-        @Override
-        public IExpression visitAtomicMetricExpressionImpl(MetricExpressionParser.AtomicMetricExpressionImplContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
@@ -367,7 +358,8 @@ public class MetricExpressionASTBuilder {
             return switch (tokenType) {
                 case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(text));
                 case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(text));
-                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(text));
+                case MetricExpressionParser.PERCENTAGE_LITERAL ->
+                    LiteralExpression.of(new HumanReadablePercentage(text));
                 case MetricExpressionParser.STRING_LITERAL -> {
                     String input = text;
                     if (!input.isEmpty()) {

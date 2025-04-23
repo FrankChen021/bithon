@@ -1,7 +1,7 @@
 grammar MetricExpression;
 
 alertExpression
-  : metricExpression                                    #simpleAlertExpression
+  : metricExpression                                    #atomicAlertExpression
   | alertExpression AND alertExpression                 #logicalAlertExpression
   | alertExpression OR alertExpression                  #logicalAlertExpression
   | LEFT_PARENTHESIS alertExpression RIGHT_PARENTHESIS  #parenthesisAlertExpression
