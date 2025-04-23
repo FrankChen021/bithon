@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,8 +42,8 @@ public class FlattenTransformerTest {
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("a", "default")));
         newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("a"));
-        Assert.assertEquals("default", row1.getCol("a1"));
+        Assertions.assertEquals("default", row1.getCol("a"));
+        Assertions.assertEquals("default", row1.getCol("a1"));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class FlattenTransformerTest {
         InputRow row1 = new InputRow((Map<String, Object>) (Map<?, ?>) map);
         newTransformer.transform(row1);
 
-        Assert.assertEquals("b-value", row1.getCol("b1"));
-        Assert.assertEquals("d-value", row1.getCol("d1"));
+        Assertions.assertEquals("b-value", row1.getCol("b1"));
+        Assertions.assertEquals("d-value", row1.getCol("d1"));
     }
 }

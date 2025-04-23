@@ -23,9 +23,9 @@ import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class TracePipelineTest {
 
     ObjectMapper objectMapper;
 
-    @Before
+    @BeforeEach
     public void beforeTest() {
         objectMapper = new ObjectMapper();
         objectMapper.registerSubtypes(new NamedType(FakeReceiver.class, "fake-receiver"));
@@ -88,15 +88,15 @@ public class TracePipelineTest {
         config.setExporters(Collections.singletonList(ImmutableMap.of("type", "fake-exporter")));
         TracePipeline pipeline = new TracePipeline(config, Mockito.mock(IMetricInputSourceManager.class), objectMapper);
         pipeline.start();
-        Assert.assertNotNull(registeredProcessor);
-        Assert.assertNull(receivedTraceSpanList);
+        Assertions.assertNotNull(registeredProcessor);
+        Assertions.assertNull(receivedTraceSpanList);
 
         List<TraceSpan> spans = new ArrayList<>();
         TraceSpan span = new TraceSpan();
         spans.add(span);
         registeredProcessor.process("trace", spans);
 
-        Assert.assertEquals(receivedTraceSpanList, spans);
+        Assertions.assertEquals(receivedTraceSpanList, spans);
         pipeline.stop();
     }
 }

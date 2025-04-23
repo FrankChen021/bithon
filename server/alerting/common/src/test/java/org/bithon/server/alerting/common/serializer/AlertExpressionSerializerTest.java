@@ -24,8 +24,8 @@ import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 /**
@@ -46,10 +46,10 @@ public class AlertExpressionSerializerTest {
         String val = objectMapper.writeValueAsString(expression);
         JsonNode tree = objectMapper.readTree(val);
 
-        Assert.assertEquals("1", tree.get("id").asText());
-        Assert.assertEquals("-7m", tree.get("offset").asText());
-        Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
+        Assertions.assertEquals("1", tree.get("id").asText());
+        Assertions.assertEquals("-7m", tree.get("offset").asText());
+        Assertions.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
+        Assertions.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
     }
 
     @Test
@@ -64,11 +64,11 @@ public class AlertExpressionSerializerTest {
         String val = objectMapper.writeValueAsString(expression);
         JsonNode tree = objectMapper.readTree(val);
 
-        Assert.assertEquals("1", tree.get("id").asText());
+        Assertions.assertEquals("1", tree.get("id").asText());
 
         // appName should be escaped as ab\"cd
-        Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"ab\\\"cd\", instance = \"ab'cd\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'ab\"cd') AND (instance = 'ab\\'cd')", tree.get("where").asText());
+        Assertions.assertEquals("avg(jvm-metrics.cpu{appName = \"ab\\\"cd\", instance = \"ab'cd\"})[5m] > 1%[-7m]", tree.get("expressionText").asText());
+        Assertions.assertEquals("(appName = 'ab\"cd') AND (instance = 'ab\\'cd')", tree.get("where").asText());
     }
 
     @Test
@@ -83,9 +83,9 @@ public class AlertExpressionSerializerTest {
         String val = objectMapper.writeValueAsString(expression);
         JsonNode tree = objectMapper.readTree(val);
 
-        Assert.assertEquals("1", tree.get("id").asText());
-        Assert.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1", tree.get("expressionText").asText());
-        Assert.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
+        Assertions.assertEquals("1", tree.get("id").asText());
+        Assertions.assertEquals("avg(jvm-metrics.cpu{appName = \"a\", instance = \"b\"})[5m] > 1", tree.get("expressionText").asText());
+        Assertions.assertEquals("(appName = 'a') AND (instance = 'b')", tree.get("where").asText());
     }
 
     @Test
@@ -100,7 +100,7 @@ public class AlertExpressionSerializerTest {
 
         String val = objectMapper.writeValueAsString(expression);
         AlertExpression deserialized = objectMapper.readValue(val, AlertExpression.class);
-        Assert.assertEquals(expression.getId(), deserialized.getId());
-        Assert.assertEquals(expression.getMetricExpression().getFrom(), deserialized.getMetricExpression().getFrom());
+        Assertions.assertEquals(expression.getId(), deserialized.getId());
+        Assertions.assertEquals(expression.getMetricExpression().getFrom(), deserialized.getMetricExpression().getFrom());
     }
 }

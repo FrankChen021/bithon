@@ -25,34 +25,24 @@ import org.bithon.server.storage.datasource.column.aggregatable.min.AggregateLon
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 13/4/22 3:30 PM
  */
-@RunWith(Parameterized.class)
 public class MetricAggregatorTest {
 
-    private final DefaultSchema schema;
-
-    /**
-     * The arguments are passed from the method {@link #createSchemas()} below.
-     */
-    public MetricAggregatorTest(String name, DefaultSchema schema) {
-        this.schema = schema;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Object[] createSchemas() {
+    static Stream<Arguments> testArguments() {
         DefaultSchema emptyDimensionSchema = new DefaultSchema(
             "empty-dimension-table",
             "empty-dimension-table",
@@ -73,14 +63,15 @@ public class MetricAggregatorTest {
                           new AggregateLongMaxColumn("maxTime", "maxTime"))
         );
 
-        return new Object[]{
-            new Object[]{emptyDimensionSchema.getName(), emptyDimensionSchema},
-            new Object[]{hasDimensionSchema.getName(), hasDimensionSchema}
-        };
+        return Stream.of(
+            Arguments.of(emptyDimensionSchema.getName(), emptyDimensionSchema),
+            Arguments.of(hasDimensionSchema.getName(), hasDimensionSchema)
+        );
     }
 
-    @Test
-    public void testInSameTimeBucket() {
+    @ParameterizedTest
+    @MethodSource("testArguments")
+    public void testInSameTimeBucket(String name, DefaultSchema schema) {
 
         long time = TimeSpan.fromISO8601("2012-05-15T12:38:23.000+08:00").getMilliseconds();
 
@@ -103,14 +94,15 @@ public class MetricAggregatorTest {
         aggregator.aggregate(row2);
 
         List<IInputRow> rows = aggregator.getRows();
-        Assert.assertEquals(1, rows.size()); // the two rows are in the same time bucket
-        Assert.assertEquals(2L, rows.get(0).getColAsLong("totalCount", 0));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
-        Assert.assertEquals(5L, rows.get(0).getColAsLong("maxTime", 0));
+        Assertions.assertEquals(1, rows.size()); // the two rows are in the same time bucket
+        Assertions.assertEquals(2L, rows.get(0).getColAsLong("totalCount", 0));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
+        Assertions.assertEquals(5L, rows.get(0).getColAsLong("maxTime", 0));
     }
 
-    @Test
-    public void testInDifferentTimeBucket() {
+    @ParameterizedTest
+    @MethodSource("testArguments")
+    public void testInDifferentTimeBucket(String name, DefaultSchema schema) {
         long time = TimeSpan.fromISO8601("2012-05-15T12:38:23.000+08:00").getMilliseconds();
 
         MetricsAggregator aggregator = new MetricsAggregator(schema, 10);
@@ -132,18 +124,19 @@ public class MetricAggregatorTest {
         aggregator.aggregate(row2);
 
         List<IInputRow> rows = aggregator.getRows();
-        Assert.assertEquals(2, rows.size()); // the two rows are in the same time bucket
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("totalCount", 0));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("maxTime", 0));
+        Assertions.assertEquals(2, rows.size()); // the two rows are in the same time bucket
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("totalCount", 0));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("maxTime", 0));
 
-        Assert.assertEquals(1L, rows.get(1).getColAsLong("totalCount", 0));
-        Assert.assertEquals(5L, rows.get(1).getColAsLong("minTime", 0));
-        Assert.assertEquals(5L, rows.get(1).getColAsLong("maxTime", 0));
+        Assertions.assertEquals(1L, rows.get(1).getColAsLong("totalCount", 0));
+        Assertions.assertEquals(5L, rows.get(1).getColAsLong("minTime", 0));
+        Assertions.assertEquals(5L, rows.get(1).getColAsLong("maxTime", 0));
     }
 
-    @Test
-    public void testInDifferentDimension() {
+    @ParameterizedTest
+    @MethodSource("testArguments")
+    public void testInDifferentDimension(String name, DefaultSchema schema) {
         if (schema.getDimensionsSpec().isEmpty()) {
             return;
         }
@@ -169,15 +162,15 @@ public class MetricAggregatorTest {
         aggregator.aggregate(row2);
 
         List<IInputRow> rows = aggregator.getRows();
-        Assert.assertEquals(2, rows.size()); // the two rows are in the same time bucket
-        Assert.assertEquals("app1", rows.get(0).getColAsString("appName"));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("totalCount", 0));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
-        Assert.assertEquals(1L, rows.get(0).getColAsLong("maxTime", 0));
+        Assertions.assertEquals(2, rows.size()); // the two rows are in the same time bucket
+        Assertions.assertEquals("app1", rows.get(0).getColAsString("appName"));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("totalCount", 0));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("minTime", 0));
+        Assertions.assertEquals(1L, rows.get(0).getColAsLong("maxTime", 0));
 
-        Assert.assertEquals("app2", rows.get(1).getColAsString("appName"));
-        Assert.assertEquals(1L, rows.get(1).getColAsLong("totalCount", 0));
-        Assert.assertEquals(5L, rows.get(1).getColAsLong("minTime", 0));
-        Assert.assertEquals(5L, rows.get(1).getColAsLong("maxTime", 0));
+        Assertions.assertEquals("app2", rows.get(1).getColAsString("appName"));
+        Assertions.assertEquals(1L, rows.get(1).getColAsLong("totalCount", 0));
+        Assertions.assertEquals(5L, rows.get(1).getColAsLong("minTime", 0));
+        Assertions.assertEquals(5L, rows.get(1).getColAsLong("maxTime", 0));
     }
 }

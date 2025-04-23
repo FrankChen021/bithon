@@ -19,8 +19,9 @@ package org.bithon.server.pipeline.tracing.mapping;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Collections;
 import java.util.List;
@@ -43,17 +44,17 @@ public class URIParameterExtractorTest {
 
         TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
         List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
-        Assert.assertEquals(2, mappings.size());
+        Assertions.assertEquals(2, mappings.size());
 
         // Trace Id
-        Assert.assertEquals("1", mappings.get(0).getUserId());
-        Assert.assertEquals("1", mappings.get(0).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+        Assertions.assertEquals("1", mappings.get(0).getUserId());
+        Assertions.assertEquals("1", mappings.get(0).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
 
         // User Id
-        Assert.assertEquals("123456", mappings.get(1).getUserId());
-        Assert.assertEquals("1", mappings.get(1).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+        Assertions.assertEquals("123456", mappings.get(1).getUserId());
+        Assertions.assertEquals("1", mappings.get(1).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }
 
     @Test
@@ -69,17 +70,17 @@ public class URIParameterExtractorTest {
         TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
         List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
 
-        Assert.assertEquals(2, mappings.size());
+        Assertions.assertEquals(2, mappings.size());
 
         // Trace Id
-        Assert.assertEquals("1", mappings.get(0).getUserId());
-        Assert.assertEquals("1", mappings.get(0).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+        Assertions.assertEquals("1", mappings.get(0).getUserId());
+        Assertions.assertEquals("1", mappings.get(0).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
 
         // User Id
-        Assert.assertEquals("C0A802F1fbe7b9768c2949738cbb5ce383e21d5f", mappings.get(1).getUserId());
-        Assert.assertEquals("1", mappings.get(1).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+        Assertions.assertEquals("C0A802F1fbe7b9768c2949738cbb5ce383e21d5f", mappings.get(1).getUserId());
+        Assertions.assertEquals("1", mappings.get(1).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }
 
     @Test
@@ -95,16 +96,16 @@ public class URIParameterExtractorTest {
         TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
         List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
 
-        Assert.assertEquals(2, mappings.size());
+        Assertions.assertEquals(2, mappings.size());
         // Trace Id
-        Assert.assertEquals("1", mappings.get(0).getUserId());
-        Assert.assertEquals("1", mappings.get(0).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+        Assertions.assertEquals("1", mappings.get(0).getUserId());
+        Assertions.assertEquals("1", mappings.get(0).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
 
         // User Id
-        Assert.assertEquals("C0A802F1fbe7b9768c2949738cbb5ce383e21d5f", mappings.get(1).getUserId());
-        Assert.assertEquals("1", mappings.get(1).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+        Assertions.assertEquals("C0A802F1fbe7b9768c2949738cbb5ce383e21d5f", mappings.get(1).getUserId());
+        Assertions.assertEquals("1", mappings.get(1).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }
 
     @Test
@@ -116,17 +117,17 @@ public class URIParameterExtractorTest {
 
         TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
         List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
-        Assert.assertEquals(2, mappings.size());
+        Assertions.assertEquals(2, mappings.size());
 
         // Trace Id
-        Assert.assertEquals("1", mappings.get(0).getUserId());
-        Assert.assertEquals("1", mappings.get(0).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+        Assertions.assertEquals("1", mappings.get(0).getUserId());
+        Assertions.assertEquals("1", mappings.get(0).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
 
         // User Id
-        Assert.assertEquals("===", mappings.get(1).getUserId());
-        Assert.assertEquals("1", mappings.get(1).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+        Assertions.assertEquals("===", mappings.get(1).getUserId());
+        Assertions.assertEquals("1", mappings.get(1).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }
 
     @Test
@@ -143,16 +144,16 @@ public class URIParameterExtractorTest {
 
         TraceIdMappingBatchExtractor extractor = TraceIdMappingBatchExtractor.create(new URIParameterExtractor(ImmutableMap.of("uri", ImmutableMap.of("0", "query_id"))));
         List<TraceIdMapping> mappings = extractor.extract(Collections.singletonList(span));
-        Assert.assertEquals(2, mappings.size());
+        Assertions.assertEquals(2, mappings.size());
 
         // Trace Id
-        Assert.assertEquals("1", mappings.get(0).getUserId());
-        Assert.assertEquals("1", mappings.get(0).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+        Assertions.assertEquals("1", mappings.get(0).getUserId());
+        Assertions.assertEquals("1", mappings.get(0).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
 
         // User Id
-        Assert.assertEquals("uid", mappings.get(1).getUserId());
-        Assert.assertEquals("1", mappings.get(1).getTraceId());
-        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
+        Assertions.assertEquals("uid", mappings.get(1).getUserId());
+        Assertions.assertEquals("1", mappings.get(1).getTraceId());
+        Assertions.assertEquals(span.getStartTime() / 1000L, mappings.get(1).getTimestamp());
     }
 }

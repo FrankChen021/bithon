@@ -31,9 +31,9 @@ import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -73,7 +73,7 @@ public class ExpressionEvaluationStepTest {
 
     private IDataSourceApi dataSourceProvider;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ISchema schema = new DefaultSchema("test-metrics",
                                            "test-metrics",
@@ -107,7 +107,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -134,7 +134,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -165,7 +165,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -192,7 +192,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -216,7 +216,7 @@ public class ExpressionEvaluationStepTest {
                                                           dataSourceProvider,
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
 
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
@@ -242,7 +242,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
 
         // Evaluation of 2nd expression will be skipped
         Mockito.verify(dataSourceProvider, Mockito.times(1))
@@ -270,7 +270,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -295,7 +295,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -320,7 +320,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -345,7 +345,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -370,7 +370,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -395,7 +395,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -422,7 +422,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -448,7 +448,7 @@ public class ExpressionEvaluationStepTest {
 
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -476,7 +476,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -504,7 +504,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -535,7 +535,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -566,7 +566,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -598,7 +598,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -630,7 +630,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(2))
                .groupByV3(Mockito.any());
     }
@@ -662,7 +662,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -694,7 +694,7 @@ public class ExpressionEvaluationStepTest {
                                                           null);
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertFalse(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertFalse(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
@@ -724,7 +724,7 @@ public class ExpressionEvaluationStepTest {
 
         new ExpressionEvaluationStep().evaluate(context);
 
-        Assert.assertTrue(context.isExpressionEvaluatedAsTrue());
+        Assertions.assertTrue(context.isExpressionEvaluatedAsTrue());
         Mockito.verify(dataSourceProvider, Mockito.times(1))
                .groupByV3(Mockito.any());
     }
