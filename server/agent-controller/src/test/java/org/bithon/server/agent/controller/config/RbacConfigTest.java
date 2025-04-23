@@ -19,8 +19,8 @@ package org.bithon.server.agent.controller.config;
 import org.bithon.server.agent.controller.rbac.Operation;
 import org.bithon.server.agent.controller.rbac.Permission;
 import org.bithon.server.agent.controller.rbac.User;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -37,13 +37,13 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "application", "dataSource1")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application1", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource2"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user2", "application", "dataSource2"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application1", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource2"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user2", "application", "dataSource2"));
     }
 
     @Test
@@ -54,9 +54,9 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.READ, "application", "dataSource1")))
                                     .build()));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
     }
 
     @Test
@@ -67,9 +67,9 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.WRITE, "application", "dataSource1")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.READ, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.RW, "user1", "application", "dataSource1"));
     }
 
     @Test
@@ -80,10 +80,10 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "app*", "dataSource1")))
                                     .build()));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "appp", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "appp", "dataSource1"));
     }
 
     @Test
@@ -94,11 +94,11 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "*app", "dataSource1")))
                                     .build()));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "bap", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "bapp", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "bap", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "bapp", "dataSource1"));
     }
 
     @Test
@@ -109,8 +109,8 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "*", "dataSource1")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "ap", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "apl", "dataSource1"));
     }
 
     @Test
@@ -121,9 +121,9 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "*bithon*", "dataSource1")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app-bithon-controller", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "bithon", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app-bitho-controller", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app-bithon-controller", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "bithon", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app-bitho-controller", "dataSource1"));
     }
 
     @Test
@@ -134,9 +134,9 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "app", "data*")))
                                     .build()));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app", "dat"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app", "dat"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
     }
 
     @Test
@@ -147,9 +147,9 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "app", "*data")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "adata"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app", "dat"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "adata"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "app", "dat"));
     }
 
     @Test
@@ -160,8 +160,8 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "app", "*")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data2"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data2"));
     }
 
     @Test
@@ -172,8 +172,8 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "app", null)))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data2"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app", "data2"));
     }
 
     @Test
@@ -191,15 +191,15 @@ public class RbacConfigTest {
                                     .build()
         ));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app1", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.READ, "user1", "app2", "dataSource2"));
-        Assert.assertFalse(config.isPermitted(Operation.RW, "user1", "app2", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.RW, "user1", "app3", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "app1", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.READ, "user1", "app2", "dataSource2"));
+        Assertions.assertFalse(config.isPermitted(Operation.RW, "user1", "app2", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.RW, "user1", "app3", "dataSource1"));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user2", "app1", "dataSource1"));
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user2", "app3", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user2", "app1", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user2", "app3", "dataSource1"));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user3", "app3", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user3", "app3", "dataSource1"));
     }
 
     @Test
@@ -210,10 +210,10 @@ public class RbacConfigTest {
                                     .permissions(List.of(new Permission(Operation.RW, "application", "dataSource1")))
                                     .build()));
 
-        Assert.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.READ, "user2", "application", "dataSource1"));
-        Assert.assertTrue(config.isPermitted(Operation.RW, "user3", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.WRITE, "user1", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.READ, "user2", "application", "dataSource1"));
+        Assertions.assertTrue(config.isPermitted(Operation.RW, "user3", "application", "dataSource1"));
 
-        Assert.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application1", "dataSource1"));
+        Assertions.assertFalse(config.isPermitted(Operation.WRITE, "user1", "application1", "dataSource1"));
     }
 }

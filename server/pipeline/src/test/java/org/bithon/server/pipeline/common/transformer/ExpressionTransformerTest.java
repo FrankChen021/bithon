@@ -20,8 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
@@ -42,7 +42,7 @@ public class ExpressionTransformerTest {
 
         InputRow row = new InputRow(new HashMap<>());
         newTransformer.transform(row);
-        Assert.assertEquals(3L, row.getCol("bison"));
+        Assertions.assertEquals(3L, row.getCol("bison"));
     }
 
 
@@ -57,6 +57,6 @@ public class ExpressionTransformerTest {
 
         InputRow row = new InputRow(new HashMap<>(ImmutableMap.of("a", "bison is a kind of animal")));
         newTransformer.transform(row);
-        Assert.assertEquals(true, row.getCol("bison"));
+        Assertions.assertEquals(true, row.getCol("bison"));
     }
 }

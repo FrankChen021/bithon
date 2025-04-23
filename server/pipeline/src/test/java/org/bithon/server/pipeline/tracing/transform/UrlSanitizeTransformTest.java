@@ -20,8 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.server.pipeline.common.transformer.AbstractTransformer;
 import org.bithon.server.pipeline.tracing.transform.sanitization.UrlSanitizeTransformer;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.HashMap;
 
@@ -40,7 +41,7 @@ public class UrlSanitizeTransformTest {
                                                                       "url", "/?database=default&user=1&password=123"))).build();
         transformer.transform(span);
 
-        Assert.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("http.url"));
-        Assert.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("url"));
+        Assertions.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("http.url"));
+        Assertions.assertEquals("/?database=default&user=1&password=***HIDDEN***", span.getTag("url"));
     }
 }

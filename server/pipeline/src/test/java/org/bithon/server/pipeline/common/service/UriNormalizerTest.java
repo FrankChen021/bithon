@@ -16,8 +16,8 @@
 
 package org.bithon.server.pipeline.common.service;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,21 +30,21 @@ public class UriNormalizerTest {
     @Test
     public void testNoChange() {
         UriNormalizer.NormalizedResult r = normalizer.normalize("test-app", "/");
-        Assert.assertEquals("/", r.getUri());
-        Assert.assertFalse(r.isNormalized());
+        Assertions.assertEquals("/", r.getUri());
+        Assertions.assertFalse(r.isNormalized());
     }
 
     @Test
     public void testUriWithParameters() {
         UriNormalizer.NormalizedResult r = normalizer.normalize("test-app", "/?query=select+1");
-        Assert.assertEquals("/", r.getUri());
-        Assert.assertTrue(r.isNormalized());
+        Assertions.assertEquals("/", r.getUri());
+        Assertions.assertTrue(r.isNormalized());
     }
 
     @Test
     public void testFullUri() {
         UriNormalizer.NormalizedResult r = normalizer.normalize("test-app", "http://localhost/?query=select+1");
-        Assert.assertEquals("http://localhost", r.getUri());
-        Assert.assertTrue(r.isNormalized());
+        Assertions.assertEquals("http://localhost", r.getUri());
+        Assertions.assertTrue(r.isNormalized());
     }
 }

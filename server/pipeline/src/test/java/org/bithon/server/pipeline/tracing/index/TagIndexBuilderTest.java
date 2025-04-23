@@ -21,8 +21,8 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.index.TagIndex;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +49,7 @@ public class TagIndexBuilderTest {
                                                                                            .appName("bithon-test")
                                                                                            .build()));
 
-        Assert.assertTrue(indexes.isEmpty());
+        Assertions.assertTrue(indexes.isEmpty());
     }
 
     @Test
@@ -64,7 +64,7 @@ public class TagIndexBuilderTest {
                                                                                            .tags(ImmutableMap.of("status1", "200"))
                                                                                            .build()));
 
-        Assert.assertTrue(indexes.isEmpty());
+        Assertions.assertTrue(indexes.isEmpty());
     }
 
     @Test
@@ -80,10 +80,10 @@ public class TagIndexBuilderTest {
                                                                                      .tags(ImmutableMap.of("status", "200"))
                                                                                      .build()));
 
-        Assert.assertEquals(1, indexes.size());
-        Assert.assertEquals("trace-id-123", indexes.get(0).getTraceId());
-        Assert.assertEquals("status", indexes.get(0).getName());
-        Assert.assertEquals("200", indexes.get(0).getValue());
-        Assert.assertEquals(1, indexes.get(0).getTimestamp());
+        Assertions.assertEquals(1, indexes.size());
+        Assertions.assertEquals("trace-id-123", indexes.get(0).getTraceId());
+        Assertions.assertEquals("status", indexes.get(0).getName());
+        Assertions.assertEquals("200", indexes.get(0).getValue());
+        Assertions.assertEquals(1, indexes.get(0).getTimestamp());
     }
 }

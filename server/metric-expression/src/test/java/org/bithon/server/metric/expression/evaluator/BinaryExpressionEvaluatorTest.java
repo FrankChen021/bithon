@@ -25,9 +25,9 @@ import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.Map;
 public class BinaryExpressionEvaluatorTest {
     private IDataSourceApi dataSourceApi;
 
-    @Before
+    @BeforeEach
     public void setUpClass() {
         dataSourceApi = Mockito.mock(IDataSourceApi.class);
     }
@@ -71,7 +71,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(6, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(6, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(4.3, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(4.3, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(8.7, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(8.7, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(12.7, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(12.7, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -183,7 +183,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(HumanReadableNumber.of("5Mi").longValue() + 1, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -211,7 +211,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(1.9, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(1.9, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -239,7 +239,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(3601, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(3601, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -267,7 +267,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(-4, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(-4, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -295,7 +295,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(8.3, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(8.3, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -323,7 +323,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -351,7 +351,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(27.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(27.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -379,7 +379,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(5.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -407,7 +407,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(10.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(10.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -435,7 +435,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(2, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -463,7 +463,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -491,7 +491,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -519,7 +519,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valueCol = response.getTable().getColumn("value");
-        Assert.assertEquals(3.5, valueCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(3.5, valueCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -577,16 +577,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(5 + 5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(20 + 5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(25 + 5, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(5 + 5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(20 + 5, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(25 + 5, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -644,16 +644,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(5 - 5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(20 - 5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(25 - 5, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(5 - 5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(20 - 5, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(25 - 5, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -711,16 +711,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(5 * 5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(20 * 5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(25 * 5, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(5 * 5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(20 * 5, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(25 * 5, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -778,16 +778,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(5 / 5, values.getLong(0));
-        Assert.assertEquals(24 / 5, values.getLong(1));
-        Assert.assertEquals(25 / 5, values.getLong(2));
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(5 / 5, values.getLong(0));
+        Assertions.assertEquals(24 / 5, values.getLong(1));
+        Assertions.assertEquals(25 / 5, values.getLong(2));
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -840,7 +840,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(12, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(12, valCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -895,7 +895,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(-10, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(-10, valCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -948,7 +948,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(22, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(22, valCol.getDouble(0), .0000000001);
     }
 
     @Test
@@ -1001,7 +1001,7 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("value");
-        Assert.assertEquals(5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(5, values.getDouble(0), .0000000001);
     }
 
     @Test
@@ -1060,16 +1060,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(8, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(9, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(10, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(8, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(9, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(10, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1129,16 +1129,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(-2, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(-3, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(-4, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(-2, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(-3, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(-4, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1198,16 +1198,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(15, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(18, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(21, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(15, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(18, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(21, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1267,16 +1267,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(20, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(4, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(20, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(4, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1336,16 +1336,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(2, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(0.5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(0.4, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(2, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(0.4, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1405,16 +1405,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("totalThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(2, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(0.5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(0.4, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(2, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(0.4, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1472,16 +1472,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(10, values.getDouble(0), .0000000001);
-        Assert.assertEquals(25, values.getDouble(1), .0000000001);
-        Assert.assertEquals(30, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(10, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(25, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(30, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1539,16 +1539,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(10.7, values.getDouble(0), .0000000001);
-        Assert.assertEquals(25.7, values.getDouble(1), .0000000001);
-        Assert.assertEquals(30.7, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(10.7, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(25.7, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(30.7, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1606,16 +1606,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(10.5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(25.6, values.getDouble(1), .0000000001);
-        Assert.assertEquals(30.7, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(10.5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(25.6, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(30.7, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1673,16 +1673,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(-2, values.getDouble(0), .0000000001);
-        Assert.assertEquals(-1, values.getDouble(1), .0000000001);
-        Assert.assertEquals(0, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(-2, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(-1, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(0, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1740,16 +1740,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(-2.5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(-1.5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(-0.5, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(-2.5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(-1.5, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(-0.5, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1807,16 +1807,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column values = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, values.size());
-        Assert.assertEquals(-1.5, values.getDouble(0), .0000000001);
-        Assert.assertEquals(-0.5, values.getDouble(1), .0000000001);
-        Assert.assertEquals(0.5, values.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, values.size());
+        Assertions.assertEquals(-1.5, values.getDouble(0), .0000000001);
+        Assertions.assertEquals(-0.5, values.getDouble(1), .0000000001);
+        Assertions.assertEquals(0.5, values.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1874,16 +1874,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(9, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(12, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(15, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(9, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(12, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(15, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -1941,16 +1941,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(10.5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(14, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(17.5, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(10.5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(14, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(17.5, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -2008,16 +2008,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(10.5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(13.5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(16.5, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(10.5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(13.5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(16.5, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -2076,16 +2076,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(7, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(7, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -2144,16 +2144,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(0.4, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(0.5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(1, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(0.4, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(1, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -2212,16 +2212,16 @@ public class BinaryExpressionEvaluatorTest {
         IntermediateEvaluationResult response = evaluator.evaluate().get();
 
         Column valCol = response.getTable().getColumn("activeThreads");
-        Assert.assertEquals(3, valCol.size());
-        Assert.assertEquals(0.4, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(0.5, valCol.getDouble(1), .0000000001);
-        Assert.assertEquals(1, valCol.getDouble(2), .0000000001);
+        Assertions.assertEquals(3, valCol.size());
+        Assertions.assertEquals(0.4, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(0.5, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(1, valCol.getDouble(2), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(3, dimCol.size());
-        Assert.assertEquals("app1", dimCol.getString(0));
-        Assert.assertEquals("app2", dimCol.getString(1));
-        Assert.assertEquals("app3", dimCol.getString(2));
+        Assertions.assertEquals(3, dimCol.size());
+        Assertions.assertEquals("app1", dimCol.getString(0));
+        Assertions.assertEquals("app2", dimCol.getString(1));
+        Assertions.assertEquals("app3", dimCol.getString(2));
     }
 
     @Test
@@ -2287,14 +2287,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 + 21, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 + 32, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 + 21, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 + 32, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2360,14 +2360,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 + 21.5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 + 32.6, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 + 21.5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 + 32.6, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2433,14 +2433,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1.1 + 21.5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5.2 + 32.6, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1.1 + 21.5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.2 + 32.6, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2506,14 +2506,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 - 21, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 - 32, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 - 21, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 - 32, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2579,14 +2579,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 - 21.1, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 - 32.2, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 - 21.1, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 - 32.2, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2652,14 +2652,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1.1 - 21, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5.5 - 32, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1.1 - 21, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.5 - 32, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2725,14 +2725,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1.4 - 21.1, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5.5 - 32.2, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1.4 - 21.1, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.5 - 32.2, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2798,14 +2798,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 * 21, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 * 32, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 * 21, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 * 32, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2871,14 +2871,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1 * 21.2, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5 * 32.3, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1 * 21.2, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5 * 32.3, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -2944,14 +2944,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1.1 * 21, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5.2 * 32, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1.1 * 21, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.2 * 32, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3017,14 +3017,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(1.1 * 21.1, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(5.2 * 32.2, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(1.1 * 21.1, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(5.2 * 32.2, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3090,14 +3090,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(50.0 / 25, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(100.0 / 50, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(50.0 / 25, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(100.0 / 50, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3163,14 +3163,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(50 / 25.5, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(100 / 50.6, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(50 / 25.5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(100 / 50.6, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3236,14 +3236,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals((double) 12 / 25, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals((double) 25 / 50, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals((double) 12 / 25, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals((double) 25 / 50, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3309,14 +3309,14 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(2, valCol.size());
-        Assert.assertEquals(12.1 / 25.6, valCol.getDouble(0), .0000000001);
-        Assert.assertEquals(25.2 / 50.7, valCol.getDouble(1), .0000000001);
+        Assertions.assertEquals(2, valCol.size());
+        Assertions.assertEquals(12.1 / 25.6, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(25.2 / 50.7, valCol.getDouble(1), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(2, dimCol.size());
-        Assert.assertEquals("app2", dimCol.getString(0));
-        Assert.assertEquals("app3", dimCol.getString(1));
+        Assertions.assertEquals(2, dimCol.size());
+        Assertions.assertEquals("app2", dimCol.getString(0));
+        Assertions.assertEquals("app3", dimCol.getString(1));
     }
 
     @Test
@@ -3382,10 +3382,10 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(0, valCol.size());
+        Assertions.assertEquals(0, valCol.size());
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(0, dimCol.size());
+        Assertions.assertEquals(0, dimCol.size());
     }
 
     /**
@@ -3476,10 +3476,10 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(0, valCol.size());
+        Assertions.assertEquals(0, valCol.size());
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(0, dimCol.size());
+        Assertions.assertEquals(0, dimCol.size());
     }
 
     /**
@@ -3569,10 +3569,10 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(0, valCol.size());
+        Assertions.assertEquals(0, valCol.size());
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(0, dimCol.size());
+        Assertions.assertEquals(0, dimCol.size());
     }
 
     @Test
@@ -3660,12 +3660,12 @@ public class BinaryExpressionEvaluatorTest {
 
         // Only the overlapped series will be returned
         Column valCol = response.getTable().getColumn("value");
-        Assert.assertEquals(1, valCol.size());
-        Assert.assertEquals(5.0 / 26 * 35 + 5, valCol.getDouble(0), .0000000001);
+        Assertions.assertEquals(1, valCol.size());
+        Assertions.assertEquals(5.0 / 26 * 35 + 5, valCol.getDouble(0), .0000000001);
 
         Column dimCol = response.getTable().getColumn("appName");
-        Assert.assertEquals(1, dimCol.size());
-        Assert.assertEquals("app3", dimCol.getString(0));
+        Assertions.assertEquals(1, dimCol.size());
+        Assertions.assertEquals("app3", dimCol.getString(0));
     }
 
     @Test
@@ -3725,26 +3725,26 @@ public class BinaryExpressionEvaluatorTest {
                                                // BY is given so that it produces a vector
                                                .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
         IntermediateEvaluationResult response = evaluator.evaluate().get();
-        Assert.assertEquals(2, response.getRows());
+        Assertions.assertEquals(2, response.getRows());
 
         // Only the overlapped series(app2,app3) will be returned
         {
             Column valCol = response.getTable().getColumn("activeThreads");
-            Assert.assertEquals(2, valCol.size());
-            Assert.assertEquals(4, valCol.getDouble(0), .0000000001);
-            Assert.assertEquals(5, valCol.getDouble(1), .0000000001);
+            Assertions.assertEquals(2, valCol.size());
+            Assertions.assertEquals(4, valCol.getDouble(0), .0000000001);
+            Assertions.assertEquals(5, valCol.getDouble(1), .0000000001);
         }
         {
             Column valCol = response.getTable().getColumn("-1d");
-            Assert.assertEquals(2, valCol.size());
-            Assert.assertEquals(21, valCol.getDouble(0), .0000000001);
-            Assert.assertEquals(22, valCol.getDouble(1), .0000000001);
+            Assertions.assertEquals(2, valCol.size());
+            Assertions.assertEquals(21, valCol.getDouble(0), .0000000001);
+            Assertions.assertEquals(22, valCol.getDouble(1), .0000000001);
         }
         {
             Column valCol = response.getTable().getColumn("delta");
-            Assert.assertEquals(2, valCol.size());
-            Assert.assertEquals((4.0 - 21) / 21, valCol.getDouble(0), .0000000001);
-            Assert.assertEquals((5.0 - 22) / 22, valCol.getDouble(1), .0000000001);
+            Assertions.assertEquals(2, valCol.size());
+            Assertions.assertEquals((4.0 - 21) / 21, valCol.getDouble(0), .0000000001);
+            Assertions.assertEquals((5.0 - 22) / 22, valCol.getDouble(1), .0000000001);
         }
     }
 }

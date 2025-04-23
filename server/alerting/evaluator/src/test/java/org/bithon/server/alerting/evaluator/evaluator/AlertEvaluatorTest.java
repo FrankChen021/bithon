@@ -64,10 +64,10 @@ import org.bithon.server.storage.jdbc.h2.H2StorageModuleAutoConfiguration;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.datasource.api.QueryResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -107,7 +107,7 @@ public class AlertEvaluatorTest {
     private static INotificationApiInvoker notificationImpl;
     private AlertEvaluator evaluator;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpStorage() throws Exception {
         Map<String, Object> injection = new HashMap<>();
 
@@ -179,7 +179,7 @@ public class AlertEvaluatorTest {
         };
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         notificationApiStub = Mockito.mock(INotificationApiInvoker.class);
 
@@ -256,8 +256,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -290,8 +290,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -321,8 +321,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -352,8 +352,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
                .groupByV3(Mockito.any());
@@ -389,8 +389,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check if the notification api is invoked
         Mockito.verify(notificationApiStub, Mockito.times(1))
@@ -434,8 +434,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState alertState = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(alertState);
-        Assert.assertEquals(AlertStatus.ALERTING, alertState.getStatus());
+        Assertions.assertNotNull(alertState);
+        Assertions.assertEquals(AlertStatus.ALERTING, alertState.getStatus());
 
         // Check if the notification api is invoked
         Mockito.verify(notificationApiStub, Mockito.times(1))
@@ -477,8 +477,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check if the notification api is invoked
         Mockito.verify(notificationApiStub, Mockito.times(1))
@@ -524,8 +524,8 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
@@ -540,8 +540,8 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -604,8 +604,8 @@ public class AlertEvaluatorTest {
                                                            AlertEvaluatorTest.class,
                                                            "=====================Evaluating 1st==================");
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(1)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(1)).notify(Mockito.any(), Mockito.any());
 
@@ -620,8 +620,8 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(2)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(2)).notify(Mockito.any(), Mockito.any());
 
@@ -638,8 +638,8 @@ public class AlertEvaluatorTest {
                            true);
         // Verify states
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(3)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(2)).notify(Mockito.any(), Mockito.any());
 
@@ -650,8 +650,8 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
         Mockito.verify(dataSourceApiStub, Mockito.times(4)).groupByV3(Mockito.any());
         Mockito.verify(notificationApiStub, Mockito.times(3)).notify(Mockito.any(), Mockito.any());
     }
@@ -688,9 +688,9 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
-        Assert.assertTrue(stateObject.getPayload().getSeries().isEmpty());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertTrue(stateObject.getPayload().getSeries().isEmpty());
     }
 
     /**
@@ -737,14 +737,14 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
 
         // Check the series status
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
         // The status is PENDING since the rule requires 2 times of match
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(1))
@@ -759,13 +759,13 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check the series status
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
-        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
 
         // 2 times of invocation in total
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -778,10 +778,10 @@ public class AlertEvaluatorTest {
                    .notify(Mockito.any(), notificationMessageCaptor.capture());
             NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
             // Only one series will be notified
-            Assert.assertEquals(AlertStatus.ALERTING, notificationMessage.getStatus());
+            Assertions.assertEquals(AlertStatus.ALERTING, notificationMessage.getStatus());
 
             // ALERTING message has 1 output
-            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
         }
     }
 
@@ -846,13 +846,13 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check the series status, even 3 series in two datasource above meet either one of conditions,
         // but only 1 series meet both conditions
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(3))
@@ -867,10 +867,10 @@ public class AlertEvaluatorTest {
         NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
 
         // There are 3 outputs from 3 sub expressions, and 1 output for each sub expression '1', '2' and '3' respectively
-        Assert.assertEquals(3, notificationMessage.getEvaluationOutputs().size());
-        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
-        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("2").size());
-        Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("3").size());
+        Assertions.assertEquals(3, notificationMessage.getEvaluationOutputs().size());
+        Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+        Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().get("2").size());
+        Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().get("3").size());
     }
 
     @Test
@@ -927,12 +927,12 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
 
         // Check the series status, even 4 series in two datasource above meet either one of conditions,
         // but none of them meets ALL conditions
-        Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(0, stateObject.getPayload().getSeries().size());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -987,15 +987,15 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
 
         // Check the series status, even 3 series in two datasource above meet either one of conditions,
         // but only 1 series meet both conditions
-        Assert.assertEquals(3, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+        Assertions.assertEquals(3, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -1053,9 +1053,9 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
-        Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertEquals(0, stateObject.getPayload().getSeries().size());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -1101,9 +1101,9 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.READY, stateObject.getStatus());
-        Assert.assertEquals(0, stateObject.getPayload().getSeries().size());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.READY, stateObject.getStatus());
+        Assertions.assertEquals(0, stateObject.getPayload().getSeries().size());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -1151,11 +1151,11 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertEquals(1, stateObject.getPayload().getSeries().size());
 
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -1203,12 +1203,12 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
 
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Check if the notification api is NOT invoked
         Mockito.verify(dataSourceApiStub, Mockito.times(2))
@@ -1268,10 +1268,10 @@ public class AlertEvaluatorTest {
                            null);
 
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getStatus());
+        Assertions.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.PENDING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
 
         // 2nd round evaluation, expect ALERTING status
         evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),
@@ -1279,12 +1279,12 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true /*Skip interval check for test case*/);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
-        Assert.assertNotEquals(0L, Timestamp.valueOf(stateObject.getLastAlertAt()).getTime());
-        Assert.assertNotNull(stateObject.getLastRecordId());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.EMPTY).getStatus());
+        Assertions.assertNotEquals(0L, Timestamp.valueOf(stateObject.getLastAlertAt()).getTime());
+        Assertions.assertNotNull(stateObject.getLastRecordId());
 
         Mockito.verify(dataSourceApiStub, Mockito.times(4))
                .groupByV3(Mockito.any());
@@ -1357,10 +1357,10 @@ public class AlertEvaluatorTest {
                            alertRule,
                            null);
         AlertState stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(1, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertEquals(1, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Verify notification message
         {
@@ -1368,9 +1368,9 @@ public class AlertEvaluatorTest {
             Mockito.verify(notificationApiStub, Mockito.times(1))
                    .notify(Mockito.any(), notificationMessageCaptor.capture());
             NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
-            Assert.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
+            Assertions.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
             // Only one series will be notified
-            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+            Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
         }
 
         //
@@ -1381,11 +1381,11 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getStatus());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.ALERTING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Verify notification message
         {
@@ -1394,10 +1394,10 @@ public class AlertEvaluatorTest {
             Mockito.verify(notificationApiStub, Mockito.times(2))
                    .notify(Mockito.any(), notificationMessageCaptor.capture());
             NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
-            Assert.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
+            Assertions.assertNotNull(notificationMessage.getEvaluationOutputs().get("1"));
             // Only one series will be notified
-            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
-            Assert.assertEquals(Label.builder().add("appName", "test-app-1").build(), notificationMessage.getEvaluationOutputs().get("1").get(0).getLabel());
+            Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().get("1").size());
+            Assertions.assertEquals(Label.builder().add("appName", "test-app-1").build(), notificationMessage.getEvaluationOutputs().get("1").get(0).getLabel());
         }
 
         // 3rd round, both are under SUPPRESSING
@@ -1406,11 +1406,11 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
         // Verify notification message
         // in this case, no notification sent, the expected call is still 2
         Mockito.verify(notificationApiStub, Mockito.times(2))
@@ -1424,12 +1424,12 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getStatus());
         // because series 1 is RESOLVED, ONLY series-2 will be kept
-        Assert.assertEquals(2, stateObject.getPayload().getSeries().size());
-        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
-        Assert.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
+        Assertions.assertEquals(2, stateObject.getPayload().getSeries().size());
+        Assertions.assertEquals(AlertStatus.RESOLVED, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-1").build()).getStatus());
+        Assertions.assertEquals(AlertStatus.SUPPRESSING, stateObject.getPayload().getSeries().get(Label.builder().add("appName", "test-app-2").build()).getStatus());
 
         // Verify notification message
         {
@@ -1438,11 +1438,11 @@ public class AlertEvaluatorTest {
                    .notify(Mockito.any(), notificationMessageCaptor.capture());
             NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
             // Only one series will be notified
-            Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
+            Assertions.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
 
             // RESOLVED message has 1 output
-            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
-            Assert.assertEquals(Map.of("appName", "test-app-1"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
+            Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assertions.assertEquals(Map.of("appName", "test-app-1"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
         }
 
         //
@@ -1453,8 +1453,8 @@ public class AlertEvaluatorTest {
                            stateObject,
                            true);
         stateObject = alertStateStorageStub.getAlertStates().get(id);
-        Assert.assertNotNull(stateObject);
-        Assert.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
+        Assertions.assertNotNull(stateObject);
+        Assertions.assertEquals(AlertStatus.RESOLVED, stateObject.getStatus());
         // Verify notification message
         {
             ArgumentCaptor<NotificationMessage> notificationMessageCaptor = ArgumentCaptor.forClass(NotificationMessage.class);
@@ -1462,11 +1462,11 @@ public class AlertEvaluatorTest {
                    .notify(Mockito.any(), notificationMessageCaptor.capture());
             NotificationMessage notificationMessage = notificationMessageCaptor.getValue();
             // Only one series will be notified
-            Assert.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
+            Assertions.assertEquals(AlertStatus.RESOLVED, notificationMessage.getStatus());
 
             // RESOLVED message has 1 output
-            Assert.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
-            Assert.assertEquals(Map.of("appName", "test-app-2"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
+            Assertions.assertEquals(1, notificationMessage.getEvaluationOutputs().size());
+            Assertions.assertEquals(Map.of("appName", "test-app-2"), notificationMessage.getEvaluationOutputs().get("").get(0).getLabel().getKeyValues());
         }
 
         Mockito.verify(dataSourceApiStub, Mockito.times(5))

@@ -22,8 +22,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.commons.serializer.HumanReadablePercentageDeserializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Frank Chen
@@ -35,7 +36,7 @@ public class ProbabilisticSamplerTransformTest {
     public void test_NegativeProbability() {
         ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.of("-1%"));
         for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE + 1; i++) {
-            Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
         }
     }
 
@@ -44,7 +45,7 @@ public class ProbabilisticSamplerTransformTest {
         {
             ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.of("0%"));
             for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE + 1; i++) {
-                Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+                Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
             }
         }
     }
@@ -55,7 +56,7 @@ public class ProbabilisticSamplerTransformTest {
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
             for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE; i++) {
-                Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+                Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
             }
         }
     }
@@ -65,9 +66,9 @@ public class ProbabilisticSamplerTransformTest {
         ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.of((100.0 / ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE) + "%"));
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
-            Assert.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
             for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE - 1; i++) {
-                Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+                Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
             }
         }
     }
@@ -78,7 +79,7 @@ public class ProbabilisticSamplerTransformTest {
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
             for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE; i++) {
-                Assert.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
+                Assertions.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
             }
         }
     }
@@ -89,7 +90,7 @@ public class ProbabilisticSamplerTransformTest {
 
         for (int j = 0; j < 3; j++) { // Test for 3 loops
             for (int i = 0; i < ProbabilisticSamplerTransform.MAX_PROBABILITY_VALUE; i++) {
-                Assert.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
+                Assertions.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
             }
         }
     }
@@ -98,8 +99,8 @@ public class ProbabilisticSamplerTransformTest {
     public void test_50PercentageProbability() {
         ITransformer transformer = new ProbabilisticSamplerTransform(HumanReadablePercentage.of("50%"));
         for (int i = 0; i < 200; i++) {
-            Assert.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
-            Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
         }
     }
 
@@ -114,8 +115,8 @@ public class ProbabilisticSamplerTransformTest {
         ITransformer transformer = om.readValue(om.writeValueAsString(new ProbabilisticSamplerTransform(HumanReadablePercentage.of("50%"))), ITransformer.class);
 
         for (int i = 0; i < 200; i++) {
-            Assert.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
-            Assert.assertEquals(TransformResult.DROP, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.CONTINUE, transformer.transform(null));
+            Assertions.assertEquals(TransformResult.DROP, transformer.transform(null));
         }
     }
 }

@@ -18,8 +18,9 @@ package org.bithon.server.metric.expression.ast;
 
 
 import org.bithon.component.commons.expression.IExpression;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,30 +32,30 @@ public class MetricExpressionOptimizerTest {
     public void test_Optimize_ConstantFolding() {
         String expression = "1 + 2 + 3";
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assert.assertEquals("(1 + 2) + 3", ast.serializeToText());
+        Assertions.assertEquals("(1 + 2) + 3", ast.serializeToText());
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("6", ast.serializeToText());
+        Assertions.assertEquals("6", ast.serializeToText());
     }
 
     @Test
     public void test_Optimize_ConstantFolding_Mul() {
         String expression = "1 + 2 * 3";
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assert.assertEquals("1 + (2 * 3)", ast.serializeToText());
+        Assertions.assertEquals("1 + (2 * 3)", ast.serializeToText());
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("7", ast.serializeToText());
+        Assertions.assertEquals("7", ast.serializeToText());
     }
 
     @Test
     public void test_Optimize_ConstantFolding_2() {
         String expression = "1 + sum(dataSource.metric) + 2 + 3 + 4";
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assert.assertEquals("(((1 + sum(dataSource.metric)) + 2) + 3) + 4", ast.serializeToText());
+        Assertions.assertEquals("(((1 + sum(dataSource.metric)) + 2) + 3) + 4", ast.serializeToText());
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("sum(dataSource.metric) + 10", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 10", ast.serializeToText());
     }
 
     @Test
@@ -63,7 +64,7 @@ public class MetricExpressionOptimizerTest {
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("sum(dataSource.metric)", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric)", ast.serializeToText());
     }
 
     @Test
@@ -72,7 +73,7 @@ public class MetricExpressionOptimizerTest {
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("sum(dataSource.metric) + 0.2", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 0.2", ast.serializeToText());
     }
 
     @Test
@@ -81,7 +82,7 @@ public class MetricExpressionOptimizerTest {
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("sum(dataSource.metric) + 5368709120", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 5368709120", ast.serializeToText());
     }
 
     @Test
@@ -90,6 +91,6 @@ public class MetricExpressionOptimizerTest {
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assert.assertEquals("sum(dataSource.metric) + 86460", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 86460", ast.serializeToText());
     }
 }
