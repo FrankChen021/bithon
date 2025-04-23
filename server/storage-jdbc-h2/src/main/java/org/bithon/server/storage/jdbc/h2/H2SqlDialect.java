@@ -20,10 +20,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
+import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
@@ -35,8 +37,12 @@ import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.dialect.LikeOperator;
 import org.bithon.server.storage.jdbc.common.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.storage.jdbc.common.statement.ast.OrderByElement;
+import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -75,21 +81,33 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(\"%s\")", field);
     }
 
-    @Override
-    public String firstAggregator(String field, long window) {
-        return StringUtils.format(
-            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\")",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+    public static class UnixTimestampFunction extends AbstractFunction {
+        public UnixTimestampFunction() {
+            super("UNIX_TIMESTAMP", IDataType.LONG, IDataType.LONG);
+        }
+
+        @Override
+        public Object evaluate(List<Object> args) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isDeterministic() {
+            return true;
+        }
     }
 
     @Override
-    public String lastAggregator(String field, long window) {
-        // NOTE: use FIRST_VALUE instead of LAST_VALUE because the latter one returns the wrong result
-        return StringUtils.format(
-            "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
-            field,
-            this.timeFloorExpression(new IdentifierExpression("timestamp"), window));
+    public WindowFunctionExpression firstWindowFunction(String field, long window) {
+        return WindowFunctionExpression.builder()
+                                       .name("FIRST_VALUE")
+                                       .args(new ArrayList<>(List.of(new IdentifierExpression(field))))
+                                       .partitionBy(new ArithmeticExpression.MUL(
+                                           new ArithmeticExpression.DIV(new FunctionExpression(new UnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
+                                           LiteralExpression.of(window)
+                                       ))
+                                       .orderBy(new OrderByElement(IdentifierExpression.of("timestamp")))
+                                       .build();
     }
 
     @Override

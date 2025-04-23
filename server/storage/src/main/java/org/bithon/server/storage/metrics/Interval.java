@@ -19,6 +19,7 @@ package org.bithon.server.storage.metrics;
 import lombok.Getter;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 
 import java.time.Duration;
@@ -33,6 +34,11 @@ public class Interval {
     private final TimeSpan endTime;
 
     /**
+     * Can be null. If null, the step is the same as the window
+     */
+    private final HumanReadableDuration window;
+
+    /**
      * In second
      * Can be null. For example, for the SELECT query, the step is not needed
      */
@@ -40,10 +46,11 @@ public class Interval {
 
     private final IExpression timestampColumn;
 
-    private Interval(TimeSpan startTime, TimeSpan endTime, Duration step, IExpression timestampColumn) {
+    private Interval(TimeSpan startTime, TimeSpan endTime, Duration step, HumanReadableDuration window, IExpression timestampColumn) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.step = step;
+        this.window = window;
         this.timestampColumn = timestampColumn;
     }
 
@@ -56,7 +63,12 @@ public class Interval {
     }
 
     public static Interval of(TimeSpan start, TimeSpan end, Duration step, IExpression timestampColumn) {
-        return new Interval(start, end, step, timestampColumn);
+        // Use step as window
+        return new Interval(start, end, step, null, timestampColumn);
+    }
+
+    public static Interval of(TimeSpan start, TimeSpan end, Duration step, HumanReadableDuration window, IExpression timestampColumn) {
+        return new Interval(start, end, step, window, timestampColumn);
     }
 
     /**

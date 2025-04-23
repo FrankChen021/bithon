@@ -18,6 +18,7 @@ package org.bithon.server.metric.expression.evaluator;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.expression.format.Column;
 import org.bithon.server.metric.expression.format.ColumnarTable;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -48,10 +49,24 @@ public class MetricExpressionEvaluator implements IEvaluator {
     public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
-        this.isScalar = CollectionUtils.isEmpty(queryRequest.getGroupBy())
-                        && (queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1
-                            // TODO: judge with STEP and INTERVAL LENGTH
-                        );
+        this.isScalar = computeIsScalar(queryRequest);
+    }
+
+    private boolean computeIsScalar(QueryRequest queryRequest) {
+        if (CollectionUtils.isNotEmpty(queryRequest.getGroupBy())) {
+            // If GROUP-BY is not empty, obviously it is not a scalar because the result set contains multiple rows for different groups
+            return false;
+        }
+
+        if (queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1) {
+            // ONLY one bucket is requested, the result set is a scalar
+            return true;
+        }
+
+        TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
+        long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
+        return queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength;
     }
 
     @Override

@@ -185,6 +185,4 @@ public abstract class AggregateFunction extends AbstractFunction {
             throw new UnsupportedOperationException("Not implemented yet");
         }
     }
-
-
 }

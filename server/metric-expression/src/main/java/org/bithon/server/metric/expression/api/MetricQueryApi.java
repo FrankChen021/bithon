@@ -24,7 +24,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
 import org.bithon.server.metric.expression.evaluator.IEvaluator;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -39,8 +38,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,11 +48,9 @@ import java.util.concurrent.Executors;
 @Conditional(WebServiceModuleEnabler.class)
 public class MetricQueryApi {
     private final IDataSourceApi dataSourceApi;
-    private final ExecutorService executor;
 
     public MetricQueryApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
-        this.executor = Executors.newCachedThreadPool(NamedThreadFactory.nonDaemonThreadFactory("metric-query"));
     }
 
     @Data

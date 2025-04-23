@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.common.statement;
+package org.bithon.server.storage.jdbc.common.statement.builder;
 
 import jakarta.annotation.Nullable;
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -24,9 +24,11 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
@@ -41,19 +43,22 @@ import org.bithon.server.storage.datasource.query.ast.HavingClause;
 import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.LimitClause;
 import org.bithon.server.storage.datasource.query.ast.OrderByClause;
+import org.bithon.server.storage.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.Selector;
 import org.bithon.server.storage.datasource.query.ast.TableIdentifier;
 import org.bithon.server.storage.datasource.query.ast.TextNode;
 import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.storage.jdbc.common.statement.ast.OrderByElement;
+import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
+import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionFrame;
 import org.bithon.server.storage.metrics.Interval;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -80,6 +85,12 @@ public class SelectStatementBuilder {
     private HumanReadableDuration offset;
 
     private ISqlDialect sqlDialect;
+
+    private boolean hasSlidingWindowAggregation() {
+        return interval.getWindow() != null &&
+               interval.getStep() != null
+               && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
+    }
 
     public static SelectStatementBuilder builder() {
         return new SelectStatementBuilder();
@@ -128,110 +139,6 @@ public class SelectStatementBuilder {
     public SelectStatementBuilder sqlDialect(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
         return this;
-    }
-
-    static class IdentifierExtractor implements IExpressionInDepthVisitor {
-
-        private final ISchema schema;
-        private final Set<String> identifiers = new LinkedHashSet<>();
-
-        private IdentifierExtractor(ISchema schema) {
-            this.schema = schema;
-        }
-
-        @Override
-        public boolean visit(IdentifierExpression expression) {
-            String field = expression.getIdentifier();
-            IColumn columnSpec = schema.getColumnByName(field);
-            if (columnSpec == null) {
-                throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, schema.getName()));
-            }
-            identifiers.add(columnSpec.getName());
-
-            return false;
-        }
-
-        public static Set<String> extractIdentifiers(ISchema schema, IExpression expression) {
-            IdentifierExtractor extractor = new IdentifierExtractor(schema);
-            expression.accept(extractor);
-            return extractor.identifiers;
-        }
-    }
-
-    static class VariableName {
-        private int index;
-        private final String prefix;
-
-        VariableName(String prefix) {
-            this.prefix = prefix;
-        }
-
-        public String next() {
-            return prefix + index++;
-        }
-    }
-
-    static class Aggregator {
-        private final FunctionExpression aggregateFunction;
-        private final String output;
-        private final boolean isSimpleAggregation;
-
-        Aggregator(FunctionExpression aggregateFunction, String output) {
-            this.aggregateFunction = aggregateFunction;
-            this.output = output;
-            this.isSimpleAggregation = aggregateFunction.getArgs().isEmpty() || aggregateFunction.getArgs().get(0) instanceof IdentifierExpression;
-        }
-    }
-
-    static class Aggregators {
-        private final List<Aggregator> aggregators = new ArrayList<>();
-
-        /**
-         * Add an aggregation.
-         * This also checks there's no same aggregation performed on the same column
-         */
-        public void add(FunctionExpression aggregatorFunctionCallExpression, String output) {
-            if (!contains(aggregatorFunctionCallExpression)) {
-                aggregators.add(new Aggregator(aggregatorFunctionCallExpression, output));
-            }
-        }
-
-        private boolean contains(FunctionExpression rhs) {
-            return aggregators.stream()
-                              .anyMatch(lhs -> {
-                                  if (!lhs.isSimpleAggregation) {
-                                      return false;
-                                  }
-                                  boolean isRhsSimpleAggregation = rhs.getArgs().isEmpty() || rhs.getArgs().get(0) instanceof IdentifierExpression;
-                                  if (!isRhsSimpleAggregation) {
-                                      return false;
-                                  }
-
-                                  FunctionExpression lhsFunction = lhs.aggregateFunction;
-                                  if (!lhsFunction.getName().equals(rhs.getName())) {
-                                      return false;
-                                  }
-
-                                  if (lhsFunction.getArgs().size() != rhs.getArgs().size()) {
-                                      return false;
-                                  }
-
-                                  if (lhsFunction.getArgs().isEmpty()) {
-                                      return true;
-                                  }
-
-                                  String lhsCol = ((IdentifierExpression) lhs.aggregateFunction.getArgs().get(0)).getIdentifier();
-                                  return lhsCol.equals(((IdentifierExpression) rhs.getArgs().get(0)).getIdentifier());
-                              });
-        }
-
-        public int size() {
-            return aggregators.size();
-        }
-
-        public Aggregator get(int index) {
-            return aggregators.get(index);
-        }
     }
 
     /**
@@ -352,10 +259,7 @@ public class SelectStatementBuilder {
      * </pre>
      */
     public SelectStatement build() {
-        VariableName var = new VariableName("_var");
-
-        Map<String, Object> macros = Map.of("interval", interval.getStep() == null ? interval.getTotalSeconds() : interval.getStep().getSeconds(),
-                                            "instanceCount", StringUtils.format("count(distinct %s)", sqlDialect.quoteIdentifier("instanceName")));
+        VariableNameGenerator var = new VariableNameGenerator("_var");
 
         SelectStatementPipeline pipeline = new SelectStatementPipeline();
 
@@ -365,6 +269,7 @@ public class SelectStatementBuilder {
             // Apply dialect's transformation on general AST
             this.filter = sqlDialect.transform(this.schema, this.filter);
 
+            // If filter contains expressions, these expressions should be added to the selector list
             this.filter.accept(new IExpressionInDepthVisitor() {
                 @Override
                 public boolean visit(IdentifierExpression expression) {
@@ -392,14 +297,14 @@ public class SelectStatementBuilder {
             });
         }
 
-        // Round 1, determine aggregation steps
+        //
+        // Step 1, Determine if there's a post aggregation step
+        // For example: round(sum(a)/sum(b), 2) the `round` function will be put in the post aggregation step
+        //
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression expression) {
                 IExpression parsedExpression = expression.getParsedExpression();
-
-                // Apply dialect's transformation first
-                expression.setParsedExpression(sqlDialect.transform(this.schema, parsedExpression));
 
                 if (parsedExpression instanceof FunctionExpression functionExpression) {
                     if (!functionExpression.getFunction().isAggregator()) {
@@ -413,11 +318,19 @@ public class SelectStatementBuilder {
             }
         }
 
-        // Round 2, Replace the aggregation expression
+        //
+        // Step 2, Replace the aggregation expression
+        //
+        MacroExpressionSubstitution macroExpressionSubstitution = new MacroExpressionSubstitution(interval);
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
             if (selectExpression instanceof Expression) {
                 IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
+
+                // Replace Macro expressions
+                // Don't merge this replacement with the following aggregator replacement
+                // Because the macro replacement may contain function call expression which needs to be processed by the following optimizer
+                parsedExpression = parsedExpression.accept(macroExpressionSubstitution);
 
                 // Replace all aggregator functions, examples:
                 // Case 1: sum(a) ===> a
@@ -441,12 +354,19 @@ public class SelectStatementBuilder {
                             // If there's no post-aggregation, the output should be the same as the input
                             output = selector.getOutputName();
                         } else {
-                            if (inputArg instanceof IdentifierExpression) {
-                                output = ((IdentifierExpression) inputArg).getIdentifier();
+                            if (functionCallExpression.getFunction() instanceof QueryStageFunctions.Cardinality) {
+                                // the default converted expression for  cardinality(a) is count(distinct a) as a,
+                                // where a usually is a string column which might cause the generated SQL confusion for debugging
+                                // So we generate a new name for the output
+                                output = "cardinality" + var.next();
                             } else {
-                                // This might be the form: sum(a+b)
-                                // Is there such input: sum(round(a/b,2))
-                                output = var.next();
+                                if (inputArg instanceof IdentifierExpression) {
+                                    output = ((IdentifierExpression) inputArg).getIdentifier();
+                                } else {
+                                    // This might be the form: sum(a+b)
+                                    // Is there such input: sum(round(a/b,2))
+                                    output = var.next();
+                                }
                             }
                         }
                         aggregators.add(functionCallExpression, output);
@@ -477,14 +397,14 @@ public class SelectStatementBuilder {
                 }
 
                 String col = identifierExpression.getIdentifier();
-                String windowAggregator = sqlDialect.firstAggregator(col, interval.getTotalSeconds());
-                pipeline.windowAggregation.getSelectorList().add(new TextNode(windowAggregator), aggregator.output, IDataType.DOUBLE);
+                IExpression windowFunctionExpression = sqlDialect.firstWindowFunction(col, interval.getTotalSeconds());
+                pipeline.windowAggregation.getSelectorList().add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
                 pipeline.aggregation.getSelectorList()
                                     .add(new Column(aggregator.output), IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize((IExpression) aggregator.aggregateFunction)), aggregator.output, IDataType.DOUBLE)
+                                    .add(new Expression(aggregator.aggregateFunction), aggregator.output, IDataType.DOUBLE)
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
@@ -519,11 +439,18 @@ public class SelectStatementBuilder {
                                                 .setTag(true);
                     } else {
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new TextNode(new Expression2SqlSerializer(this.sqlDialect, macros, interval).serialize(parsedExpression)), selector.getOutput(), IDataType.STRING)
+                                                .add(new Expression(parsedExpression), selector.getOutput(), IDataType.STRING)
                                                 .setTag(true);
                     }
                 }
             }
+        }
+
+        //
+        // Add a sliding window aggregation step if WINDOW and INTERVAL are different
+        //
+        if (hasSlidingWindowAggregation()) {
+            addSlidingWindowAggregationStep(aggregators, pipeline);
         }
 
         //
@@ -538,8 +465,70 @@ public class SelectStatementBuilder {
         buildOrderBy(pipeline);
         buildLimit(pipeline);
 
+        //
+        // Apply DBMS specific transformation
+        //
+        SelectStatement selectStatement = pipeline.outermost;
+        do {
+            for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
+                if (selector.getSelectExpression() instanceof Expression expression) {
+                    IExpression parsedExpression = expression.getParsedExpression();
+                    parsedExpression = sqlDialect.transform(this.schema, parsedExpression);
+                    expression.setParsedExpression(parsedExpression);
+                }
+            }
+
+            selectStatement = selectStatement.getFrom().getExpression() instanceof SelectStatement nestSelect ? nestSelect : null;
+        } while (selectStatement != null);
+
         // returns the outermost pipeline
         return pipeline.outermost;
+    }
+
+    /**
+     * Add a sliding window aggregation step to the pipeline, which produces SQL as follows:
+     * <p>
+     * <pre><code>
+     * SELECT "_timestamp",
+     *   sum("responseTime") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "responseTime",
+     *  sum("totalCount") OVER (ORDER BY "_timestamp" ASC RANGE BETWEEN 300 PRECEDING AND 0 FOLLOWING) AS "totalCount"
+     * FROM
+     * </code></pre>
+     */
+    private void addSlidingWindowAggregationStep(Aggregators aggregators, SelectStatementPipeline pipeline) {
+        SelectStatement slidingWindowAggregation = new SelectStatement();
+
+        IExpression[] partitionByExpression = null;
+        if (CollectionUtils.isNotEmpty(this.groupBy)) {
+            partitionByExpression = this.groupBy.stream()
+                                                .map(IdentifierExpression::new)
+                                                .toList()
+                                                .toArray(new IExpression[0]);
+        }
+
+        // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
+        for (Aggregator aggregator : aggregators.aggregators) {
+            IExpression windowFunctionExpression = WindowFunctionExpression.builder()
+                                                                           .name(aggregator.aggregateFunction.getName())
+                                                                           .args(new ArrayList<>(Collections.singletonList(IdentifierExpression.of(aggregator.output))))
+                                                                           .partitionBy(partitionByExpression)
+                                                                           .orderBy(new OrderByElement(IdentifierExpression.of(TimestampSpec.COLUMN_ALIAS)))
+                                                                           .frame(new WindowFunctionFrame(LiteralExpression.ofLong(interval.getWindow().getDuration().getSeconds()), LiteralExpression.ofLong(0)))
+                                                                           .build();
+
+            slidingWindowAggregation.getSelectorList()
+                                    .add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
+        }
+
+        // The sliding window aggregation is performed on aggregated step which already on floored timestamp,
+        // So we need to floor the start timestamp to make sure time range is correct.
+        // Since the end timestamp is EXCLUSIVE, there's no need to floor it.
+        slidingWindowAggregation.getWhere().and(toTimestampFilter(new IdentifierExpression(TimestampSpec.COLUMN_ALIAS),
+                                                                  interval.getStartTime().floor(interval.getStep()),
+                                                                  interval.getEndTime(),
+                                                                  false));
+
+        pipeline.slidingWindowAggregation = slidingWindowAggregation;
     }
 
     private void buildLimit(SelectStatementPipeline pipeline) {
@@ -560,17 +549,11 @@ public class SelectStatementBuilder {
     }
 
     private void buildWhere(SelectStatementPipeline pipeline) {
-        IExpression timestampExpression = this.interval.getTimestampColumn();
-
-        TimeSpan start = interval.getStartTime();
-        TimeSpan end = interval.getEndTime();
-        if (this.offset != null) {
-            // The offset is negative, use '-' to turn into positive
-            start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
-            end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
-        }
-        pipeline.innermost.getWhere().and(new ComparisonExpression.GTE(timestampExpression, sqlDialect.toTimestampExpression(start)));
-        pipeline.innermost.getWhere().and(new ComparisonExpression.LT(timestampExpression, sqlDialect.toTimestampExpression(end)));
+        // Extend the time range for sliding window
+        // so that the sliding window calculation of first record is correct
+        TimeSpan start = hasSlidingWindowAggregation() ? interval.getStartTime().before(interval.getWindow().getDuration()) : interval.getStartTime();
+        pipeline.innermost.getWhere()
+                          .and(toTimestampFilter(this.interval.getTimestampColumn(), start, interval.getEndTime(), true));
 
         if (filter == null) {
             return;
@@ -583,7 +566,7 @@ public class SelectStatementBuilder {
             // The user filters might filter on a column that is being aggregated, to make the query work,
             // We think this filter is NOT a post filter on the result of aggregation but on the original column.
             // So we need to transform the filter first to make it qualified
-            pipeline.innermost.getWhere().and(filter.accept(new QualifyExpressionTransformer(schema)));
+            pipeline.innermost.getWhere().and(filter.accept(new QualifiedIdentifierTransformer(schema)));
         }
 
         if (splitter.postFilters.isEmpty()) {
@@ -637,6 +620,10 @@ public class SelectStatementBuilder {
 
             pipeline.aggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
 
+            if (pipeline.slidingWindowAggregation != null) {
+                pipeline.slidingWindowAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
+            }
+
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(new Column(groupBy), IDataType.STRING);
             }
@@ -665,6 +652,10 @@ public class SelectStatementBuilder {
                 pipeline.aggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
             }
 
+            if (pipeline.slidingWindowAggregation != null) {
+                pipeline.slidingWindowAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
+            }
+
             // Add timestamp to the SELECT list of the final step
             if (pipeline.postAggregation != null) {
                 pipeline.postAggregation.getSelectorList().insert(TimestampSpec.COLUMN_ALIAS, IDataType.DATETIME_MILLI);
@@ -672,17 +663,20 @@ public class SelectStatementBuilder {
         }
     }
 
-    static class QualifyExpressionTransformer extends AbstractOptimizer {
-        private final String qualifier;
-
-        public QualifyExpressionTransformer(ISchema schema) {
-            this.qualifier = schema.getDataStoreSpec().getStore();
+    /**
+     * @param start INCLUSIVE
+     * @param end   EXCLUSIVE
+     */
+    private IExpression[] toTimestampFilter(IExpression timestampColumn, TimeSpan start, TimeSpan end, boolean useTimestampText) {
+        if (this.offset != null) {
+            // The offset is negative, use '-' to turn into positive
+            start = start.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+            end = end.before(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
         }
 
-        @Override
-        public IExpression visit(IdentifierExpression expression) {
-            expression.setQualifier(qualifier);
-            return expression;
-        }
+        return new IExpression[]{
+            new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
+            new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
+            };
     }
 }

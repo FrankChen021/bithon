@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.storage.jdbc.common.statement.ast.WindowFunctionExpression;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
@@ -50,12 +51,9 @@ public interface ISqlDialect {
 
     String stringAggregator(String field);
 
-    String firstAggregator(String field, long window);
-
-    /**
-     * @param window in seconds
-     */
-    String lastAggregator(String field, long window);
+    default WindowFunctionExpression firstWindowFunction(String field, long window) {
+        throw new UnsupportedOperationException();
+    }
 
     default boolean useWindowFunctionAsAggregator(String aggregator) {
         return false;
