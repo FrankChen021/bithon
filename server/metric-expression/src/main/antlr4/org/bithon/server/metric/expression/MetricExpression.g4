@@ -1,7 +1,7 @@
 grammar MetricExpression;
 
 alertExpression
-  : atomicMetricExpressionImpl                          #simpleAlertExpression
+  : metricExpression                                    #simpleAlertExpression
   | alertExpression AND alertExpression                 #logicalAlertExpression
   | alertExpression OR alertExpression                  #logicalAlertExpression
   | LEFT_PARENTHESIS alertExpression RIGHT_PARENTHESIS  #parenthesisAlertExpression
@@ -9,17 +9,12 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
-  : atomicMetricExpressionImpl                        #atomicMetricExpression
+  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?                        #atomicMetricExpression
   | metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
   | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
   | '(' metricExpression ')'                          #parenthesisMetricExpression
   | numberLiteralExpression #metricLiteralExpression // This allows to use literal expression in arithmetic expression
   ;
-
-atomicMetricExpressionImpl
-  : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?
-  ;
-
 
 aggregatorExpression
   : IDENTIFIER
