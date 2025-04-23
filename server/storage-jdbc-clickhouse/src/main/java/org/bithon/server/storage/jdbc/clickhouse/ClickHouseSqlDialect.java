@@ -92,16 +92,6 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String firstAggregator(String field, long window) {
-        return StringUtils.format("argMin(%s, %s)", quoteIdentifier(field), quoteIdentifier("timestamp"));
-    }
-
-    @Override
-    public String lastAggregator(String field, long window) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String formatDateTime(LiteralExpression.TimestampLiteral expression) {
         return StringUtils.format("fromUnixTimestamp64Milli(%d)", expression.getValue());
     }
