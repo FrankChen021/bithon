@@ -84,17 +84,15 @@ public class AggregateFunctionColumn implements IColumn {
     public IExpression createAggregateFunctionExpression(IFunction function) {
         if (function instanceof AggregateFunction.Sum) {
             if ("sum".equals(this.aggregator)) {
-                // use sum on a AggregateFunction(sum, type) column,
-                // turn it into sumMerge function
-                return new FunctionExpression(SumMergeFunction.INSTANCE, IdentifierExpression.of(name, dataType));
+                // Still use SUM, but the ClickHouseExpressionOptimizer will replace it with sumMerge
+                return new FunctionExpression(AggregateFunction.Sum.INSTANCE, IdentifierExpression.of(name, dataType));
             } else {
                 throw new HttpMappableException(HttpStatus.SC_BAD_REQUEST, "Invalid aggregator [%s] on column [AggregateFunction(%s,%s)]", function.getName(), this.aggregator, this.dataType);
             }
         } else if (function instanceof AggregateFunction.Count) {
             if ("count".equals(this.aggregator)) {
-                // use count on a AggregateFunction(count, type) column,
-                // turn it into countMerge function
-                return new FunctionExpression(CountMergeFunction.INSTANCE, IdentifierExpression.of(name, IDataType.LONG));
+                // Still use COUNT, but the ClickHouseExpressionOptimizer will replace it with sumMerge
+                return new FunctionExpression(AggregateFunction.Count.INSTANCE, IdentifierExpression.of(name, IDataType.LONG));
             } else {
                 // otherwise, treat it as a normal count operation
                 return new FunctionExpression(function, IdentifierExpression.of(name, IDataType.LONG));
