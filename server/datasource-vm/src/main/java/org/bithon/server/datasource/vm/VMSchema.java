@@ -48,7 +48,7 @@ public class VMSchema implements ISchema {
     private String signature;
 
     static class Column extends AbstractColumn {
-        public Column(String name,String alias) {
+        public Column(String name, String alias) {
             super(name, alias);
         }
 
