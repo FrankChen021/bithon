@@ -42,6 +42,7 @@ import org.bithon.server.metric.expression.MetricExpressionParser;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -178,7 +179,8 @@ public class MetricExpressionASTBuilder {
                 groupBy = groupByExpression.IDENTIFIER()
                                            .stream()
                                            .map((identifier) -> identifier.getSymbol().getText())
-                                           .collect(Collectors.toSet());
+                                           // Use LinkedHashSet to retain the order of given GROUP-BY fields
+                                           .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
             MetricExpression expression = new MetricExpression();
