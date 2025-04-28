@@ -84,11 +84,21 @@ public class IntermediateEvaluationResult {
             }
         }
 
+
+        List<QueryResponse.QueryResponseColumn> responseColumns = new ArrayList<>(dimCols.size() + valColumns.size());
+        for (Column dim : dimCols) {
+            responseColumns.add(new QueryResponse.QueryResponseColumn(dim.getName(), dim.getDataType().name()));
+        }
+        for (Column val : valCols) {
+            responseColumns.add(new QueryResponse.QueryResponseColumn(val.getName(), val.getDataType().name()));
+        }
+
         return QueryResponse.builder()
                             .interval(intermediateResult.getInterval())
                             .startTimestamp(intermediateResult.getStartTimestamp())
                             .endTimestamp(intermediateResult.getEndTimestamp())
                             .data(map.values())
+                            .meta(responseColumns)
                             .build();
     }
 }
