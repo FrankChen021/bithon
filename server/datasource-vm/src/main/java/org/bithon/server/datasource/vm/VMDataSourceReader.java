@@ -19,7 +19,6 @@ package org.bithon.server.datasource.vm;
 
 import feign.Contract;
 import feign.Feign;
-import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;

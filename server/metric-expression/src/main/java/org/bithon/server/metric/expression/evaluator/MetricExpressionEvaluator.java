@@ -132,7 +132,8 @@ public class MetricExpressionEvaluator implements IEvaluator {
         for (QueryResponse.QueryResponseColumn keyColumn : keyColumns) {
             Column column = Column.create(keyColumn.getName(), keyColumn.getDataType(), rows.size());
             for (Map<String, Object> row : rows) {
-                column.addObject(row.get(keyColumn.getName()));
+                Object cell = row.get(keyColumn.getName());
+                column.addObject(cell);
             }
             table.addColumn(column);
         }
