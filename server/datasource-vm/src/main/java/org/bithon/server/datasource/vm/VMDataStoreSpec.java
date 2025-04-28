@@ -19,7 +19,6 @@ package org.bithon.server.datasource.vm;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.query.IDataSourceReader;
