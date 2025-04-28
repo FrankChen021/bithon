@@ -14,21 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.storage.alerting.pojo;
+
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 29/4/25 12:26 am
  */
 @Data
-public class GetAlertListRequest {
+public class RuleFolderDTO {
     private String folder;
-    private String alertName;
-    private String appName;
-    private OrderBy orderBy = new OrderBy();
-    private Limit limit = new Limit(10, null);
+    private int ruleCount;
 }

@@ -14,7 +14,7 @@
 --    limitations under the License.
 --
 
-DROP DATABASE bithon_codegen;
+DROP DATABASE IF EXISTS bithon_codegen;
 CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 

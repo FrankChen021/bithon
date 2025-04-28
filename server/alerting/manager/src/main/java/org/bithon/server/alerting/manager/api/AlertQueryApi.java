@@ -42,6 +42,8 @@ import org.bithon.server.alerting.manager.api.parameter.GetAlertRecordListRespon
 import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
+import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersRequest;
+import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersResponse;
 import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
 import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
@@ -56,6 +58,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
+import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.metrics.Interval;
@@ -213,6 +216,14 @@ public class AlertQueryApi {
             return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));
         }
         return ApiResponse.fail("Alert rule not found");
+    }
+
+    @PostMapping("/api/alerting/alert/list")
+    public GetRuleFoldersResponse getFolders(@Valid @RequestBody GetRuleFoldersRequest request) {
+        List<RuleFolderDTO> folders = alertStorage.getFolders(request.getParentFolder());
+        return GetRuleFoldersResponse.builder()
+                                     .folders(folders)
+                                     .build();
     }
 
     @PostMapping("/api/alerting/alert/list")

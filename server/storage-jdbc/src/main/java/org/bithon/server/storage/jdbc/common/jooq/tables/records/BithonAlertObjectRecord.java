@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 import org.bithon.server.storage.jdbc.common.jooq.tables.BithonAlertObject;
 import org.jooq.Field;
-import org.jooq.Record10;
-import org.jooq.Row10;
+import org.jooq.Record11;
+import org.jooq.Row11;
 import org.jooq.impl.TableRecordImpl;
 
 
@@ -17,7 +17,7 @@ import org.jooq.impl.TableRecordImpl;
  * Alert Rules
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
+public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record11<String, String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,31 +36,45 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     /**
-     * Setter for <code>bithon_alert_object.alert_name</code>.
+     * Setter for <code>bithon_alert_object.alert_name</code>. Rule name
      */
     public void setAlertName(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_object.alert_name</code>.
+     * Getter for <code>bithon_alert_object.alert_name</code>. Rule name
      */
     public String getAlertName() {
         return (String) get(1);
     }
 
     /**
+     * Setter for <code>bithon_alert_object.folder</code>. Folder name
+     */
+    public void setFolder(String value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for <code>bithon_alert_object.folder</code>. Folder name
+     */
+    public String getFolder() {
+        return (String) get(2);
+    }
+
+    /**
      * Setter for <code>bithon_alert_object.app_name</code>.
      */
     public void setAppName(String value) {
-        set(2, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.app_name</code>.
      */
     public String getAppName() {
-        return (String) get(2);
+        return (String) get(3);
     }
 
     /**
@@ -68,7 +82,7 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
      * application
      */
     public void setNamespace(String value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
@@ -76,105 +90,105 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
      * application
      */
     public String getNamespace() {
-        return (String) get(3);
+        return (String) get(4);
     }
 
     /**
      * Setter for <code>bithon_alert_object.disabled</code>.
      */
     public void setDisabled(Integer value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.disabled</code>.
      */
     public Integer getDisabled() {
-        return (Integer) get(4);
+        return (Integer) get(5);
     }
 
     /**
      * Setter for <code>bithon_alert_object.deleted</code>.
      */
     public void setDeleted(Integer value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.deleted</code>.
      */
     public Integer getDeleted() {
-        return (Integer) get(5);
+        return (Integer) get(6);
     }
 
     /**
      * Setter for <code>bithon_alert_object.payload</code>. JSON formatted alert
      */
     public void setPayload(String value) {
-        set(6, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.payload</code>. JSON formatted alert
      */
     public String getPayload() {
-        return (String) get(6);
+        return (String) get(7);
     }
 
     /**
      * Setter for <code>bithon_alert_object.created_at</code>.
      */
     public void setCreatedAt(LocalDateTime value) {
-        set(7, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.created_at</code>.
      */
     public LocalDateTime getCreatedAt() {
-        return (LocalDateTime) get(7);
+        return (LocalDateTime) get(8);
     }
 
     /**
      * Setter for <code>bithon_alert_object.updated_at</code>.
      */
     public void setUpdatedAt(LocalDateTime value) {
-        set(8, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.updated_at</code>.
      */
     public LocalDateTime getUpdatedAt() {
-        return (LocalDateTime) get(8);
+        return (LocalDateTime) get(9);
     }
 
     /**
      * Setter for <code>bithon_alert_object.last_operator</code>.
      */
     public void setLastOperator(String value) {
-        set(9, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>bithon_alert_object.last_operator</code>.
      */
     public String getLastOperator() {
-        return (String) get(9);
+        return (String) get(10);
     }
 
     // -------------------------------------------------------------------------
-    // Record10 type implementation
+    // Record11 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row11<String, String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
+        return (Row11) super.fieldsRow();
     }
 
     @Override
-    public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> valuesRow() {
-        return (Row10) super.valuesRow();
+    public Row11<String, String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> valuesRow() {
+        return (Row11) super.valuesRow();
     }
 
     @Override
@@ -189,41 +203,46 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
 
     @Override
     public Field<String> field3() {
-        return BithonAlertObject.BITHON_ALERT_OBJECT.APP_NAME;
+        return BithonAlertObject.BITHON_ALERT_OBJECT.FOLDER;
     }
 
     @Override
     public Field<String> field4() {
+        return BithonAlertObject.BITHON_ALERT_OBJECT.APP_NAME;
+    }
+
+    @Override
+    public Field<String> field5() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.NAMESPACE;
     }
 
     @Override
-    public Field<Integer> field5() {
+    public Field<Integer> field6() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.DISABLED;
     }
 
     @Override
-    public Field<Integer> field6() {
+    public Field<Integer> field7() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.DELETED;
     }
 
     @Override
-    public Field<String> field7() {
+    public Field<String> field8() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.PAYLOAD;
     }
 
     @Override
-    public Field<LocalDateTime> field8() {
+    public Field<LocalDateTime> field9() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.CREATED_AT;
     }
 
     @Override
-    public Field<LocalDateTime> field9() {
+    public Field<LocalDateTime> field10() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.UPDATED_AT;
     }
 
     @Override
-    public Field<String> field10() {
+    public Field<String> field11() {
         return BithonAlertObject.BITHON_ALERT_OBJECT.LAST_OPERATOR;
     }
 
@@ -239,41 +258,46 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
 
     @Override
     public String component3() {
-        return getAppName();
+        return getFolder();
     }
 
     @Override
     public String component4() {
+        return getAppName();
+    }
+
+    @Override
+    public String component5() {
         return getNamespace();
     }
 
     @Override
-    public Integer component5() {
+    public Integer component6() {
         return getDisabled();
     }
 
     @Override
-    public Integer component6() {
+    public Integer component7() {
         return getDeleted();
     }
 
     @Override
-    public String component7() {
+    public String component8() {
         return getPayload();
     }
 
     @Override
-    public LocalDateTime component8() {
+    public LocalDateTime component9() {
         return getCreatedAt();
     }
 
     @Override
-    public LocalDateTime component9() {
+    public LocalDateTime component10() {
         return getUpdatedAt();
     }
 
     @Override
-    public String component10() {
+    public String component11() {
         return getLastOperator();
     }
 
@@ -289,41 +313,46 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
 
     @Override
     public String value3() {
-        return getAppName();
+        return getFolder();
     }
 
     @Override
     public String value4() {
+        return getAppName();
+    }
+
+    @Override
+    public String value5() {
         return getNamespace();
     }
 
     @Override
-    public Integer value5() {
+    public Integer value6() {
         return getDisabled();
     }
 
     @Override
-    public Integer value6() {
+    public Integer value7() {
         return getDeleted();
     }
 
     @Override
-    public String value7() {
+    public String value8() {
         return getPayload();
     }
 
     @Override
-    public LocalDateTime value8() {
+    public LocalDateTime value9() {
         return getCreatedAt();
     }
 
     @Override
-    public LocalDateTime value9() {
+    public LocalDateTime value10() {
         return getUpdatedAt();
     }
 
     @Override
-    public String value10() {
+    public String value11() {
         return getLastOperator();
     }
 
@@ -341,54 +370,60 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
 
     @Override
     public BithonAlertObjectRecord value3(String value) {
-        setAppName(value);
+        setFolder(value);
         return this;
     }
 
     @Override
     public BithonAlertObjectRecord value4(String value) {
+        setAppName(value);
+        return this;
+    }
+
+    @Override
+    public BithonAlertObjectRecord value5(String value) {
         setNamespace(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value5(Integer value) {
+    public BithonAlertObjectRecord value6(Integer value) {
         setDisabled(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value6(Integer value) {
+    public BithonAlertObjectRecord value7(Integer value) {
         setDeleted(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value7(String value) {
+    public BithonAlertObjectRecord value8(String value) {
         setPayload(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value8(LocalDateTime value) {
+    public BithonAlertObjectRecord value9(LocalDateTime value) {
         setCreatedAt(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value9(LocalDateTime value) {
+    public BithonAlertObjectRecord value10(LocalDateTime value) {
         setUpdatedAt(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord value10(String value) {
+    public BithonAlertObjectRecord value11(String value) {
         setLastOperator(value);
         return this;
     }
 
     @Override
-    public BithonAlertObjectRecord values(String value1, String value2, String value3, String value4, Integer value5, Integer value6, String value7, LocalDateTime value8, LocalDateTime value9, String value10) {
+    public BithonAlertObjectRecord values(String value1, String value2, String value3, String value4, String value5, Integer value6, Integer value7, String value8, LocalDateTime value9, LocalDateTime value10, String value11) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -399,6 +434,7 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
         value8(value8);
         value9(value9);
         value10(value10);
+        value11(value11);
         return this;
     }
 
@@ -416,11 +452,12 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     /**
      * Create a detached, initialised BithonAlertObjectRecord
      */
-    public BithonAlertObjectRecord(String alertId, String alertName, String appName, String namespace, Integer disabled, Integer deleted, String payload, LocalDateTime createdAt, LocalDateTime updatedAt, String lastOperator) {
+    public BithonAlertObjectRecord(String alertId, String alertName, String folder, String appName, String namespace, Integer disabled, Integer deleted, String payload, LocalDateTime createdAt, LocalDateTime updatedAt, String lastOperator) {
         super(BithonAlertObject.BITHON_ALERT_OBJECT);
 
         setAlertId(alertId);
         setAlertName(alertName);
+        setFolder(folder);
         setAppName(appName);
         setNamespace(namespace);
         setDisabled(disabled);

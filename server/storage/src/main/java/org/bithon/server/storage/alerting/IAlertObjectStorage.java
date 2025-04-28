@@ -21,6 +21,7 @@ import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 
@@ -67,7 +68,7 @@ public interface IAlertObjectStorage {
     int getAlertListSize(String appName, String alertName);
 
     List<ListAlertDTO> getAlertList(String appName,
-                                    String alertName,
+                                    String ruleName,
                                     OrderBy orderBy,
                                     Limit limit);
 
@@ -76,4 +77,6 @@ public interface IAlertObjectStorage {
     <T> T executeTransaction(Callable<T> runnable);
 
     void initialize();
+
+    List<RuleFolderDTO> getFolders(String parentFolder);
 }

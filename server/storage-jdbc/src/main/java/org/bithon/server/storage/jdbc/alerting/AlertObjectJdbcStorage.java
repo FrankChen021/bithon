@@ -32,6 +32,7 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
@@ -45,6 +46,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
+import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
@@ -100,6 +102,22 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         }
 
         createTableIfNotExists();
+    }
+
+    @Override
+    public List<RuleFolderDTO> getFolders(String parentFolder) {
+        return this.dslContext.select(Tables.BITHON_ALERT_OBJECT.FOLDER,
+                                      DSL.count().as("count"))
+                              .from(this.quotedObjectTableSelectName)
+                              .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))
+                              .groupBy(Tables.BITHON_ALERT_OBJECT.FOLDER)
+                              .orderBy(Tables.BITHON_ALERT_OBJECT.FOLDER)
+                              .fetch(record -> {
+                                  RuleFolderDTO dto = new RuleFolderDTO();
+                                  dto.setFolder(record.get(Tables.BITHON_ALERT_OBJECT.FOLDER));
+                                  dto.setRuleCount(record.get("count", Integer.class));
+                                  return dto;
+                              });
     }
 
     protected void createTableIfNotExists() {

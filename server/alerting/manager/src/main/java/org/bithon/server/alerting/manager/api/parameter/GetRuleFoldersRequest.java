@@ -16,19 +16,17 @@
 
 package org.bithon.server.alerting.manager.api.parameter;
 
+
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
+
+import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 29/4/25 12:16 am
  */
 @Data
-public class GetAlertListRequest {
-    private String folder;
-    private String alertName;
-    private String appName;
-    private OrderBy orderBy = new OrderBy();
-    private Limit limit = new Limit(10, null);
+public class GetRuleFoldersRequest {
+    @Nullable
+    private String parentFolder;
 }
