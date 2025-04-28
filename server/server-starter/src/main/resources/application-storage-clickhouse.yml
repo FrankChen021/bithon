@@ -68,3 +68,4 @@ bithon:
         #onDistributedTable: true
         # can be MergeTree or ReplicateMergeTree(xxxx)
         #engine: MergeTree
+        ttl: toStartOfDay(timestamp)

@@ -33,6 +33,8 @@ import org.jooq.impl.SQLDataType;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -185,6 +187,33 @@ public class TableCreator {
                 }
                 createTableStatement.delete(createTableStatement.length() - 1, createTableStatement.length());
                 createTableStatement.append(")");
+            }
+
+            // ONLY partitioned table supports customized TTL
+            if (partitionByExpression != null && !StringUtils.isEmpty(config.getTtl())) {
+                boolean hasTimestamp = false;
+
+                Matcher matcher = Pattern.compile("\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)").matcher(config.getTtl());
+                if (matcher.find()) {
+                    String column = matcher.group(1);
+
+                    for (Field<?> field : table.fields()) {
+                        if (field.getName().equals(column)) {
+                            String typeName = field.getDataType().getTypeName();
+                            if ("timestamp".equals(typeName) || "datetime".equals(typeName)) {
+                                hasTimestamp = true;
+                                break;
+                            } else {
+                                throw new IllegalStateException("TTL expression is built upon a non-timestamp column [" + column + ", type=" + typeName + "]");
+                            }
+                        }
+                    }
+                }
+
+                if (hasTimestamp) {
+                    createTableStatement.append("\nTTL ");
+                    createTableStatement.append(config.getTtl());
+                }
             }
 
             if (!StringUtils.isEmpty(config.getCreateTableSettings())) {

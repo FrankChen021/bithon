@@ -38,6 +38,11 @@ public class ClickHouseConfig {
 
     private String cluster;
     private boolean onDistributedTable = false;
+
+    /**
+     * MergeTree
+     * or for example ReplicatedMergeTree('/clickhouse/tables/{layer}-{shard}/{database}.{table}','{replica}')
+     */
     private String engine = "MergeTree";
 
     @Data
@@ -53,7 +58,17 @@ public class ClickHouseConfig {
         private int count;
     }
 
+
+    /**
+     * key is the name of table which needs to be partitioned
+     */
     private Map<String, SecondaryPartition> secondaryPartitions = Collections.emptyMap();
+
+    /**
+     * Even the data lifecycle is managed by ourselves, we still need this property in case of customizing TTL MOVE.
+     * For example: TTL toStartOfHour(timestamp) + toIntervalDay(1) TO VOLUME 'cold'
+     */
+    private String ttl;
 
     /**
      * Settings for create table
