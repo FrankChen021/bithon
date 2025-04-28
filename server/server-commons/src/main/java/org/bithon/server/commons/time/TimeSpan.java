@@ -40,6 +40,10 @@ public class TimeSpan {
         return milliseconds;
     }
 
+    public long getSeconds() {
+        return milliseconds / 1000;
+    }
+
     private final long milliseconds;
 
     public static TimeSpan now() {
