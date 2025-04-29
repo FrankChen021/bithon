@@ -46,7 +46,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
-import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.Limit;
@@ -380,7 +379,7 @@ public class AlertCommandService {
             }
 
             @Override
-            public List<ListAlertDTO> getAlertList(String appName, String ruleName, OrderBy orderBy, Limit limit) {
+            public List<ListAlertDTO> getAlertList(String folder, String appName, String ruleName, OrderBy orderBy, Limit limit) {
                 return List.of();
             }
 
@@ -399,7 +398,7 @@ public class AlertCommandService {
             }
 
             @Override
-            public List<RuleFolderDTO> getFolders(String parentFolder) {
+            public List<String> getNames(String parentFolder) {
                 return List.of();
             }
         };

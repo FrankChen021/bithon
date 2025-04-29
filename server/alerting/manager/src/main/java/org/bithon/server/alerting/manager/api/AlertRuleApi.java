@@ -40,6 +40,7 @@ import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse
 import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersRequest;
 import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersResponse;
 import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
+import org.bithon.server.alerting.manager.api.parameter.RuleFolderVO;
 import org.bithon.server.alerting.manager.api.parameter.UpdateAlertRuleRequest;
 import org.bithon.server.alerting.manager.biz.AlertCommandService;
 import org.bithon.server.alerting.manager.biz.BizException;
@@ -50,7 +51,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
-import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.BeanUtils;
@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -215,7 +216,27 @@ public class AlertRuleApi {
 
     @PostMapping("/api/alerting/alert/folder")
     public GetRuleFoldersResponse getFolders(@Valid @RequestBody GetRuleFoldersRequest request) {
-        List<RuleFolderDTO> folders = storage.getFolders(request.getParentFolder());
+        List<String> names = storage.getNames(request.getParentFolder());
+
+        // Map to count the number of elements under each immediate subfolder
+        // Use TreeMap to retain the order
+        Map<String, Integer> folderCount = new TreeMap<>();
+        for (String name : names) {
+            int idx = name.lastIndexOf('/');
+            String folder = idx == -1 ? "<ROOT>" : name.substring(0, idx);
+            folderCount.compute(folder, (k, v) -> v == null ? 1 : v + 1);
+        }
+
+        List<RuleFolderVO> folders = folderCount.entrySet()
+                                                .stream()
+                                                .map(e -> {
+                                                    RuleFolderVO vo = new RuleFolderVO();
+                                                    vo.setFolder(e.getKey());
+                                                    vo.setRuleCount(e.getValue());
+                                                    return vo;
+                                                })
+                                                .collect(Collectors.toList());
+
         return GetRuleFoldersResponse.builder()
                                      .folders(folders)
                                      .build();
@@ -223,7 +244,8 @@ public class AlertRuleApi {
 
     @PostMapping("/api/alerting/alert/list")
     public GetAlertListResponse getRuleList(@Valid @RequestBody GetAlertListRequest request) {
-        List<ListAlertDTO> alertList = storage.getAlertList(request.getAppName(),
+        List<ListAlertDTO> alertList = storage.getAlertList(request.getFolder(),
+                                                            request.getAppName(),
                                                             request.getAlertName(),
                                                             request.getOrderBy(),
                                                             request.getLimit());

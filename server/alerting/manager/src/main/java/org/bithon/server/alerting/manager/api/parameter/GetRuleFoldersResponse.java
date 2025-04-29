@@ -19,7 +19,6 @@ package org.bithon.server.alerting.manager.api.parameter;
 
 import lombok.Builder;
 import lombok.Data;
-import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 
 import java.util.List;
 
@@ -31,5 +30,5 @@ import java.util.List;
 @Builder
 public class GetRuleFoldersResponse {
 
-    private List<RuleFolderDTO> folders;
+    private List<RuleFolderVO> folders;
 }

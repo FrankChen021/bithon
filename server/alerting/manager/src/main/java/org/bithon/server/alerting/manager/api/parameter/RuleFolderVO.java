@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting.pojo;
+package org.bithon.server.alerting.manager.api.parameter;
 
 
 import lombok.Data;
@@ -24,7 +24,7 @@ import lombok.Data;
  * @date 29/4/25 12:26 am
  */
 @Data
-public class RuleFolderDTO {
+public class RuleFolderVO {
     private String folder;
     private int ruleCount;
 }

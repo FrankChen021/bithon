@@ -32,7 +32,6 @@ import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
-import org.bithon.server.storage.alerting.pojo.RuleFolderDTO;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Order;
 import org.bithon.server.storage.datasource.query.OrderBy;
@@ -44,9 +43,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
@@ -105,19 +104,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public List<RuleFolderDTO> getFolders(String parentFolder) {
-        return this.dslContext.select(Tables.BITHON_ALERT_OBJECT.FOLDER,
-                                      DSL.count().as("count"))
-                              .from(this.quotedObjectTableSelectName)
-                              .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))
-                              .groupBy(Tables.BITHON_ALERT_OBJECT.FOLDER)
-                              .orderBy(Tables.BITHON_ALERT_OBJECT.FOLDER)
-                              .fetch(record -> {
-                                  RuleFolderDTO dto = new RuleFolderDTO();
-                                  dto.setFolder(record.get(Tables.BITHON_ALERT_OBJECT.FOLDER));
-                                  dto.setRuleCount(record.get("count", Integer.class));
-                                  return dto;
-                              });
+    public List<String> getNames(String parentFolder) {
+        SelectConditionStep<Record1<String>> where = this.dslContext.select(Tables.BITHON_ALERT_OBJECT.ALERT_NAME)
+                                                                    .from(this.quotedObjectTableSelectName)
+                                                                    .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
+
+        if (StringUtils.hasText(parentFolder)) {
+            where = where.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.startsWith(parentFolder));
+        }
+        return where.fetchInto(String.class);
     }
 
     protected void createTableIfNotExists() {
@@ -283,7 +278,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public List<ListAlertDTO> getAlertList(String appName,
+    public List<ListAlertDTO> getAlertList(String folder,
+                                           String appName,
                                            String ruleName,
                                            OrderBy orderBy,
                                            Limit limit) {
@@ -308,6 +304,12 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         }
         if (StringUtils.hasText(ruleName)) {
             selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(ruleName)));
+        }
+        if (StringUtils.hasText(folder)) {
+            if (!folder.endsWith("/")) {
+                folder = folder + '/';
+            }
+            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.startsWith(folder));
         }
 
         Field<?> orderByField;
