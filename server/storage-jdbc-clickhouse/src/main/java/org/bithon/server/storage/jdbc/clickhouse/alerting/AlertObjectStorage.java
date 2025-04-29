@@ -92,7 +92,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
 
     @Override
     public boolean disableAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
@@ -116,7 +116,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
 
     @Override
     public boolean enableAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
@@ -139,7 +139,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
 
     @Override
     public boolean deleteAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)

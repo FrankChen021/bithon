@@ -151,11 +151,27 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public AlertStorageObject getAlertById(String alertId) {
+    public AlertStorageObject getRuleById(String ruleId) {
         return dslContext.selectFrom(this.quotedObjectTableSelectName)
-                         .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
+                         .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(ruleId))
                          .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))
                          .fetchOne(this::toStorageObject);
+    }
+
+    @Override
+    public List<AlertStorageObject> getRuleByFolder(String parentFolder) {
+        SelectConditionStep<Record> select = dslContext.selectFrom(this.quotedObjectTableSelectName)
+                                                       .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
+        if (StringUtils.hasText(parentFolder)) {
+            if (!parentFolder.endsWith("/")) {
+                parentFolder = parentFolder + '/';
+            }
+            select = select.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.startsWith(parentFolder));
+        }
+        return select.fetch()
+                     .stream()
+                     .map((record) -> toStorageObject(record))
+                     .toList();
     }
 
     protected AlertStorageObject toStorageObject(Record record) {

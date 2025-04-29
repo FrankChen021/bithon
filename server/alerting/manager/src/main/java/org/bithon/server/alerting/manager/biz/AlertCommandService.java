@@ -181,7 +181,7 @@ public class AlertCommandService {
     }
 
     public void updateRule(AlertRule newAlertRule) throws BizException {
-        AlertStorageObject oldRule = this.alertObjectStorage.getAlertById(newAlertRule.getId());
+        AlertStorageObject oldRule = this.alertObjectStorage.getRuleById(newAlertRule.getId());
         if (oldRule == null) {
             throw new BizException("Alert rule [%s] not exist.", newAlertRule.getName());
         }
@@ -203,7 +203,7 @@ public class AlertCommandService {
     }
 
     public void enableRule(String ruleId) throws BizException {
-        AlertStorageObject rule = this.alertObjectStorage.getAlertById(ruleId);
+        AlertStorageObject rule = this.alertObjectStorage.getRuleById(ruleId);
         if (rule == null) {
             throw new BizException("Alert rule [%s] not exist.", ruleId);
         }
@@ -222,7 +222,7 @@ public class AlertCommandService {
     }
 
     public void disableRule(String ruleId) throws BizException {
-        AlertStorageObject rule = this.alertObjectStorage.getAlertById(ruleId);
+        AlertStorageObject rule = this.alertObjectStorage.getRuleById(ruleId);
         if (rule == null) {
             throw new BizException("Alert rule [%s] not exist.", ruleId);
         }
@@ -240,7 +240,7 @@ public class AlertCommandService {
     }
 
     public void deleteRule(String alertId) throws BizException {
-        AlertStorageObject rule = this.alertObjectStorage.getAlertById(alertId);
+        AlertStorageObject rule = this.alertObjectStorage.getRuleById(alertId);
         if (rule == null) {
             throw new BizException("Alert rule[%s] not exist.", alertId);
         }
@@ -339,13 +339,17 @@ public class AlertCommandService {
             }
 
             @Override
-            public AlertStorageObject getAlertById(String alertId) {
+            public List<AlertStorageObject> getRuleByFolder(String parentFolder) {
+                return List.of();
+            }
+
+            @Override
+            public AlertStorageObject getRuleById(String ruleId) {
                 return null;
             }
 
             @Override
             public void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
-
             }
 
             @Override
@@ -370,7 +374,6 @@ public class AlertCommandService {
 
             @Override
             public void addChangelog(String alertId, ObjectAction action, String operator, String beforeJsonString, String afterJsonString) {
-
             }
 
             @Override

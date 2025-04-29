@@ -18,6 +18,8 @@ package org.bithon.server.alerting.manager.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -162,12 +164,12 @@ public class AlertRuleApi {
     }
 
 
-    public static class GetAlertRuleResponse extends AlertStorageObject {
+    public static class AlertRuleVO extends AlertStorageObject {
         @Getter
         @Setter
         private Collection<AlertExpression> parsedExpressions;
 
-        public GetAlertRuleResponse(AlertStorageObject alertStorageObject, Collection<AlertExpression> parsedExpressions) {
+        public AlertRuleVO(AlertStorageObject alertStorageObject, Collection<AlertExpression> parsedExpressions) {
             setId(alertStorageObject.getId());
             setName(alertStorageObject.getName());
             setAppName(alertStorageObject.getAppName());
@@ -183,35 +185,59 @@ public class AlertRuleApi {
     }
 
     @PostMapping("/api/alerting/alert/get")
-    public ApiResponse<GetAlertRuleResponse> getRuleById(@Valid @RequestBody GenericAlertByIdRequest request) {
-        AlertStorageObject ruleObject = storage.getAlertById(request.getAlertId());
-
-        // Parse expression first
+    public ApiResponse<AlertRuleVO> getRuleById(@Valid @RequestBody GenericAlertByIdRequest request) {
+        AlertStorageObject ruleObject = storage.getRuleById(request.getAlertId());
         if (ruleObject != null) {
-            IExpression alertExpression = AlertExpressionASTParser.parse(ruleObject.getPayload().getExpr());
-
-            // Get Schema for validation
-            Map<String, ISchema> schemas = dataSourceApi.getSchemas();
-
-            // Flatten expressions
-            List<AlertExpression> alertExpressions = new ArrayList<>();
-            alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
-                expression.getMetricExpression().validate(schemas);
-                alertExpressions.add(expression);
-            });
-
-            // Backward compatibility
-            if (ruleObject.getPayload().getNotifications() != null && ruleObject.getPayload().getNotificationProps() == null) {
-                ruleObject.getPayload().setNotificationProps(NotificationProps.builder()
-                                                                              .renderExpressions(new TreeSet<>(alertExpressions.stream().map(AlertExpression::getId).toList()))
-                                                                              .silence(ruleObject.getPayload().getSilence())
-                                                                              .channels(ruleObject.getPayload().getNotifications())
-                                                                              .build());
-            }
-
-            return ApiResponse.success(new GetAlertRuleResponse(ruleObject, alertExpressions));
+            return ApiResponse.success(toVO(ruleObject));
         }
         return ApiResponse.fail("Alert rule not found");
+    }
+
+    @Data
+    public static class GetRuleByFolderRequest {
+        private String parentFolder;
+    }
+
+    @Data
+    @Builder
+    public static class GetRuleByFolderResponse {
+        private List<AlertRuleVO> rules;
+    }
+
+    @PostMapping("/api/alerting/alert/folder/rules")
+    public GetRuleByFolderResponse getRuleByFolder(@Valid @RequestBody GetRuleByFolderRequest request) {
+        List<AlertStorageObject> ruleObject = storage.getRuleByFolder(request.getParentFolder());
+
+        return GetRuleByFolderResponse.builder()
+                                      .rules(ruleObject.stream()
+                                                       .map(this::toVO)
+                                                       .toList())
+                                      .build();
+    }
+
+    private AlertRuleVO toVO(AlertStorageObject ruleObject) {
+        IExpression alertExpression = AlertExpressionASTParser.parse(ruleObject.getPayload().getExpr());
+
+        // Get Schema for validation
+        Map<String, ISchema> schemas = dataSourceApi.getSchemas();
+
+        // Flatten expressions
+        List<AlertExpression> alertExpressions = new ArrayList<>();
+        alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
+            expression.getMetricExpression().validate(schemas);
+            alertExpressions.add(expression);
+        });
+
+        // Backward compatibility
+        if (ruleObject.getPayload().getNotifications() != null && ruleObject.getPayload().getNotificationProps() == null) {
+            ruleObject.getPayload().setNotificationProps(NotificationProps.builder()
+                                                                          .renderExpressions(new TreeSet<>(alertExpressions.stream().map(AlertExpression::getId).toList()))
+                                                                          .silence(ruleObject.getPayload().getSilence())
+                                                                          .channels(ruleObject.getPayload().getNotifications())
+                                                                          .build());
+        }
+
+        return new AlertRuleVO(ruleObject, alertExpressions);
     }
 
     @PostMapping("/api/alerting/alert/folder")

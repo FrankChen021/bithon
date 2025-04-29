@@ -41,7 +41,8 @@ public interface IAlertObjectStorage {
 
     boolean existAlertByName(String name);
 
-    AlertStorageObject getAlertById(String alertId);
+    List<AlertStorageObject> getRuleByFolder(String parentFolder);
+    AlertStorageObject getRuleById(String ruleId);
 
     default void createAlert(AlertStorageObject alert, String operator) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
