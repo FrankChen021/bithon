@@ -25,11 +25,11 @@ import java.sql.Timestamp;
  * @date 2021/1/6
  */
 @Data
-public class ListAlertDTO {
-    private String alertId;
-    private String alertName;
+public class ListRuleDTO {
+    private String id;
+    private String name;
     private String appName;
-    private String namespace;
+
     private boolean disabled;
     private boolean deleted;
     private String payload;

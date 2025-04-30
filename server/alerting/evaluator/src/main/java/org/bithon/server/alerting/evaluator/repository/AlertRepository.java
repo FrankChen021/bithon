@@ -76,7 +76,7 @@ public class AlertRepository {
 
         log.info("Loading Alerts from [{}, {}]", lastTimestamp, now);
 
-        List<AlertStorageObject> alertObjects = alertObjectStorage.getAlertListByTime(lastTimestamp, now);
+        List<AlertStorageObject> alertObjects = alertObjectStorage.getRuleListByTime(lastTimestamp, now);
 
         alertObjects.forEach((alertObject) -> {
             if (alertObject.isDeleted()) {

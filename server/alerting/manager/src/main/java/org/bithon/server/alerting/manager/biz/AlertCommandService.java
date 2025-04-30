@@ -44,8 +44,8 @@ import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
-import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.query.Limit;
@@ -153,11 +153,11 @@ public class AlertCommandService {
             throw new BizException("Target application [%s] does not exist", alertRule.getAppName());
         }
 
-        if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existAlertById(alertRule.getId())) {
+        if (StringUtils.hasText(alertRule.getId()) && this.alertObjectStorage.existRuleById(alertRule.getId())) {
             throw new BizException("Alert rule with the same id [%s] already exists.", alertRule.getId());
         }
 
-        if (this.alertObjectStorage.existAlertByName(alertRule.getName())) {
+        if (this.alertObjectStorage.existRuleByName(alertRule.getName())) {
             throw new BizException("Alert rule with the name [%s] already exists.", alertRule.getName());
         }
 
@@ -169,7 +169,7 @@ public class AlertCommandService {
         return this.alertObjectStorage.executeTransaction(() -> {
             final String operator = userProvider.getCurrentUser().getUserName();
 
-            this.alertObjectStorage.createAlert(alertStorageObject, operator);
+            this.alertObjectStorage.createRule(alertStorageObject, operator);
 
             this.alertObjectStorage.addChangelog(alertStorageObject.getId(),
                                                  ObjectAction.CREATE,
@@ -189,7 +189,7 @@ public class AlertCommandService {
         AlertStorageObject newRule = toAlertStorageObject(newAlertRule);
 
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.updateAlert(oldRule, newRule, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.updateRule(oldRule, newRule, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
 
@@ -209,7 +209,7 @@ public class AlertCommandService {
         }
 
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.enableAlert(ruleId, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.enableRule(ruleId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
             this.alertObjectStorage.addChangelog(ruleId,
@@ -227,7 +227,7 @@ public class AlertCommandService {
             throw new BizException("Alert rule [%s] not exist.", ruleId);
         }
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.disableAlert(ruleId, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.disableRule(ruleId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
             this.alertObjectStorage.addChangelog(ruleId,
@@ -246,7 +246,7 @@ public class AlertCommandService {
         }
 
         this.alertObjectStorage.executeTransaction(() -> {
-            if (!this.alertObjectStorage.deleteAlert(alertId, userProvider.getCurrentUser().getUserName())) {
+            if (!this.alertObjectStorage.deleteRule(alertId, userProvider.getCurrentUser().getUserName())) {
                 return false;
             }
             this.alertObjectStorage.addChangelog(alertId,
@@ -324,17 +324,17 @@ public class AlertCommandService {
         IAlertObjectStorage alertObjectStorage = new IAlertObjectStorage() {
 
             @Override
-            public List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end) {
+            public List<AlertStorageObject> getRuleListByTime(Timestamp start, Timestamp end) {
                 return List.of();
             }
 
             @Override
-            public boolean existAlertById(String alertId) {
+            public boolean existRuleById(String alertId) {
                 return false;
             }
 
             @Override
-            public boolean existAlertByName(String name) {
+            public boolean existRuleByName(String name) {
                 return false;
             }
 
@@ -349,26 +349,26 @@ public class AlertCommandService {
             }
 
             @Override
-            public void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
+            public void createRule(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
             }
 
             @Override
-            public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
+            public boolean updateRule(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
                 return false;
             }
 
             @Override
-            public boolean disableAlert(String alertId, String operator) {
+            public boolean disableRule(String alertId, String operator) {
                 return false;
             }
 
             @Override
-            public boolean enableAlert(String alertId, String operator) {
+            public boolean enableRule(String alertId, String operator) {
                 return false;
             }
 
             @Override
-            public boolean deleteAlert(String alertId, String operator) {
+            public boolean deleteRule(String alertId, String operator) {
                 return false;
             }
 
@@ -377,12 +377,12 @@ public class AlertCommandService {
             }
 
             @Override
-            public int getAlertListSize(String appName, String alertName) {
+            public int getRuleListSize(String appName, String ruleName) {
                 return 0;
             }
 
             @Override
-            public List<ListAlertDTO> getAlertList(String folder, String appName, String ruleName, OrderBy orderBy, Limit limit) {
+            public List<ListRuleDTO> getRuleList(String folder, String appName, String ruleName, OrderBy orderBy, Limit limit) {
                 return List.of();
             }
 
@@ -400,10 +400,6 @@ public class AlertCommandService {
             public void initialize() {
             }
 
-            @Override
-            public List<String> getNames(String parentFolder) {
-                return List.of();
-            }
         };
         AlertEvaluator evaluator = new AlertEvaluator(new AlertRepository(alertObjectStorage, alertStateStorage),
                                                       logStorage,

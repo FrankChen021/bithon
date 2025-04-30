@@ -192,7 +192,7 @@ public class AlertChannelApi {
     @PostMapping("/api/alerting/channel/delete")
     public ApiResponse<?> deleteChannel(@Validated @RequestBody DeleteChannelRequest request) {
         // Check if it's used
-        List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
+        List<AlertStorageObject> alerts = alertStorage.getRuleListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
             AlertStorageObjectPayload payload = alert.getPayload();
             if (payload.getNotifications() != null && alert.getPayload().getNotifications().contains(request.getName())) {

@@ -50,8 +50,8 @@ import org.bithon.server.commons.json.JsonPayloadFormatter;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
-import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
 import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -64,6 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -206,7 +207,7 @@ public class AlertRuleApi {
 
     @PostMapping("/api/alerting/alert/folder/rules")
     public GetRuleByFolderResponse getRuleByFolder(@Valid @RequestBody GetRuleByFolderRequest request) {
-        List<AlertStorageObject> ruleObject = storage.getRuleByFolder(request.getParentFolder());
+        List<AlertStorageObject> ruleObject = storage.getRuleByFolder(request.getParentFolder() == null ? "" : request.getParentFolder().trim());
 
         return GetRuleByFolderResponse.builder()
                                       .rules(ruleObject.stream()
@@ -242,55 +243,58 @@ public class AlertRuleApi {
 
     @PostMapping("/api/alerting/alert/folder")
     public GetRuleFoldersResponse getFolders(@Valid @RequestBody GetRuleFoldersRequest request) {
-        List<String> names = storage.getNames(request.getParentFolder());
+        List<ListRuleDTO> rules = storage.getRuleList(request.getParentFolder(), null, null, null, null);
 
         // Map to count the number of elements under each immediate subfolder
         // Use TreeMap to retain the order
-        Map<String, Integer> folderCount = new TreeMap<>();
-        for (String name : names) {
-            int idx = name.lastIndexOf('/');
-            String folder = idx == -1 ? "<ROOT>" : name.substring(0, idx);
-            folderCount.compute(folder, (k, v) -> v == null ? 1 : v + 1);
+        Map<String, RuleFolderVO> folders = new TreeMap<>();
+        for (ListRuleDTO rule : rules) {
+            int idx = rule.getName().lastIndexOf('/');
+            String folder = idx == -1 ? "<ROOT>" : rule.getName().substring(0, idx);
+            RuleFolderVO vo = folders.computeIfAbsent(folder, (k) -> {
+                RuleFolderVO voObject = new RuleFolderVO();
+                voObject.setFolder(k);
+                return voObject;
+            });
+            vo.updateCount();
+            vo.updateLastAlertAt(rule.getLastAlertAt());
+            vo.updateLastUpdatedAt(rule.getUpdatedAt());
+            vo.updateLastEvaluatedAt(rule.getLastEvaluatedAt());
         }
 
-        List<RuleFolderVO> folders = folderCount.entrySet()
-                                                .stream()
-                                                .map(e -> {
-                                                    RuleFolderVO vo = new RuleFolderVO();
-                                                    vo.setFolder(e.getKey());
-                                                    vo.setRuleCount(e.getValue());
-                                                    return vo;
-                                                })
-                                                .collect(Collectors.toList());
+        List<RuleFolderVO> folderList = folders.values()
+                                               .stream()
+                                               .sorted(Comparator.comparing(RuleFolderVO::getFolder))
+                                               .toList();
 
         return GetRuleFoldersResponse.builder()
-                                     .folders(folders)
+                                     .folders(folderList)
                                      .build();
     }
 
     @PostMapping("/api/alerting/alert/list")
     public GetAlertListResponse getRuleList(@Valid @RequestBody GetAlertListRequest request) {
-        List<ListAlertDTO> alertList = storage.getAlertList(request.getFolder(),
-                                                            request.getAppName(),
-                                                            request.getAlertName(),
-                                                            request.getOrderBy(),
-                                                            request.getLimit());
+        List<ListRuleDTO> alertList = storage.getRuleList(request.getFolder(),
+                                                          request.getAppName(),
+                                                          request.getAlertName(),
+                                                          request.getOrderBy(),
+                                                          request.getLimit());
 
-        return new GetAlertListResponse(storage.getAlertListSize(request.getAppName(), request.getAlertName()),
+        return new GetAlertListResponse(storage.getRuleListSize(request.getAppName(), request.getAlertName()),
                                         alertList.stream()
-                                                 .map(alert -> {
+                                                 .map(rule -> {
                                                      ListAlertVO vo = new ListAlertVO();
-                                                     vo.setAlertId(alert.getAlertId());
-                                                     vo.setName(alert.getAlertName());
-                                                     vo.setAppName(alert.getAppName());
-                                                     vo.setEnabled(!alert.isDisabled());
-                                                     vo.setCreatedAt(alert.getCreatedAt().getTime());
-                                                     vo.setUpdatedAt(alert.getUpdatedAt().getTime());
-                                                     vo.setLastEvaluatedAt(alert.getLastEvaluatedAt() == null ? 0 : alert.getLastEvaluatedAt().getTime());
-                                                     vo.setLastAlertAt(alert.getLastAlertAt() == null ? 0L : alert.getLastAlertAt().getTime());
-                                                     vo.setLastOperator(alert.getLastOperator());
-                                                     vo.setLastRecordId(alert.getLastRecordId());
-                                                     vo.setAlertStatus(alert.getAlertStatus());
+                                                     vo.setAlertId(rule.getId());
+                                                     vo.setName(rule.getName());
+                                                     vo.setAppName(rule.getAppName());
+                                                     vo.setEnabled(!rule.isDisabled());
+                                                     vo.setCreatedAt(rule.getCreatedAt().getTime());
+                                                     vo.setUpdatedAt(rule.getUpdatedAt().getTime());
+                                                     vo.setLastEvaluatedAt(rule.getLastEvaluatedAt() == null ? 0 : rule.getLastEvaluatedAt().getTime());
+                                                     vo.setLastAlertAt(rule.getLastAlertAt() == null ? 0L : rule.getLastAlertAt().getTime());
+                                                     vo.setLastOperator(rule.getLastOperator());
+                                                     vo.setLastRecordId(rule.getLastRecordId());
+                                                     vo.setAlertStatus(rule.getAlertStatus());
                                                      return vo;
                                                  })
                                                  .collect(Collectors.toList()));

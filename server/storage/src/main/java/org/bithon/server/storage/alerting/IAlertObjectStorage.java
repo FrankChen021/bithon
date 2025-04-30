@@ -19,8 +19,8 @@ package org.bithon.server.storage.alerting;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
-import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
+import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 
@@ -35,29 +35,30 @@ import java.util.concurrent.Callable;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IAlertObjectStorage {
 
-    List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end);
+    List<AlertStorageObject> getRuleListByTime(Timestamp start, Timestamp end);
 
-    boolean existAlertById(String alertId);
+    boolean existRuleById(String alertId);
 
-    boolean existAlertByName(String name);
+    boolean existRuleByName(String name);
 
     List<AlertStorageObject> getRuleByFolder(String parentFolder);
+
     AlertStorageObject getRuleById(String ruleId);
 
-    default void createAlert(AlertStorageObject alert, String operator) {
+    default void createRule(AlertStorageObject alert, String operator) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
-        createAlert(alert, operator, ts, ts);
+        createRule(alert, operator, ts, ts);
     }
 
-    void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp);
+    void createRule(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp);
 
-    boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator);
+    boolean updateRule(AlertStorageObject oldObject, AlertStorageObject newObject, String operator);
 
-    boolean disableAlert(String alertId, String operator);
+    boolean disableRule(String alertId, String operator);
 
-    boolean enableAlert(String alertId, String operator);
+    boolean enableRule(String alertId, String operator);
 
-    boolean deleteAlert(String alertId, String operator);
+    boolean deleteRule(String alertId, String operator);
 
     void addChangelog(String alertId,
                       ObjectAction action,
@@ -65,19 +66,17 @@ public interface IAlertObjectStorage {
                       String beforeJsonString,
                       String afterJsonString);
 
-    int getAlertListSize(String appName, String alertName);
+    int getRuleListSize(String appName, String ruleName);
 
-    List<ListAlertDTO> getAlertList(String folder,
-                                    String appName,
-                                    String ruleName,
-                                    OrderBy orderBy,
-                                    Limit limit);
+    List<ListRuleDTO> getRuleList(String folder,
+                                  String appName,
+                                  String ruleName,
+                                  OrderBy orderBy,
+                                  Limit limit);
 
     ListResult<AlertChangeLogObject> getChangeLogs(String alertId, Integer pageNumber, Integer pageSize);
 
     <T> T executeTransaction(Callable<T> runnable);
 
     void initialize();
-
-    List<String> getNames(String parentFolder);
 }

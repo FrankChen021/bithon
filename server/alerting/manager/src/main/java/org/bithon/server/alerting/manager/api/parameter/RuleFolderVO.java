@@ -19,6 +19,8 @@ package org.bithon.server.alerting.manager.api.parameter;
 
 import lombok.Data;
 
+import java.sql.Timestamp;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 29/4/25 12:26 am
@@ -27,4 +29,39 @@ import lombok.Data;
 public class RuleFolderVO {
     private String folder;
     private int ruleCount;
+
+    // Aggregation on all rules under this folder
+    private Long lastEvaluatedAt;
+    private Long lastAlertAt;
+    private long lastUpdatedAt;
+
+    public void updateCount() {
+        this.ruleCount++;
+    }
+
+    public void updateLastEvaluatedAt(Timestamp value) {
+        if (value != null) {
+            if (this.lastEvaluatedAt == null) {
+                this.lastEvaluatedAt = value.getTime();
+            } else {
+                this.lastEvaluatedAt = Math.max(value.getTime(), this.lastEvaluatedAt);
+            }
+        }
+    }
+
+    public void updateLastAlertAt(Timestamp value) {
+        if (value != null) {
+            if (this.lastAlertAt == null) {
+                this.lastAlertAt = value.getTime();
+            } else {
+                this.lastAlertAt = Math.max(value.getTime(), this.lastAlertAt);
+            }
+        }
+    }
+
+    public void updateLastUpdatedAt(Timestamp lastUpdatedAt) {
+        if (lastUpdatedAt != null) {
+            this.lastUpdatedAt = Math.max(lastUpdatedAt.getTime(), this.lastUpdatedAt);
+        }
+    }
 }
