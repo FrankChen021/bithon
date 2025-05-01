@@ -32,7 +32,7 @@ public class RuleFolderVO {
 
     // Aggregation on all rules under this folder
     private Long lastEvaluatedAt;
-    private Long lastAlertAt;
+    private Long lastAlertedAt;
     private long lastUpdatedAt;
 
     public void updateCount() {
@@ -49,12 +49,12 @@ public class RuleFolderVO {
         }
     }
 
-    public void updateLastAlertAt(Timestamp value) {
+    public void updateLastAlertedAt(Timestamp value) {
         if (value != null) {
-            if (this.lastAlertAt == null) {
-                this.lastAlertAt = value.getTime();
+            if (this.lastAlertedAt == null) {
+                this.lastAlertedAt = value.getTime();
             } else {
-                this.lastAlertAt = Math.max(value.getTime(), this.lastAlertAt);
+                this.lastAlertedAt = Math.max(value.getTime(), this.lastAlertedAt);
             }
         }
     }

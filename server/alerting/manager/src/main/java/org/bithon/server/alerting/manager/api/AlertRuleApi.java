@@ -257,7 +257,7 @@ public class AlertRuleApi {
                 return voObject;
             });
             vo.updateCount();
-            vo.updateLastAlertAt(rule.getLastAlertAt());
+            vo.updateLastAlertedAt(rule.getLastAlertAt());
             vo.updateLastUpdatedAt(rule.getUpdatedAt());
             vo.updateLastEvaluatedAt(rule.getLastEvaluatedAt());
         }
