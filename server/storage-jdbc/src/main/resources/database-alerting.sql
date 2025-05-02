@@ -23,7 +23,6 @@ CREATE TABLE `bithon_alert_object`
 (
     `alert_id`      varchar(32)  NOT NULL COMMENT 'UUID',
     `alert_name`    varchar(128) NOT NULL DEFAULT '' COMMENT 'Rule name',
-    `folder`        varchar(256) NOT NULL DEFAULT '' COMMENT 'Folder name',
     `app_name`      varchar(128) NOT NULL DEFAULT '' COMMENT '',
     `namespace`     varchar(64)  NOT NULL COMMENT 'namespace of application',
     `disabled`      int          NOT NULL COMMENT '',

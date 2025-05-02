@@ -15,12 +15,12 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertObjectRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function11;
+import org.jooq.Function10;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row11;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -62,11 +62,6 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
      * The column <code>bithon_alert_object.alert_name</code>. Rule name
      */
     public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Rule name");
-
-    /**
-     * The column <code>bithon_alert_object.folder</code>. Folder name
-     */
-    public final TableField<BithonAlertObjectRecord, String> FOLDER = createField(DSL.name("folder"), SQLDataType.VARCHAR(256).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Folder name");
 
     /**
      * The column <code>bithon_alert_object.app_name</code>.
@@ -197,18 +192,18 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row11 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row11<String, String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
-        return (Row11) super.fieldsRow();
+    public Row10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function11<? super String, ? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function10<? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -216,7 +211,7 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function11<? super String, ? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
