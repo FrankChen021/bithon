@@ -14,17 +14,32 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.storage.alerting.pojo;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/31
+ * @date 2021/1/6
  */
 @Data
-public class GetAlertListByAppIdRequest {
-    @NotNull
-    private Long appId;
+public class ListRuleDTO {
+    private String id;
+    private String name;
+    private String appName;
+
+    private boolean disabled;
+    private boolean deleted;
+    private String payload;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private String lastOperator;
+
+    // From bithon_alert_state
+    private Timestamp lastEvaluatedAt;
+    private Timestamp lastAlertAt;
+    private String lastRecordId;
+    private AlertStatus alertStatus;
 }

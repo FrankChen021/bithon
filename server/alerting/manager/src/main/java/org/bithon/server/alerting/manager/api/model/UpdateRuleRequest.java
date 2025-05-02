@@ -14,21 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
-
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/11
+ * @date 27/11/24 11:14 am
  */
-@Data
-@AllArgsConstructor
-public class GetAlertRecordListResponse {
-    private Integer total;
-    private List<AlertRecordObject> rows;
+@Getter
+@Setter
+public class UpdateRuleRequest extends CreateRuleRequest {
+    private boolean enabled = true;
 }

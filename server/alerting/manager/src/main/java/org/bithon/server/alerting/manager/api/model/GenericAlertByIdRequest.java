@@ -14,20 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 2020/12/31
  */
 @Data
-public class GetAlertListRequest {
-    private String alertName;
-    private String appName;
-    private OrderBy orderBy = new OrderBy();
-    private Limit limit = new Limit(10, null);
+public class GenericAlertByIdRequest {
+    @NotBlank
+    @Size(max = 32)
+    private String alertId;
 }

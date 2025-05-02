@@ -14,17 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/11/24 11:14 am
+ * @date 2020/12/31
  */
-@Getter
-@Setter
-public class UpdateAlertRuleRequest extends CreateAlertRuleRequest {
-    private boolean enabled = true;
+@Data
+@AllArgsConstructor
+public class GetRuleListResponse {
+    private Integer total;
+    private List<RuleListItemVO> rows;
 }

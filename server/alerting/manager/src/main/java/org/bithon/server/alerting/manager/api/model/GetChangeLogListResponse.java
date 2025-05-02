@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/4
+ * @date 2021/1/25
  */
 @Data
-public class GetAppListRequest {
-    @NotNull
-    private Set<String> envFilter;
+@AllArgsConstructor
+public class GetChangeLogListResponse {
+    private Integer total;
+    private List<ChangeLogVO> rows;
+
 }

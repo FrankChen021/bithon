@@ -59,9 +59,9 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     public final TableField<BithonAlertObjectRecord, String> ALERT_ID = createField(DSL.name("alert_id"), SQLDataType.VARCHAR(32).nullable(false), this, "UUID");
 
     /**
-     * The column <code>bithon_alert_object.alert_name</code>.
+     * The column <code>bithon_alert_object.alert_name</code>. Rule name
      */
-    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Rule name");
 
     /**
      * The column <code>bithon_alert_object.app_name</code>.

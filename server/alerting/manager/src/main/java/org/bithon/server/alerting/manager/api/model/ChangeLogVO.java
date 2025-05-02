@@ -14,17 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 2021/1/25
  */
 @Data
-public class GetAlertListByAppNameRequest {
-    @NotNull
-    private String appName;
+public class ChangeLogVO {
+    private String alertId;
+    private String action;
+    private String payloadBefore;
+    private String payloadAfter;
+    private String editor;
+    private long timestamp;
 }

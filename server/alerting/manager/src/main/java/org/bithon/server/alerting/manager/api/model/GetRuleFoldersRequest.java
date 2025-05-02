@@ -14,21 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.AllArgsConstructor;
+
 import lombok.Data;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/25
+ * @date 29/4/25 12:16 am
  */
 @Data
-@AllArgsConstructor
-public class GetChangeLogListResponse {
-    private Integer total;
-    private List<ChangeLogVO> rows;
-
+public class GetRuleFoldersRequest {
+    @Nullable
+    private String parentFolder;
 }

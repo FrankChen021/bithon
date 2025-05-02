@@ -39,7 +39,7 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
-import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
+import org.bithon.server.alerting.manager.api.model.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
@@ -192,7 +192,7 @@ public class AlertChannelApi {
     @PostMapping("/api/alerting/channel/delete")
     public ApiResponse<?> deleteChannel(@Validated @RequestBody DeleteChannelRequest request) {
         // Check if it's used
-        List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
+        List<AlertStorageObject> alerts = alertStorage.getRuleListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
             AlertStorageObjectPayload payload = alert.getPayload();
             if (payload.getNotifications() != null && alert.getPayload().getNotifications().contains(request.getName())) {

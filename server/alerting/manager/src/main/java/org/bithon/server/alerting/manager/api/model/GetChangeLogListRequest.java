@@ -14,20 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/31
+ * @date 2021/1/25
  */
 @Data
-@AllArgsConstructor
-public class GetAlertListResponse {
-    private Integer total;
-    private List<ListAlertVO> rows;
+public class GetChangeLogListRequest {
+    @NotBlank
+    @Size(max = 32)
+    private String alertId;
+
+    /**
+     * The format of payload.
+     * One of: json/yaml
+     */
+    @NotBlank
+    private String format = "yaml";
+
+    private Integer pageSize = 25;
+
+    private Integer pageNumber = 0;
 }

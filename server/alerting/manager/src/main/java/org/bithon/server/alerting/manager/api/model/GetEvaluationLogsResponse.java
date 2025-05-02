@@ -14,32 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.alerting.pojo;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
 
-import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/6
+ * @date 2022/8/13 16:11
  */
-@Data
-public class ListAlertDTO {
-    private String alertId;
-    private String alertName;
-    private String appName;
-    private String namespace;
-    private boolean disabled;
-    private boolean deleted;
-    private String payload;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
-    private String lastOperator;
+@Getter
+@AllArgsConstructor
+public class GetEvaluationLogsResponse {
 
-    // From bithon_alert_state
-    private Timestamp lastEvaluatedAt;
-    private Timestamp lastAlertAt;
-    private String lastRecordId;
-    private AlertStatus alertStatus;
+    private final int total;
+    private final List<EvaluationLogEvent> rows;
+
 }
