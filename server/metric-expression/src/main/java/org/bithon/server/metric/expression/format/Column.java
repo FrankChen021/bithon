@@ -282,7 +282,9 @@ public interface Column {
         }
 
         public void addObject(Object value) {
-            if (value instanceof String) {
+            if (value == null) {
+                addInternal("");
+            } else if (value instanceof String) {
                 addInternal((String) value);
             } else {
                 addInternal(value.toString());

@@ -37,7 +37,6 @@ import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -278,14 +277,6 @@ public class DataSourceApi implements IDataSourceApi {
     public void createSchema(@RequestBody ISchema schema) {
         if (schemaManager.containsSchema(schema.getName())) {
             throw new SchemaException.AlreadyExists(schema.getName());
-        }
-
-        // TODO:
-        // use writer to initialize the underlying storage
-        // in the future, the initialization should be extracted out of the writer
-        try (IMetricWriter writer = this.metricStorage.createMetricWriter(schema)) {
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
         schemaManager.addSchema(schema);

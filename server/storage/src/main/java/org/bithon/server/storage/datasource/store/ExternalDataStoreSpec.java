@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.datasource.store;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.Experimental;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -38,8 +37,8 @@ public abstract class ExternalDataStoreSpec implements IDataStoreSpec {
     protected final Map<String, Object> properties;
     protected final String store;
 
-    public ExternalDataStoreSpec(@JsonProperty("properties") Map<String, Object> properties,
-                                 @JsonProperty("store") String store) {
+    public ExternalDataStoreSpec(Map<String, Object> properties,
+                                 String store) {
         this.properties = properties == null ? Collections.emptyMap() : properties;
         this.store = store;
     }

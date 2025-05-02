@@ -86,7 +86,10 @@ public class MetricExpressionEvaluator implements IEvaluator {
                             keys.add("_timestamp");
                             keys.addAll(queryRequest.getGroupBy() != null ? queryRequest.getGroupBy() : Collections.emptySet());
 
-                            List<String> valNames = queryRequest.getFields().stream().map(QueryField::getName).toList();
+                            List<String> valNames = queryRequest.getFields()
+                                                                .stream()
+                                                                .map(QueryField::getName)
+                                                                .toList();
 
                             return toEvaluationResult(keys, valNames, response);
                         } catch (IOException e) {
@@ -129,7 +132,8 @@ public class MetricExpressionEvaluator implements IEvaluator {
         for (QueryResponse.QueryResponseColumn keyColumn : keyColumns) {
             Column column = Column.create(keyColumn.getName(), keyColumn.getDataType(), rows.size());
             for (Map<String, Object> row : rows) {
-                column.addObject(row.get(keyColumn.getName()));
+                Object cell = row.get(keyColumn.getName());
+                column.addObject(cell);
             }
             table.addColumn(column);
         }
