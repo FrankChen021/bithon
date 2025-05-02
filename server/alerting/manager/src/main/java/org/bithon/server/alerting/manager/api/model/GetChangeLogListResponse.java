@@ -14,21 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 2021/1/25
  */
 @Data
-public class GetAlertListRequest {
-    private String folder;
-    private String alertName;
-    private String appName;
-    private OrderBy orderBy = new OrderBy();
-    private Limit limit = new Limit(10, null);
+@AllArgsConstructor
+public class GetChangeLogListResponse {
+    private Integer total;
+    private List<ChangeLogVO> rows;
+
 }

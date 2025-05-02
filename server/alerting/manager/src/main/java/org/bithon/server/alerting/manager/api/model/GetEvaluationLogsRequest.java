@@ -14,17 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 2021/1/26
  */
 @Data
-public class GetAlertListByAppNameRequest {
+public class GetEvaluationLogsRequest {
+    @NotBlank
+    private String alertId;
+
     @NotNull
-    private String appName;
+    @Valid
+    private IntervalRequest interval;
 }

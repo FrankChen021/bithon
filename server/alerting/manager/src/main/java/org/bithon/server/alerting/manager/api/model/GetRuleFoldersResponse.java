@@ -14,24 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+
+import lombok.Builder;
 import lombok.Data;
-import org.bithon.server.web.service.datasource.api.IntervalRequest;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/26
+ * @date 29/4/25 12:23 am
  */
 @Data
-public class GetEvaluationLogsRequest {
-    @NotBlank
-    private String alertId;
+@Builder
+public class GetRuleFoldersResponse {
 
-    @NotNull
-    @Valid
-    private IntervalRequest interval;
+    private List<RuleFolderVO> folders;
 }

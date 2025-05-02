@@ -14,17 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/11/24 11:14 am
+ * @date 2021/1/5
  */
-@Getter
-@Setter
-public class UpdateAlertRuleRequest extends CreateAlertRuleRequest {
-    private boolean enabled = true;
+@Data
+public class GetRuleListRequest {
+    private String folder;
+    private String alertName;
+    private String appName;
+    private OrderBy orderBy = new OrderBy();
+    private Limit limit = new Limit(10, null);
 }

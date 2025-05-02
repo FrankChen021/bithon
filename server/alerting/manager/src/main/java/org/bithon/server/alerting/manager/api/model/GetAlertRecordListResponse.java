@@ -14,31 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.web.service.datasource.api.IntervalRequest;
+import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 
-import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/11
  */
 @Data
-public class GetAlertRecordListRequest {
-    @NotBlank
-    @Size(max = 32)
-    private String alertId;
-
-    @Nullable
-    private IntervalRequest interval;
-
-    @Nullable
-    private Integer pageSize;
-
-    @Nullable
-    private Integer pageNumber;
+@AllArgsConstructor
+public class GetAlertRecordListResponse {
+    private Integer total;
+    private List<AlertRecordObject> rows;
 }

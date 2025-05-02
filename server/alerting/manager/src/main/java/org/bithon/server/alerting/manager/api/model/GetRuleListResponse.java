@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/11
+ * @date 2020/12/31
  */
 @Data
-public class GetAlertRecordByIdRequest {
-    @NotBlank
-    @Size(max = 32)
-    private String id;
+@AllArgsConstructor
+public class GetRuleListResponse {
+    private Integer total;
+    private List<RuleListItemVO> rows;
 }

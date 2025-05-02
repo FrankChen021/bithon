@@ -39,7 +39,7 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
-import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
+import org.bithon.server.alerting.manager.api.model.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
 import org.bithon.server.alerting.notification.message.NotificationMessage;

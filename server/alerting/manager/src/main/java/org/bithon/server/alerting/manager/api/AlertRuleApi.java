@@ -20,30 +20,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
-import org.bithon.server.alerting.common.model.IAlertInDepthExpressionVisitor;
-import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
-import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
-import org.bithon.server.alerting.manager.api.parameter.ChangeLogVO;
-import org.bithon.server.alerting.manager.api.parameter.CreateAlertRuleRequest;
-import org.bithon.server.alerting.manager.api.parameter.GenericAlertByIdRequest;
-import org.bithon.server.alerting.manager.api.parameter.GetAlertChangeLogListRequest;
-import org.bithon.server.alerting.manager.api.parameter.GetAlertListRequest;
-import org.bithon.server.alerting.manager.api.parameter.GetAlertListResponse;
-import org.bithon.server.alerting.manager.api.parameter.GetChangeLogListResponse;
-import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersRequest;
-import org.bithon.server.alerting.manager.api.parameter.GetRuleFoldersResponse;
-import org.bithon.server.alerting.manager.api.parameter.ListAlertVO;
-import org.bithon.server.alerting.manager.api.parameter.RuleFolderVO;
-import org.bithon.server.alerting.manager.api.parameter.UpdateAlertRuleRequest;
+import org.bithon.server.alerting.manager.api.model.ApiResponse;
+import org.bithon.server.alerting.manager.api.model.ChangeLogVO;
+import org.bithon.server.alerting.manager.api.model.CreateRuleRequest;
+import org.bithon.server.alerting.manager.api.model.GenericAlertByIdRequest;
+import org.bithon.server.alerting.manager.api.model.GetChangeLogListRequest;
+import org.bithon.server.alerting.manager.api.model.GetChangeLogListResponse;
+import org.bithon.server.alerting.manager.api.model.GetRuleFoldersRequest;
+import org.bithon.server.alerting.manager.api.model.GetRuleFoldersResponse;
+import org.bithon.server.alerting.manager.api.model.GetRuleListRequest;
+import org.bithon.server.alerting.manager.api.model.GetRuleListResponse;
+import org.bithon.server.alerting.manager.api.model.RuleFolderVO;
+import org.bithon.server.alerting.manager.api.model.RuleListItemVO;
+import org.bithon.server.alerting.manager.api.model.RuleVO;
+import org.bithon.server.alerting.manager.api.model.UpdateRuleRequest;
 import org.bithon.server.alerting.manager.biz.AlertCommandService;
 import org.bithon.server.alerting.manager.biz.BizException;
 import org.bithon.server.commons.json.JsonPayloadFormatter;
@@ -52,8 +47,6 @@ import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
-import org.bithon.server.storage.alerting.pojo.NotificationProps;
-import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Conditional;
@@ -62,13 +55,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -98,7 +88,7 @@ public class AlertRuleApi {
     }
 
     @PostMapping("/api/alerting/alert/create")
-    public ApiResponse<String> createAlertRule(@Valid @RequestBody CreateAlertRuleRequest request) {
+    public ApiResponse<String> createAlertRule(@Valid @RequestBody CreateRuleRequest request) {
         try {
             AlertRule rule = Validator.validate(request).toAlert();
             return ApiResponse.success(commandService.createRule(rule, request.toCommandArgs()));
@@ -108,7 +98,7 @@ public class AlertRuleApi {
     }
 
     @PostMapping("/api/alerting/alert/update")
-    public ApiResponse<?> updateAlertRule(@Valid @RequestBody UpdateAlertRuleRequest request) {
+    public ApiResponse<?> updateAlertRule(@Valid @RequestBody UpdateRuleRequest request) {
         Preconditions.checkNotNull(request.getId(), "id should not be null");
         try {
             AlertRule rule = Validator.validate(request).toAlert();
@@ -154,7 +144,7 @@ public class AlertRuleApi {
      * @return evaluation log of this alert rule
      */
     @PostMapping("/api/alerting/alert/test")
-    public ApiResponse<?> testRule(@Valid @RequestBody CreateAlertRuleRequest request) {
+    public ApiResponse<?> testRule(@Valid @RequestBody CreateRuleRequest request) {
         try {
             AlertRule rule = Validator.validate(request).toAlert();
             rule.initialize();
@@ -164,83 +154,18 @@ public class AlertRuleApi {
         }
     }
 
-
-    public static class AlertRuleVO extends AlertStorageObject {
-        @Getter
-        @Setter
-        private Collection<AlertExpression> parsedExpressions;
-
-        public AlertRuleVO(AlertStorageObject alertStorageObject, Collection<AlertExpression> parsedExpressions) {
-            setId(alertStorageObject.getId());
-            setName(alertStorageObject.getName());
-            setAppName(alertStorageObject.getAppName());
-            setNamespace(alertStorageObject.getNamespace());
-            setDisabled(alertStorageObject.isDisabled());
-            setDeleted(alertStorageObject.isDeleted());
-            setPayload(alertStorageObject.getPayload());
-            setCreatedAt(alertStorageObject.getCreatedAt());
-            setUpdatedAt(alertStorageObject.getUpdatedAt());
-            setLastOperator(alertStorageObject.getLastOperator());
-            this.parsedExpressions = parsedExpressions;
-        }
-    }
-
     @PostMapping("/api/alerting/alert/get")
-    public ApiResponse<AlertRuleVO> getRuleById(@Valid @RequestBody GenericAlertByIdRequest request) {
-        AlertStorageObject ruleObject = storage.getRuleById(request.getAlertId());
-        if (ruleObject != null) {
-            return ApiResponse.success(toVO(ruleObject));
+    public ApiResponse<RuleVO> getRuleById(@Valid @RequestBody GenericAlertByIdRequest request) {
+        AlertStorageObject rule = storage.getRuleById(request.getAlertId());
+        if (rule != null) {
+            return ApiResponse.success(RuleVO.from(rule));
         }
         return ApiResponse.fail("Alert rule not found");
     }
 
-    @Data
-    public static class GetRuleByFolderRequest {
-        private String parentFolder;
-    }
-
-    @Data
-    @Builder
-    public static class GetRuleByFolderResponse {
-        private List<AlertRuleVO> rules;
-    }
-
-    @PostMapping("/api/alerting/alert/folder/rules")
-    public GetRuleByFolderResponse getRuleByFolder(@Valid @RequestBody GetRuleByFolderRequest request) {
-        List<AlertStorageObject> ruleObject = storage.getRuleByFolder(request.getParentFolder() == null ? "" : request.getParentFolder().trim());
-
-        return GetRuleByFolderResponse.builder()
-                                      .rules(ruleObject.stream()
-                                                       .map(this::toVO)
-                                                       .toList())
-                                      .build();
-    }
-
-    private AlertRuleVO toVO(AlertStorageObject ruleObject) {
-        IExpression alertExpression = AlertExpressionASTParser.parse(ruleObject.getPayload().getExpr());
-
-        // Get Schema for validation
-        Map<String, ISchema> schemas = dataSourceApi.getSchemas();
-
-        // Flatten expressions
-        List<AlertExpression> alertExpressions = new ArrayList<>();
-        alertExpression.accept((IAlertInDepthExpressionVisitor) expression -> {
-            expression.getMetricExpression().validate(schemas);
-            alertExpressions.add(expression);
-        });
-
-        // Backward compatibility
-        if (ruleObject.getPayload().getNotifications() != null && ruleObject.getPayload().getNotificationProps() == null) {
-            ruleObject.getPayload().setNotificationProps(NotificationProps.builder()
-                                                                          .renderExpressions(new TreeSet<>(alertExpressions.stream().map(AlertExpression::getId).toList()))
-                                                                          .silence(ruleObject.getPayload().getSilence())
-                                                                          .channels(ruleObject.getPayload().getNotifications())
-                                                                          .build());
-        }
-
-        return new AlertRuleVO(ruleObject, alertExpressions);
-    }
-
+    /**
+     * Get folders
+     */
     @PostMapping("/api/alerting/alert/folder")
     public GetRuleFoldersResponse getFolders(@Valid @RequestBody GetRuleFoldersRequest request) {
         List<ListRuleDTO> rules = storage.getRuleList(request.getParentFolder(), null, null, null, null);
@@ -273,35 +198,47 @@ public class AlertRuleApi {
     }
 
     @PostMapping("/api/alerting/alert/list")
-    public GetAlertListResponse getRuleList(@Valid @RequestBody GetAlertListRequest request) {
+    public GetRuleListResponse getRuleList(@Valid @RequestBody GetRuleListRequest request) {
         List<ListRuleDTO> alertList = storage.getRuleList(request.getFolder(),
                                                           request.getAppName(),
                                                           request.getAlertName(),
                                                           request.getOrderBy(),
                                                           request.getLimit());
 
-        return new GetAlertListResponse(storage.getRuleListSize(request.getAppName(), request.getAlertName()),
-                                        alertList.stream()
-                                                 .map(rule -> {
-                                                     ListAlertVO vo = new ListAlertVO();
-                                                     vo.setAlertId(rule.getId());
-                                                     vo.setName(rule.getName());
-                                                     vo.setAppName(rule.getAppName());
-                                                     vo.setEnabled(!rule.isDisabled());
-                                                     vo.setCreatedAt(rule.getCreatedAt().getTime());
-                                                     vo.setUpdatedAt(rule.getUpdatedAt().getTime());
-                                                     vo.setLastEvaluatedAt(rule.getLastEvaluatedAt() == null ? 0 : rule.getLastEvaluatedAt().getTime());
-                                                     vo.setLastAlertAt(rule.getLastAlertAt() == null ? 0L : rule.getLastAlertAt().getTime());
-                                                     vo.setLastOperator(rule.getLastOperator());
-                                                     vo.setLastRecordId(rule.getLastRecordId());
-                                                     vo.setAlertStatus(rule.getAlertStatus());
-                                                     return vo;
-                                                 })
+        return new GetRuleListResponse(storage.getRuleListSize(request.getAppName(), request.getAlertName()),
+                                       alertList.stream()
+                                                 .map(RuleListItemVO::from)
                                                  .collect(Collectors.toList()));
     }
 
+    @Data
+    public static class GetRuleByFolderRequest {
+        private String parentFolder;
+    }
+
+    @Data
+    @Builder
+    public static class GetRuleByFolderResponse {
+        private List<RuleListItemVO> rules;
+    }
+
+    @PostMapping("/api/alerting/alert/folder/rules")
+    public GetRuleByFolderResponse getRuleByFolder(@Valid @RequestBody GetRuleByFolderRequest request) {
+        List<ListRuleDTO> ruleObject = storage.getRuleList(request.getParentFolder() == null ? "" : request.getParentFolder().trim(),
+                                                           null,
+                                                           null,
+                                                           null,
+                                                           null);
+
+        return GetRuleByFolderResponse.builder()
+                                      .rules(ruleObject.stream()
+                                                       .map((rule) -> RuleListItemVO.from(rule, true))
+                                                       .toList())
+                                      .build();
+    }
+
     @PostMapping("/api/alerting/alert/change-log/get")
-    public GetChangeLogListResponse getChangeLogs(@Valid @RequestBody GetAlertChangeLogListRequest request) {
+    public GetChangeLogListResponse getChangeLogs(@Valid @RequestBody GetChangeLogListRequest request) {
         ListResult<AlertChangeLogObject> results = storage.getChangeLogs(request.getAlertId(),
                                                                          request.getPageNumber(),
                                                                          request.getPageSize());

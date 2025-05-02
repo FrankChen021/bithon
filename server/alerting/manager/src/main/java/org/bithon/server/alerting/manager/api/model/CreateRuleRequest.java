@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -38,7 +38,7 @@ import java.util.Set;
  */
 @Getter
 @Setter
-public class CreateAlertRuleRequest {
+public class CreateRuleRequest {
 
     /**
      * check if target application exists before create an alert for that application

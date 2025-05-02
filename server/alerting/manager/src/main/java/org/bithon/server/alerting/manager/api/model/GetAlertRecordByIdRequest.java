@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,11 +22,11 @@ import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/31
+ * @date 2021/1/11
  */
 @Data
-public class GenericAlertByIdRequest {
+public class GetAlertRecordByIdRequest {
     @NotBlank
     @Size(max = 32)
-    private String alertId;
+    private String id;
 }

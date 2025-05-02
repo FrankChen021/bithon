@@ -14,32 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
+
 
 import lombok.Data;
-import org.bithon.server.storage.alerting.pojo.AlertStatus;
+
+import javax.annotation.Nullable;
 
 /**
- * Note: the field name here must be the camel cases of the names in the database,
- * or the frontend sort requests might fail
- *
  * @author frank.chen021@outlook.com
- * @date 2021/1/5
+ * @date 29/4/25 12:16 am
  */
 @Data
-public class ListAlertVO {
-    private String alertId;
-    private String appName;
-    private String name;
-    private boolean enabled;
-
-    private long createdAt;
-    private long updatedAt;
-
-    private long lastEvaluatedAt;
-    private Long lastAlertAt;
-    private String lastRecordId;
-    private AlertStatus alertStatus;
-
-    private String lastOperator;
+public class GetRuleFoldersRequest {
+    @Nullable
+    private String parentFolder;
 }

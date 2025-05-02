@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
-
+package org.bithon.server.alerting.manager.api.model;
 
 import lombok.Data;
 
-import javax.annotation.Nullable;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 29/4/25 12:16 am
+ * @date 2021/1/25
  */
 @Data
-public class GetRuleFoldersRequest {
-    @Nullable
-    private String parentFolder;
+public class ChangeLogVO {
+    private String alertId;
+    private String action;
+    private String payloadBefore;
+    private String payloadAfter;
+    private String editor;
+    private long timestamp;
 }

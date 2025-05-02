@@ -41,8 +41,6 @@ public interface IAlertObjectStorage {
 
     boolean existRuleByName(String name);
 
-    List<AlertStorageObject> getRuleByFolder(String parentFolder);
-
     AlertStorageObject getRuleById(String ruleId);
 
     default void createRule(AlertStorageObject alert, String operator) {

@@ -14,20 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.manager.api.parameter;
+package org.bithon.server.alerting.manager.api.model;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.bithon.server.storage.alerting.pojo.EvaluationLogEvent;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/25
+ * @date 2022/8/13 16:11
  */
-@Data
-public class ChangeLogVO {
-    private String alertId;
-    private String action;
-    private String payloadBefore;
-    private String payloadAfter;
-    private String editor;
-    private long timestamp;
+@Getter
+@AllArgsConstructor
+public class GetEvaluationLogsResponse {
+
+    private final int total;
+    private final List<EvaluationLogEvent> rows;
+
 }

@@ -339,11 +339,6 @@ public class AlertCommandService {
             }
 
             @Override
-            public List<AlertStorageObject> getRuleByFolder(String parentFolder) {
-                return List.of();
-            }
-
-            @Override
             public AlertStorageObject getRuleById(String ruleId) {
                 return null;
             }

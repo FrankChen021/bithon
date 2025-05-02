@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.manager.biz;
 
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
-import org.bithon.server.alerting.manager.api.parameter.GetEvaluationLogsResponse;
+import org.bithon.server.alerting.manager.api.model.GetEvaluationLogsResponse;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IEvaluationLogReader;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;

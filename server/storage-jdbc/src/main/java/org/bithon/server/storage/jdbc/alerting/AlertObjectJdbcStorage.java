@@ -146,29 +146,6 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                          .fetchOne(this::toStorageObject);
     }
 
-    @Override
-    public List<AlertStorageObject> getRuleByFolder(String parentFolder) {
-        SelectConditionStep<Record> select = dslContext.selectFrom(this.quotedObjectTableSelectName)
-                                                       .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
-        if (parentFolder != null) {
-            if (parentFolder.isEmpty()) {
-                // Search under the root folder
-                select = select.andNot(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.contains("/"));
-            } else {
-                // Search from a given folderÏ
-                if (!parentFolder.endsWith("/")) {
-                    parentFolder = parentFolder + '/';
-                }
-                select = select.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.startsWith(parentFolder));
-            }
-        }
-
-        return select.fetch()
-                     .stream()
-                     .map(this::toStorageObject)
-                     .toList();
-    }
-
     protected AlertStorageObject toStorageObject(Record record) {
         AlertStorageObject obj = new AlertStorageObject();
         obj.setId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
@@ -298,6 +275,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                                       Tables.BITHON_ALERT_OBJECT.ALERT_NAME,
                                                       Tables.BITHON_ALERT_OBJECT.DISABLED,
                                                       Tables.BITHON_ALERT_OBJECT.APP_NAME,
+                                                      Tables.BITHON_ALERT_OBJECT.PAYLOAD,
                                                       Tables.BITHON_ALERT_OBJECT.CREATED_AT,
                                                       Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
                                                       Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT,
@@ -353,6 +331,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              obj.setDisabled(record.get(Tables.BITHON_ALERT_OBJECT.DISABLED) != 0);
 
                              obj.setAppName(record.get(Tables.BITHON_ALERT_OBJECT.APP_NAME));
+                             obj.setPayload(record.get(Tables.BITHON_ALERT_OBJECT.PAYLOAD));
 
                              // It's very strange that under H2,
                              // the returned object is a type of Timestamp instead of LocalDateTime
