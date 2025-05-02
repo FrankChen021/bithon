@@ -19,6 +19,7 @@ package org.bithon.server.datasource.vm;
 
 import feign.Contract;
 import feign.Feign;
+import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
@@ -43,11 +44,9 @@ import java.util.Map;
  * @date 28/4/25 9:35 pm
  */
 public class VMDataSourceReader implements IDataSourceReader {
-    private final String url;
-    private IQueryApi queryApi;
+    private final IQueryApi queryApi;
 
     public VMDataSourceReader(String url, ApplicationContext applicationContext) {
-        this.url = url;
 
         this.queryApi = Feign.builder()
                              .contract(applicationContext.getBean(Contract.class))
