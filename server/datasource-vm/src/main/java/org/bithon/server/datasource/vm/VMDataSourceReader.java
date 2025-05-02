@@ -73,7 +73,6 @@ public class VMDataSourceReader implements IDataSourceReader {
             throw new UnsupportedOperationException("Unsupported metric field " + args);
         }
 
-        String from = query.getSchema().getName();
         String aggregator = functionExpression.getFunction().getName();
         String metric = identifierExpression.getIdentifier();
         String labelSelector = LabelSelectorSerializer.toString(query.getFilter());
