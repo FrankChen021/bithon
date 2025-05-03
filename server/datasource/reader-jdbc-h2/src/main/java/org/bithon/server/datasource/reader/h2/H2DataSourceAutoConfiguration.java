@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class H2DataSourceAutoConfiguration {
 
     @Bean
-    public Module h2ExternalDataSourceModule() {
+    public Module h2DataSourceModule() {
         return new Module() {
             @Override
             public String getModuleName() {

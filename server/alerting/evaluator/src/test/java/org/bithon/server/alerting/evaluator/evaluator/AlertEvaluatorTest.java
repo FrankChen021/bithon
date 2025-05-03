@@ -46,6 +46,8 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.datasource.reader.clickhouse.ClickHouseDataSourceAutoConfiguration;
+import org.bithon.server.datasource.reader.h2.H2DataSourceAutoConfiguration;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
@@ -115,7 +117,9 @@ public class AlertEvaluatorTest {
             .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new H2StorageModuleAutoConfiguration().h2StorageModel())
+                    .registerModule(new H2DataSourceAutoConfiguration().h2DataSourceModule())
                     .registerModule(new ClickHouseStorageAutoConfiguration().clickHouseStorageModule())
+                    .registerModule(new ClickHouseDataSourceAutoConfiguration().clickHouseDataSourceModule())
                     // They're configured via ObjectMapperConfigurer for production
                     .registerModule(new SimpleModule().addSerializer(AlertExpression.class, new AlertExpressionSerializer())
                                                       .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())

@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class ClickHouseDataSourceAutoConfiguration {
 
     @Bean
-    public Module clickHouseExternalDataSourceModule() {
+    public Module clickHouseDataSourceModule() {
         return new Module() {
             @Override
             public String getModuleName() {
