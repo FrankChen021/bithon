@@ -17,8 +17,8 @@
 package org.bithon.server.alerting.manager.api.model;
 
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
 
 /**
  * @author frank.chen021@outlook.com

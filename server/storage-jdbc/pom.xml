@@ -20,6 +20,11 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage</artifactId>
     </dependency>
 

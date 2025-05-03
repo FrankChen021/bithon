@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRowAccessor;
-import org.bithon.server.storage.datasource.input.PathExpression;
+import org.bithon.server.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.InputRowAccessor;
+import org.bithon.server.datasource.input.PathExpression;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

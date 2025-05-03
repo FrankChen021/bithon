@@ -39,9 +39,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
     </dependency>
   </dependencies>
 

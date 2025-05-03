@@ -17,12 +17,12 @@
 package org.bithon.server.pipeline.metrics;
 
 import org.bithon.server.commons.time.Period;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.aggregator.NumberAggregator;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.InputRow;
 import org.bithon.server.pipeline.metrics.topo.Measurement;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.InputRow;
 
 import java.util.ArrayList;
 import java.util.Collections;

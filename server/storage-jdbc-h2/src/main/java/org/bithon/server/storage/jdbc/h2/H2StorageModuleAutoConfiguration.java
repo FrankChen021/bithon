@@ -60,12 +60,7 @@ public class H2StorageModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(H2SqlDialect.class);
-
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "h2"),
-
-                                         // Allow reading external H2 directly
-                                         new NamedType(ExternalH2DataStoreSpec.class, "h2"),
 
                                          new NamedType(MetricJdbcStorage.class, "h2"),
                                          new NamedType(SettingJdbcStorage.class, "h2"),

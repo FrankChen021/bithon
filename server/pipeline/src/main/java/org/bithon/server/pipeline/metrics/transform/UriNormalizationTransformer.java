@@ -23,10 +23,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transformer.TransformResult;
-import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author frank.chen021@outlook.com

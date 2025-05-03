@@ -31,8 +31,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.storage.common.ApplicationType;
-import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.io.IOException;
 import java.lang.reflect.Field;

@@ -16,14 +16,14 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.ExpressionColumn;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Selector;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;

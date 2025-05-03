@@ -19,9 +19,9 @@ package org.bithon.server.storage.alerting;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 import lombok.Data;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
 
 import java.util.List;
 

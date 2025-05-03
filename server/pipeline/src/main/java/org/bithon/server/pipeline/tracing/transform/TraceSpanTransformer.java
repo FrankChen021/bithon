@@ -23,11 +23,11 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transformer.TransformResult;
 import org.bithon.server.storage.common.ApplicationType;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 

@@ -26,11 +26,11 @@ import org.bithon.server.commons.autocomplete.CasePreference;
 import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 

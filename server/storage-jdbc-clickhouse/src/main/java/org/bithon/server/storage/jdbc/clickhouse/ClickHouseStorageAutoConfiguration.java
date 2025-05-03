@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertObjectStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertRecordStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertStateStorage;
@@ -28,7 +27,6 @@ import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.MetadataStorage;
 import org.bithon.server.storage.jdbc.clickhouse.meta.SchemaStorage;
 import org.bithon.server.storage.jdbc.clickhouse.metric.MetricStorage;
-import org.bithon.server.storage.jdbc.clickhouse.schema.AggregateFunctionColumn;
 import org.bithon.server.storage.jdbc.clickhouse.setting.SettingStorage;
 import org.bithon.server.storage.jdbc.clickhouse.trace.TraceStorage;
 import org.bithon.server.storage.jdbc.clickhouse.web.DashboardStorage;
@@ -65,7 +63,6 @@ public class ClickHouseStorageAutoConfiguration {
                                          SchemaStorage.class,
                                          SettingStorage.class,
                                          DashboardStorage.class,
-                                         ClickHouseSqlDialect.class,
 
                                          // alerting
                                          AlertObjectStorage.class,
@@ -73,14 +70,7 @@ public class ClickHouseStorageAutoConfiguration {
                                          AlertStateStorage.class,
                                          EvaluationLogStorage.class,
                                          NotificationChannelStorage.class
-                                        );
-
-                // Allow reading external ClickHouse directly
-                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "clickhouse"));
-                // For backward compatibility
-                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "external"));
-
-                context.registerSubtypes(new NamedType(AggregateFunctionColumn.class, "aggregateFunction"));
+                );
             }
         };
     }

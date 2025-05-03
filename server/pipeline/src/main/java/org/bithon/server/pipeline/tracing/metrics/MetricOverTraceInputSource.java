@@ -26,14 +26,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.exporter.IMetricMessageHandler;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.exporter.MetricOverTraceExporter;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 

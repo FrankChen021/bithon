@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaManager;
 
 import java.util.Collection;

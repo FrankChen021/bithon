@@ -31,8 +31,8 @@ import org.bithon.component.commons.expression.serialization.IdentifierQuotaStra
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.web.service.datasource.api.QueryField;
 
 import javax.annotation.Nullable;

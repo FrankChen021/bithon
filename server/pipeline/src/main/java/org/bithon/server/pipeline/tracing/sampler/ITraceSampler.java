@@ -16,9 +16,9 @@
 
 package org.bithon.server.pipeline.tracing.sampler;
 
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
-import org.bithon.server.storage.datasource.ISchema;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 

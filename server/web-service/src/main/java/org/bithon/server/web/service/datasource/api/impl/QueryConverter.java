@@ -27,14 +27,14 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.ExpressionColumn;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.query.OrderBy;
-import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -209,7 +209,10 @@ public class QueryConverter {
         if (insertedIndex != -1) {
             Set<String> selectedColumns = selectorList.stream().map((Selector::getOutputName)).collect(Collectors.toSet());
             for (IColumn column : schema.getColumns()) {
-                if (!selectedColumns.contains(column.getName())) {
+                // Don't add expression column which usually contains aggregation function
+                // This is to avoid aggregate function to be used on list query.
+                // Maybe the check is not perfect, but it should be good enough
+                if (!(column instanceof ExpressionColumn) && !selectedColumns.contains(column.getName())) {
                     // Create a new selector instance instead of call toSelector on column
                     // because the column may be column like LongLastColumn
                     selectorList.add(insertedIndex++, new Selector(column.getName(), column.getDataType()));

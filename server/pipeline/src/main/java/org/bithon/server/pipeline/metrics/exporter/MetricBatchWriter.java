@@ -17,9 +17,9 @@
 package org.bithon.server.pipeline.metrics.exporter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.FixedDelayExecutor;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.metrics.IMetricWriter;
 
 import java.time.Duration;

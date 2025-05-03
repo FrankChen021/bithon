@@ -53,7 +53,13 @@
         <module>storage-jdbc-h2</module>
         <module>storage-jdbc-mysql</module>
         <module>storage-jdbc-postgresql</module>
-        <module>datasource-vm</module>
+        <module>datasource/common</module>
+        <module>datasource/reader-jdbc</module>
+        <module>datasource/reader-jdbc-clickhouse</module>
+        <module>datasource/reader-jdbc-h2</module>
+        <module>datasource/reader-jdbc-mysql</module>
+        <module>datasource/reader-jdbc-postgresql</module>
+        <module>datasource/reader-vm</module>
         <module>opentelemetry</module>
         <module>collector</module>
         <module>metric-expression</module>
@@ -191,7 +197,37 @@
             </dependency>
             <dependency>
                 <groupId>org.bithon.server</groupId>
-                <artifactId>server-datasource-vm</artifactId>
+                <artifactId>datasource-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-mysql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-postgresql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-vm</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

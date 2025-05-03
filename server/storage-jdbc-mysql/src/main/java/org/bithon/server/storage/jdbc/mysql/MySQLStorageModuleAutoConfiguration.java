@@ -58,12 +58,7 @@ public class MySQLStorageModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(MySQLSqlDialect.class);
-
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "mysql"),
-
-                                         // Allow reading external MySQL directly
-                                         new NamedType(ExternalMySQLDataStoreSpec.class, "mysql"),
 
                                          new NamedType(MetricJdbcStorage.class, "mysql"),
                                          new NamedType(SettingJdbcStorage.class, "mysql"),

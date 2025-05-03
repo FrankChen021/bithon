@@ -19,7 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.datasource.query.Order;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

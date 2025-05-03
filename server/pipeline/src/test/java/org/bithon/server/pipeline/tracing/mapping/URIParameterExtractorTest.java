@@ -22,7 +22,6 @@ import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-
 import java.util.Collections;
 import java.util.List;
 

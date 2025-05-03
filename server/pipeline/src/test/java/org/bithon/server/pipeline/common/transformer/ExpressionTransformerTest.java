@@ -19,7 +19,7 @@ package org.bithon.server.pipeline.common.transformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.datasource.input.InputRow;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

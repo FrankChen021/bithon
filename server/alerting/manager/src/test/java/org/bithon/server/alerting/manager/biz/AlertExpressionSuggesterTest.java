@@ -17,9 +17,9 @@
 package org.bithon.server.alerting.manager.biz;
 
 import org.bithon.server.commons.autocomplete.Suggestion;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.column.LongColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.column.LongColumn;
+import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.junit.jupiter.api.Assertions;

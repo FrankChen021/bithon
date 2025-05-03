@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
-import org.bithon.server.storage.datasource.ISchema;
 
 import java.time.Duration;
 import java.util.List;

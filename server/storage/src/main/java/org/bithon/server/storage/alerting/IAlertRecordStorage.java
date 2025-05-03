@@ -17,12 +17,12 @@
 package org.bithon.server.storage.alerting;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.storage.alerting.pojo.AlertRecordObject;
 import org.bithon.server.storage.alerting.pojo.ListResult;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.metrics.Interval;
 
 import java.sql.Timestamp;
 import java.util.List;
