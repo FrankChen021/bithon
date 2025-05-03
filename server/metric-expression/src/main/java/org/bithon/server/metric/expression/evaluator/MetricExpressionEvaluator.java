@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -113,7 +112,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
                                                                                     .findFirst()
                                                                                     .orElseThrow(() -> new IllegalArgumentException("Key column not found: " + key));
 
-                                                                     }).collect(Collectors.toList());
+                                                                     }).toList();
         List<QueryResponse.QueryResponseColumn> valColumns = valNames.stream()
                                                                      .map((val) -> {
                                                                          List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
@@ -122,7 +121,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
                                                                                     .findFirst()
                                                                                     .orElseThrow(() -> new IllegalArgumentException("Key column not found: " + val));
 
-                                                                     }).collect(Collectors.toList());
+                                                                     }).toList();
         List<Map<String, Object>> rows = (List<Map<String, Object>>) response.getData();
 
         // Create a ColumnarTable to hold the data
