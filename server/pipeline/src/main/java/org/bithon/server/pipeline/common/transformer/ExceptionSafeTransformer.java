@@ -18,7 +18,7 @@ package org.bithon.server.pipeline.common.transformer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 /**
  * @author Frank Chen

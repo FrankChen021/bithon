@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transformer.TransformResult;
 import org.bithon.server.pipeline.common.utils.NetworkUtils;
-import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.net.URI;
 import java.net.URISyntaxException;

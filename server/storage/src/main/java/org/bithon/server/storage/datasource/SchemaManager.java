@@ -21,7 +21,8 @@ import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.meta.ISchemaStorage;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.SchemaException;
 import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;

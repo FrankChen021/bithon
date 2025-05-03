@@ -16,7 +16,7 @@
 
 package org.bithon.server.pipeline.metrics.exporter;
 
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 import java.util.List;
 

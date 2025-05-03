@@ -21,10 +21,11 @@ import org.bithon.component.commons.expression.serialization.IdentifierQuotaStra
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.LongColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.LongColumn;
+import org.bithon.server.datasource.column.StringColumn;
+import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

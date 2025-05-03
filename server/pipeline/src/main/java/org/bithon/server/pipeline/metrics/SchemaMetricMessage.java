@@ -21,8 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.input.IInputRow;
 
 import javax.annotation.Nullable;
 import java.util.List;

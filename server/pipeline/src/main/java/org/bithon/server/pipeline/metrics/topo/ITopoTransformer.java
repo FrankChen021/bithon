@@ -16,7 +16,7 @@
 
 package org.bithon.server.pipeline.metrics.topo;
 
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 /**
  * A temp interface to generalize metrics processing of previous http-incoming-metrics/http-outcoming-metrics/...

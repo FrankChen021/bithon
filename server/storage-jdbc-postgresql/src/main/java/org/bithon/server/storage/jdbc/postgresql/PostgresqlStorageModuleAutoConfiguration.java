@@ -60,11 +60,7 @@ public class PostgresqlStorageModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(PostgresqlDialect.class);
-
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "postgresql"),
-
-                                         new NamedType(ExternalPostgresqlDataStoreSpec.class, "postgresql"),
 
                                          new NamedType(MetricStorage.class, "postgresql"),
                                          new NamedType(SettingStorage.class, "postgresql"),

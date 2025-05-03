@@ -26,9 +26,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.HumanReadableDuration;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
-import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.Query;
 
 import java.util.LinkedHashSet;
 import java.util.List;

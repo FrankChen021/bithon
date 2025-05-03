@@ -17,8 +17,8 @@ The above pic illustrates the main components of this project, including:
 - Collector, which provides various interfaces (including OpenTelemetry GRPC interface) to receive metrics/tracing logs from clients
 - Pipeline, which provides a flexible and robust way to hande small data scale to a very huge data scale for incoming metrics or tracing logs
 - Storage, which provides an abstraction to underlying storages like H2, MySQL or Clickhouse
-- Alerting, which allows us to set up alerts by using MetricSQL style expression on existing metrics or tracing logs
-- Web, which provides a simple web portal for metrics/tracing log visualization 
+- Alerting, which allows us to set up alerts by using MetricSQL style expression on existing metrics or tracing logs and data in external storages
+- Web, which provides NextJS-based web page for metrics/tracing/alerting visualization 
 
 ## Highlights
 
@@ -28,12 +28,6 @@ The above pic illustrates the main components of this project, including:
 - Flexible deployment to adapt small data scale and huge data scale use cases
 - Fast queries and very low storage cost benefit from ClickHouse
 - PromQL style alerting expression support
-
-Reference:
-- [White Paper](doc/misc/white-paper.md)
-- [How does the agent work?](doc/misc/rationale/index.md)
-- [What's the difference between Jaeger and Bithon?](doc/misc/comparison/jaeger/index.md) 
-- [What's the difference between OpenTelemetry and Bithon?](doc/misc/comparison/opentelemetry/index.md)
 
 # Preview
 
@@ -129,7 +123,7 @@ By default, the application opens and listens on following ports at local
 ## 2. Attach agent to your target Java applications
 
 Attach the agent to your java application so that your application can be managed the agent.
-Add the the following VM arguments to your target Java application.
+Add the following VM arguments to your target Java application.
 
 ```bash
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>

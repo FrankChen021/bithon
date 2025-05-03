@@ -19,10 +19,10 @@ package org.bithon.server.storage.jdbc.postgresql.alerting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.postgresql.TableCreator;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -33,7 +33,10 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
  */
 public class NotificationChannelStorage extends NotificationChannelJdbcStorage {
     @JsonCreator
-    public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration, @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager, @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig, @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
+    public NotificationChannelStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration storageConfiguration,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) AlertingStorageConfiguration.AlertStorageConfig storageConfig,
+                                      @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
         super(storageConfiguration.getDslContext(), sqlDialectManager, storageConfig, serverProperties);
     }
 

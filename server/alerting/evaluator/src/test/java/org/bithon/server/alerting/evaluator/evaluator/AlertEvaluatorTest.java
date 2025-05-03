@@ -41,6 +41,14 @@ import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageDeserializer;
 import org.bithon.server.commons.serializer.HumanReadablePercentageSerializer;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.StringColumn;
+import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.datasource.reader.clickhouse.ClickHouseDataSourceAutoConfiguration;
+import org.bithon.server.datasource.reader.h2.H2DataSourceAutoConfiguration;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -51,15 +59,9 @@ import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.NotificationProps;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.h2.H2StorageModuleAutoConfiguration;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -115,7 +117,9 @@ public class AlertEvaluatorTest {
             .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new H2StorageModuleAutoConfiguration().h2StorageModel())
+                    .registerModule(new H2DataSourceAutoConfiguration().h2DataSourceModule())
                     .registerModule(new ClickHouseStorageAutoConfiguration().clickHouseStorageModule())
+                    .registerModule(new ClickHouseDataSourceAutoConfiguration().clickHouseDataSourceModule())
                     // They're configured via ObjectMapperConfigurer for production
                     .registerModule(new SimpleModule().addSerializer(AlertExpression.class, new AlertExpressionSerializer())
                                                       .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())

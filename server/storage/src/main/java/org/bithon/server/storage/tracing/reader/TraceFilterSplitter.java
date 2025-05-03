@@ -31,9 +31,9 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.ObjectColumn;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.ObjectColumn;
 
 import java.util.ArrayList;
 import java.util.Collections;

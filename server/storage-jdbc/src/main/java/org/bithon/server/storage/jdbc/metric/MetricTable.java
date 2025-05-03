@@ -18,10 +18,10 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.ExpressionColumn;
-import org.bithon.server.storage.datasource.column.IColumn;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.IColumn;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.impl.DSL;

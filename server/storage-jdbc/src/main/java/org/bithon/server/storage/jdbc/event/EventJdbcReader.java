@@ -16,9 +16,9 @@
 
 package org.bithon.server.storage.jdbc.event;
 
+import org.bithon.server.datasource.reader.jdbc.MetricJdbcReader;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.storage.event.IEventReader;
-import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.jooq.DSLContext;
 
 /**

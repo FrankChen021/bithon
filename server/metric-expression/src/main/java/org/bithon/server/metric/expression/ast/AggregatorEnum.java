@@ -16,8 +16,8 @@
 
 package org.bithon.server.metric.expression.ast;
 
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.StringColumn;
 
 /**
  * @author Frank Chen

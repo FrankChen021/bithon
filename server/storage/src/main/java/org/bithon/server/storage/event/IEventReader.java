@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.event;
 
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.IDataSourceReader;
 
 /**
  * @author frank.chen021@outlook.com

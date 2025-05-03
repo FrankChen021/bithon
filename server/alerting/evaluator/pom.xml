@@ -67,6 +67,11 @@
     <!--Introduce H2 storage for testing-->
     <dependency>
       <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-h2</artifactId>
       <scope>test</scope>
       <exclusions>
@@ -79,6 +84,11 @@
           <groupId>org.jooq</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.bithon.server</groupId>
