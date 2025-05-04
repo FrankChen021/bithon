@@ -86,7 +86,7 @@ public class SelectStatementBuilder {
 
     private ISqlDialect sqlDialect;
 
-    private boolean hasSlidingWindowAggregation() {
+    public boolean hasSlidingWindowAggregation() {
         return interval.getWindow() != null &&
                interval.getStep() != null
                && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.reader.jdbc;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;

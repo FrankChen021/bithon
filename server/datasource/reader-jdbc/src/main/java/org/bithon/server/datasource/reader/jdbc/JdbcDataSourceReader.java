@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -109,20 +110,40 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .schema(query.getSchema())
-                                                                .fields(query.getSelectors())
-                                                                .filter(query.getFilter())
-                                                                .interval(query.getInterval())
-                                                                .groupBy(query.getGroupBy())
-                                                                .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
-                                                                .offset(query.getOffset())
-                                                                .sqlDialect(this.sqlDialect)
-                                                                .build();
+        SelectStatementBuilder statementBuilder = SelectStatementBuilder.builder()
+                                                                        .schema(query.getSchema())
+                                                                        .fields(query.getSelectors())
+                                                                        .filter(query.getFilter())
+                                                                        .interval(query.getInterval())
+                                                                        .groupBy(query.getGroupBy())
+                                                                        .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
+                                                                        .offset(query.getOffset())
+                                                                        .sqlDialect(this.sqlDialect);
+        SelectStatement selectStatement = statementBuilder.build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        sqlGenerator.generate(selectStatement);
-        return executeSql(sqlGenerator.getSQL());
+        Callable<List<Map<String, Object>>> callable = () -> {
+            SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
+            sqlGenerator.generate(selectStatement);
+            String sql = sqlGenerator.getSQL();
+            return executeSql(sql);
+        };
+
+        if (statementBuilder.hasSlidingWindowAggregation()) {
+            final Callable<List<Map<String, Object>>> delegate = callable;
+            callable = new Callable<List<Map<String, Object>>>() {
+                @Override
+                public List<Map<String, Object>> call() throws Exception {
+                    List<Map<String, Object>> result = delegate.call();
+                    //return new SlidingWindowAggregationStep().execute();
+                    return List.of();
+                }
+            };
+        }
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
