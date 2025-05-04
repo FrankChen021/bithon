@@ -56,7 +56,7 @@ public class SqlGenerator {
     }
 
     public void generate(SelectStatement selectStatement) {
-        before(selectStatement);
+        beforeSelectStatement();
         {
             for (int i = 0, size = selectStatement.getSelectorList().size(); i < size; i++) {
                 Selector selector = selectStatement.getSelectorList().get(i);
@@ -77,7 +77,7 @@ public class SqlGenerator {
                 this.visit(selectStatement.getHaving());
             }
 
-            if (selectStatement.getOrderBy() != null) {
+            if (selectStatement.getOrderBy() != null && selectStatement.getOrderBy().length > 0) {
                 this.visit(selectStatement.getOrderBy());
             }
 
@@ -85,10 +85,10 @@ public class SqlGenerator {
                 this.visit(selectStatement.getLimit());
             }
         }
-        after(selectStatement);
+        afterSelectStatement();
     }
 
-    private void before(SelectStatement selectStatement) {
+    private void beforeSelectStatement() {
         if (nestedSelect++ > 0) {
             sql.append('\n');
             sql.append(indent);
@@ -100,7 +100,7 @@ public class SqlGenerator {
         sql.append("SELECT ");
     }
 
-    private void after(SelectStatement selectStatement) {
+    private void afterSelectStatement() {
         if (--nestedSelect > 0) {
             indent = indent.substring(0, indent.length() - 2);
 
@@ -110,15 +110,21 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(OrderByClause orderBy) {
+    private void visit(OrderByClause... orderBys) {
         sql.append('\n');
         sql.append(indent);
         sql.append("ORDER BY ");
-        sql.append(sqlDialect.quoteIdentifier(orderBy.getField()));
 
-        if (orderBy.getOrder() != null) {
-            sql.append(' ');
-            sql.append(orderBy.getOrder());
+        for (int i = 0, orderBysLength = orderBys.length; i < orderBysLength; i++) {
+            OrderByClause orderBy = orderBys[i];
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append(sqlDialect.quoteIdentifier(orderBy.getField()));
+            if (orderBy.getOrder() != null) {
+                sql.append(' ');
+                sql.append(orderBy.getOrder());
+            }
         }
     }
 

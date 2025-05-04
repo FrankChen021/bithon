@@ -26,6 +26,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
@@ -49,6 +50,7 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -110,13 +112,29 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
+        Interval interval = query.getInterval();
+        boolean hasSlidingWindowAggregation = interval.getWindow() != null &&
+                                              interval.getStep() != null
+                                              && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
+        List<OrderBy> orderBys;
+        if (hasSlidingWindowAggregation) {
+            // Sliding window aggregation requires the result set to be ordered by the group-by columns first
+            orderBys = query.getGroupBy()
+                            .stream()
+                            .map((groupBy) -> new OrderBy(groupBy, Order.asc))
+                            .collect(Collectors.toList());
+        } else {
+            orderBys = new ArrayList<>();
+        }
+        orderBys.add(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build());
+
         SelectStatementBuilder statementBuilder = SelectStatementBuilder.builder()
                                                                         .schema(query.getSchema())
                                                                         .fields(query.getSelectors())
                                                                         .filter(query.getFilter())
                                                                         .interval(query.getInterval())
                                                                         .groupBy(query.getGroupBy())
-                                                                        .orderBy(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build())
+                                                                        .orderBy(orderBys)
                                                                         .offset(query.getOffset())
                                                                         .sqlDialect(this.sqlDialect);
         SelectStatement selectStatement = statementBuilder.build();
@@ -134,8 +152,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                 @Override
                 public List<Map<String, Object>> call() throws Exception {
                     List<Map<String, Object>> result = delegate.call();
-                    //return new SlidingWindowAggregationStep().execute();
-                    return List.of();
+                    // TODO: implement sliding window aggregation
+                    return result;
                 }
             };
         }

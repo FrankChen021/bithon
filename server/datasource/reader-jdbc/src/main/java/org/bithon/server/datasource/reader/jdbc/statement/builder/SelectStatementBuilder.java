@@ -76,7 +76,7 @@ public class SelectStatementBuilder {
     private List<String> groupBy = Collections.emptyList();
 
     @Nullable
-    private org.bithon.server.datasource.query.OrderBy orderBy;
+    private OrderByClause[] orderBys;
 
     @Nullable
     private org.bithon.server.datasource.query.Limit limit;
@@ -122,7 +122,12 @@ public class SelectStatementBuilder {
     }
 
     public SelectStatementBuilder orderBy(@Nullable org.bithon.server.datasource.query.OrderBy orderBy) {
-        this.orderBy = orderBy;
+        this.orderBys = orderBy == null ? null : new OrderByClause[]{new OrderByClause(orderBy.getName(), orderBy.getOrder())};
+        return this;
+    }
+
+    public SelectStatementBuilder orderBy(List<org.bithon.server.datasource.query.OrderBy> orderBys) {
+        this.orderBys = orderBys.stream().map((o) -> new OrderByClause(o.getName(), o.getOrder())).toArray(OrderByClause[]::new);
         return this;
     }
 
@@ -535,17 +540,17 @@ public class SelectStatementBuilder {
         if (limit == null) {
             return;
         }
-        Preconditions.checkNotNull(this.orderBy, "Limit must be used with order by clause");
+        Preconditions.checkNotNull(this.orderBys, "Limit must be used with order by clause");
 
         pipeline.outermost.setLimit(new LimitClause(limit.getLimit(), limit.getOffset()));
     }
 
     private void buildOrderBy(SelectStatementChain pipeline) {
-        if (orderBy == null) {
+        if (orderBys == null) {
             return;
         }
 
-        pipeline.outermost.setOrderBy(new OrderByClause(orderBy.getName(), orderBy.getOrder()));
+        pipeline.outermost.setOrderBy(this.orderBys);
     }
 
     private void buildWhere(SelectStatementChain pipeline) {

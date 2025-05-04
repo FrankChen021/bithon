@@ -25,7 +25,6 @@ import org.bithon.server.datasource.query.ast.IASTNode;
  * Since statement is a concept in SQL, here we don't use that concept but use 'expression',
  * so this class is called as 'SelectExpression'
  *
- *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:55
  */
@@ -37,7 +36,11 @@ public class SelectStatement implements IASTNode {
     private final FromClause from = new FromClause();
     private final WhereClause where = new WhereClause();
     private final GroupByClause groupBy = new GroupByClause();
-    private OrderByClause orderBy;
+    private OrderByClause[] orderBy;
     private LimitClause limit;
     private HavingClause having;
+
+    public void setOrderBy(OrderByClause... orderBy) {
+        this.orderBy = orderBy;
+    }
 }
