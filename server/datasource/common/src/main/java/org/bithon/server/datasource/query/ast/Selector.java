@@ -90,12 +90,4 @@ public class Selector implements IASTNode {
         }
         throw new RuntimeException(StringUtils.format("no result name for result column [%s]", selectExpression));
     }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        selectExpression.accept(visitor);
-        if (output != null) {
-            output.accept(visitor);
-        }
-    }
 }

@@ -26,16 +26,18 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.ast.OrderByClause;
-import org.bithon.server.datasource.query.ast.SelectStatement;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.ast.TableIdentifier;
-import org.bithon.server.datasource.query.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -119,7 +121,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
         return executeSql(sqlGenerator.getSQL());
     }
 
@@ -138,7 +140,7 @@ public class MetricJdbcReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
@@ -154,10 +156,10 @@ public class MetricJdbcReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
-        selectStatement.setLimit(query.getLimit().toLimitClause());
-        selectStatement.setOrderBy(query.getOrderBy().toOrderByClause());
+        selectStatement.setLimit(toLimitClause(query.getLimit()));
+        selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        selectStatement.accept(generator);
+        generator.accept(selectStatement);
         String sql = generator.getSQL();
 
         return executeSql(sql);
@@ -174,7 +176,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        selectStatement.accept(generator);
+        generator.accept(selectStatement);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);
@@ -232,7 +234,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        selectStatement.accept(generator);
+        generator.accept(selectStatement);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);
@@ -251,5 +253,14 @@ public class MetricJdbcReader implements IDataSourceReader {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    private OrderByClause toOrderByClause(OrderBy orderBy) {
+        return orderBy == null ? null : new OrderByClause(orderBy.getName(), orderBy.getOrder());
+    }
+
+
+    public LimitClause toLimitClause(Limit limit) {
+        return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
     }
 }

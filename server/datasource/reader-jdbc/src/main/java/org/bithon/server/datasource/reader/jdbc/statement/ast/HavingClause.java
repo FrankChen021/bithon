@@ -14,34 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
-import org.bithon.server.datasource.query.Order;
+import org.bithon.server.datasource.query.ast.IASTNode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2024/8/1 21:40
  */
-public class OrderByClause implements IASTNode {
+public class HavingClause implements IASTNode {
 
     @Getter
-    private final String field;
+    private final List<String> expressions = new ArrayList<>();
 
-    @Getter
-    private final Order order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderByClause(String field, Order order) {
-        this.field = field;
-        this.order = order;
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public HavingClause addExpression(String expression) {
+        expressions.add(expression);
+        return this;
     }
 }

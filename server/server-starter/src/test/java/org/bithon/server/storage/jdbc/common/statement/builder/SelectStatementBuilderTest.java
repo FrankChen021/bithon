@@ -40,14 +40,14 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.ast.Alias;
 import org.bithon.server.datasource.query.ast.Expression;
-import org.bithon.server.datasource.query.ast.QueryStageFunctions;
-import org.bithon.server.datasource.query.ast.SelectStatement;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.datasource.reader.h2.H2SqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
 import org.bithon.server.datasource.reader.mysql.MySQLSqlDialect;
 import org.bithon.server.datasource.store.IDataStoreSpec;
@@ -146,7 +146,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -174,7 +174,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -206,7 +206,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
@@ -235,7 +235,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -273,7 +273,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -307,7 +307,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -345,7 +345,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -391,7 +391,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -431,7 +431,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -470,7 +470,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -510,7 +510,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -545,7 +545,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -580,7 +580,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -619,7 +619,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -663,7 +663,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -706,7 +706,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -756,7 +756,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(mysql);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT `appName`,
@@ -805,7 +805,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -851,7 +851,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -884,7 +884,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -934,7 +934,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -972,7 +972,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT *
@@ -1018,7 +1018,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1055,7 +1055,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1089,7 +1089,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
@@ -1138,7 +1138,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
@@ -1180,7 +1180,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1209,7 +1209,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.accept(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",

@@ -21,19 +21,18 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.query.ast.Alias;
 import org.bithon.server.datasource.query.ast.Column;
 import org.bithon.server.datasource.query.ast.Expression;
-import org.bithon.server.datasource.query.ast.FromClause;
-import org.bithon.server.datasource.query.ast.GroupByClause;
-import org.bithon.server.datasource.query.ast.HavingClause;
-import org.bithon.server.datasource.query.ast.IASTNodeVisitor;
-import org.bithon.server.datasource.query.ast.LimitClause;
-import org.bithon.server.datasource.query.ast.OrderByClause;
-import org.bithon.server.datasource.query.ast.SelectStatement;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.ast.TableIdentifier;
-import org.bithon.server.datasource.query.ast.TextNode;
-import org.bithon.server.datasource.query.ast.WhereClause;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.FromClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.GroupByClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.HavingClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.WhereClause;
 
 import java.util.List;
 
@@ -41,7 +40,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:38
  */
-public class SqlGenerator implements IASTNodeVisitor {
+public class SqlGenerator {
 
     private final StringBuilder sql = new StringBuilder(512);
     private final ISqlDialect sqlDialect;
@@ -56,8 +55,40 @@ public class SqlGenerator implements IASTNodeVisitor {
         return sql.toString();
     }
 
-    @Override
-    public void before(SelectStatement selectStatement) {
+    public void accept(SelectStatement selectStatement) {
+        before(selectStatement);
+        {
+            for (int i = 0, size = selectStatement.getSelectorList().size(); i < size; i++) {
+                Selector selector = selectStatement.getSelectorList().get(i);
+                this.visit(i, size, selector);
+            }
+
+            this.visit(selectStatement.getFrom());
+
+            if (!selectStatement.getWhere().isEmpty()) {
+                this.visit(selectStatement.getWhere());
+            }
+
+            if (!selectStatement.getGroupBy().isEmpty()) {
+                this.visit(selectStatement.getGroupBy());
+            }
+
+            if (selectStatement.getHaving() != null) {
+                this.visit(selectStatement.getHaving());
+            }
+
+            if (selectStatement.getOrderBy() != null) {
+                this.visit(selectStatement.getOrderBy());
+            }
+
+            if (selectStatement.getLimit() != null) {
+                this.visit(selectStatement.getLimit());
+            }
+        }
+        after(selectStatement);
+    }
+
+    private void before(SelectStatement selectStatement) {
         if (nestedSelect++ > 0) {
             sql.append('\n');
             sql.append(indent);
@@ -69,13 +100,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         sql.append("SELECT ");
     }
 
-    @Override
-    public void visit(SelectStatement select) {
-        select.accept(this);
-    }
-
-    @Override
-    public void after(SelectStatement selectStatement) {
+    private void after(SelectStatement selectStatement) {
         if (--nestedSelect > 0) {
             indent = indent.substring(0, indent.length() - 2);
 
@@ -85,8 +110,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(OrderByClause orderBy) {
+    private void visit(OrderByClause orderBy) {
         sql.append('\n');
         sql.append(indent);
         sql.append("ORDER BY ");
@@ -98,8 +122,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(LimitClause limit) {
+    private void visit(LimitClause limit) {
         sql.append('\n');
         sql.append(indent);
         sql.append("LIMIT ");
@@ -110,25 +133,34 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(Expression expression) {
+    private void visit(Expression expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
         String serialized = new Expression2SqlSerializer(this.sqlDialect).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 
-    @Override
-    public void visit(TextNode textNode) {
+    private void visit(TextNode textNode) {
         sql.append(textNode.getStr());
     }
 
-    @Override
-    public void visit(int index, int count, Selector selector) {
+    private void visit(int index, int count, Selector selector) {
         if (index == 0) {
             indent += "       ";
         }
-        selector.accept(this);
+        if (selector.getSelectExpression() instanceof Column column) {
+            this.visit(column);
+        } else if (selector.getSelectExpression() instanceof Expression expressionColumn) {
+            this.visit(expressionColumn);
+        } else if (selector.getSelectExpression() instanceof TextNode textNode) {
+            this.visit(textNode);
+        } else {
+            throw new RuntimeException("Unsupported expression type: " + selector.getSelectExpression().getClass());
+        }
+        if (selector.getOutput() != null) {
+            this.visit(selector.getOutput());
+        }
+
         if (index < count - 1) {
             sql.append(',');
             sql.append('\n');
@@ -138,26 +170,34 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(Column column) {
+    private void visit(Column column) {
         sql.append(sqlDialect.quoteIdentifier(column.getName()));
     }
 
-    @Override
-    public void visit(Alias alias) {
+    private void visit(Alias alias) {
         sql.append(" AS ");
         sql.append(sqlDialect.quoteIdentifier(alias.getName()));
     }
 
-    @Override
-    public void visit(FromClause from) {
+    private void visit(FromClause from) {
         sql.append('\n');
         sql.append(indent);
         sql.append("FROM");
+
+        if (from.getExpression() instanceof TableIdentifier tableIdentifier) {
+            this.visit(tableIdentifier);
+        } else if (from.getExpression() instanceof SelectStatement) {
+            this.accept((SelectStatement) from.getExpression());
+        } else {
+            throw new RuntimeException("Unsupported expression type: " + from.getExpression().getClass());
+        }
+
+        if (from.getAlias() != null) {
+            this.visit(from.getAlias());
+        }
     }
 
-    @Override
-    public void visit(TableIdentifier table) {
+    private void visit(TableIdentifier table) {
         sql.append(' ');
         if (table.getIdentifier().isQualified()) {
             sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getQualifier()));
@@ -166,8 +206,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getIdentifier()));
     }
 
-    @Override
-    public void visit(WhereClause where) {
+    private void visit(WhereClause where) {
         if (where.isEmpty()) {
             return;
         }
@@ -193,8 +232,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(GroupByClause groupBy) {
+    private void visit(GroupByClause groupBy) {
         if (groupBy.getFields().isEmpty()) {
             return;
         }
@@ -212,8 +250,7 @@ public class SqlGenerator implements IASTNodeVisitor {
         }
     }
 
-    @Override
-    public void visit(HavingClause having) {
+    private void visit(HavingClause having) {
         if (CollectionUtils.isEmpty(having.getExpressions())) {
             return;
         }

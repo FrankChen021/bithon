@@ -14,10 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
+import org.bithon.server.datasource.query.ast.Alias;
+import org.bithon.server.datasource.query.ast.IASTNode;
+import org.bithon.server.datasource.query.ast.Selector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,10 +86,11 @@ public class SelectorList implements IASTNode {
         return selector;
     }
 
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        for (int i = 0, size = this.selectors.size(); i < size; i++) {
-            visitor.visit(i, size, this.selectors.get(i));
-        }
+    public int size() {
+        return selectors.size();
+    }
+
+    public Selector get(int index) {
+        return selectors.get(index);
     }
 }

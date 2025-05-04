@@ -19,9 +19,9 @@ package org.bithon.server.datasource.reader.jdbc.statement;
 
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.server.datasource.query.ast.QueryStageFunctions;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
 
 /**
  * @author frank.chen021@outlook.com

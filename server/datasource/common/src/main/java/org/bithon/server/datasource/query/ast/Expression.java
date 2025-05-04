@@ -62,9 +62,4 @@ public class Expression implements IASTNode {
     public String getExpression() {
         return expression.get();
     }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

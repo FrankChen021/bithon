@@ -17,9 +17,9 @@
 package org.bithon.server.datasource.reader.jdbc.statement.builder;
 
 
-import org.bithon.server.datasource.query.ast.FromClause;
-import org.bithon.server.datasource.query.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.FromClause;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 
 import java.util.ArrayList;
 import java.util.List;

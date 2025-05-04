@@ -14,29 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.bithon.server.datasource.query.ast.IASTNode;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2024/8/1 21:40
+ * @date 2022/10/30 15:08
  */
-public class HavingClause implements IASTNode {
+public class LimitClause implements IASTNode {
 
     @Getter
-    private final List<String> expressions = new ArrayList<>();
+    private final int limit;
 
-    public HavingClause addExpression(String expression) {
-        expressions.add(expression);
-        return this;
-    }
+    @Getter
+    private final int offset;
 
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public LimitClause(int limit, int offset) {
+        this.limit = limit;
+        this.offset = offset;
     }
 }

@@ -14,29 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
-import lombok.Getter;
+import lombok.Data;
+import org.bithon.server.datasource.query.ast.Alias;
+import org.bithon.server.datasource.query.ast.IASTNode;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/10/30 15:08
+ * @date 2022/9/4 15:43
  */
-public class LimitClause implements IASTNode {
+@Data
+public class FromClause implements IASTNode {
+    private IASTNode expression;
+    private Alias alias;
 
-    @Getter
-    private final int limit;
-
-    @Getter
-    private final int offset;
-
-    public LimitClause(int limit, int offset) {
-        this.limit = limit;
-        this.offset = offset;
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public void setAlias(String alias) {
+        this.alias = new Alias(alias);
     }
 }

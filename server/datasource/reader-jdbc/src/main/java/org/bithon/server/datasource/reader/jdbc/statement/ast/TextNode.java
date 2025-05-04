@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
+import org.bithon.server.datasource.query.ast.IASTNode;
 
 /**
  *
@@ -31,10 +32,5 @@ public class TextNode implements IASTNode {
 
     public TextNode(String str) {
         this.str = str;
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
     }
 }

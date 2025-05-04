@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Data;
 import lombok.Getter;
+import org.bithon.server.datasource.query.ast.IASTNode;
 
 /**
  * Take SQL as an example, this AST node represents a whole SELECT statement.
@@ -39,29 +40,4 @@ public class SelectStatement implements IASTNode {
     private OrderByClause orderBy;
     private LimitClause limit;
     private HavingClause having;
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.before(this);
-        {
-            selectorList.accept(visitor);
-            from.accept(visitor);
-            if (!where.isEmpty()) {
-                where.accept(visitor);
-            }
-            if (!groupBy.isEmpty()) {
-                groupBy.accept(visitor);
-            }
-            if (having != null) {
-                having.accept(visitor);
-            }
-            if (orderBy != null) {
-                orderBy.accept(visitor);
-            }
-            if (limit != null) {
-                limit.accept(visitor);
-            }
-        }
-        visitor.after(this);
-    }
 }

@@ -25,7 +25,7 @@ import org.bithon.component.commons.expression.MacroExpression;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.ast.QueryStageFunctions;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
 
 import java.util.Map;
 

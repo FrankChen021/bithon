@@ -14,40 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.ast;
+package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.server.datasource.query.ast.IASTNode;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:58
+ * @date 2022/9/4 15:04
  */
-public class GroupByClause implements IASTNode {
+public class TableIdentifier implements IASTNode {
+
     @Getter
-    private final List<String> fields = new ArrayList<>(2);
+    private final IdentifierExpression identifier;
 
-    public GroupByClause addField(String field) {
-        this.fields.add(field);
-        return this;
-    }
-
-    public GroupByClause addFields(Collection<String> fields) {
-        if (fields != null) {
-            this.fields.addAll(fields);
-        }
-        return this;
-    }
-
-    public boolean isEmpty() {
-        return fields.isEmpty();
+    public TableIdentifier(String identifier) {
+        this.identifier = new IdentifierExpression(identifier);
     }
 
     @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
+    public String toString() {
+        return identifier.toString();
     }
 }
