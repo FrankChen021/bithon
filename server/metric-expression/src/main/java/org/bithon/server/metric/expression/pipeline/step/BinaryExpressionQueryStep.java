@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.pipeline.step;
 
 
-import org.bithon.server.metric.expression.format.Column;
-import org.bithon.server.metric.expression.format.ColumnOperator;
-import org.bithon.server.metric.expression.format.ColumnarTable;
-import org.bithon.server.metric.expression.format.HashJoiner;
+import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,16 +148,16 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
     }
 
     @Override
-    public CompletableFuture<IntermediateQueryResult> execute() throws Exception {
-        CompletableFuture<IntermediateQueryResult> leftFuture = this.lhs.execute();
-        CompletableFuture<IntermediateQueryResult> rightFuture = this.rhs.execute();
+    public CompletableFuture<PipelineQueryResult> execute() throws Exception {
+        CompletableFuture<PipelineQueryResult> leftFuture = this.lhs.execute();
+        CompletableFuture<PipelineQueryResult> rightFuture = this.rhs.execute();
 
         return CompletableFuture.allOf(leftFuture, rightFuture)
                                 .thenApply(v -> {
                                     try {
-                                        IntermediateQueryResult l = leftFuture.get();
-                                        IntermediateQueryResult r = rightFuture.get();
-                                        IntermediateQueryResult result;
+                                        PipelineQueryResult l = leftFuture.get();
+                                        PipelineQueryResult r = rightFuture.get();
+                                        PipelineQueryResult result;
                                         if (lhs.isScalar()) {
                                             if (rhs.isScalar()) {
                                                 result = applyScalarOverScalar(l, r);
@@ -187,8 +187,8 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
 
     abstract int getOperatorIndex();
 
-    private IntermediateQueryResult applyScalarOverScalar(IntermediateQueryResult left,
-                                                          IntermediateQueryResult right) {
+    private PipelineQueryResult applyScalarOverScalar(PipelineQueryResult left,
+                                                      PipelineQueryResult right) {
         String leftColName = left.getValColumns().get(0);
         Column leftColumn = left.getTable().getColumn(leftColName);
 
@@ -197,18 +197,18 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
 
         Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
-        return IntermediateQueryResult.builder()
-                                      .startTimestamp(left.getStartTimestamp())
-                                      .endTimestamp(left.getEndTimestamp())
-                                      .interval(left.getInterval())
-                                      .table(ColumnarTable.of(this.resultColumnName, result))
-                                      .rows(result.size())
-                                      .keyColumns(left.getKeyColumns())
-                                      .valColumns(List.of(this.resultColumnName))
-                                      .build();
+        return PipelineQueryResult.builder()
+                                  .startTimestamp(left.getStartTimestamp())
+                                  .endTimestamp(left.getEndTimestamp())
+                                  .interval(left.getInterval())
+                                  .table(ColumnarTable.of(this.resultColumnName, result))
+                                  .rows(result.size())
+                                  .keyColumns(left.getKeyColumns())
+                                  .valColumns(List.of(this.resultColumnName))
+                                  .build();
     }
 
-    private IntermediateQueryResult applyScalarOverVector(IntermediateQueryResult left, IntermediateQueryResult right) {
+    private PipelineQueryResult applyScalarOverVector(PipelineQueryResult left, PipelineQueryResult right) {
         ColumnarTable table = new ColumnarTable();
 
         // Retain all key columns on the right, which is the vector
@@ -229,18 +229,18 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
             table.addColumn(result);
         }
 
-        return IntermediateQueryResult.builder()
-                                      .startTimestamp(left.getStartTimestamp())
-                                      .endTimestamp(left.getEndTimestamp())
-                                      .interval(left.getInterval())
-                                      .table(table)
-                                      .rows(table.rowCount())
-                                      .keyColumns(right.getKeyColumns())
-                                      .valColumns(right.getValColumns())
-                                      .build();
+        return PipelineQueryResult.builder()
+                                  .startTimestamp(left.getStartTimestamp())
+                                  .endTimestamp(left.getEndTimestamp())
+                                  .interval(left.getInterval())
+                                  .table(table)
+                                  .rows(table.rowCount())
+                                  .keyColumns(right.getKeyColumns())
+                                  .valColumns(right.getValColumns())
+                                  .build();
     }
 
-    private IntermediateQueryResult applyVectorOverScalar(IntermediateQueryResult left, IntermediateQueryResult right) {
+    private PipelineQueryResult applyVectorOverScalar(PipelineQueryResult left, PipelineQueryResult right) {
         ColumnarTable table = new ColumnarTable();
 
         // Retain all key columns on the right, which is the vector
@@ -261,26 +261,26 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
             table.addColumn(result);
         }
 
-        return IntermediateQueryResult.builder()
-                                      .startTimestamp(left.getStartTimestamp())
-                                      .endTimestamp(left.getEndTimestamp())
-                                      .interval(left.getInterval())
-                                      .table(table)
-                                      .rows(table.rowCount())
-                                      .keyColumns(left.getKeyColumns())
-                                      .valColumns(left.getValColumns())
-                                      .build();
+        return PipelineQueryResult.builder()
+                                  .startTimestamp(left.getStartTimestamp())
+                                  .endTimestamp(left.getEndTimestamp())
+                                  .interval(left.getInterval())
+                                  .table(table)
+                                  .rows(table.rowCount())
+                                  .keyColumns(left.getKeyColumns())
+                                  .valColumns(left.getValColumns())
+                                  .build();
     }
 
     /**
      * join these two maps by its keyNames
      */
-    private IntermediateQueryResult applyVectorOverVector(IntermediateQueryResult left, IntermediateQueryResult right) {
+    private PipelineQueryResult applyVectorOverVector(PipelineQueryResult left, PipelineQueryResult right) {
         if (!left.getKeyColumns().equals(right.getKeyColumns())) {
-            return IntermediateQueryResult.builder()
-                                          // create an EMPTY table
-                                          .table(new ColumnarTable())
-                                          .build();
+            return PipelineQueryResult.builder()
+                                      // create an EMPTY table
+                                      .table(new ColumnarTable())
+                                      .build();
         }
 
         // Join ALL columns together
@@ -355,14 +355,14 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
             }
         }
 
-        return IntermediateQueryResult.builder()
-                                      .interval(left.getInterval())
-                                      .startTimestamp(left.getStartTimestamp())
-                                      .endTimestamp(left.getEndTimestamp())
-                                      .table(table)
-                                      .rows(result.size())
-                                      .keyColumns(left.getKeyColumns())
-                                      .valColumns(valueColumns)
-                                      .build();
+        return PipelineQueryResult.builder()
+                                  .interval(left.getInterval())
+                                  .startTimestamp(left.getStartTimestamp())
+                                  .endTimestamp(left.getEndTimestamp())
+                                  .table(table)
+                                  .rows(result.size())
+                                  .keyColumns(left.getKeyColumns())
+                                  .valColumns(valueColumns)
+                                  .build();
     }
 }

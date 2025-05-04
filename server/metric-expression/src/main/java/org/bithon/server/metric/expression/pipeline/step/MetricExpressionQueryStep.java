@@ -14,13 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.pipeline.step;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.metric.expression.format.Column;
-import org.bithon.server.metric.expression.format.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -43,7 +45,7 @@ public class MetricExpressionQueryStep implements IQueryStep {
     private final boolean isScalar;
 
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
-    private volatile CompletableFuture<IntermediateQueryResult> cachedResponse;
+    private volatile CompletableFuture<PipelineQueryResult> cachedResponse;
 
     public MetricExpressionQueryStep(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
@@ -74,7 +76,7 @@ public class MetricExpressionQueryStep implements IQueryStep {
     }
 
     @Override
-    public CompletableFuture<IntermediateQueryResult> execute() {
+    public CompletableFuture<PipelineQueryResult> execute() {
         if (cachedResponse == null) {
             synchronized (this) {
                 if (cachedResponse == null) {
@@ -101,9 +103,9 @@ public class MetricExpressionQueryStep implements IQueryStep {
         return cachedResponse;
     }
 
-    private IntermediateQueryResult toEvaluationResult(List<String> keyNames,
-                                                       List<String> valNames,
-                                                       QueryResponse response) {
+    private PipelineQueryResult toEvaluationResult(List<String> keyNames,
+                                                   List<String> valNames,
+                                                   QueryResponse response) {
         List<QueryResponse.QueryResponseColumn> keyColumns = keyNames.stream()
                                                                      .map((key) -> {
                                                                          List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
@@ -147,14 +149,14 @@ public class MetricExpressionQueryStep implements IQueryStep {
         }
 
         // Create and return the EvaluationResult
-        return IntermediateQueryResult.builder()
-                                      .rows(rows.size())
-                                      .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
-                                      .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
-                                      .table(table)
-                                      .startTimestamp(response.getStartTimestamp())
-                                      .endTimestamp(response.getEndTimestamp())
-                                      .interval(response.getInterval())
-                                      .build();
+        return PipelineQueryResult.builder()
+                                  .rows(rows.size())
+                                  .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
+                                  .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
+                                  .table(table)
+                                  .startTimestamp(response.getStartTimestamp())
+                                  .endTimestamp(response.getEndTimestamp())
+                                  .interval(response.getInterval())
+                                  .build();
     }
 }

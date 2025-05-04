@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.format;
+package org.bithon.server.datasource.query.pipeline;
 
 
 import java.util.ArrayList;

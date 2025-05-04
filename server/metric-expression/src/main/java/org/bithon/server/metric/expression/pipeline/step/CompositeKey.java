@@ -14,18 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.pipeline.step;
 
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 3:47 pm
+ * @date 7/4/25 10:17 am
  */
-public interface IQueryStep {
+public record CompositeKey(Object[] keys) {
 
-    boolean isScalar();
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof CompositeKey)) {
+            return false;
+        }
+        return Arrays.equals(keys, ((CompositeKey) other).keys);
+    }
 
-    CompletableFuture<IntermediateQueryResult> execute() throws Exception;
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(keys);
+    }
 }
+

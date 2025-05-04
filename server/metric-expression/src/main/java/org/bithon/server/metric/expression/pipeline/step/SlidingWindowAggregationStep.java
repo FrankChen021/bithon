@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline;
+package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -53,8 +55,8 @@ public class SlidingWindowAggregationStep implements IQueryStep {
     }
 
     @Override
-    public CompletableFuture<IntermediateQueryResult> execute() throws Exception {
-        CompletableFuture<IntermediateQueryResult> future = delegate.execute();
+    public CompletableFuture<PipelineQueryResult> execute() throws Exception {
+        CompletableFuture<PipelineQueryResult> future = delegate.execute();
         future.thenApply((result) -> {
             // TODO: apply aggregate
             return result;

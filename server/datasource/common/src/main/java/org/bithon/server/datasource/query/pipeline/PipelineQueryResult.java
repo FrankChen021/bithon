@@ -14,28 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.format;
+package org.bithon.server.datasource.query.pipeline;
 
 
-import java.util.Arrays;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 7/4/25 10:17 am
- */
-public record CompositeKey(Object[] keys) {
+import java.util.List;
 
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof CompositeKey)) {
-            return false;
-        }
-        return Arrays.equals(keys, ((CompositeKey) other).keys);
-    }
+/// @author frank.chen021@outlook.com
+/// @date 4/4/25 6:23 pm
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PipelineQueryResult {
+    private int rows;
 
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(keys);
-    }
+    private List<String> keyColumns;
+    private List<String> valColumns;
+    private ColumnarTable table;
+
+    private long startTimestamp;
+    private long endTimestamp;
+    private long interval;
 }
 

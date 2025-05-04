@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.format;
+package org.bithon.server.metric.expression.pipeline.step;
 
 
 import org.bithon.component.commons.expression.IDataTypeIndex;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.pipeline.Column;
 
 /**
  * @author frank.chen021@outlook.com
