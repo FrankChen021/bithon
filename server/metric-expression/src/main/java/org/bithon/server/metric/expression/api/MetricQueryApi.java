@@ -24,8 +24,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
-import org.bithon.server.metric.expression.evaluator.EvaluatorBuilder;
-import org.bithon.server.metric.expression.evaluator.IEvaluator;
+import org.bithon.server.metric.expression.pipeline.IQueryStep;
+import org.bithon.server.metric.expression.pipeline.QueryPipelineBuilder;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -78,13 +78,13 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IEvaluator evaluator = EvaluatorBuilder.builder()
-                                               .dataSourceApi(dataSourceApi)
-                                               .intervalRequest(request.getInterval())
-                                               .condition(request.getCondition())
-                                               .build(request.getExpression());
+        IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                   .dataSourceApi(dataSourceApi)
+                                                   .intervalRequest(request.getInterval())
+                                                   .condition(request.getCondition())
+                                                   .build(request.getExpression());
 
-        return evaluator.evaluate()
+        return evaluator.execute()
                         .get()
                         .toTimeSeriesResultSet();
     }

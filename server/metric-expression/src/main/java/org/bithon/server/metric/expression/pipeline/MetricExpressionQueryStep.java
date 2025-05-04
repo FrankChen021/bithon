@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -37,15 +37,15 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:48 pm
  */
-public class MetricExpressionEvaluator implements IEvaluator {
+public class MetricExpressionQueryStep implements IQueryStep {
     private final QueryRequest queryRequest;
     private final IDataSourceApi dataSourceApi;
     private final boolean isScalar;
 
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
-    private volatile CompletableFuture<IntermediateEvaluationResult> cachedResponse;
+    private volatile CompletableFuture<IntermediateQueryResult> cachedResponse;
 
-    public MetricExpressionEvaluator(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
+    public MetricExpressionQueryStep(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
         this.isScalar = computeIsScalar(queryRequest);
@@ -74,7 +74,7 @@ public class MetricExpressionEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<IntermediateEvaluationResult> evaluate() {
+    public CompletableFuture<IntermediateQueryResult> execute() {
         if (cachedResponse == null) {
             synchronized (this) {
                 if (cachedResponse == null) {
@@ -101,9 +101,9 @@ public class MetricExpressionEvaluator implements IEvaluator {
         return cachedResponse;
     }
 
-    private IntermediateEvaluationResult toEvaluationResult(List<String> keyNames,
-                                                            List<String> valNames,
-                                                            QueryResponse response) {
+    private IntermediateQueryResult toEvaluationResult(List<String> keyNames,
+                                                       List<String> valNames,
+                                                       QueryResponse response) {
         List<QueryResponse.QueryResponseColumn> keyColumns = keyNames.stream()
                                                                      .map((key) -> {
                                                                          List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
@@ -147,14 +147,14 @@ public class MetricExpressionEvaluator implements IEvaluator {
         }
 
         // Create and return the EvaluationResult
-        return IntermediateEvaluationResult.builder()
-                                           .rows(rows.size())
-                                           .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
-                                           .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
-                                           .table(table)
-                                           .startTimestamp(response.getStartTimestamp())
-                                           .endTimestamp(response.getEndTimestamp())
-                                           .interval(response.getInterval())
-                                           .build();
+        return IntermediateQueryResult.builder()
+                                      .rows(rows.size())
+                                      .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
+                                      .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
+                                      .table(table)
+                                      .startTimestamp(response.getStartTimestamp())
+                                      .endTimestamp(response.getEndTimestamp())
+                                      .interval(response.getInterval())
+                                      .build();
     }
 }

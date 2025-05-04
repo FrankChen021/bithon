@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
@@ -39,32 +39,32 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:53 pm
  */
-public class EvaluatorBuilder {
+public class QueryPipelineBuilder {
 
     private IDataSourceApi dataSourceApi;
     private IntervalRequest intervalRequest;
     private String condition;
 
-    public static EvaluatorBuilder builder() {
-        return new EvaluatorBuilder();
+    public static QueryPipelineBuilder builder() {
+        return new QueryPipelineBuilder();
     }
 
-    public EvaluatorBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
+    public QueryPipelineBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
         return this;
     }
 
-    public EvaluatorBuilder intervalRequest(IntervalRequest intervalRequest) {
+    public QueryPipelineBuilder intervalRequest(IntervalRequest intervalRequest) {
         this.intervalRequest = intervalRequest;
         return this;
     }
 
-    public EvaluatorBuilder condition(String condition) {
+    public QueryPipelineBuilder condition(String condition) {
         this.condition = condition;
         return this;
     }
 
-    public IEvaluator build(String expression) {
+    public IQueryStep build(String expression) {
         IExpression expr = MetricExpressionASTBuilder.parse(expression);
 
         // Apply optimization like constant folding on parsed expression
@@ -74,13 +74,13 @@ public class EvaluatorBuilder {
         return this.build(expr);
     }
 
-    public IEvaluator build(IExpression expression) {
+    public IQueryStep build(IExpression expression) {
         return expression.accept(new Builder());
     }
 
-    private class Builder implements IMetricExpressionVisitor<IEvaluator> {
+    private class Builder implements IMetricExpressionVisitor<IQueryStep> {
         @Override
-        public IEvaluator visit(MetricExpression expression) {
+        public IQueryStep visit(MetricExpression expression) {
             String filterExpression = Stream.of(expression.getWhereText(), condition)
                                             .filter(Objects::nonNull)
                                             .collect(Collectors.joining(" AND "));
@@ -89,7 +89,7 @@ public class EvaluatorBuilder {
                 // Create expression as: ( current - base ) / base
                 QueryField metricField = expression.getMetric();
                 String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
-                MetricExpressionEvaluator curr = new MetricExpressionEvaluator(QueryRequest.builder()
+                MetricExpressionQueryStep curr = new MetricExpressionQueryStep(QueryRequest.builder()
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
@@ -98,7 +98,7 @@ public class EvaluatorBuilder {
                                                                                            .build(),
                                                                                dataSourceApi);
 
-                MetricExpressionEvaluator base = new MetricExpressionEvaluator(QueryRequest.builder()
+                MetricExpressionQueryStep base = new MetricExpressionQueryStep(QueryRequest.builder()
                                                                                            .dataSource(expression.getFrom())
                                                                                            .filterExpression(filterExpression)
                                                                                            .groupBy(expression.getGroupBy())
@@ -114,8 +114,8 @@ public class EvaluatorBuilder {
                                                                                dataSourceApi);
 
                 //
-                return new BinaryExpressionEvaluator.Div(
-                    new BinaryExpressionEvaluator.Sub(
+                return new BinaryExpressionQueryStep.Div(
+                    new BinaryExpressionQueryStep.Sub(
                         curr,
                         base,
                         "diff",
@@ -130,7 +130,7 @@ public class EvaluatorBuilder {
                     metricField.getName(), expression.getOffset().toString()
                 );
             } else {
-                return new MetricExpressionEvaluator(QueryRequest.builder()
+                return new MetricExpressionQueryStep(QueryRequest.builder()
                                                                  .dataSource(expression.getFrom())
                                                                  .filterExpression(filterExpression)
                                                                  .groupBy(expression.getGroupBy())
@@ -142,17 +142,17 @@ public class EvaluatorBuilder {
         }
 
         @Override
-        public IEvaluator visit(LiteralExpression<?> expression) {
-            return new LiteralEvaluator(expression);
+        public IQueryStep visit(LiteralExpression<?> expression) {
+            return new LiteralQueryStep(expression);
         }
 
         @Override
-        public IEvaluator visit(ArithmeticExpression expression) {
+        public IQueryStep visit(ArithmeticExpression expression) {
             return switch (expression.getType()) {
-                case "+" -> new BinaryExpressionEvaluator.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "-" -> new BinaryExpressionEvaluator.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "*" -> new BinaryExpressionEvaluator.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "/" -> new BinaryExpressionEvaluator.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "+" -> new BinaryExpressionQueryStep.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "-" -> new BinaryExpressionQueryStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "*" -> new BinaryExpressionQueryStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "/" -> new BinaryExpressionQueryStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
             };
         }

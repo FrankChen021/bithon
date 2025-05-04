@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 
@@ -26,13 +26,41 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
  * @author frank.chen021@outlook.com
  * @date 4/5/25 1:00 pm
  */
-public class SlidingWindowAggregator {
+public class SlidingWindowAggregationStep implements IQueryStep {
+
+    private final Duration step;
+    private final String valueField;
+    private final List<String> keys;
+    private final IQueryStep delegate;
+
+    public SlidingWindowAggregationStep(List<String> keys, String valueField, Duration step, IQueryStep delegate) {
+        this.step = step;
+        this.valueField = valueField;
+        this.keys = keys;
+        this.delegate = delegate;
+    }
+
+    @Override
+    public boolean isScalar() {
+        return delegate.isScalar();
+    }
+
+    @Override
+    public CompletableFuture<IntermediateQueryResult> execute() throws Exception {
+        CompletableFuture<IntermediateQueryResult> future = delegate.execute();
+        future.thenApply((result) -> {
+            // TODO: apply aggregate
+            return result;
+        });
+        return future;
+    }
 
     /**
      * Computes a moving window sum over a list of sorted time series records.

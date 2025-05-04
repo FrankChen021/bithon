@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +23,9 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:47 pm
  */
-public interface IEvaluator {
+public interface IQueryStep {
 
     boolean isScalar();
 
-    CompletableFuture<IntermediateEvaluationResult> evaluate() throws Exception;
+    CompletableFuture<IntermediateQueryResult> execute() throws Exception;
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 
 import lombok.AllArgsConstructor;
@@ -37,7 +37,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class IntermediateEvaluationResult {
+public class IntermediateQueryResult {
     private int rows;
 
     private List<String> keyColumns;
@@ -49,7 +49,7 @@ public class IntermediateEvaluationResult {
     private long interval;
 
     public QueryResponse<?> toTimeSeriesResultSet() {
-        IntermediateEvaluationResult intermediateResult = this;
+        IntermediateQueryResult intermediateResult = this;
 
         // Because the end timestamp is inclusive, we need to add 1
         int count = 1 + (int) ((intermediateResult.getEndTimestamp() - intermediateResult.getStartTimestamp()) / intermediateResult.getInterval());

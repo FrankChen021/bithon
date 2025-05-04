@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.evaluator;
+package org.bithon.server.metric.expression.pipeline;
 
 
 import org.bithon.component.commons.expression.IDataType;
@@ -26,13 +26,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Produce the literal value as a scalar result set.
+ *
  * @author frank.chen021@outlook.com
  * @date 4/4/25 9:36 pm
  */
-public class LiteralEvaluator implements IEvaluator {
+public class LiteralQueryStep implements IQueryStep {
     private final LiteralExpression<?> expression;
 
-    public LiteralEvaluator(LiteralExpression<?> expression) {
+    public LiteralQueryStep(LiteralExpression<?> expression) {
         this.expression = expression;
     }
 
@@ -42,7 +44,7 @@ public class LiteralEvaluator implements IEvaluator {
     }
 
     @Override
-    public CompletableFuture<IntermediateEvaluationResult> evaluate() {
+    public CompletableFuture<IntermediateQueryResult> execute() {
 
         ColumnarTable table = new ColumnarTable();
         if (expression.getDataType() == IDataType.LONG) {
@@ -59,10 +61,10 @@ public class LiteralEvaluator implements IEvaluator {
             throw new IllegalStateException("Unsupported literal type: " + expression.getDataType());
         }
 
-        return CompletableFuture.completedFuture(IntermediateEvaluationResult.builder()
-                                                                             .rows(1)
-                                                                             .valColumns(List.of("value"))
-                                                                             .table(table)
-                                                                             .build());
+        return CompletableFuture.completedFuture(IntermediateQueryResult.builder()
+                                                                        .rows(1)
+                                                                        .valColumns(List.of("value"))
+                                                                        .table(table)
+                                                                        .build());
     }
 }
