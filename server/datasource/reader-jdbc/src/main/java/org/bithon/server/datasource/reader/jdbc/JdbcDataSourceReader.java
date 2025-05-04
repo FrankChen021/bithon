@@ -121,7 +121,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        sqlGenerator.accept(selectStatement);
+        sqlGenerator.generate(selectStatement);
         return executeSql(sqlGenerator.getSQL());
     }
 
@@ -140,7 +140,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        sqlGenerator.accept(selectStatement);
+        sqlGenerator.generate(selectStatement);
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
@@ -159,7 +159,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.accept(selectStatement);
+        generator.generate(selectStatement);
         String sql = generator.getSQL();
 
         return executeSql(sql);
@@ -176,7 +176,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.accept(selectStatement);
+        generator.generate(selectStatement);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);
@@ -234,7 +234,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
         SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.accept(selectStatement);
+        generator.generate(selectStatement);
         String sql = generator.getSQL();
 
         log.info("Executing {}", sql);

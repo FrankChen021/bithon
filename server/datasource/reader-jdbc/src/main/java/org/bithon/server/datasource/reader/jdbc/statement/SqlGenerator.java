@@ -55,7 +55,7 @@ public class SqlGenerator {
         return sql.toString();
     }
 
-    public void accept(SelectStatement selectStatement) {
+    public void generate(SelectStatement selectStatement) {
         before(selectStatement);
         {
             for (int i = 0, size = selectStatement.getSelectorList().size(); i < size; i++) {
@@ -187,7 +187,7 @@ public class SqlGenerator {
         if (from.getExpression() instanceof TableIdentifier tableIdentifier) {
             this.visit(tableIdentifier);
         } else if (from.getExpression() instanceof SelectStatement) {
-            this.accept((SelectStatement) from.getExpression());
+            this.generate((SelectStatement) from.getExpression());
         } else {
             throw new RuntimeException("Unsupported expression type: " + from.getExpression().getClass());
         }
