@@ -3679,7 +3679,6 @@ public class BinaryExpressionQueryStepTest {
 
                    HumanReadableDuration offset = req.getOffset();
                    if (offset == null) {
-                       String name = req.getFields().get(0).getName();
                        return QueryResponse.builder()
                                            .data(List.of(Map.of("_timestamp", 1, "appName", "app1", "activeThreads", 3),
                                                          Map.of("_timestamp", 2, "appName", "app2", "activeThreads", 4),
@@ -3699,7 +3698,6 @@ public class BinaryExpressionQueryStepTest {
                                            .build();
                    }
 
-                   String name = req.getFields().get(0).getName();
                    return QueryResponse.builder()
                                        .data(List.of(Map.of("_timestamp", 2, "appName", "app2", "-1d", 21),
                                                      Map.of("_timestamp", 3, "appName", "app3", "-1d", 22),

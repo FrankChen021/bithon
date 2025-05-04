@@ -85,37 +85,36 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(request.getInterval())
-                                                   .condition(request.getCondition())
-                                                   .build(request.getExpression());
+        IQueryStep pipeline = QueryPipelineBuilder.builder()
+                                                  .dataSourceApi(dataSourceApi)
+                                                  .intervalRequest(request.getInterval())
+                                                  .condition(request.getCondition())
+                                                  .build(request.getExpression());
 
-        return evaluator.execute()
-                        .get()
-                        .toTimeSeriesResultSet();
+        return toTimeSeriesResultSet(pipeline.execute()
+                                             .get());
     }
 
-    private QueryResponse<?> toTimeSeriesResultSet(PipelineQueryResult intermediateResult) {
+    private QueryResponse<?> toTimeSeriesResultSet(PipelineQueryResult queryResult) {
         // Because the end timestamp is inclusive, we need to add 1
-        int count = 1 + (int) ((intermediateResult.getEndTimestamp() - intermediateResult.getStartTimestamp()) / intermediateResult.getInterval());
+        int count = 1 + (int) ((queryResult.getEndTimestamp() - queryResult.getStartTimestamp()) / queryResult.getInterval());
 
-        List<String> keys = new ArrayList<>(intermediateResult.getKeyColumns());
+        List<String> keys = new ArrayList<>(queryResult.getKeyColumns());
         if (keys.get(0).equals("_timestamp")) {
             keys.remove(0);
         } else {
             throw new IllegalStateException();
         }
-        Column timestampCol = intermediateResult.getTable().getColumn("_timestamp");
-        List<Column> dimCols = intermediateResult.getTable().getColumns(keys);
-        List<Column> valCols = intermediateResult.getTable().getColumns(intermediateResult.getValColumns());
+        Column timestampCol = queryResult.getTable().getColumn("_timestamp");
+        List<Column> dimCols = queryResult.getTable().getColumns(keys);
+        List<Column> valCols = queryResult.getTable().getColumns(queryResult.getValColumns());
 
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
-        for (int i = 0; i < intermediateResult.getRows(); i++) {
+        for (int i = 0; i < queryResult.getRows(); i++) {
 
             // the timestamp is seconds
             long timestamp = timestampCol.getLong(i) * 1000;
-            long index = (timestamp - intermediateResult.getStartTimestamp()) / intermediateResult.getInterval();
+            long index = (timestamp - queryResult.getStartTimestamp()) / queryResult.getInterval();
 
             for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
                 Column valCol = valCols.get(j);
@@ -123,15 +122,14 @@ public class MetricQueryApi {
                 for (Column dimCol : dimCols) {
                     series.add(dimCol.getObject(i).toString());
                 }
-                series.add(intermediateResult.getValColumns().get(j));
+                series.add(queryResult.getValColumns().get(j));
 
                 map.computeIfAbsent(series, k -> new TimeSeriesMetric(series, count))
                    .set((int) index, valCol.getObject(i));
             }
         }
 
-
-        List<QueryResponse.QueryResponseColumn> responseColumns = new ArrayList<>(dimCols.size() + valColumns.size());
+        List<QueryResponse.QueryResponseColumn> responseColumns = new ArrayList<>(dimCols.size() + queryResult.getValColumns().size());
         for (Column dim : dimCols) {
             responseColumns.add(new QueryResponse.QueryResponseColumn(dim.getName(), dim.getDataType().name()));
         }
@@ -140,9 +138,9 @@ public class MetricQueryApi {
         }
 
         return QueryResponse.builder()
-                            .interval(intermediateResult.getInterval())
-                            .startTimestamp(intermediateResult.getStartTimestamp())
-                            .endTimestamp(intermediateResult.getEndTimestamp())
+                            .interval(queryResult.getInterval())
+                            .startTimestamp(queryResult.getStartTimestamp())
+                            .endTimestamp(queryResult.getEndTimestamp())
                             .data(map.values())
                             .meta(responseColumns)
                             .build();
