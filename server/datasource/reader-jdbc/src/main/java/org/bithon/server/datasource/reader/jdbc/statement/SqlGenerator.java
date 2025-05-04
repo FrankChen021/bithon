@@ -60,29 +60,29 @@ public class SqlGenerator {
         {
             for (int i = 0, size = selectStatement.getSelectorList().size(); i < size; i++) {
                 Selector selector = selectStatement.getSelectorList().get(i);
-                this.visit(i, size, selector);
+                this.generateSelector(i, size, selector);
             }
 
-            this.visit(selectStatement.getFrom());
+            this.generateFrom(selectStatement.getFrom());
 
             if (!selectStatement.getWhere().isEmpty()) {
-                this.visit(selectStatement.getWhere());
+                this.generateWhere(selectStatement.getWhere());
             }
 
             if (!selectStatement.getGroupBy().isEmpty()) {
-                this.visit(selectStatement.getGroupBy());
+                this.generateGroupBy(selectStatement.getGroupBy());
             }
 
             if (selectStatement.getHaving() != null) {
-                this.visit(selectStatement.getHaving());
+                this.generateHaving(selectStatement.getHaving());
             }
 
             if (selectStatement.getOrderBy() != null && selectStatement.getOrderBy().length > 0) {
-                this.visit(selectStatement.getOrderBy());
+                this.generateOrderBy(selectStatement.getOrderBy());
             }
 
             if (selectStatement.getLimit() != null) {
-                this.visit(selectStatement.getLimit());
+                this.generateLimit(selectStatement.getLimit());
             }
         }
         afterSelectStatement();
@@ -110,7 +110,7 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(OrderByClause... orderBys) {
+    private void generateOrderBy(OrderByClause... orderBys) {
         sql.append('\n');
         sql.append(indent);
         sql.append("ORDER BY ");
@@ -128,7 +128,7 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(LimitClause limit) {
+    private void generateLimit(LimitClause limit) {
         sql.append('\n');
         sql.append(indent);
         sql.append("LIMIT ");
@@ -139,32 +139,32 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(Expression expression) {
+    private void generateExpression(Expression expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
         String serialized = new Expression2SqlSerializer(this.sqlDialect).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 
-    private void visit(TextNode textNode) {
+    private void generateText(TextNode textNode) {
         sql.append(textNode.getStr());
     }
 
-    private void visit(int index, int count, Selector selector) {
+    private void generateSelector(int index, int count, Selector selector) {
         if (index == 0) {
             indent += "       ";
         }
         if (selector.getSelectExpression() instanceof Column column) {
-            this.visit(column);
+            this.generateColumn(column);
         } else if (selector.getSelectExpression() instanceof Expression expressionColumn) {
-            this.visit(expressionColumn);
+            this.generateExpression(expressionColumn);
         } else if (selector.getSelectExpression() instanceof TextNode textNode) {
-            this.visit(textNode);
+            this.generateText(textNode);
         } else {
             throw new RuntimeException("Unsupported expression type: " + selector.getSelectExpression().getClass());
         }
         if (selector.getOutput() != null) {
-            this.visit(selector.getOutput());
+            this.generateAlias(selector.getOutput());
         }
 
         if (index < count - 1) {
@@ -176,22 +176,22 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(Column column) {
+    private void generateColumn(Column column) {
         sql.append(sqlDialect.quoteIdentifier(column.getName()));
     }
 
-    private void visit(Alias alias) {
+    private void generateAlias(Alias alias) {
         sql.append(" AS ");
         sql.append(sqlDialect.quoteIdentifier(alias.getName()));
     }
 
-    private void visit(FromClause from) {
+    private void generateFrom(FromClause from) {
         sql.append('\n');
         sql.append(indent);
         sql.append("FROM");
 
         if (from.getExpression() instanceof TableIdentifier tableIdentifier) {
-            this.visit(tableIdentifier);
+            this.generateTableIdentifier(tableIdentifier);
         } else if (from.getExpression() instanceof SelectStatement) {
             this.generate((SelectStatement) from.getExpression());
         } else {
@@ -199,11 +199,11 @@ public class SqlGenerator {
         }
 
         if (from.getAlias() != null) {
-            this.visit(from.getAlias());
+            this.generateAlias(from.getAlias());
         }
     }
 
-    private void visit(TableIdentifier table) {
+    private void generateTableIdentifier(TableIdentifier table) {
         sql.append(' ');
         if (table.getIdentifier().isQualified()) {
             sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getQualifier()));
@@ -212,7 +212,7 @@ public class SqlGenerator {
         sql.append(sqlDialect.quoteIdentifier(table.getIdentifier().getIdentifier()));
     }
 
-    private void visit(WhereClause where) {
+    private void generateWhere(WhereClause where) {
         if (where.isEmpty()) {
             return;
         }
@@ -238,7 +238,7 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(GroupByClause groupBy) {
+    private void generateGroupBy(GroupByClause groupBy) {
         if (groupBy.getFields().isEmpty()) {
             return;
         }
@@ -256,7 +256,7 @@ public class SqlGenerator {
         }
     }
 
-    private void visit(HavingClause having) {
+    private void generateHaving(HavingClause having) {
         if (CollectionUtils.isEmpty(having.getExpressions())) {
             return;
         }
