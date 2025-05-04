@@ -25,10 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * hain SELECT statements as nested queries.
+ *
  * @author frank.chen021@outlook.com
  * @date 12/4/25 9:55 am
  */
-class SelectStatementPipeline {
+class SelectStatementChain {
     final SelectStatement aggregation = new SelectStatement();
     SelectStatement windowAggregation;
     SelectStatement slidingWindowAggregation;
@@ -41,32 +43,32 @@ class SelectStatementPipeline {
     public void chain(ISqlDialect sqlDialect) {
         // chain SELECT statement as a pipeline in reverse order,
         // which means the first SELECT statement is the innermost one
-        List<SelectStatement> pipelines = new ArrayList<>();
+        List<SelectStatement> statements = new ArrayList<>();
 
         if (windowAggregation != null) {
-            pipelines.add(windowAggregation);
+            statements.add(windowAggregation);
         }
 
-        pipelines.add(aggregation);
+        statements.add(aggregation);
 
         if (slidingWindowAggregation != null) {
-            pipelines.add(slidingWindowAggregation);
+            statements.add(slidingWindowAggregation);
         }
 
         if (postAggregation != null) {
-            pipelines.add(postAggregation);
+            statements.add(postAggregation);
         }
 
-        for (int i = 1; i < pipelines.size(); i++) {
-            FromClause from = pipelines.get(i).getFrom();
-            from.setExpression(pipelines.get(i - 1));
+        for (int i = 1; i < statements.size(); i++) {
+            FromClause from = statements.get(i).getFrom();
+            from.setExpression(statements.get(i - 1));
 
             if (sqlDialect.needTableAlias()) {
                 from.setAlias("tbl" + nestIndex++);
             }
         }
 
-        this.outermost = pipelines.get(pipelines.size() - 1);
-        this.innermost = pipelines.get(0);
+        this.outermost = statements.get(statements.size() - 1);
+        this.innermost = statements.get(0);
     }
 }

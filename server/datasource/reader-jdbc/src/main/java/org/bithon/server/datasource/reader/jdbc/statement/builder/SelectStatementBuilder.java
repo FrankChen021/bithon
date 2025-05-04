@@ -261,7 +261,7 @@ public class SelectStatementBuilder {
     public SelectStatement build() {
         VariableNameGenerator var = new VariableNameGenerator("_var");
 
-        SelectStatementPipeline pipeline = new SelectStatementPipeline();
+        SelectStatementChain pipeline = new SelectStatementChain();
 
         Aggregators aggregators = new Aggregators();
 
@@ -495,7 +495,7 @@ public class SelectStatementBuilder {
      * FROM
      * </code></pre>
      */
-    private void addSlidingWindowAggregationStep(Aggregators aggregators, SelectStatementPipeline pipeline) {
+    private void addSlidingWindowAggregationStep(Aggregators aggregators, SelectStatementChain pipeline) {
         SelectStatement slidingWindowAggregation = new SelectStatement();
 
         IExpression[] partitionByExpression = null;
@@ -531,7 +531,7 @@ public class SelectStatementBuilder {
         pipeline.slidingWindowAggregation = slidingWindowAggregation;
     }
 
-    private void buildLimit(SelectStatementPipeline pipeline) {
+    private void buildLimit(SelectStatementChain pipeline) {
         if (limit == null) {
             return;
         }
@@ -540,7 +540,7 @@ public class SelectStatementBuilder {
         pipeline.outermost.setLimit(new LimitClause(limit.getLimit(), limit.getOffset()));
     }
 
-    private void buildOrderBy(SelectStatementPipeline pipeline) {
+    private void buildOrderBy(SelectStatementChain pipeline) {
         if (orderBy == null) {
             return;
         }
@@ -548,7 +548,7 @@ public class SelectStatementBuilder {
         pipeline.outermost.setOrderBy(new OrderByClause(orderBy.getName(), orderBy.getOrder()));
     }
 
-    private void buildWhere(SelectStatementPipeline pipeline) {
+    private void buildWhere(SelectStatementChain pipeline) {
         // Extend the time range for sliding window
         // so that the sliding window calculation of first record is correct
         TimeSpan start = hasSlidingWindowAggregation() ? interval.getStartTime().before(interval.getWindow().getDuration()) : interval.getStartTime();
@@ -596,7 +596,7 @@ public class SelectStatementBuilder {
         }
     }
 
-    private void buildGroupBy(SelectStatementPipeline pipeline) {
+    private void buildGroupBy(SelectStatementChain pipeline) {
         pipeline.aggregation.getGroupBy().addFields(groupBy);
 
         // All window aggregation output must appear in the group-by clause
