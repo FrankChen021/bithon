@@ -10,7 +10,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>datasource-reader-jdbc</artifactId>
-  <name>datasource-reader-jdbc</name>
+  <name>server-datasource-reader-jdbc</name>
   <description>Bithon Data Source over JDBC</description>
 
   <dependencies>
