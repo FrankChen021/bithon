@@ -38,7 +38,7 @@ import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.reader.jdbc.MetricJdbcReader;
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -356,7 +356,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected IDataSourceReader getDataSourceReader() {
-        return new MetricJdbcReader(this.dslContext, sqlDialect);
+        return new JdbcDataSourceReader(this.dslContext, sqlDialect);
     }
 
     @Override

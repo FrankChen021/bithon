@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
-import org.bithon.server.datasource.reader.clickhouse.JdbcReader;
+import org.bithon.server.datasource.reader.clickhouse.ClickHouseDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -125,7 +125,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new JdbcReader(dslContext, sqlDialect);
+        return new ClickHouseDataSourceReader(dslContext, sqlDialect);
     }
 
     @Override

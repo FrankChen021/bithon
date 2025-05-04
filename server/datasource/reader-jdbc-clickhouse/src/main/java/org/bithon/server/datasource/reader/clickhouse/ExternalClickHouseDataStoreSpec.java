@@ -48,6 +48,6 @@ public class ExternalClickHouseDataStoreSpec extends ExternalDataStoreSpec {
 
     @Override
     public IDataSourceReader createReader() {
-        return new JdbcReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"));
+        return new ClickHouseDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"));
     }
 }

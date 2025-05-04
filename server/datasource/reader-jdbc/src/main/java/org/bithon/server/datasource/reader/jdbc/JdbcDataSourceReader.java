@@ -61,16 +61,16 @@ import java.util.stream.Collectors;
  * @date 2021/1/31 1:39 下午
  */
 @Slf4j
-public class MetricJdbcReader implements IDataSourceReader {
+public class JdbcDataSourceReader implements IDataSourceReader {
     private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
     protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
     private final boolean shouldCloseContext;
 
-    public MetricJdbcReader(String name,
-                            Map<String, Object> props,
-                            ISqlDialect sqlDialect) {
+    public JdbcDataSourceReader(String name,
+                                Map<String, Object> props,
+                                ISqlDialect sqlDialect) {
         DruidDataSource jdbcDataSource = new DruidDataSource();
         jdbcDataSource.setDriverClassName((String) Preconditions.checkNotNull(props.get("driverClassName"), "Missing driverClassName property for %s", name));
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
@@ -101,7 +101,7 @@ public class MetricJdbcReader implements IDataSourceReader {
         this.shouldCloseContext = true;
     }
 
-    public MetricJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+    public JdbcDataSourceReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.shouldCloseContext = false;

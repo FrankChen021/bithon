@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.reader.jdbc.MetricJdbcReader;
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.jooq.DSLContext;
@@ -36,15 +36,15 @@ import java.util.stream.Collectors;
  * @date 29/1/24 11:26 am
  */
 @Slf4j
-public class JdbcReader extends MetricJdbcReader {
+public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
 
-    public JdbcReader(String name,
-                      Map<String, Object> props,
-                      ISqlDialect sqlDialect) {
+    public ClickHouseDataSourceReader(String name,
+                                      Map<String, Object> props,
+                                      ISqlDialect sqlDialect) {
         super(name, props, sqlDialect);
     }
 
-    public JdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+    public ClickHouseDataSourceReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         super(dslContext, sqlDialect);
     }
 
