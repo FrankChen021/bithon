@@ -355,22 +355,27 @@ public class SelectStatementBuilder {
                         }
 
                         String output;
+                        IDataType dataType;
                         if (pipeline.postAggregation == null) {
                             // If there's no post-aggregation, the output should be the same as the input
                             output = selector.getOutputName();
+                            dataType = functionCallExpression.getDataType();
                         } else {
                             if (functionCallExpression.getFunction() instanceof QueryStageFunctions.Cardinality) {
                                 // the default converted expression for  cardinality(a) is count(distinct a) as a,
                                 // where a usually is a string column which might cause the generated SQL confusion for debugging
                                 // So we generate a new name for the output
                                 output = "cardinality" + var.next();
+                                dataType = IDataType.LONG;
                             } else {
                                 if (inputArg instanceof IdentifierExpression) {
                                     output = ((IdentifierExpression) inputArg).getIdentifier();
+                                    dataType = functionCallExpression.getDataType();
                                 } else {
                                     // This might be the form: sum(a+b)
                                     // Is there such input: sum(round(a/b,2))
                                     output = var.next();
+                                    dataType = IDataType.LONG;
                                 }
                             }
                         }
@@ -381,7 +386,7 @@ public class SelectStatementBuilder {
                         }
 
                         // Replace the aggregator in original expression to reference the output
-                        return new IdentifierExpression(output);
+                        return new IdentifierExpression(output, dataType);
                     }
                 });
 
@@ -405,11 +410,11 @@ public class SelectStatementBuilder {
                 IExpression windowFunctionExpression = sqlDialect.firstWindowFunction(col, interval.getTotalSeconds());
                 pipeline.windowAggregation.getSelectorList().add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
                 pipeline.aggregation.getSelectorList()
-                                    .add(new Column(aggregator.output), IDataType.DOUBLE)
+                                    .add(new Column(aggregator.output), identifierExpression.getDataType())
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new Expression(aggregator.aggregateFunction), aggregator.output, IDataType.DOUBLE)
+                                    .add(new Expression(aggregator.aggregateFunction), aggregator.output, aggregator.aggregateFunction.getDataType())
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
@@ -440,11 +445,11 @@ public class SelectStatementBuilder {
                         // Try to eliminate Alias expression
                         String identifier = identifierExpression.getIdentifier();
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput(), IDataType.STRING)
+                                                .add(new Column(identifier), identifier.equals(selector.getOutput().getName()) ? null : selector.getOutput(), identifierExpression.getDataType())
                                                 .setTag(true);
                     } else {
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new Expression(parsedExpression), selector.getOutput(), IDataType.STRING)
+                                                .add(new Expression(parsedExpression), selector.getOutput(), parsedExpression.getDataType())
                                                 .setTag(true);
                     }
                 }
@@ -522,7 +527,7 @@ public class SelectStatementBuilder {
                                                                            .build();
 
             slidingWindowAggregation.getSelectorList()
-                                    .add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
+                                    .add(new Expression(windowFunctionExpression), aggregator.output, aggregator.aggregateFunction.getDataType());
         }
 
         // The sliding window aggregation is performed on aggregated step which already on floored timestamp,
@@ -583,20 +588,6 @@ public class SelectStatementBuilder {
             pipeline.outermost.setHaving(new HavingClause());
             pipeline.outermost.getHaving().addExpression(Expression2Sql.from((String) null, sqlDialect, postFilter));
         } else {
-            if (!this.sqlDialect.isAliasAllowedInWhereClause()) {
-                // some DBMS does not allow alias to be referenced in the WHERE clause,
-                // in such a case, a 'SELECT *' is added to the outermost query
-                SelectStatement query = new SelectStatement();
-                query.getSelectorList().add(new TextNode("*"), IDataType.STRING);
-                query.getFrom().setExpression(pipeline.outermost);
-
-                if (sqlDialect.needTableAlias()) {
-                    query.getFrom().setAlias("tbl" + pipeline.nestIndex++);
-                }
-
-                pipeline.outermost = query;
-            }
-
             pipeline.outermost.getWhere().and(postFilter);
         }
     }
