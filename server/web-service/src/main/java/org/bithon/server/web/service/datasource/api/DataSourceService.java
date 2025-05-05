@@ -75,7 +75,8 @@ public class DataSourceService {
                                              .getDataStoreSpec()
                                              .createReader()) {
 
-            List<Map<String, Object>> result = reader.timeseries(query);
+            List<Map<String, Object>> result = reader.timeseries(query)
+                                                     .toRowFormat();
 
             // Convert to the result format and fills in missed data points
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
@@ -92,7 +93,8 @@ public class DataSourceService {
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {
-            List<Map<String, Object>> result = reader.timeseries(query);
+            List<Map<String, Object>> result = reader.timeseries(query)
+                                                     .toRowFormat();
 
             TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                                    query.getInterval().getEndTime(),

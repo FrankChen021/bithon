@@ -19,6 +19,8 @@ package org.bithon.server.datasource.query.pipeline;
 
 import org.bithon.component.commons.expression.IDataType;
 
+import java.util.BitSet;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 7/4/25 10:18 am
@@ -58,6 +60,8 @@ public interface Column {
 
     int size();
 
+    Column filter(BitSet keep);
+
     static Column create(String name, IDataType type, int initCapacity) {
         return Column.create(name, type.name(), initCapacity);
     }
@@ -72,7 +76,10 @@ public interface Column {
         if (type.equals(IDataType.DOUBLE.name())) {
             return new DoubleColumn(name, initCapacity);
         }
-
+        if (type.equals(IDataType.DATETIME_MILLI.name())) {
+            // DATETIME_MILLI is a long
+            return new LongColumn(name, initCapacity);
+        }
         throw new IllegalArgumentException("Unsupported column type: " + type);
     }
 
@@ -150,6 +157,17 @@ public interface Column {
 
         public int size() {
             return size;
+        }
+
+        @Override
+        public Column filter(BitSet keep) {
+            LongColumn filtered = new LongColumn(this.name, keep.cardinality());
+            for (int i = 0; i < this.size; i++) {
+                if (keep.get(i)) {
+                    filtered.addLong(this.data[i]);
+                }
+            }
+            return filtered;
         }
 
         public long[] getData() {
@@ -241,6 +259,17 @@ public interface Column {
 
         public int size() {
             return size;
+        }
+
+        @Override
+        public Column filter(BitSet keep) {
+            DoubleColumn filtered = new DoubleColumn(this.name, keep.cardinality());
+            for (int i = 0; i < this.size; i++) {
+                if (keep.get(i)) {
+                    filtered.addDouble(this.data[i]);
+                }
+            }
+            return filtered;
         }
 
         public double[] getData() {
@@ -337,6 +366,17 @@ public interface Column {
 
         public int size() {
             return size;
+        }
+
+        @Override
+        public Column filter(BitSet keep) {
+            StringColumn filtered = new StringColumn(this.name, keep.cardinality());
+            for (int i = 0; i < this.size; i++) {
+                if (keep.get(i)) {
+                    filtered.addString(this.data[i]);
+                }
+            }
+            return filtered;
         }
 
         public String[] getData() {

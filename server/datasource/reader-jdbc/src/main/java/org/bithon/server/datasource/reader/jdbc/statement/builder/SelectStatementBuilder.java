@@ -87,9 +87,12 @@ public class SelectStatementBuilder {
     private ISqlDialect sqlDialect;
 
     public boolean hasSlidingWindowAggregation() {
+        return false;
+        /*
         return interval.getWindow() != null &&
                interval.getStep() != null
                && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
+         */
     }
 
     public static SelectStatementBuilder builder() {

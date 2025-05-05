@@ -43,10 +43,10 @@ public class SlidingWindowAggregatorTest {
         // Add rows using addRow
         table.addRow(1L, 10.0);
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(1, result.rowCount());
+        Assertions.assertEquals(1, table.rowCount());
         Assertions.assertEquals(10.0, agg.getDouble(0), 0.0001);
     }
 
@@ -64,10 +64,10 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 20.0);
         table.addRow(3L, 30.0);
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of(), Duration.ofSeconds(2), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(3, result.rowCount());
+        Assertions.assertEquals(3, table.rowCount());
         Assertions.assertEquals(10.0, agg.getDouble(0), 0.0001);
         Assertions.assertEquals(30.0, agg.getDouble(1), 0.0001);
         Assertions.assertEquals(50.0, agg.getDouble(2), 0.0001);
@@ -89,10 +89,10 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 20.0, "A");
         table.addRow(3L, 30.0, "A");
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(3, result.rowCount());
+        Assertions.assertEquals(3, table.rowCount());
         Assertions.assertEquals(10.0, agg.getDouble(0), 0.0001);
         Assertions.assertEquals(30.0, agg.getDouble(1), 0.0001);
         Assertions.assertEquals(50.0, agg.getDouble(2), 0.0001);
@@ -117,10 +117,10 @@ public class SlidingWindowAggregatorTest {
         table.addRow(2L, 200.0, "B");
         table.addRow(3L, 300.0, "B");
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(2), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(6, result.rowCount());
+        Assertions.assertEquals(6, table.rowCount());
         Assertions.assertEquals(10.0, agg.getDouble(0), 0.0001);
         Assertions.assertEquals(30.0, agg.getDouble(1), 0.0001);
         Assertions.assertEquals(50.0, agg.getDouble(2), 0.0001);
@@ -145,10 +145,10 @@ public class SlidingWindowAggregatorTest {
         table.addRow(5L, 2.0, "A");
         table.addRow(10L, 3.0, "A");
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(3, result.rowCount());
+        Assertions.assertEquals(3, table.rowCount());
         Assertions.assertEquals(1.0, agg.getDouble(0), 0.0001);
         Assertions.assertEquals(2.0, agg.getDouble(1), 0.0001);
         Assertions.assertEquals(3.0, agg.getDouble(2), 0.0001);
@@ -171,10 +171,10 @@ public class SlidingWindowAggregatorTest {
         table.addRow(4L, 3.0, "A");
         table.addRow(6L, 4.0, "A");
 
-        ColumnarTable result = SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), "value");
-        Column agg = result.getColumn("value");
+        SlidingWindowAggregator.aggregate(table, "_timestamp", List.of("group"), Duration.ofSeconds(3), "value");
+        Column agg = table.getColumn("value");
 
-        Assertions.assertEquals(4, result.rowCount());
+        Assertions.assertEquals(4, table.rowCount());
         Assertions.assertEquals(1.0, agg.getDouble(0), 0.0001);
         Assertions.assertEquals(3.0, agg.getDouble(1), 0.0001);
 

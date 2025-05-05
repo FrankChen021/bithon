@@ -53,7 +53,9 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -114,20 +116,29 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public List<Map<String, Object>> timeseries(Query query) {
+    public ColumnarTable timeseries(Query query) {
         Interval interval = query.getInterval();
         boolean hasSlidingWindowAggregation = interval.getWindow() != null &&
                                               interval.getStep() != null
                                               && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
         List<OrderBy> orderBys;
+        Interval queryInterval;
         if (hasSlidingWindowAggregation) {
             // Sliding window aggregation requires the result set to be ordered by the group-by columns first
             orderBys = query.getGroupBy()
                             .stream()
                             .map((groupBy) -> new OrderBy(groupBy, Order.asc))
                             .collect(Collectors.toList());
+
+            // Extend the query interval so that the first records has correct sliding window aggregated result
+            queryInterval = Interval.of(interval.getStartTime().before(interval.getWindow().getDuration()),
+                                        interval.getEndTime(),
+                                        interval.getStep(),
+                                        interval.getWindow(),
+                                        interval.getTimestampColumn());
         } else {
             orderBys = new ArrayList<>();
+            queryInterval = query.getInterval();
         }
         orderBys.add(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build());
 
@@ -135,7 +146,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                         .schema(query.getSchema())
                                                                         .fields(query.getSelectors())
                                                                         .filter(query.getFilter())
-                                                                        .interval(query.getInterval())
+                                                                        .interval(queryInterval)
                                                                         .groupBy(query.getGroupBy())
                                                                         .orderBy(orderBys)
                                                                         .offset(query.getOffset())
@@ -165,22 +176,40 @@ public class JdbcDataSourceReader implements IDataSourceReader {
             }
         };
 
-        if (statementBuilder.hasSlidingWindowAggregation()) {
+        if (hasSlidingWindowAggregation) {
+            final Duration window = queryInterval.getWindow().getDuration();
             final Callable<ColumnarTable> delegate = callable;
             callable = () -> {
                 ColumnarTable resultTable = delegate.call();
-                return SlidingWindowAggregator.aggregate(resultTable,
-                                                         TimestampSpec.COLUMN_ALIAS,
-                                                         query.getGroupBy(),
-                                                         interval.getWindow().getDuration(),
-                                                         // TODO: run aggregator upon all value fields
-                                                         query.getSelectors().get(0).getOutputName());
+
+                // window aggregation
+                SlidingWindowAggregator.aggregate(resultTable,
+                                                  TimestampSpec.COLUMN_ALIAS,
+                                                  query.getGroupBy(),
+                                                  window,
+                                                  // TODO: run aggregator upon all value fields
+                                                  query.getSelectors().get(0).getOutputName());
+
+                //
+                // The query interval is extended to include the first record of the sliding window
+                // which is not included in the result set. So we need to filter out some records record
+                long startingPoint = query.getInterval()
+                                          .getStartTime()
+                                          .floor(query.getInterval().getStep()).getSeconds();
+
+                BitSet mask = new BitSet(resultTable.rowCount());
+                Column tsColumn = resultTable.getColumn(TimestampSpec.COLUMN_ALIAS);
+                for (int i = 0, rowCount = resultTable.rowCount(); i < rowCount; i++) {
+                    long ts = tsColumn.getLong(i);
+                    mask.set(i, ts >= startingPoint);
+                }
+
+                return resultTable.filter(mask);
             };
         }
 
         try {
-            ColumnarTable table = callable.call();
-            return null;
+            return callable.call();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

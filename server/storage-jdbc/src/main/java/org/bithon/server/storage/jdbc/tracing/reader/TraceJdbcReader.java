@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -38,6 +39,8 @@ import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
@@ -48,6 +51,7 @@ import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.jooq.Condition;
+import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -173,11 +177,11 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                          List<IExpression> indexedTagFilter,
-                                                          Timestamp start,
-                                                          Timestamp end,
-                                                          long interval) {
+    public ColumnarTable getTraceDistribution(IExpression filter,
+                                              List<IExpression> indexedTagFilter,
+                                              Timestamp start,
+                                              Timestamp end,
+                                              long interval) {
         boolean isOnSummaryTable = isFilterOnRootSpanOnly(filter);
 
         String timeBucket = sqlDialect.timeFloorExpression(new IdentifierExpression("timestamp"), interval);
@@ -213,7 +217,7 @@ public class TraceJdbcReader implements ITraceReader {
                 .end(end.toLocalDateTime())
                 .build(indexedTagFilter);
             Condition subQuery = isOnSummaryTable ? Tables.BITHON_TRACE_SPAN_SUMMARY.TRACEID.in(indexedTagQuery) :
-                Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
+                                 Tables.BITHON_TRACE_SPAN.TRACEID.in(indexedTagQuery);
 
             sqlBuilder.append(" AND ");
             sqlBuilder.append(dslContext.renderInlined(subQuery));
@@ -223,8 +227,25 @@ public class TraceJdbcReader implements ITraceReader {
 
         String sql = sqlBuilder.toString();
         log.info("Get trace distribution: {}", sql);
-        return dslContext.fetch(decorateSQL(sql))
-                         .intoMaps();
+
+        ColumnarTable table = new ColumnarTable();
+        Column tsColumn = table.addColumn(Column.create("_timestamp", IDataType.LONG, 256));
+        Column countColumn = table.addColumn(Column.create("count", IDataType.LONG, 256));
+        Column minColumn = table.addColumn(Column.create("minResponse", IDataType.LONG, 256));
+        Column avgColumn = table.addColumn(Column.create("avgResponse", IDataType.LONG, 256));
+        Column maxColumn = table.addColumn(Column.create("maxResponse", IDataType.LONG, 256));
+
+        try (Cursor<Record> records = dslContext.fetchLazy(decorateSQL(sql))) {
+            for (Record record : records) {
+                tsColumn.addObject(record.get(0));
+                countColumn.addObject(record.get(1));
+                minColumn.addObject(record.get(2));
+                avgColumn.addObject(record.get(3));
+                maxColumn.addObject(record.get(4));
+            }
+        }
+
+        return table;
     }
 
     @Override
@@ -360,7 +381,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Map<String, Object>> timeseries(Query query) {
+    public ColumnarTable timeseries(Query query) {
         TraceFilterSplitter splitter = new TraceFilterSplitter(this.traceSpanSchema, this.traceTagIndexSchema);
         splitter.split(query.getFilter());
 

@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IDataSourceReader extends AutoCloseable {
 
-    List<Map<String, Object>> timeseries(Query query);
+    ColumnarTable timeseries(Query query);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period

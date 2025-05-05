@@ -18,6 +18,7 @@ package org.bithon.server.datasource.query.pipeline;
 
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,5 +93,33 @@ public class ColumnarTable {
         for (Column column : columns.values()) {
             column.addObject(values[i++]);
         }
+    }
+
+    public List<Map<String, Object>> toRowFormat() {
+        int rowCount = rowCount();
+        List<Map<String, Object>> rows = new ArrayList<>(rowCount);
+        for (int i = 0; i < rowCount; i++) {
+            rows.add(new LinkedHashMap<>());
+        }
+        for (Column column : columns.values()) {
+            String name = column.getName();
+            for (int i = 0; i < rowCount; i++) {
+                rows.get(i).put(name, column.getObject(i));
+            }
+        }
+        return rows;
+    }
+
+    public ColumnarTable filter(BitSet mask) {
+        if (mask.cardinality() == rowCount()) {
+            // All rows are include
+            return this;
+        }
+
+        ColumnarTable newTable = new ColumnarTable();
+        for (Map.Entry<String, Column> entry : this.columns.entrySet()) {
+            newTable.addColumn(entry.getValue().filter(mask));
+        }
+        return newTable;
     }
 }

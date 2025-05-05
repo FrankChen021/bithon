@@ -46,17 +46,16 @@ public class SlidingWindowAggregator {
      *
      * <p>The result is a new list of maps, each containing all original key-value pairs from the input row,
      * plus an additional entry valueField, holding the computed sum.
+     *
      * @param tsField The name of field where timestamp is stored (e.g., "_timestamp")
-     * @param keys   List of key field names used for grouping (e.g., ["clusterName"])
-     * @param window Size of the time window in seconds
+     * @param keys    List of key field names used for grouping (e.g., ["clusterName"])
+     * @param window  Size of the time window in seconds
      */
-    public static ColumnarTable aggregate(
-        ColumnarTable table,
-        String tsField,
-        List<String> keys,
-        Duration window,
-        String valueField
-    ) {
+    public static void aggregate(ColumnarTable table,
+                                 String tsField,
+                                 List<String> keys,
+                                 Duration window,
+                                 String valueField) {
         Column tsColumn = table.getColumn(tsField);
         Column valColumn = table.getColumn(valueField);
         List<Column> keyColumns = table.getColumns(keys);
@@ -91,6 +90,5 @@ public class SlidingWindowAggregator {
         }
 
         table.addColumn(aggregatedColumn);
-        return table;
     }
 }

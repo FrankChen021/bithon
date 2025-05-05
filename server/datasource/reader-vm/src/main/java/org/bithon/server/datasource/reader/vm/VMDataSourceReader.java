@@ -23,6 +23,7 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.FunctionExpression;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -31,13 +32,12 @@ import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Expression;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -57,7 +57,7 @@ public class VMDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public List<Map<String, Object>> timeseries(Query query) {
+    public ColumnarTable timeseries(Query query) {
         Selector selector = query.getSelectors().get(0);
         if (!(selector.getSelectExpression() instanceof Expression expression)) {
             throw new UnsupportedOperationException("Unsupported select expression " + selector.getSelectExpression());
@@ -107,23 +107,25 @@ public class VMDataSourceReader implements IDataSourceReader {
         IVMQueryRpc.RangeQueryResponse response = queryApi.queryRange(ql.toString(),
                                                                       query.getInterval().getStartTime().getSeconds(),
                                                                       query.getInterval().getEndTime().getSeconds(),
-                                                                    query.getInterval().getStep().getSeconds() + "s");
+                                                                      query.getInterval().getStep().getSeconds() + "s");
         if (!"success".equals(response.getStatus())) {
             throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                             "Failed to query VM data source: " + response.getStatus());
         }
 
-        List<Map<String, Object>> ret = new ArrayList<>();
+        ColumnarTable table = new ColumnarTable();
+        Column tsColumn = table.addColumn(Column.create(TimestampSpec.COLUMN_ALIAS, IDataType.LONG, 256));
+        Column valColumn = table.addColumn(Column.create(metric, IDataType.DOUBLE, 256));
+
         for (IVMQueryRpc.SeriesData series : response.getData().getResult()) {
             for (double[] valuesInRow : series.getValues()) {
-                Map<String, Object> row = new HashMap<>(series.getMetric());
                 // Return timestamp in SECONDS
-                row.put(TimestampSpec.COLUMN_ALIAS, valuesInRow[0]);
-                row.put(metric, valuesInRow[1]);
-                ret.add(row);
+                tsColumn.addLong((long) valuesInRow[0]);
+                valColumn.addDouble(valuesInRow[1]);
             }
         }
-        return ret;
+
+        return table;
     }
 
     @Override
