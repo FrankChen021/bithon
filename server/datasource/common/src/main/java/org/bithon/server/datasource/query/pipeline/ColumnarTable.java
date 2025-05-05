@@ -35,6 +35,9 @@ public class ColumnarTable {
         return table;
     }
 
+    /**
+     * Column name -> Column
+     */
     private final Map<String, Column> columns = new LinkedHashMap<>();
 
     public Column addColumn(Column column) {
@@ -58,6 +61,10 @@ public class ColumnarTable {
     }
 
     public List<Column> getColumns(List<String> names) {
+        if (names.isEmpty()) {
+            return List.of();
+        }
+
         List<Column> result = new ArrayList<>(names.size());
         for (String name : names) {
             Column column = columns.get(name);
@@ -67,5 +74,23 @@ public class ColumnarTable {
             result.add(column);
         }
         return result;
+    }
+
+    public List<Column> getColumns() {
+        return columns.values().stream().toList();
+    }
+
+    /**
+     * Add a new row to the table. Which helps simplify tests
+     */
+    public void addRow(Object... values) {
+        if (values.length != columns.size()) {
+            throw new IllegalArgumentException("Number of values does not match number of columns");
+        }
+
+        int i = 0;
+        for (Column column : columns.values()) {
+            column.addObject(values[i++]);
+        }
     }
 }

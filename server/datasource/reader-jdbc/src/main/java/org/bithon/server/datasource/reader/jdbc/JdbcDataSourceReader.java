@@ -32,6 +32,8 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
@@ -40,6 +42,7 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
+import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -139,26 +142,45 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                         .sqlDialect(this.sqlDialect);
         SelectStatement selectStatement = statementBuilder.build();
 
-        Callable<List<Map<String, Object>>> callable = () -> {
+        Callable<ColumnarTable> callable = () -> {
+            ColumnarTable resultTable = new ColumnarTable();
+            for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
+                resultTable.addColumn(Column.create(selector.getOutputName(), selector.getDataType(), 1024));
+            }
+            List<Column> resultColumns = resultTable.getColumns();
+
             SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
             sqlGenerator.generate(selectStatement);
             String sql = sqlGenerator.getSQL();
-            return executeSql(sql);
+
+            log.info("Executing {}", sql);
+            try (Cursor<Record> cursor = dslContext.fetchLazy(sql)) {
+                for (Record record : cursor) {
+                    for (int i = 0; i < resultColumns.size(); i++) {
+                        Column column = resultColumns.get(i);
+                        column.addObject(record.get(i));
+                    }
+                }
+                return resultTable;
+            }
         };
 
         if (statementBuilder.hasSlidingWindowAggregation()) {
-            final Callable<List<Map<String, Object>>> delegate = callable;
-            callable = new Callable<List<Map<String, Object>>>() {
-                @Override
-                public List<Map<String, Object>> call() throws Exception {
-                    List<Map<String, Object>> result = delegate.call();
-                    // TODO: implement sliding window aggregation
-                    return result;
-                }
+            final Callable<ColumnarTable> delegate = callable;
+            callable = () -> {
+                ColumnarTable resultTable = delegate.call();
+                return SlidingWindowAggregator.aggregate(resultTable,
+                                                         TimestampSpec.COLUMN_ALIAS,
+                                                         query.getGroupBy(),
+                                                         interval.getWindow().getDuration(),
+                                                         // TODO: run aggregator upon all value fields
+                                                         query.getSelectors().get(0).getOutputName());
             };
         }
+
         try {
-            return callable.call();
+            ColumnarTable table = callable.call();
+            return null;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -241,23 +263,6 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         }
     }
 
-    private List<Map<String, Object>> executeSql(String sql) {
-        log.info("Executing {}", sql);
-
-        List<Record> records = dslContext.fetch(sql);
-
-        // PAY ATTENTION:
-        //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        //  this might be a bug of JDK
-        return (List<Map<String, Object>>) records.stream().map(record -> {
-            Map<String, Object> mapObject = new HashMap<>(record.fields().length);
-            for (Field<?> field : record.fields()) {
-                mapObject.put(field.getName(), record.get(field));
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
-    }
-
     @Override
     public List<String> distinct(Query query) {
         IdentifierExpression timestampCol = IdentifierExpression.of(query.getSchema().getTimestampSpec().getColumnName());
@@ -298,8 +303,24 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         return orderBy == null ? null : new OrderByClause(orderBy.getName(), orderBy.getOrder());
     }
 
-
     public LimitClause toLimitClause(Limit limit) {
         return limit == null ? null : new LimitClause(limit.getLimit(), limit.getOffset());
+    }
+
+    private List<Map<String, Object>> executeSql(String sql) {
+        log.info("Executing {}", sql);
+
+        List<Record> records = dslContext.fetch(sql);
+
+        // PAY ATTENTION:
+        //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        //  this might be a bug of JDK
+        return (List<Map<String, Object>>) records.stream().map(record -> {
+            Map<String, Object> mapObject = new HashMap<>(record.fields().length);
+            for (Field<?> field : record.fields()) {
+                mapObject.put(field.getName(), record.get(field));
+            }
+            return mapObject;
+        }).collect(Collectors.toList());
     }
 }

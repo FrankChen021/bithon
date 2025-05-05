@@ -26,7 +26,7 @@ import org.bithon.component.commons.expression.IDataType;
 public interface Column {
 
     /**
-     * Get columna name
+     * Get columnar name
      */
     String getName();
 

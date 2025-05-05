@@ -14,28 +14,41 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.pipeline;
 
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 7/4/25 10:17 am
  */
-public record CompositeKey(Object[] keys) {
+public record CompositeKey(Object[] keys, int precomputedHashCode) {
+
+    public CompositeKey(Object[] keys) {
+        this(keys, Arrays.hashCode(keys));
+    }
 
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof CompositeKey)) {
             return false;
         }
-        return Arrays.equals(keys, ((CompositeKey) other).keys);
+        return precomputedHashCode == ((CompositeKey) other).precomputedHashCode &&
+               Arrays.equals(keys, ((CompositeKey) other).keys);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(keys);
+        return precomputedHashCode;
+    }
+
+    public static CompositeKey from(List<Column> columns, int row) {
+        Object[] keys = new Object[columns.size()];
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            keys[i] = columns.get(i).getObject(row);
+        }
+        return new CompositeKey(keys);
     }
 }
-

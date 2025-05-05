@@ -19,6 +19,7 @@ package org.bithon.server.metric.expression.pipeline.step;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.CompositeKey;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class HashJoiner {
                                                 .toList();
 
         for (int rightRowIndex = 0; rightRowIndex < right.rowCount(); rightRowIndex++) {
-            CompositeKey key = extractKey(right, rightJoinColumns, rightRowIndex);
+            CompositeKey key = CompositeKey.from(rightJoinColumns, rightRowIndex);
             List<Integer> matchedLeftRows = hashTable.get(key);
             if (CollectionUtils.isEmpty(matchedLeftRows)) {
                 continue;
@@ -98,24 +99,11 @@ public class HashJoiner {
         return resultColumns;
     }
 
-    /**
-     * Extract keys from given columns at given row
-     */
-    private static CompositeKey extractKey(ColumnarTable table,
-                                           List<Column> columns,
-                                           int row) {
-        Object[] keys = new Object[columns.size()];
-        for (int i = 0, size = columns.size(); i < size; i++) {
-            keys[i] = columns.get(i).getObject(row);
-        }
-        return new CompositeKey(keys);
-    }
-
     private static Map<CompositeKey, List<Integer>> toHashTable(ColumnarTable table,
                                                                 List<Column> columns) {
         Map<CompositeKey, List<Integer>> hashTable = new HashMap<>();
         for (int i = 0, rows = table.rowCount(); i < rows; i++) {
-            CompositeKey key = extractKey(table, columns, i);
+            CompositeKey key = CompositeKey.from(columns, i);
             hashTable.computeIfAbsent(key, k -> new ArrayList<>())
                      .add(i);
         }
