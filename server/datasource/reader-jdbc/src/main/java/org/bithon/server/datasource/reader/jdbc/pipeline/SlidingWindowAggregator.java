@@ -14,13 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc;
+package org.bithon.server.datasource.reader.jdbc.pipeline;
 
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.CompositeKey;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -51,23 +53,30 @@ public class SlidingWindowAggregator {
      * @param keys    List of key field names used for grouping (e.g., ["clusterName"])
      * @param window  Size of the time window in seconds
      */
-    public static void aggregate(ColumnarTable table,
-                                 String tsField,
-                                 List<String> keys,
-                                 Duration window,
-                                 String valueField) {
+    public static ColumnarTable aggregate(ColumnarTable table,
+                                          String tsField,
+                                          List<String> keys,
+                                          Duration window,
+                                          List<String> inputFields) {
         Column tsColumn = table.getColumn(tsField);
-        Column valColumn = table.getColumn(valueField);
+
         List<Column> keyColumns = table.getColumns(keys);
 
         int rowCount = table.rowCount();
-        Column aggregatedColumn = Column.create(valueField, valColumn.getDataType(), rowCount);
+        List<Column> inputColumns = new ArrayList<>(inputFields.size());
+        List<Column> outputColumns = new ArrayList<>(inputFields.size());
+        for (String valueField : inputFields) {
+            Column valColumn = table.getColumn(valueField);
+            inputColumns.add(valColumn);
+            outputColumns.add(Column.create(valueField, valColumn.getDataType(), rowCount));
+        }
 
         CompositeKey prevKey = rowCount > 0 ? CompositeKey.from(keyColumns, 0) : null;
 
         // The starting window index of a group
         int windowStart = 0;
-        double sum = 0.0;
+        double[] sums = new double[inputFields.size()];
+
         for (int i = 0; i < rowCount; i++) {
             long ts = tsColumn.getLong(i);
             CompositeKey currKey = CompositeKey.from(keyColumns, i);
@@ -75,20 +84,28 @@ public class SlidingWindowAggregator {
             if (!currKey.equals(prevKey)) {
                 // Reset window if group changes
                 windowStart = i;
-                sum = 0.0;
+                Arrays.fill(sums, 0.0);
                 prevKey = currKey;
             }
 
             // Slide window start to maintain [ts - window, ts]
             while (windowStart < i && tsColumn.getLong(windowStart) <= ts - window.getSeconds()) {
-                sum -= valColumn.getDouble(windowStart);
+                for (int j = 0; j < inputColumns.size(); j++) {
+                    sums[j] -= inputColumns.get(j).getDouble(windowStart);
+                }
                 windowStart++;
             }
 
-            sum += valColumn.getDouble(i);
-            aggregatedColumn.addObject(sum);
+            for (int j = 0; j < inputColumns.size(); j++) {
+                sums[j] += inputColumns.get(j).getDouble(i);
+                outputColumns.get(j).addObject(sums[j]);
+            }
         }
 
-        table.addColumn(aggregatedColumn);
+        ColumnarTable resultTable = new ColumnarTable();
+        resultTable.addColumns(keyColumns);
+        resultTable.addColumn(tsColumn);
+        resultTable.addColumns(outputColumns);
+        return resultTable;
     }
 }

@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -32,9 +31,10 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
 import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
@@ -42,7 +42,6 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
-import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -53,14 +52,10 @@ import org.springframework.boot.autoconfigure.jooq.ExceptionTranslatorExecuteLis
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -117,99 +112,35 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public ColumnarTable timeseries(Query query) {
-        Interval interval = query.getInterval();
-        boolean hasSlidingWindowAggregation = interval.getWindow() != null &&
-                                              interval.getStep() != null
-                                              && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
-        List<OrderBy> orderBys;
-        Interval queryInterval;
-        if (hasSlidingWindowAggregation) {
-            // Sliding window aggregation requires the result set to be ordered by the group-by columns first
-            orderBys = query.getGroupBy()
-                            .stream()
-                            .map((groupBy) -> new OrderBy(groupBy, Order.asc))
-                            .collect(Collectors.toList());
-
-            // Extend the query interval so that the first records has correct sliding window aggregated result
-            queryInterval = Interval.of(interval.getStartTime().before(interval.getWindow().getDuration()),
-                                        interval.getEndTime(),
-                                        interval.getStep(),
-                                        interval.getWindow(),
-                                        interval.getTimestampColumn());
-        } else {
-            orderBys = new ArrayList<>();
-            queryInterval = query.getInterval();
-        }
-        orderBys.add(OrderBy.builder().name(TimestampSpec.COLUMN_ALIAS).build());
-
         SelectStatementBuilder statementBuilder = SelectStatementBuilder.builder()
                                                                         .schema(query.getSchema())
                                                                         .fields(query.getSelectors())
                                                                         .filter(query.getFilter())
-                                                                        .interval(queryInterval)
+                                                                        .interval(query.getInterval())
                                                                         .groupBy(query.getGroupBy())
-                                                                        .orderBy(orderBys)
+                                                                        .orderBy(query.getOrderBy())
                                                                         .offset(query.getOffset())
                                                                         .sqlDialect(this.sqlDialect);
+
         SelectStatement selectStatement = statementBuilder.build();
 
-        Callable<ColumnarTable> callable = () -> {
-            ColumnarTable resultTable = new ColumnarTable();
-            for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
-                resultTable.addColumn(Column.create(selector.getOutputName(), selector.getDataType(), 1024));
-            }
-            List<Column> resultColumns = resultTable.getColumns();
+        Interval interval = query.getInterval();
 
-            SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-            sqlGenerator.generate(selectStatement);
-            String sql = sqlGenerator.getSQL();
-
-            log.info("Executing {}", sql);
-            try (Cursor<Record> cursor = dslContext.fetchLazy(sql)) {
-                for (Record record : cursor) {
-                    for (int i = 0; i < resultColumns.size(); i++) {
-                        Column column = resultColumns.get(i);
-                        column.addObject(record.get(i));
-                    }
-                }
-                return resultTable;
-            }
-        };
-
-        if (hasSlidingWindowAggregation) {
-            final Duration window = queryInterval.getWindow().getDuration();
-            final Callable<ColumnarTable> delegate = callable;
-            callable = () -> {
-                ColumnarTable resultTable = delegate.call();
-
-                // window aggregation
-                SlidingWindowAggregator.aggregate(resultTable,
-                                                  TimestampSpec.COLUMN_ALIAS,
-                                                  query.getGroupBy(),
-                                                  window,
-                                                  // TODO: run aggregator upon all value fields
-                                                  query.getSelectors().get(0).getOutputName());
-
-                //
-                // The query interval is extended to include the first record of the sliding window
-                // which is not included in the result set. So we need to filter out some records record
-                long startingPoint = query.getInterval()
-                                          .getStartTime()
-                                          .floor(query.getInterval().getStep()).getSeconds();
-
-                BitSet mask = new BitSet(resultTable.rowCount());
-                Column tsColumn = resultTable.getColumn(TimestampSpec.COLUMN_ALIAS);
-                for (int i = 0, rowCount = resultTable.rowCount(); i < rowCount; i++) {
-                    long ts = tsColumn.getLong(i);
-                    mask.set(i, ts >= startingPoint);
-                }
-
-                return resultTable.filter(mask);
-            };
-        }
+        IQueryStep queryStep = JdbcPipelineBuilder.builder()
+                                                  .dslContext(dslContext)
+                                                  .dialect(this.sqlDialect)
+                                                  .selectStatement(selectStatement)
+                                                  .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
+                                                                        interval.getEndTime(),
+                                                                        interval.getStep(),
+                                                                        null,
+                                                                        null))
+                                                  .build();
 
         try {
-            return callable.call();
+            return queryStep.execute()
+                            .get()
+                            .getTable();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

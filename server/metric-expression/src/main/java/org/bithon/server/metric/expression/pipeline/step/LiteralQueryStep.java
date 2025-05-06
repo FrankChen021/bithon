@@ -19,9 +19,10 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.pipeline.DoubleColumn;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.pipeline.LongColumn;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 
 import java.util.List;
@@ -50,12 +51,12 @@ public class LiteralQueryStep implements IQueryStep {
 
         ColumnarTable table = new ColumnarTable();
         if (expression.getDataType() == IDataType.LONG) {
-            table.addColumn(new Column.LongColumn("value", new long[]{
+            table.addColumn(new LongColumn("value", new long[]{
                 // Convert to Number because it might be Customized Number
                 ((Number) expression.getValue()).longValue()
             }));
         } else if (expression.getDataType() == IDataType.DOUBLE) {
-            table.addColumn(new Column.DoubleColumn("value", new double[]{
+            table.addColumn(new DoubleColumn("value", new double[]{
                 // Convert to Number because it might be Customized Number
                 ((Number) expression.getValue()).doubleValue()
             }));

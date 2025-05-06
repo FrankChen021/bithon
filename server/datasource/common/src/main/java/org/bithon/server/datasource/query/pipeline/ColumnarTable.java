@@ -19,6 +19,7 @@ package org.bithon.server.datasource.query.pipeline;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,12 @@ public class ColumnarTable {
     public Column addColumn(Column column) {
         columns.put(column.getName(), column);
         return column;
+    }
+
+    public void addColumns(Collection<Column> columns) {
+        for (Column column : columns) {
+            this.columns.put(column.getName(), column);
+        }
     }
 
     public Column getColumn(String name) {
@@ -119,6 +126,19 @@ public class ColumnarTable {
         ColumnarTable newTable = new ColumnarTable();
         for (Map.Entry<String, Column> entry : this.columns.entrySet()) {
             newTable.addColumn(entry.getValue().filter(mask));
+        }
+        return newTable;
+    }
+
+    public ColumnarTable view(int[] selections, int length) {
+        if (length == rowCount()) {
+            // All rows are include
+            return this;
+        }
+
+        ColumnarTable newTable = new ColumnarTable();
+        for (Map.Entry<String, Column> entry : this.columns.entrySet()) {
+            newTable.addColumn(entry.getValue().view(selections, length));
         }
         return newTable;
     }

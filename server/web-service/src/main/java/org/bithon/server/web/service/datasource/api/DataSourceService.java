@@ -22,7 +22,7 @@ import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -59,7 +59,7 @@ public class DataSourceService {
         List<String> metrics = query.getSelectors()
                                     .stream()
                                     .filter((selectColumn) -> {
-                                        if (selectColumn.getSelectExpression() instanceof Expression) {
+                                        if (selectColumn.getSelectExpression() instanceof ExpressionNode) {
                                             // Support the metrics defined directly at the client side.
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;

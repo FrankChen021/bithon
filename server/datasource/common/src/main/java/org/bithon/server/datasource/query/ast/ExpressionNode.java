@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2022/11/3 22:18
  */
-public class Expression implements IASTNode {
+public class ExpressionNode implements IASTNode {
 
     private final Supplier<String> expression;
 
@@ -42,11 +42,11 @@ public class Expression implements IASTNode {
         return parsedExpression.getDataType();
     }
 
-    public Expression(String expression) {
+    public ExpressionNode(String expression) {
         this.expression = () -> expression;
     }
 
-    public Expression(ISchema schema, String expression) {
+    public ExpressionNode(ISchema schema, String expression) {
         this.expression = () -> expression;
         this.parsedExpression = ExpressionASTBuilder.builder()
                                                     .functions(Functions.getInstance())
@@ -54,7 +54,7 @@ public class Expression implements IASTNode {
                                                     .build(expression);
     }
 
-    public Expression(IExpression expression) {
+    public ExpressionNode(IExpression expression) {
         this.expression = () -> this.getParsedExpression().serializeToText();
         this.parsedExpression = expression;
     }

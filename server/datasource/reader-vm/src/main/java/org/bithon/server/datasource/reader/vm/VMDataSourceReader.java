@@ -30,7 +30,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
@@ -59,7 +59,7 @@ public class VMDataSourceReader implements IDataSourceReader {
     @Override
     public ColumnarTable timeseries(Query query) {
         Selector selector = query.getSelectors().get(0);
-        if (!(selector.getSelectExpression() instanceof Expression expression)) {
+        if (!(selector.getSelectExpression() instanceof ExpressionNode expression)) {
             throw new UnsupportedOperationException("Unsupported select expression " + selector.getSelectExpression());
         }
         if (!(expression.getParsedExpression() instanceof FunctionExpression functionExpression)) {

@@ -39,7 +39,7 @@ import org.bithon.server.datasource.column.ExpressionColumn;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.ast.Column;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.IASTNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
@@ -87,12 +87,9 @@ public class SelectStatementBuilder {
     private ISqlDialect sqlDialect;
 
     public boolean hasSlidingWindowAggregation() {
-        return false;
-        /*
         return interval.getWindow() != null &&
                interval.getStep() != null
                && interval.getWindow().getDuration().getSeconds() > interval.getStep().getSeconds();
-         */
     }
 
     public static SelectStatementBuilder builder() {
@@ -289,7 +286,7 @@ public class SelectStatementBuilder {
                     // Check the existence of the column in the selector list
                     boolean exists = false;
                     for (Selector selector : selectors) {
-                        if (selector.getSelectExpression() instanceof Expression selectExpression) {
+                        if (selector.getSelectExpression() instanceof ExpressionNode selectExpression) {
                             if (expressionColumn.getExpression().equals(selectExpression.getExpression())) {
                                 exists = true;
                                 break;
@@ -311,7 +308,7 @@ public class SelectStatementBuilder {
         //
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
-            if (selectExpression instanceof Expression expression) {
+            if (selectExpression instanceof ExpressionNode expression) {
                 IExpression parsedExpression = expression.getParsedExpression();
 
                 if (parsedExpression instanceof FunctionExpression functionExpression) {
@@ -332,8 +329,8 @@ public class SelectStatementBuilder {
         MacroExpressionSubstitution macroExpressionSubstitution = new MacroExpressionSubstitution(interval);
         for (Selector selector : this.selectors) {
             IASTNode selectExpression = selector.getSelectExpression();
-            if (selectExpression instanceof Expression) {
-                IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
+            if (selectExpression instanceof ExpressionNode) {
+                IExpression parsedExpression = ((ExpressionNode) selectExpression).getParsedExpression();
 
                 // Replace Macro expressions
                 // Don't merge this replacement with the following aggregator replacement
@@ -393,7 +390,7 @@ public class SelectStatementBuilder {
                     }
                 });
 
-                ((Expression) selectExpression).setParsedExpression(parsedExpression);
+                ((ExpressionNode) selectExpression).setParsedExpression(parsedExpression);
             }
         }
 
@@ -411,13 +408,13 @@ public class SelectStatementBuilder {
 
                 String col = identifierExpression.getIdentifier();
                 IExpression windowFunctionExpression = sqlDialect.firstWindowFunction(col, interval.getTotalSeconds());
-                pipeline.windowAggregation.getSelectorList().add(new Expression(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
+                pipeline.windowAggregation.getSelectorList().add(new ExpressionNode(windowFunctionExpression), aggregator.output, IDataType.DOUBLE);
                 pipeline.aggregation.getSelectorList()
                                     .add(new Column(aggregator.output), identifierExpression.getDataType())
                                     .setTag(true); // mark this column as output of an aggregator
             } else { // this aggregator function is NOT a window function
                 pipeline.aggregation.getSelectorList()
-                                    .add(new Expression(aggregator.aggregateFunction), aggregator.output, aggregator.aggregateFunction.getDataType())
+                                    .add(new ExpressionNode(aggregator.aggregateFunction), aggregator.output, aggregator.aggregateFunction.getDataType())
                                     .setTag(true); // mark this column as output of an aggregator
 
                 if (pipeline.windowAggregation != null) {
@@ -441,8 +438,8 @@ public class SelectStatementBuilder {
         if (pipeline.postAggregation != null) {
             for (Selector selector : this.selectors) {
                 IASTNode selectExpression = selector.getSelectExpression();
-                if (selectExpression instanceof Expression) {
-                    IExpression parsedExpression = ((Expression) selectExpression).getParsedExpression();
+                if (selectExpression instanceof ExpressionNode) {
+                    IExpression parsedExpression = ((ExpressionNode) selectExpression).getParsedExpression();
 
                     if (parsedExpression instanceof IdentifierExpression identifierExpression) {
                         // Try to eliminate Alias expression
@@ -452,7 +449,7 @@ public class SelectStatementBuilder {
                                                 .setTag(true);
                     } else {
                         pipeline.postAggregation.getSelectorList()
-                                                .add(new Expression(parsedExpression), selector.getOutput(), parsedExpression.getDataType())
+                                                .add(new ExpressionNode(parsedExpression), selector.getOutput(), parsedExpression.getDataType())
                                                 .setTag(true);
                     }
                 }
@@ -484,7 +481,7 @@ public class SelectStatementBuilder {
         SelectStatement selectStatement = pipeline.outermost;
         do {
             for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
-                if (selector.getSelectExpression() instanceof Expression expression) {
+                if (selector.getSelectExpression() instanceof ExpressionNode expression) {
                     IExpression parsedExpression = expression.getParsedExpression();
                     parsedExpression = sqlDialect.transform(this.schema, parsedExpression);
                     expression.setParsedExpression(parsedExpression);
@@ -521,16 +518,16 @@ public class SelectStatementBuilder {
 
         // Add Aggregated fields to the sliding window statement as WINDOW FUNCTION
         for (Aggregator aggregator : aggregators.aggregators) {
-            IExpression windowFunctionExpression = WindowFunctionExpression.builder()
-                                                                           .name(aggregator.aggregateFunction.getName())
-                                                                           .args(new ArrayList<>(Collections.singletonList(IdentifierExpression.of(aggregator.output))))
-                                                                           .partitionBy(partitionByExpression)
-                                                                           .orderBy(new OrderByElement(IdentifierExpression.of(TimestampSpec.COLUMN_ALIAS)))
-                                                                           .frame(new WindowFunctionFrame(LiteralExpression.ofLong(interval.getWindow().getDuration().getSeconds()), LiteralExpression.ofLong(0)))
-                                                                           .build();
+            WindowFunctionExpression windowFunctionExpression = WindowFunctionExpression.builder()
+                                                                                        .name(aggregator.aggregateFunction.getName())
+                                                                                        .args(new ArrayList<>(Collections.singletonList(IdentifierExpression.of(aggregator.output))))
+                                                                                        .partitionBy(partitionByExpression)
+                                                                                        .orderBy(new OrderByElement(IdentifierExpression.of(TimestampSpec.COLUMN_ALIAS)))
+                                                                                        .frame(new WindowFunctionFrame(LiteralExpression.ofLong(interval.getWindow().getDuration().getSeconds()), LiteralExpression.ofLong(0)))
+                                                                                        .build();
 
             slidingWindowAggregation.getSelectorList()
-                                    .add(new Expression(windowFunctionExpression), aggregator.output, aggregator.aggregateFunction.getDataType());
+                                    .add(new ExpressionNode(windowFunctionExpression), aggregator.output, aggregator.aggregateFunction.getDataType());
         }
 
         // The sliding window aggregation is performed on aggregated step which already on floored timestamp,

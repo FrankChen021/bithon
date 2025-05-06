@@ -20,7 +20,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.query.ast.Alias;
 import org.bithon.server.datasource.query.ast.Column;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
@@ -139,7 +139,7 @@ public class SqlGenerator {
         }
     }
 
-    private void generateExpression(Expression expression) {
+    private void generateExpression(ExpressionNode expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
         String serialized = new Expression2SqlSerializer(this.sqlDialect).serialize(parsedExpression);
@@ -156,7 +156,7 @@ public class SqlGenerator {
         }
         if (selector.getSelectExpression() instanceof Column column) {
             this.generateColumn(column);
-        } else if (selector.getSelectExpression() instanceof Expression expressionColumn) {
+        } else if (selector.getSelectExpression() instanceof ExpressionNode expressionColumn) {
             this.generateExpression(expressionColumn);
         } else if (selector.getSelectExpression() instanceof TextNode textNode) {
             this.generateText(textNode);

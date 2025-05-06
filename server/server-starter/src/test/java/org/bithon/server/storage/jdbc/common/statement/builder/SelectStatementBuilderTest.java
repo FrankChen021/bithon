@@ -39,7 +39,7 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.ast.Alias;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
@@ -138,7 +138,7 @@ public class SelectStatementBuilderTest {
     public void testSimpleAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("t"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(totalCount)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -170,7 +170,7 @@ public class SelectStatementBuilderTest {
     public void testExpressionInAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount*2)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -203,7 +203,7 @@ public class SelectStatementBuilderTest {
     public void testSimpleAggregation_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -244,7 +244,7 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -290,7 +290,7 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_GroupBy_NestedFunction() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "round(round(sum(responseTime)/sum(totalCount),2), 2)"),
                                                                                                                new Alias("avg"))))
@@ -337,7 +337,7 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -388,7 +388,7 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_HasGroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -450,7 +450,7 @@ public class SelectStatementBuilderTest {
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_NoGroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -499,7 +499,7 @@ public class SelectStatementBuilderTest {
     public void testPostFunctionExpression_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "round(sum(responseTime)/sum(totalCount), 2)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "round(sum(responseTime)/sum(totalCount), 2)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -543,11 +543,11 @@ public class SelectStatementBuilderTest {
     public void testDuplicateAggregations() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new Expression(schema,
-                                                                                                            "sum(count4xx) + sum(count5xx)"),
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema,
+                                                                                                                "sum(count4xx) + sum(count5xx)"),
                                                                                              new Alias("errorCount")),
-                                                                                new Selector(new Expression(schema,
-                                                                                                            "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"),
+                                                                                new Selector(new ExpressionNode(schema,
+                                                                                                                "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"),
                                                                                              new Alias("errorRate"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:22:00.000+0800"),
@@ -599,7 +599,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunction_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)"), new Alias("a"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -648,8 +648,8 @@ public class SelectStatementBuilderTest {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
                                                                 .fields(List.of(
-                                                                    new Selector(new Expression(schema, "first(activeThreads)"), new Alias("a")),
-                                                                    new Selector(new Expression(schema, "last(activeThreads)"), new Alias("b")))
+                                                                    new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
+                                                                    new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
                                                                 )
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
@@ -691,7 +691,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunction_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)"),
                                                                                                                new Alias(
@@ -748,7 +748,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunction_WithAggregator_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -806,7 +806,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunction_WithAggregator_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -855,7 +855,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunctionAfterAggregator() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalThreads) - first(activeThreads)"),
                                                                                                                new Alias(
@@ -917,7 +917,7 @@ public class SelectStatementBuilderTest {
     public void testWindowFunctionAfterAggregator_MySQL() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(mysql)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -976,8 +976,8 @@ public class SelectStatementBuilderTest {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Arrays.asList(
-                                                                    new Selector(new Expression(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
-                                                                    new Selector(new Expression(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
+                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
+                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
                                                                 ))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
@@ -1038,7 +1038,7 @@ public class SelectStatementBuilderTest {
     public void testCardinalityAggregation() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "cardinality(instance)"), new Alias("instanceCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -1078,7 +1078,7 @@ public class SelectStatementBuilderTest {
     public void testCountAggregation() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "count(1)"), new Alias("cnt"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -1118,13 +1118,11 @@ public class SelectStatementBuilderTest {
     public void testHumanReadableLiteral() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "count(1)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"),
                                                                                                                               new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
                                                                                                   new ComparisonExpression.LT(
@@ -1174,7 +1172,7 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseExpressionVariable() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -1232,13 +1230,11 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseAggregationAliasInFilter() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "cnt"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -1279,7 +1275,7 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseAggregationFilter() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -1321,7 +1317,7 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_FilterNotInTheSelectList_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
@@ -1381,7 +1377,7 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_FilterNotInTheSelectList_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
@@ -1441,8 +1437,8 @@ public class SelectStatementBuilderTest {
     public void testAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -1479,8 +1475,8 @@ public class SelectStatementBuilderTest {
     public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),

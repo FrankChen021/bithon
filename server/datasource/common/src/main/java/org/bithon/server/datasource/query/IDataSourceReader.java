@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com

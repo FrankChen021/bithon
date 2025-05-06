@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 
+import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
@@ -32,7 +33,10 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
  * @date 21/4/25 9:29 pm
  */
 public class WindowFunctionFrame implements IExpression {
+    @Getter
     private final IExpression start;
+
+    @Getter
     private final IExpression end;
 
     public WindowFunctionFrame(IExpression start, IExpression end) {
