@@ -90,9 +90,12 @@ public class TraceApi {
         profileEvents.put("transformation", transformResult.getDuration());
         profileEvents.put("buildTopo", buildTopo.getDuration());
 
-        return new GetTraceByIdResponse(transformResult.getResult(),
-                                        buildTopo.getResult(),
-                                        profileEvents);
+        return GetTraceByIdResponse.builder()
+                                   .totalSpans(getSpanList.getResult().size())
+                                   .profileEvents(profileEvents)
+                                   .spans(transformResult.getResult())
+                                   .topo(buildTopo.getResult())
+                                   .build();
     }
 
     @PostMapping("/api/trace/getTraceById/v2")
