@@ -22,7 +22,6 @@ import org.bithon.server.datasource.query.ast.Alias;
 import org.bithon.server.datasource.query.ast.Column;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.FromClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.GroupByClause;
@@ -142,7 +141,7 @@ public class SqlGenerator {
     private void generateExpression(ExpressionNode expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
-        String serialized = new Expression2SqlSerializer(this.sqlDialect).serialize(parsedExpression);
+        String serialized = new Expression2Sql(null, this.sqlDialect).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 

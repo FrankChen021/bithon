@@ -14,18 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc.dialect;
+package org.bithon.server.datasource.reader.jdbc.statement;
 
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
 
 /**
  * @author frank.chen021@outlook.com
@@ -96,6 +100,20 @@ public class Expression2Sql extends ExpressionSerializer {
             && expression.getArgs().isEmpty()) {
             // Some DBMSs require parameter on the 'count' function
             sb.append("count(1)");
+            return;
+        }
+
+        if (expression.getFunction() instanceof QueryStageFunctions.Cardinality) {
+            sb.append("count(distinct ");
+            expression.getArgs().get(0).serializeToText(this);
+            sb.append(")");
+            return;
+        }
+
+        if (expression.getFunction() instanceof QueryStageFunctions.GroupConcat) {
+            // Currently, only identifier expression is supported in the group concat aggregator
+            String column = ((IdentifierExpression) expression.getArgs().get(0)).getIdentifier();
+            sb.append(this.sqlDialect.stringAggregator(column));
             return;
         }
 

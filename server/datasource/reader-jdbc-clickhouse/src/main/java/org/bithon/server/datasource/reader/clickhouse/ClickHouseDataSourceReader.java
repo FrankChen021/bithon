@@ -21,8 +21,8 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
-import org.bithon.server.datasource.reader.jdbc.dialect.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
