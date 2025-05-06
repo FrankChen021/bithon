@@ -39,15 +39,15 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.ast.Alias;
-import org.bithon.server.datasource.query.ast.Expression;
-import org.bithon.server.datasource.query.ast.QueryStageFunctions;
-import org.bithon.server.datasource.query.ast.SelectStatement;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.datasource.reader.h2.H2SqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
+import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
 import org.bithon.server.datasource.reader.mysql.MySQLSqlDialect;
 import org.bithon.server.datasource.store.IDataStoreSpec;
@@ -124,7 +124,7 @@ public class SelectStatementBuilderTest {
     public static void setUp() {
         new QueryStageFunctions().afterPropertiesSet();
 
-        // Set the TimeZone to ensure that the test results are consistent
+        // Set the TimeZone to ensure that the test results are consistent on different machines with different TimeZones
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+8:00"));
     }
 
@@ -138,15 +138,16 @@ public class SelectStatementBuilderTest {
     public void testSimpleAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(totalCount)"), new Alias("t"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(totalCount)"), new Alias("t"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .schema(schema)
                                                                 .build();
 
+        // Generate and assert the SQL statement
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -156,25 +157,30 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+        Assertions.assertEquals("t", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     @Test
     public void testExpressionInAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount*2)"), new Alias("t"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -184,29 +190,33 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+        Assertions.assertEquals("t", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     @Test
     public void testSimpleAggregation_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800"),
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
-                                                                                      new IdentifierExpression(
-                                                                                          "timestamp")
+                                                                                      new IdentifierExpression("timestamp")
                                                                 ))
                                                                 .groupBy(List.of("appName"))
                                                                 .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
@@ -217,25 +227,34 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testPostAggregation_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -253,27 +272,36 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testPostAggregation_GroupBy_NestedFunction() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "round(round(sum(responseTime)/sum(totalCount),2), 2)"),
-                                                                                                               new Alias(
-                                                                                                                   "avg"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                                                               new Alias("avg"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -291,13 +319,25 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testPostAggregation_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -307,7 +347,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -327,13 +367,28 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_HasGroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -345,7 +400,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -374,13 +429,28 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testPostAggregation_TimeSeries_DifferentWindowAndInterval_NoGroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "sum(responseTime)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:05.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:05.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -391,7 +461,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -414,16 +484,22 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     @Test
     public void testPostFunctionExpression_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
-                                                                    schema,
-                                                                    "round(sum(responseTime)/sum(totalCount), 2)"),
-                                                                                                               new Alias("avg"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "round(sum(responseTime)/sum(totalCount), 2)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -431,7 +507,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -449,17 +525,29 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testDuplicateAggregations() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(List.of(new Selector(new Expression(schema,
-                                                                                                            "sum(count4xx) + sum(count5xx)"),
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema,
+                                                                                                                "sum(count4xx) + sum(count5xx)"),
                                                                                              new Alias("errorCount")),
-                                                                                new Selector(new Expression(schema,
-                                                                                                            "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"),
+                                                                                new Selector(new ExpressionNode(schema,
+                                                                                                                "round((sum(count4xx) + sum(count5xx))*100.0/sum(totalCount), 2)"),
                                                                                              new Alias("errorRate"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
                                                                                           "2024-07-26T21:22:00.000+0800"),
@@ -470,7 +558,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -490,19 +578,32 @@ public class SelectStatementBuilderTest {
                                     )
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("errorCount", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("errorRate", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testWindowFunction_GroupBy() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)"), new Alias("a"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "a"), new LiteralExpression.LongLiteral(5)))
@@ -510,7 +611,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -528,6 +629,18 @@ public class SelectStatementBuilderTest {
                                     HAVING "a" > 5
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("a", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
@@ -535,8 +648,8 @@ public class SelectStatementBuilderTest {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
                                                                 .fields(List.of(
-                                                                    new Selector(new Expression(schema, "first(activeThreads)"), new Alias("a")),
-                                                                    new Selector(new Expression(schema, "last(activeThreads)"), new Alias("b")))
+                                                                    new Selector(new ExpressionNode(schema, "first(activeThreads)"), new Alias("a")),
+                                                                    new Selector(new ExpressionNode(schema, "last(activeThreads)"), new Alias("b")))
                                                                 )
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
@@ -545,7 +658,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -557,13 +670,28 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "instanceName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("a", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("b", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testWindowFunction_TimeSeries() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)"),
                                                                                                                new Alias(
@@ -580,7 +708,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -599,13 +727,28 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "instanceName", "activeThreads", "_timestamp"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("activeThreads", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testWindowFunction_WithAggregator_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -619,7 +762,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -645,13 +788,25 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "timestamp" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("ratio", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testWindowFunction_WithAggregator_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(schema, "first(activeThreads)/sum(totalThreads)"), new Alias("ratio"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -663,7 +818,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -682,13 +837,25 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "timestamp" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("ratio", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testWindowFunctionAfterAggregator() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalThreads) - first(activeThreads)"),
                                                                                                                new Alias(
@@ -706,7 +873,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -732,21 +899,29 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "timestamp" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("daemon", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testWindowFunctionAfterAggregator_MySQL() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(mysql)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
-                                                                    "sum(totalThreads) - first(activeThreads)"),
-                                                                                                               new Alias(
-                                                                                                                   "daemon"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                    "sum(totalThreads) - first(activeThreads)"), new Alias("daemon"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("timestamp")
@@ -756,7 +931,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(mysql);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT `appName`,
@@ -782,6 +957,18 @@ public class SelectStatementBuilderTest {
                                     ORDER BY `timestamp` asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("daemon", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
@@ -789,8 +976,8 @@ public class SelectStatementBuilderTest {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
                                                                 .fields(Arrays.asList(
-                                                                    new Selector(new Expression(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
-                                                                    new Selector(new Expression(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
+                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{interval}"), new Alias("qps")),
+                                                                    new Selector(new ExpressionNode(schema, "sum(totalCount)/{instanceCount}"), new Alias("qpsPerInstance"))
                                                                 ))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
@@ -805,7 +992,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -827,21 +1014,35 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "appName" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(5, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("qps", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
+
+        Assertions.assertEquals("qpsPerInstance", selectStatement.getSelectorList().get(4).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(4).getDataType());
     }
 
     @Test
     public void testCardinalityAggregation() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
-                                                                    "cardinality(instance)"),
-                                                                                                               new Alias(
-                                                                                                                   "instanceCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                    "cardinality(instance)"), new Alias("instanceCount"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("appName")
@@ -851,7 +1052,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -862,19 +1063,26 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "appName" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceCount", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     @Test
     public void testCountAggregation() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "count(1)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder()
                                                                                 .name("appName")
@@ -884,7 +1092,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -895,35 +1103,36 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "appName" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("cnt", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     @Test
     public void testHumanReadableLiteral() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "count(1)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new LogicalExpression.AND(new ComparisonExpression.GT(
-                                                                    new IdentifierExpression("totalCount"),
-                                                                    new LiteralExpression.ReadableNumberLiteral(
-                                                                        HumanReadableNumber.of("1MiB"))),
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(new LogicalExpression.AND(new ComparisonExpression.GT(new IdentifierExpression("totalCount"),
+                                                                                                                              new LiteralExpression.ReadableNumberLiteral(HumanReadableNumber.of("1MiB"))),
                                                                                                   new ComparisonExpression.LT(
-                                                                                                      new IdentifierExpression(
-                                                                                                          "totalCount"),
+                                                                                                      new IdentifierExpression("totalCount"),
                                                                                                       new LiteralExpression.ReadableDurationLiteral(
-                                                                                                          HumanReadableDuration.parse(
-                                                                                                              "1h"))),
+                                                                                                          HumanReadableDuration.parse("1h"))),
                                                                                                   new ComparisonExpression.LT(
-                                                                                                      new IdentifierExpression(
-                                                                                                          "totalCount"),
+                                                                                                      new IdentifierExpression("totalCount"),
                                                                                                       new LiteralExpression.ReadablePercentageLiteral(
-                                                                                                          HumanReadablePercentage.of(
-                                                                                                              "50%")))
+                                                                                                          HumanReadablePercentage.of("50%")))
                                                                 ))
                                                                 .groupBy(List.of("appName"))
                                                                 .orderBy(OrderBy.builder()
@@ -934,7 +1143,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -945,6 +1154,15 @@ public class SelectStatementBuilderTest {
                                     ORDER BY "appName" asc
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("cnt", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
     }
 
     /**
@@ -954,7 +1172,7 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseExpressionVariable() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(responseTime*2)/sum(totalCount)"), new Alias("avg"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
@@ -972,29 +1190,37 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
-                                    SELECT *
+                                    SELECT "appName",
+                                           "instanceName",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
                                     FROM
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             CASE WHEN ( "totalCount" <> 0 ) THEN ( "_var0" / "totalCount" ) ELSE ( 0 ) END AS "avg"
-                                      FROM
-                                      (
-                                        SELECT "appName",
-                                               "instanceName",
-                                               sum("responseTime" * 2) AS "_var0",
-                                               sum("totalCount") AS "totalCount"
-                                        FROM "bithon_jvm_metrics"
-                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
-                                        GROUP BY "appName", "instanceName"
-                                      )
+                                             sum("responseTime" * 2) AS "_var0",
+                                             sum("totalCount") AS "totalCount"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND ("bithon_jvm_metrics"."appName" = 'bithon')
+                                      GROUP BY "appName", "instanceName"
                                     )
                                     WHERE "avg" > 0.2
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("avg", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     /**
@@ -1004,13 +1230,11 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseAggregationAliasInFilter() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("cnt"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .filter(new ComparisonExpression.GT(new IdentifierExpression(
                                                                     "cnt"), new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
@@ -1018,7 +1242,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1030,6 +1254,18 @@ public class SelectStatementBuilderTest {
                                     HAVING "cnt" > 1000
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("cnt", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     /**
@@ -1039,23 +1275,19 @@ public class SelectStatementBuilderTest {
     public void testPostFilter_UseAggregationFilter() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
-                                                                .interval(Interval.of(TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:22:00.000+0800"),
-                                                                                      TimeSpan.fromISO8601(
-                                                                                          "2024-07-26T21:32:00.000+0800")))
-                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression(
-                                                                    "totalCount"),
-                                                                                                    new LiteralExpression.LongLiteral(
-                                                                                                        1000)))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .filter(new ComparisonExpression.GT(new IdentifierExpression("totalCount"),
+                                                                                                    new LiteralExpression.LongLiteral(1000)))
                                                                 .groupBy(List.of("appName", "instanceName"))
                                                                 .schema(schema)
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1067,13 +1299,25 @@ public class SelectStatementBuilderTest {
                                     HAVING "totalCount" > 1000
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(h2Dialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
@@ -1089,40 +1333,51 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
-                                    SELECT *
+                                    SELECT "appName",
+                                           "instanceName",
+                                           "totalCount",
+                                           CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avgResponseTime"
                                     FROM
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             "totalCount",
-                                             CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avgResponseTime"
-                                      FROM
-                                      (
-                                        SELECT "appName",
-                                               "instanceName",
-                                               sum("totalCount") AS "totalCount",
-                                               sum("responseTime") AS "responseTime"
-                                        FROM "bithon_jvm_metrics"
-                                        WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
-                                        GROUP BY "appName", "instanceName"
-                                      )
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime") AS "responseTime"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
+                                      GROUP BY "appName", "instanceName"
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("avgResponseTime", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testPostFilter_FilterNotInTheSelectList_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Collections.singletonList(new Selector(new Expression(
+                                                                .fields(Collections.singletonList(new Selector(new ExpressionNode(
                                                                     schema,
                                                                     "sum(totalCount)"), new Alias("totalCount"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601(
@@ -1138,41 +1393,52 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
         Assertions.assertEquals("""
-                                    SELECT *
+                                    SELECT "appName",
+                                           "instanceName",
+                                           "totalCount",
+                                           "responseTime" / "totalCount" AS "avgResponseTime"
                                     FROM
                                     (
                                       SELECT "appName",
                                              "instanceName",
-                                             "totalCount",
-                                             "responseTime" / "totalCount" AS "avgResponseTime"
-                                      FROM
-                                      (
-                                        SELECT "appName",
-                                               "instanceName",
-                                               sum("totalCount") AS "totalCount",
-                                               sum("responseTime") AS "responseTime"
-                                        FROM "bithon_jvm_metrics"
-                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
-                                        GROUP BY "appName", "instanceName"
-                                      )
+                                             sum("totalCount") AS "totalCount",
+                                             sum("responseTime") AS "responseTime"
+                                      FROM "bithon_jvm_metrics"
+                                      WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                      GROUP BY "appName", "instanceName"
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("instanceName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("totalCount", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("avgResponseTime", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.DOUBLE, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     @Test
     public void testAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
                                                                 .groupBy(List.of("appName"))
@@ -1180,7 +1446,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "appName",
@@ -1191,14 +1457,26 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(3, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("t2", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
     }
 
     @Test
     public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new Expression(schema, "sum(clickedSum)"), new Alias("t1")),
-                                                                                      new Selector(new Expression(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -1209,7 +1487,7 @@ public class SelectStatementBuilderTest {
                                                                 .build();
 
         SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        selectStatement.accept(sqlGenerator);
+        sqlGenerator.generate(selectStatement);
 
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
@@ -1229,6 +1507,21 @@ public class SelectStatementBuilderTest {
                                     WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000720)
                                     """.trim(),
                                 sqlGenerator.getSQL());
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("t2", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
     }
 
     /**

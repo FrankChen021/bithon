@@ -60,11 +60,11 @@ public class Selector implements IASTNode {
         this(selectExpression, output == null ? null : new Alias(output), dataType);
     }
 
-    public Selector(Expression selectExpression, String output) {
+    public Selector(ExpressionNode selectExpression, String output) {
         this(selectExpression, output, selectExpression.getDataType());
     }
 
-    public Selector(Expression selectExpression, Alias output) {
+    public Selector(ExpressionNode selectExpression, Alias output) {
         this(selectExpression, output, selectExpression.getDataType());
     }
 
@@ -89,13 +89,5 @@ public class Selector implements IASTNode {
             return ((Column) selectExpression).getName();
         }
         throw new RuntimeException(StringUtils.format("no result name for result column [%s]", selectExpression));
-    }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        selectExpression.accept(visitor);
-        if (output != null) {
-            output.accept(visitor);
-        }
     }
 }

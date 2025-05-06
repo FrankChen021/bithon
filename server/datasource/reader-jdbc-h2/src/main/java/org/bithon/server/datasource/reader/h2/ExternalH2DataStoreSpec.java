@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.datasource.query.IDataSourceReader;
-import org.bithon.server.datasource.reader.jdbc.MetricJdbcReader;
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.datasource.store.ExternalDataStoreSpec;
 import org.bithon.server.datasource.store.IDataStoreSpec;
@@ -49,6 +49,6 @@ public class ExternalH2DataStoreSpec extends ExternalDataStoreSpec {
 
     @Override
     public IDataSourceReader createReader() {
-        return new MetricJdbcReader(store, this.properties, sqlDialectManager.getSqlDialect("h2"));
+        return new JdbcDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("h2"));
     }
 }

@@ -28,7 +28,6 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
-import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.context.annotation.Conditional;
@@ -187,19 +186,6 @@ public class TraceApi {
         }
 
         return responseBuilder.body(responseBodyStream);
-    }
-
-    /**
-     * Deprecated,
-     * use {@link org.bithon.server.web.service.datasource.api.IDataSourceApi#timeseriesV4(QueryRequest)} instead
-     */
-    @Deprecated
-    @PostMapping("/api/trace/getTraceDistribution")
-    public TimeSeriesQueryResult getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
-        return traceService.getTraceDistribution(request.getExpression(),
-                                                 TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-                                                 TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-                                                 request.getBucketCount());
     }
 
     /**

@@ -30,7 +30,7 @@ import org.bithon.component.commons.expression.function.IFunction;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.column.IColumn;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 
 import java.util.List;
@@ -72,7 +72,7 @@ public class AggregateFunctionColumn implements IColumn {
 
     @Override
     public Selector toSelector() {
-        return new Selector(new Expression(functionExpression), getName());
+        return new Selector(new ExpressionNode(functionExpression), getName());
     }
 
     /**

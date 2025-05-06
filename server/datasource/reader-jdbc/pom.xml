@@ -10,7 +10,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>datasource-reader-jdbc</artifactId>
-  <name>datasource-reader-jdbc</name>
+  <name>server-datasource-reader-jdbc</name>
   <description>Bithon Data Source over JDBC</description>
 
   <dependencies>
@@ -55,6 +55,12 @@
     <dependency>
       <groupId>org.bithon.component</groupId>
       <artifactId>component-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

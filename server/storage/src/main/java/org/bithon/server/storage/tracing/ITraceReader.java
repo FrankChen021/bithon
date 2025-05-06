@@ -22,11 +22,11 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Limit;
 import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,11 +42,11 @@ public interface ITraceReader extends IDataSourceReader {
                                  OrderBy orderBy,
                                  Limit limit);
 
-    List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                   List<IExpression> indexedTagFilters,
-                                                   Timestamp start,
-                                                   Timestamp end,
-                                                   long interval);
+    ColumnarTable getTraceDistribution(IExpression filter,
+                                       List<IExpression> indexedTagFilters,
+                                       Timestamp start,
+                                       Timestamp end,
+                                       long interval);
 
     int getTraceListSize(IExpression filter,
                          List<IExpression> indexedTagFilters,

@@ -29,8 +29,6 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.bithon.server.storage.tracing.reader.TraceFilterSplitter;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
-import org.bithon.server.web.service.common.bucket.TimeBucket;
-import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.impl.QueryFilter;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
@@ -39,8 +37,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,28 +168,4 @@ public class TraceService {
                                         orderBy,
                                         limit);
     }
-
-    public TimeSeriesQueryResult getTraceDistribution(String filterExpression,
-                                                      TimeSpan start,
-                                                      TimeSpan end,
-                                                      int bucketCount) {
-        TraceFilterSplitter splitter = new TraceFilterSplitter(this.summaryTableSchema, this.indexTableSchema);
-        splitter.split(QueryFilter.build(this.summaryTableSchema, filterExpression));
-
-        int interval = TimeBucket.calculate(start.getMilliseconds(), end.getMilliseconds(), bucketCount).getLength();
-        List<Map<String, Object>> dataPoints = traceReader.getTraceDistribution(splitter.getExpression(),
-                                                                                splitter.getIndexedTagFilters(),
-                                                                                start.toTimestamp(),
-                                                                                end.toTimestamp(),
-                                                                                interval);
-        List<String> metrics = Arrays.asList("count", "minResponse", "avgResponse", "maxResponse");
-        return TimeSeriesQueryResult.build(start,
-                                           end,
-                                           interval,
-                                           dataPoints,
-                                           "_timestamp",
-                                           Collections.emptyList(),
-                                           metrics);
-    }
-
 }

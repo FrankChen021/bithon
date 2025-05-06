@@ -35,9 +35,4 @@ public class Column implements IASTNode {
     public String toString() {
         return name;
     }
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

@@ -35,10 +35,4 @@ public class Alias implements IASTNode {
     public String toString() {
         return name;
     }
-
-
-    @Override
-    public void accept(IASTNodeVisitor visitor) {
-        visitor.visit(this);
-    }
 }
