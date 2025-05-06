@@ -170,13 +170,22 @@ public class LongColumn implements Column {
 
         @Override
         public Column filter(BitSet keep) {
-            BitSet originalKeep = new BitSet(this.length);
+            // Create a new BitSet for the original indices
+            BitSet originalKeep = new BitSet(delegate.size());
             for (int i = 0; i < this.length; i++) {
                 if (keep.get(i)) {
                     originalKeep.set(selections[i]);
                 }
             }
-            return delegate.filter(originalKeep);
+            
+            // Create a new column with the filtered data
+            LongColumn filtered = new LongColumn(this.getName(), keep.cardinality());
+            for (int i = 0; i < this.length; i++) {
+                if (keep.get(i)) {
+                    filtered.addLong(delegate.getLong(selections[i]));
+                }
+            }
+            return filtered;
         }
 
         @Override

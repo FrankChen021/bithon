@@ -157,13 +157,13 @@ public class StringColumn implements Column {
 
         @Override
         public Column filter(BitSet keep) {
-            BitSet originalKeep = new BitSet(length);
-            for (int i = 0; i < length; i++) {
+            StringColumn filtered = new StringColumn(this.getName(), keep.cardinality());
+            for (int i = 0; i < this.length; i++) {
                 if (keep.get(i)) {
-                    originalKeep.set(selections[i]);
+                    filtered.addString(delegate.getString(selections[i]));
                 }
             }
-            return delegate.filter(originalKeep);
+            return filtered;
         }
 
         @Override

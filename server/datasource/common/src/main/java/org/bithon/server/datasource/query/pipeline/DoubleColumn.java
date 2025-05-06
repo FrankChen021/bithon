@@ -163,13 +163,13 @@ public class DoubleColumn implements Column {
 
         @Override
         public Column filter(BitSet keep) {
-            BitSet originalKeep = new BitSet(this.length);
+            DoubleColumn filtered = new DoubleColumn(this.getName(), keep.cardinality());
             for (int i = 0; i < this.length; i++) {
                 if (keep.get(i)) {
-                    originalKeep.set(selections[i]);
+                    filtered.addDouble(delegate.getDouble(selections[i]));
                 }
             }
-            return delegate.filter(originalKeep);
+            return filtered;
         }
 
         @Override
