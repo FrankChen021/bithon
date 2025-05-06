@@ -115,56 +115,61 @@ public class TraceApi {
                                                                                         request.getStartTimeISO8601(),
                                                                                         request.getEndTimeISO8601())) {
 
-                if (iterator.hasNext()) {
-                    // write header
-                    jsonGenerator.writeStartArray();
-                    {
-                        jsonGenerator.writeString("traceId");
-                        jsonGenerator.writeString("spanId");
-                        jsonGenerator.writeString("parentSpanId");
-                        jsonGenerator.writeString("appName");
-                        jsonGenerator.writeString("instanceName");
-                        jsonGenerator.writeString("name");
-                        jsonGenerator.writeString("kind");
-                        jsonGenerator.writeString("startTimeUs");
-                        jsonGenerator.writeString("endTimeUs");
-                        jsonGenerator.writeString("costTimeUs");
-                        jsonGenerator.writeString("clazz");
-                        jsonGenerator.writeString("method");
-                        jsonGenerator.writeString("status");
-                        jsonGenerator.writeString("normalizedUri");
-                        jsonGenerator.writeString("tags");
-                    }
-                    jsonGenerator.writeEndArray();
-                    jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                // write header
+                jsonGenerator.writeStartArray();
+                {
+                    jsonGenerator.writeString("traceId");
+                    jsonGenerator.writeString("spanId");
+                    jsonGenerator.writeString("parentSpanId");
+                    jsonGenerator.writeString("appName");
+                    jsonGenerator.writeString("instanceName");
+                    jsonGenerator.writeString("name");
+                    jsonGenerator.writeString("kind");
+                    jsonGenerator.writeString("startTimeUs");
+                    jsonGenerator.writeString("endTimeUs");
+                    jsonGenerator.writeString("costTimeUs");
+                    jsonGenerator.writeString("clazz");
+                    jsonGenerator.writeString("method");
+                    jsonGenerator.writeString("status");
+                    jsonGenerator.writeString("normalizedUri");
+                    jsonGenerator.writeString("tags");
                 }
+                jsonGenerator.writeEndArray();
+                jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                jsonGenerator.flush();
 
+                int i = 0;
                 while (iterator.hasNext()) {
                     jsonGenerator.writeStartArray(); // Start JSON array for the span
                     {
                         TraceSpan span = iterator.next();
 
-                        jsonGenerator.writeObject(span.getTraceId());
-                        jsonGenerator.writeObject(span.getSpanId());
-                        jsonGenerator.writeObject(span.getParentSpanId());
-                        jsonGenerator.writeObject(span.getAppName());
-                        jsonGenerator.writeObject(span.getInstanceName());
+                        jsonGenerator.writeString(span.getTraceId());
+                        jsonGenerator.writeString(span.getSpanId());
+                        jsonGenerator.writeString(span.getParentSpanId());
+                        jsonGenerator.writeString(span.getAppName());
+                        jsonGenerator.writeString(span.getInstanceName());
 
-                        jsonGenerator.writeObject(span.getName());
-                        jsonGenerator.writeObject(span.getKind());
+                        jsonGenerator.writeString(span.getName());
+                        jsonGenerator.writeString(span.getKind());
 
-                        jsonGenerator.writeObject(span.getStartTime());
-                        jsonGenerator.writeObject(span.getEndTime());
-                        jsonGenerator.writeObject(span.getCostTime());
+                        jsonGenerator.writeNumber(span.getStartTime());
+                        jsonGenerator.writeNumber(span.getEndTime());
+                        jsonGenerator.writeNumber(span.getCostTime());
 
-                        jsonGenerator.writeObject(span.getClazz());
-                        jsonGenerator.writeObject(span.getMethod());
-                        jsonGenerator.writeObject(span.getStatus());
-                        jsonGenerator.writeObject(span.getNormalizedUri());
+                        jsonGenerator.writeString(span.getClazz());
+                        jsonGenerator.writeString(span.getMethod());
+                        jsonGenerator.writeString(span.getStatus());
+                        jsonGenerator.writeString(span.getNormalizedUri());
                         jsonGenerator.writeObject(span.getTags());
                     }
                     jsonGenerator.writeEndArray(); // End JSON array for the span
                     jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+
+                    if (++i % 100 == 0) {
+                        // Flush the output stream every 1000 spans to avoid memory issues
+                        jsonGenerator.flush();
+                    }
                     jsonGenerator.flush();
                 }
             } catch (IOException e) {
