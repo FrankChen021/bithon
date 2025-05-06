@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
-import org.bithon.server.datasource.reader.jdbc.MetricJdbcReader;
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -165,7 +165,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new MetricJdbcReader(dslContext, sqlDialect);
+        return new JdbcDataSourceReader(dslContext, sqlDialect);
     }
 
     protected void initialize(ISchema dataSource, MetricTable table) {

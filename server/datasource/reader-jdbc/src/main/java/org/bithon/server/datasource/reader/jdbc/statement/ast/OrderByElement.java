@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.reader.jdbc.statement.ast;
 
 
+import lombok.Getter;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IEvaluationContext;
 import org.bithon.component.commons.expression.IExpression;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
  * @author frank.chen021@outlook.com
  * @date 22/4/25 11:01 pm
  */
+@Getter
 public class OrderByElement implements IExpression {
     private final IExpression name;
     private final OrderByDirection direction;

@@ -45,6 +45,11 @@ public class IdentifierExpression implements IExpression {
         setIdentifier(identifier);
     }
 
+    public IdentifierExpression(String identifier, IDataType dataType) {
+        setIdentifier(identifier);
+        this.dataType = dataType;
+    }
+
     public void setQualifier(String qualifier) {
         this.qualifier = qualifier;
     }

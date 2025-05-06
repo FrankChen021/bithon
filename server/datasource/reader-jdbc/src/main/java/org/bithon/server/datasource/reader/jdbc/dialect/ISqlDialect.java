@@ -37,6 +37,7 @@ public interface ISqlDialect {
      * different DBMS has different functions to support time_floor semantics
      *
      * @param intervalSeconds in seconds
+     * @return an expression that returns the timestamp in seconds
      */
     String timeFloorExpression(IExpression timestampExpression, long intervalSeconds);
 

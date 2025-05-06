@@ -21,5 +21,4 @@ package org.bithon.server.datasource.query.ast;
  * @date 2022/9/4 15:03
  */
 public interface IASTNode {
-    void accept(IASTNodeVisitor visitor);
 }

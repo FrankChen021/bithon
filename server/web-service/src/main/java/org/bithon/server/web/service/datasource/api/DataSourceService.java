@@ -22,7 +22,7 @@ import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
@@ -59,7 +59,7 @@ public class DataSourceService {
         List<String> metrics = query.getSelectors()
                                     .stream()
                                     .filter((selectColumn) -> {
-                                        if (selectColumn.getSelectExpression() instanceof Expression) {
+                                        if (selectColumn.getSelectExpression() instanceof ExpressionNode) {
                                             // Support the metrics defined directly at the client side.
                                             // TODO: check if the fields involved in the expression are all metrics
                                             return true;
@@ -75,7 +75,8 @@ public class DataSourceService {
                                              .getDataStoreSpec()
                                              .createReader()) {
 
-            List<Map<String, Object>> result = reader.timeseries(query);
+            List<Map<String, Object>> result = reader.timeseries(query)
+                                                     .toRowFormat();
 
             // Convert to the result format and fills in missed data points
             return TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
@@ -92,7 +93,8 @@ public class DataSourceService {
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {
-            List<Map<String, Object>> result = reader.timeseries(query);
+            List<Map<String, Object>> result = reader.timeseries(query)
+                                                     .toRowFormat();
 
             TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
                                                                    query.getInterval().getEndTime(),

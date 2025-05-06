@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.column.IColumn;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 
 /**
@@ -30,7 +30,7 @@ import org.bithon.server.datasource.query.ast.Selector;
 public interface IAggregatableColumn extends IColumn {
     @JsonIgnore
     default Selector toSelector() {
-        return new Selector(new Expression(getAggregateFunctionExpression()), getName(), getDataType());
+        return new Selector(new ExpressionNode(getAggregateFunctionExpression()), getName(), getDataType());
     }
 
     @JsonIgnore

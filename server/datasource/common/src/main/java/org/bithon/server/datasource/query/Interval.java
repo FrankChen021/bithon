@@ -77,4 +77,14 @@ public class Interval {
     public int getTotalSeconds() {
         return (int) (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;
     }
+
+    public String toString() {
+        return "Interval{" +
+               "startTime=" + startTime.toISO8601() +
+               ", endTime=" + endTime.toISO8601() +
+               ", window=" + window +
+               ", step=" + step +
+               ", timestampColumn=" + timestampColumn +
+               '}';
+    }
 }

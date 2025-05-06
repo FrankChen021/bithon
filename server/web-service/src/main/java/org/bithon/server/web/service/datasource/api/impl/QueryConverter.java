@@ -33,7 +33,7 @@ import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.ast.Expression;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -72,7 +72,7 @@ public class QueryConverter {
         List<Selector> selectorList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
-                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
+                selectorList.add(new Selector(new ExpressionNode(schema, field.getExpression()), field.getName()));
                 continue;
             }
 
@@ -83,11 +83,11 @@ public class QueryConverter {
                     // Count aggregation has special input like count(), count(*), count(1),
                     // we need to treat them differently
                     if (StringUtils.isEmpty(field.getField())) {
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.ofLong(1L))), field.getName()));
+                        selectorList.add(new Selector(new ExpressionNode(new FunctionExpression(function, LiteralExpression.ofLong(1L))), field.getName()));
                     } else if ("*".equals(field.getField())) {
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
+                        selectorList.add(new Selector(new ExpressionNode(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
                     } else if (field.getField().matches("\\d+")) {
-                        selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.ofLong(field.getField()))), field.getName()));
+                        selectorList.add(new Selector(new ExpressionNode(new FunctionExpression(function, LiteralExpression.ofLong(field.getField()))), field.getName()));
                     } else {
                         // Treat the input as a column name
                         IColumn column = schema.getColumnByName(field.getField());
@@ -95,9 +95,9 @@ public class QueryConverter {
 
                         if (column instanceof ExpressionColumn) {
                             // Count on a built-in expression column
-                            selectorList.add(new Selector(new Expression(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
+                            selectorList.add(new Selector(new ExpressionNode(new FunctionExpression(function, LiteralExpression.AsteriskLiteral.INSTANCE)), field.getName()));
                         } else {
-                            selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
+                            selectorList.add(new Selector(new ExpressionNode(column.createAggregateFunctionExpression(function)), field.getName()));
                         }
                     }
                 } else {
@@ -105,7 +105,7 @@ public class QueryConverter {
                     IColumn column = schema.getColumnByName(columnName);
                     Preconditions.checkNotNull(column, "Column [%s] does not exist in the schema.", columnName);
 
-                    selectorList.add(new Selector(new Expression(column.createAggregateFunctionExpression(function)), field.getName()));
+                    selectorList.add(new Selector(new ExpressionNode(column.createAggregateFunctionExpression(function)), field.getName()));
                 }
             } else {
                 IColumn columnSpec = schema.getColumnByName(field.getField());
@@ -177,7 +177,7 @@ public class QueryConverter {
             if (field.getExpression() != null) {
                 // This is a client side passed post simple expression, NOT aggregation expression
                 // TODO: check if there's any aggregation function in the expression
-                selectorList.add(new Selector(new Expression(schema, field.getExpression()), field.getName()));
+                selectorList.add(new Selector(new ExpressionNode(schema, field.getExpression()), field.getName()));
 
                 continue;
             }
