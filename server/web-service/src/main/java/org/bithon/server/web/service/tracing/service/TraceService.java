@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
@@ -67,10 +68,10 @@ public class TraceService {
         return traceReader.getTraceByParentSpanId(parentSpanId);
     }
 
-    public List<TraceSpan> getTraceByTraceId(String txId,
-                                             String type,
-                                             String startTimeISO8601,
-                                             String endTimeISO8601) {
+    public CloseableIterator<TraceSpan> getTraceByTraceId(String txId,
+                                                          String type,
+                                                          String startTimeISO8601,
+                                                          String endTimeISO8601) {
         TimeSpan start = StringUtils.hasText(startTimeISO8601) ? TimeSpan.fromISO8601(startTimeISO8601) : null;
         TimeSpan end = StringUtils.hasText(endTimeISO8601) ? TimeSpan.fromISO8601(endTimeISO8601) : null;
 

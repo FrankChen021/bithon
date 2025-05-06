@@ -17,6 +17,7 @@
 package org.bithon.server.storage.tracing;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Limit;
@@ -32,7 +33,7 @@ import java.util.Map;
  * @date 2021/2/6 3:28 下午
  */
 public interface ITraceReader extends IDataSourceReader {
-    List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
+    CloseableIterator<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
                                  List<IExpression> indexedTagFilters,
