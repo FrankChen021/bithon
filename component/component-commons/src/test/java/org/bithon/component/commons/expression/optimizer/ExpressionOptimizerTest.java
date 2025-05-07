@@ -173,6 +173,9 @@ public class ExpressionOptimizerTest {
         Assertions.assertEquals("5", ast.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
+    /**
+     * 1 + 2 + 3 -> 6
+     */
     @Test
     public void test_ConstantFolding_FoldingList() {
         IExpression ast = new ArithmeticExpression.ADD(
@@ -187,6 +190,9 @@ public class ExpressionOptimizerTest {
         Assertions.assertEquals("6", ast.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
+    /**
+     * (1 - 2) + 3 -> 2
+     */
     @Test
     public void test_ConstantFolding_FoldingList_2() {
         IExpression ast = new ArithmeticExpression.ADD(
@@ -199,6 +205,43 @@ public class ExpressionOptimizerTest {
 
         ast = ExpressionOptimizer.optimize(ast);
         Assertions.assertEquals("2", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    /**
+     * test / 4 / 2 -> test / 8
+     */
+    @Test
+    public void test_ConstantFolding_ConsecutiveDivisor_1() {
+        IExpression ast = new ArithmeticExpression.DIV(
+            new ArithmeticExpression.DIV(
+                new IdentifierExpression("test"),
+                LiteralExpression.ofLong(4)
+            ),
+            LiteralExpression.ofLong(2)
+        );
+
+        ast = ExpressionOptimizer.optimize(ast);
+        Assertions.assertEquals("test / 8", ast.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    /**
+     * test / 4 / 2 / 5 -> test / 40
+     */
+    @Test
+    public void test_ConstantFolding_ConsecutiveDivisor_2() {
+        IExpression ast = new ArithmeticExpression.DIV(
+            new ArithmeticExpression.DIV(
+                new ArithmeticExpression.DIV(
+                    new IdentifierExpression("test"),
+                    LiteralExpression.ofLong(4)
+                ),
+                LiteralExpression.ofLong(2)
+            ),
+            LiteralExpression.ofLong(5)
+        );
+
+        ast = ExpressionOptimizer.optimize(ast);
+        Assertions.assertEquals("test / 40", ast.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     /**
