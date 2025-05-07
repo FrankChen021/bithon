@@ -8,7 +8,7 @@ spring:
       - application-controller.yml
       - application-receiver.yml
       - application-pipeline-to-local.yml
-      - application-storage-clickhouse.yml
+      - application-storage-h2.yml
       - application-webapp.yml
       - application-alerting.yml
       - application-security.yml

@@ -16,7 +16,11 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.Watch;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Limit;
@@ -27,15 +31,23 @@ import org.bithon.server.web.service.datasource.api.QueryRequest;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,17 +59,27 @@ import java.util.Map;
 public class TraceApi {
 
     private final TraceService traceService;
+    private final ObjectMapper objectMapper;
 
-    public TraceApi(TraceService traceService) {
+    public TraceApi(TraceService traceService, ObjectMapper objectMapper) {
         this.traceService = traceService;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
-        Watch<List<TraceSpan>> getSpanList = new Watch<>(() -> traceService.getTraceByTraceId(request.getId(),
-                                                                                              request.getType(),
-                                                                                              request.getStartTimeISO8601(),
-                                                                                              request.getEndTimeISO8601()));
+        Watch<List<TraceSpan>> getSpanList = new Watch<>(() -> {
+            try (CloseableIterator<TraceSpan> iterator = traceService.getTraceByTraceId(request.getId(),
+                                                                                        request.getType(),
+                                                                                        request.getStartTimeISO8601(),
+                                                                                        request.getEndTimeISO8601())) {
+                List<TraceSpan> spans = new ArrayList<>(128);
+                while (iterator.hasNext()) {
+                    spans.add(iterator.next());
+                }
+                return spans;
+            }
+        });
 
         Watch<List<TraceSpanBo>> transformResult = new Watch<>(() -> traceService.transformSpanList(getSpanList.getResult(), request.isAsTree()));
 
@@ -68,9 +90,105 @@ public class TraceApi {
         profileEvents.put("transformation", transformResult.getDuration());
         profileEvents.put("buildTopo", buildTopo.getDuration());
 
-        return new GetTraceByIdResponse(transformResult.getResult(),
-                                        buildTopo.getResult(),
-                                        profileEvents);
+        return GetTraceByIdResponse.builder()
+                                   .totalSpans(getSpanList.getResult().size())
+                                   .profileEvents(profileEvents)
+                                   .spans(transformResult.getResult())
+                                   .topo(buildTopo.getResult())
+                                   .build();
+    }
+
+    @PostMapping("/api/trace/getTraceById/v2")
+    public ResponseEntity<StreamingResponseBody> getTraceByIdV2(@Valid @RequestBody GetTraceByIdRequest request,
+                                                                HttpServletRequest httpRequest) {
+        // Check if client accepts gzip encoding
+        String acceptEncoding = httpRequest.getHeader(HttpHeaders.ACCEPT_ENCODING);
+        boolean useGzip = acceptEncoding != null && acceptEncoding.contains("gzip");
+
+        StreamingResponseBody responseBodyStream = os -> {
+            // Create the appropriate output stream based on Accept-Encoding
+            try (OutputStream outputStream = useGzip ? new GZIPOutputStream(os) : os;
+                 JsonGenerator jsonGenerator = objectMapper.getFactory()
+                                                           .createGenerator(outputStream)
+                                                           .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+
+                 CloseableIterator<TraceSpan> iterator = traceService.getTraceByTraceId(request.getId(),
+                                                                                        request.getType(),
+                                                                                        request.getStartTimeISO8601(),
+                                                                                        request.getEndTimeISO8601())) {
+
+                // write header
+                jsonGenerator.writeStartArray();
+                {
+                    jsonGenerator.writeString("traceId");
+                    jsonGenerator.writeString("spanId");
+                    jsonGenerator.writeString("parentSpanId");
+                    jsonGenerator.writeString("appName");
+                    jsonGenerator.writeString("instanceName");
+                    jsonGenerator.writeString("name");
+                    jsonGenerator.writeString("kind");
+                    jsonGenerator.writeString("startTimeUs");
+                    jsonGenerator.writeString("endTimeUs");
+                    jsonGenerator.writeString("costTimeUs");
+                    jsonGenerator.writeString("clazz");
+                    jsonGenerator.writeString("method");
+                    jsonGenerator.writeString("status");
+                    jsonGenerator.writeString("normalizedUri");
+                    jsonGenerator.writeString("tags");
+                }
+                jsonGenerator.writeEndArray();
+                jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+                jsonGenerator.flush();
+
+                int i = 0;
+                while (iterator.hasNext()) {
+                    jsonGenerator.writeStartArray(); // Start JSON array for the span
+                    {
+                        TraceSpan span = iterator.next();
+
+                        jsonGenerator.writeString(span.getTraceId());
+                        jsonGenerator.writeString(span.getSpanId());
+                        jsonGenerator.writeString(span.getParentSpanId());
+                        jsonGenerator.writeString(span.getAppName());
+                        jsonGenerator.writeString(span.getInstanceName());
+
+                        jsonGenerator.writeString(span.getName());
+                        jsonGenerator.writeString(span.getKind());
+
+                        jsonGenerator.writeNumber(span.getStartTime());
+                        jsonGenerator.writeNumber(span.getEndTime());
+                        jsonGenerator.writeNumber(span.getCostTime());
+
+                        jsonGenerator.writeString(span.getClazz());
+                        jsonGenerator.writeString(span.getMethod());
+                        jsonGenerator.writeString(span.getStatus());
+                        jsonGenerator.writeString(span.getNormalizedUri());
+                        jsonGenerator.writeObject(span.getTags());
+                    }
+                    jsonGenerator.writeEndArray(); // End JSON array for the span
+                    jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
+
+                    if (++i % 100 == 0) {
+                        // Flush the output stream every 100 spans to avoid too many buffered writes
+                        jsonGenerator.flush();
+                    }
+                }
+                jsonGenerator.flush();
+            } catch (IOException e) {
+                // Log the exception if needed
+                throw new RuntimeException("Error streaming trace spans", e);
+            }
+        };
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
+                                                                   .contentType(MediaType.parseMediaType("application/x-ndjson"));
+
+        // Add Content-Encoding header if using gzip
+        if (useGzip) {
+            responseBuilder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
+        }
+
+        return responseBuilder.body(responseBodyStream);
     }
 
     /**

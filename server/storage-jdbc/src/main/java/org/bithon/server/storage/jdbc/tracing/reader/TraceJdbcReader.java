@@ -30,6 +30,7 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
@@ -96,7 +97,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
+    public CloseableIterator<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
         SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                                                     .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
@@ -107,10 +108,14 @@ public class TraceJdbcReader implements ITraceReader {
         }
 
         // For spans coming from the same application instance, sort them by the start time
-        return sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
-                           Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                           Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
-                  .fetch(this::toTraceSpan);
+        Cursor<Record> cursor = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
+                                            Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                            Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
+                                   .fetchLazy();
+
+        return CloseableIterator.transform(cursor.iterator(),
+                                           this::toTraceSpan,
+                                           cursor);
     }
 
     @Override
