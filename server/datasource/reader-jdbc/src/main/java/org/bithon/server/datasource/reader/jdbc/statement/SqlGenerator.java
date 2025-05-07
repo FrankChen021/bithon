@@ -141,7 +141,7 @@ public class SqlGenerator {
     private void generateExpression(ExpressionNode expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
-        String serialized = new Expression2Sql(null, this.sqlDialect).serialize(parsedExpression);
+        String serialized = this.sqlDialect.createSqlSerializer(null).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 
@@ -230,7 +230,7 @@ public class SqlGenerator {
             if (expressionsSize > 1) {
                 sql.append('(');
             }
-            sql.append(new Expression2Sql(null, this.sqlDialect).serialize(expression));
+            sql.append(this.sqlDialect.createSqlSerializer(null).serialize(expression));
             if (expressionsSize > 1) {
                 sql.append(')');
             }

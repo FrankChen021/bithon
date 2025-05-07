@@ -242,6 +242,10 @@ public class ExpressionASTBuilder {
                     case ExpressionLexer.STARTSWITH -> new ConditionalExpression.StartsWith(left, right);
                     case ExpressionLexer.ENDSWITH -> new ConditionalExpression.EndsWith(left, right);
                     case ExpressionLexer.CONTAINS -> new ConditionalExpression.Contains(left, right);
+                    case ExpressionLexer.MATCH -> {
+                        InvalidExpressionException.throwIfTrue(!(right instanceof LiteralExpression), "The 2nd parameter of match must be a string constant");
+                        yield new ConditionalExpression.RegularExpressionMatchExpression(left, right);
+                    }
                     default -> throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
                 };
             }

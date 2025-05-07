@@ -21,15 +21,19 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
+ *
  * @author frank.chen021@outlook.com
  * @date 2021-10-26
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ISqlDialect {
+
+    Expression2Sql createSqlSerializer(String qualifier);
 
     String quoteIdentifier(String identifier);
 
@@ -66,6 +70,7 @@ public interface ISqlDialect {
     default IExpression transform(IExpression expression) {
         return transform(null, expression);
     }
+
     default IExpression transform(ISchema schema, IExpression expression) {
         return expression;
     }

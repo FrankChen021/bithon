@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.tracing.reader;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -55,7 +54,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             // NOTE:
             // instantiate the TagFilterSerializer for each loop
             // because it internally holds some states for each 'serialize' method call
-            query = query.and(new Expression2Sql(null, sqlDialect).serialize(filter));
+            query = query.and(this.sqlDialect.createSqlSerializer(null).serialize(filter));
         }
 
         if (query != null) {

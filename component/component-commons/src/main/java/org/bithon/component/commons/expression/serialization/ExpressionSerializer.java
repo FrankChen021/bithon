@@ -49,7 +49,9 @@ public class ExpressionSerializer {
     }
 
     public String serialize(IExpression expression) {
-        expression.serializeToText(this);
+        if (expression != null) {
+            expression.serializeToText(this);
+        }
         return sb.toString();
     }
 

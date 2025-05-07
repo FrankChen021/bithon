@@ -16,6 +16,8 @@
 
 package org.bithon.server.datasource.reader.clickhouse;
 
+import org.bithon.component.commons.expression.BinaryExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
@@ -24,12 +26,32 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
 public class ClickHouseSqlDialect implements ISqlDialect {
+
+    @Override
+    public Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this) {
+            @Override
+            public void serialize(BinaryExpression binaryExpression) {
+                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                    // TODO: optimize to startsWith/endsWith/like/eq which has better performance
+                    this.append("match(");
+                    this.serialize(binaryExpression.getLhs());
+                    this.append(',');
+                    this.serialize(binaryExpression.getRhs());
+                    this.append(')');
+                    return;
+                }
+                super.serialize(binaryExpression);
+            }
+        };
+    }
 
     @Override
     public String quoteIdentifier(String identifier) {

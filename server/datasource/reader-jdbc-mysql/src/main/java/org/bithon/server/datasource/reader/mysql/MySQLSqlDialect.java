@@ -41,6 +41,7 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByElement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 
@@ -53,6 +54,24 @@ import java.util.List;
  * @date 17/4/23 11:20 pm
  */
 public class MySQLSqlDialect implements ISqlDialect {
+
+    @Override
+    public Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this) {
+            @Override
+            public void serialize(BinaryExpression binaryExpression) {
+                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                    this.append("REGEXP_LIKE(");
+                    this.serialize(binaryExpression.getLhs());
+                    this.append(", ");
+                    this.serialize(binaryExpression.getRhs());
+                    this.append(")");
+                } else {
+                    super.serialize(binaryExpression);
+                }
+            }
+        };
+    }
 
     @Override
     public String quoteIdentifier(String identifier) {
@@ -170,7 +189,7 @@ public class MySQLSqlDialect implements ISqlDialect {
                                             LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
                 }
                 if (expression instanceof ConditionalExpression.HasToken) {
-                    return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
+                    return new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs());
                 }
                 return super.visit(expression);
             }

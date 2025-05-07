@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression;
+package org.bithon.server.datasource.expression;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -17,6 +17,7 @@
 package org.bithon.component.commons.expression;
 
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 
 import java.util.Set;
 
@@ -200,4 +201,26 @@ public abstract class ConditionalExpression extends BinaryExpression {
             return lhs.evaluate(context) == null;
         }
     }
+
+    public static class RegularExpressionMatchExpression extends ConditionalExpression {
+        public RegularExpressionMatchExpression(IExpression left, IExpression right) {
+            super("=~", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String serializeToText() {
+            return super.serializeToText();
+        }
+
+        @Override
+        public String serializeToText(IdentifierQuotaStrategy strategy) {
+            return super.serializeToText(strategy);
+        }
+    }
+
 }

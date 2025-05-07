@@ -55,7 +55,7 @@ public class Expression2Sql extends ExpressionSerializer {
         // Apply DB-related transformation on general AST
         IExpression transformed = sqlDialect.transform(null, expression);
 
-        return new Expression2Sql(qualifier, sqlDialect).serialize(transformed);
+        return sqlDialect.createSqlSerializer(qualifier).serialize(transformed);
     }
 
     protected final ISqlDialect sqlDialect;
@@ -125,14 +125,14 @@ public class Expression2Sql extends ExpressionSerializer {
      * The pattern in the 'contains' operator will be escaped if necessary.
      */
     @Override
-    public void serialize(BinaryExpression expression) {
-        if (expression instanceof ConditionalExpression.Contains) {
-            String pattern = ((LiteralExpression<?>) expression.getRhs()).asString();
+    public void serialize(BinaryExpression binaryExpression) {
+        if (binaryExpression instanceof ConditionalExpression.Contains) {
+            String pattern = ((LiteralExpression<?>) binaryExpression.getRhs()).asString();
 
-            super.serialize(new LikeOperator(expression.getLhs(),
+            super.serialize(new LikeOperator(binaryExpression.getLhs(),
                                              LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
         } else {
-            super.serialize(expression);
+            super.serialize(binaryExpression);
         }
     }
 }

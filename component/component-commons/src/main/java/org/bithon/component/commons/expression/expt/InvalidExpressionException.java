@@ -32,6 +32,12 @@ public class InvalidExpressionException extends RuntimeException {
         super(StringUtils.format(format, args));
     }
 
+    public static void throwIfTrue(boolean expression, String message, Object... args) {
+        if (expression) {
+            throw new InvalidExpressionException(message, args);
+        }
+    }
+
     public static InvalidExpressionException format(String expression,
                                                     Integer tokenStart,
                                                     Integer tokenEnd,

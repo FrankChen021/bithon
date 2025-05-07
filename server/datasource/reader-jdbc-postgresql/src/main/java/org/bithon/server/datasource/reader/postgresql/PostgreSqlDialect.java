@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.reader.postgresql;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -34,6 +35,7 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByElement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 
@@ -46,6 +48,22 @@ import java.util.List;
  * @date 17/4/23 11:20 pm
  */
 public class PostgreSqlDialect implements ISqlDialect {
+
+    @Override
+    public Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this) {
+            @Override
+            public void serialize(BinaryExpression binaryExpression) {
+                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                    this.serialize(binaryExpression.getLhs());
+                    sb.append(" ~ ");
+                    this.serialize(binaryExpression.getRhs());
+                } else {
+                    super.serialize(binaryExpression);
+                }
+            }
+        };
+    }
 
     @Override
     public String quoteIdentifier(String identifier) {
