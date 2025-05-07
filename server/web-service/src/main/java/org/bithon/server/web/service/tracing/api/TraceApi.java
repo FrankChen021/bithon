@@ -169,11 +169,11 @@ public class TraceApi {
                     jsonGenerator.writeRaw('\n'); // Using writeRaw for newline
 
                     if (++i % 100 == 0) {
-                        // Flush the output stream every 1000 spans to avoid memory issues
+                        // Flush the output stream every 100 spans to avoid too many buffered writes
                         jsonGenerator.flush();
                     }
-                    jsonGenerator.flush();
                 }
+                jsonGenerator.flush();
             } catch (IOException e) {
                 // Log the exception if needed
                 throw new RuntimeException("Error streaming trace spans", e);
