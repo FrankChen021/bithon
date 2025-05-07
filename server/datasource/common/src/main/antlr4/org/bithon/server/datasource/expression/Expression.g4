@@ -66,7 +66,7 @@ simplePredicate
   ;
 
 extraPredicate
-  : STARTSWITH | ENDSWITH | CONTAINS | HASTOKEN | MATCH
+  : STARTSWITH | ENDSWITH | CONTAINS | HASTOKEN | REGEX_MATCH | NOT_REGEX_MATCH
   ;
 
 notPredicate
@@ -107,7 +107,8 @@ EQ: '=';
 AND: A N D;
 OR: O R;
 IN: I N;
-MATCH: '=~';
+REGEX_MATCH: '=~';
+NOT_REGEX_MATCH: '!~';
 HASTOKEN: H A S T O K E N;
 ENDSWITH: E N D S W I T H;
 STARTSWITH: S T A R T S W I T H;

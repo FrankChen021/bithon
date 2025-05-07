@@ -187,12 +187,21 @@ public class MetricExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_MatchPredicateExpression() {
+    public void test_RegexMatchPredicateExpression() {
         MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName =~ '192.'})[5m] > 1");
         Assertions.assertEquals("instanceName =~ '192.'", expression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // hasToken require string literal
-        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName hasToken 'a', instanceName =~ ab})[5m] > 1"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName =~ ab})[5m] > 1"));
+    }
+
+    @Test
+    public void test_RegexNotMatchPredicateExpression() {
+        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName !~ '192.'})[5m] > 1");
+        Assertions.assertEquals("instanceName !~ '192.'", expression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
+
+        // hasToken require string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName !~ ab})[5m] > 1"));
     }
 
     @Test

@@ -364,10 +364,18 @@ public class ExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_MatchOperator() {
+    public void test_RegexMatchOperator() {
         Assertions.assertEquals("\"a\" =~ 'a'", ExpressionASTBuilder.builder().build("a =~ 'a'").serializeToText());
 
         // rhs must be a string literal
         Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("a =~ b"));
+    }
+
+    @Test
+    public void test_NotRegexMatchOperator() {
+        Assertions.assertEquals("\"a\" !~ 'a'", ExpressionASTBuilder.builder().build("a !~ 'a'").serializeToText());
+
+        // rhs must be a string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("a !~ b"));
     }
 }

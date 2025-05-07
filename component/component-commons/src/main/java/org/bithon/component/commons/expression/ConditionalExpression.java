@@ -223,4 +223,24 @@ public abstract class ConditionalExpression extends BinaryExpression {
         }
     }
 
+    public static class RegularExpressionNotMatchExpression extends ConditionalExpression {
+        public RegularExpressionNotMatchExpression(IExpression left, IExpression right) {
+            super("!~", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String serializeToText() {
+            return super.serializeToText();
+        }
+
+        @Override
+        public String serializeToText(IdentifierQuotaStrategy strategy) {
+            return super.serializeToText(strategy);
+        }
+    }
 }
