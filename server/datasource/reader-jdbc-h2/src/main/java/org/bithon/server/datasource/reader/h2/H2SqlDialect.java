@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Functions;
@@ -50,22 +51,25 @@ import java.util.List;
  * @date 17/4/23 11:20 pm
  */
 public class H2SqlDialect implements ISqlDialect {
-
+    
     @Override
     public Expression2Sql createSqlSerializer(String qualifier) {
         return new Expression2Sql(qualifier, this) {
+            private IExpression toRegexpLikeExpression(BinaryExpression expr) {
+                return new FunctionExpression("regexp_like",
+                                              expr.getLhs(),
+                                              expr.getRhs(),
+                                              // https://www.h2database.com/html/functions.html?utm_source=chatgpt.com#regexp_like
+                                              // Supports multiline and newline mode
+                                              LiteralExpression.ofString("nm"));
+            }
+
             @Override
             public void serialize(BinaryExpression binaryExpression) {
                 if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
-                    this.append("regexp_like(");
-                    this.serialize(binaryExpression.getLhs());
-                    this.append(',');
-                    this.serialize(binaryExpression.getRhs());
-                    this.append(',');
-                    // https://www.h2database.com/html/functions.html?utm_source=chatgpt.com#regexp_like
-                    // Supports multiline and newline mode
-                    this.append(" 'nm'");
-                    this.append(')');
+                    this.serialize(toRegexpLikeExpression(binaryExpression));
+                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                    this.serialize(new LogicalExpression.NOT(toRegexpLikeExpression(binaryExpression)));
                 } else {
                     super.serialize(binaryExpression);
                 }

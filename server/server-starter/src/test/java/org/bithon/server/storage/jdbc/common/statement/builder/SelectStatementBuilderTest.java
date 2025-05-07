@@ -1524,6 +1524,64 @@ public class SelectStatementBuilderTest {
         Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
     }
 
+    @Test
+    public void test_RegularExpressionMatch() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        {
+            SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
+            sqlGenerator.generate(selectStatement);
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                               "appName",
+                                               sumMerge("clickedSum") AS "t1"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((regexp_like("bithon_jvm_metrics"."appName", 'bithon.*', 'nm')) AND (NOT regexp_like("bithon_jvm_metrics"."instanceName", '192.*', 'nm')))
+                                        GROUP BY "appName", "_timestamp"
+                                        """.trim(),
+                                    sqlGenerator.getSQL());
+        }
+
+        {
+            SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
+            sqlGenerator.generate(selectStatement);
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                               "appName",
+                                               sumMerge("clickedSum") AS "t1"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((match("bithon_jvm_metrics"."appName", 'bithon.*')) AND (NOT match("bithon_jvm_metrics"."instanceName", '192.*')))
+                                        GROUP BY "appName", "_timestamp"
+                                        """.trim(),
+                                    sqlGenerator.getSQL());
+        }
+
+        {
+            SqlGenerator sqlGenerator = new SqlGenerator(mysql);
+            sqlGenerator.generate(selectStatement);
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS `_timestamp`,
+                                               `appName`,
+                                               sumMerge(`clickedSum`) AS `t1`
+                                        FROM `bithon_jvm_metrics`
+                                        WHERE (`timestamp` >= fromUnixTimestamp(1722000120)) AND (`timestamp` < fromUnixTimestamp(1722000720)) AND ((REGEXP_LIKE(`bithon_jvm_metrics`.`appName`, 'bithon.*')) AND (NOT REGEXP_LIKE(`bithon_jvm_metrics`.`instanceName`, '192.*')))
+                                        GROUP BY `appName`, `_timestamp`
+                                        """.trim(),
+                                    sqlGenerator.getSQL());
+        }
+    }
+
     /**
      * TODO: support in this case in future
      * A little complex case

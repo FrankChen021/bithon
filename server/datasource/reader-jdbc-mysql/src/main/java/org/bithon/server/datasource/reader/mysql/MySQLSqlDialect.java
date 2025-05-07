@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Functions;
@@ -58,14 +59,18 @@ public class MySQLSqlDialect implements ISqlDialect {
     @Override
     public Expression2Sql createSqlSerializer(String qualifier) {
         return new Expression2Sql(qualifier, this) {
+            private IExpression toRegexpLikeExpression(BinaryExpression expr) {
+                return new FunctionExpression("REGEXP_LIKE",
+                                              expr.getLhs(),
+                                              expr.getRhs());
+            }
+
             @Override
             public void serialize(BinaryExpression binaryExpression) {
                 if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
-                    this.append("REGEXP_LIKE(");
-                    this.serialize(binaryExpression.getLhs());
-                    this.append(", ");
-                    this.serialize(binaryExpression.getRhs());
-                    this.append(")");
+                    this.serialize(toRegexpLikeExpression(binaryExpression));
+                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                    this.serialize(new LogicalExpression.NOT(toRegexpLikeExpression(binaryExpression)));
                 } else {
                     super.serialize(binaryExpression);
                 }

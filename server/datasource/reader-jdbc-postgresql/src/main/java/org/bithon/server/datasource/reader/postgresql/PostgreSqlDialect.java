@@ -58,6 +58,12 @@ public class PostgreSqlDialect implements ISqlDialect {
                     this.serialize(binaryExpression.getLhs());
                     sb.append(" ~ ");
                     this.serialize(binaryExpression.getRhs());
+                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                    this.append("NOT (");
+                    this.serialize(binaryExpression.getLhs());
+                    sb.append(" ~ ");
+                    this.serialize(binaryExpression.getRhs());
+                    this.append(")");
                 } else {
                     super.serialize(binaryExpression);
                 }
