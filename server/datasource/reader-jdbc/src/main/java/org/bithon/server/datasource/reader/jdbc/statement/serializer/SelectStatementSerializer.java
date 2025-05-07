@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc.statement;
+package org.bithon.server.datasource.reader.jdbc.statement.serializer;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
@@ -39,14 +39,14 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:38
  */
-public class SqlGenerator {
+public class SelectStatementSerializer {
 
     private final StringBuilder sql = new StringBuilder(512);
     private final ISqlDialect sqlDialect;
     private int nestedSelect = 0;
     private String indent = "";
 
-    public SqlGenerator(ISqlDialect sqlDialect) {
+    public SelectStatementSerializer(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
     }
 
@@ -141,7 +141,7 @@ public class SqlGenerator {
     private void generateExpression(ExpressionNode expression) {
         IExpression parsedExpression = expression.getParsedExpression();
 
-        String serialized = new Expression2Sql(null, this.sqlDialect).serialize(parsedExpression);
+        String serialized = this.sqlDialect.createSqlSerializer(null).serialize(parsedExpression);
         this.sql.append(serialized);
     }
 
@@ -230,7 +230,7 @@ public class SqlGenerator {
             if (expressionsSize > 1) {
                 sql.append('(');
             }
-            sql.append(new Expression2Sql(null, this.sqlDialect).serialize(expression));
+            sql.append(this.sqlDialect.createSqlSerializer(null).serialize(expression));
             if (expressionsSize > 1) {
                 sql.append(')');
             }

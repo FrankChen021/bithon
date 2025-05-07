@@ -43,7 +43,6 @@ import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.IASTNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.HavingClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
@@ -54,6 +53,7 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TextNode;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionFrame;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 import java.util.ArrayList;
 import java.util.Collections;

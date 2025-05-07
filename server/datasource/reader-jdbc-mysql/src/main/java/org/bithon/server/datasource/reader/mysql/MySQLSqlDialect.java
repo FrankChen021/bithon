@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.IExpressionInDepthVisitor;
 import org.bithon.component.commons.expression.IExpressionVisitor;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Functions;
@@ -43,6 +44,7 @@ import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByElement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +55,28 @@ import java.util.List;
  * @date 17/4/23 11:20 pm
  */
 public class MySQLSqlDialect implements ISqlDialect {
+
+    @Override
+    public Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this) {
+            private IExpression toRegexpLikeExpression(BinaryExpression expr) {
+                return new FunctionExpression("REGEXP_LIKE",
+                                              expr.getLhs(),
+                                              expr.getRhs());
+            }
+
+            @Override
+            public void serialize(BinaryExpression binaryExpression) {
+                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                    this.serialize(toRegexpLikeExpression(binaryExpression));
+                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                    this.serialize(new LogicalExpression.NOT(toRegexpLikeExpression(binaryExpression)));
+                } else {
+                    super.serialize(binaryExpression);
+                }
+            }
+        };
+    }
 
     @Override
     public String quoteIdentifier(String identifier) {
@@ -170,7 +194,7 @@ public class MySQLSqlDialect implements ISqlDialect {
                                             LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
                 }
                 if (expression instanceof ConditionalExpression.HasToken) {
-                    return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
+                    return new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs());
                 }
                 return super.visit(expression);
             }

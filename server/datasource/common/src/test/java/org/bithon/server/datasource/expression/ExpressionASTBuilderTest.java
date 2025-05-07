@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression;
+package org.bithon.server.datasource.expression;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
@@ -23,7 +23,6 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
-import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -362,5 +361,21 @@ public class ExpressionASTBuilderTest {
         Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("1_."));
         Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("11._"));
         Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("11.2_"));
+    }
+
+    @Test
+    public void test_RegexMatchOperator() {
+        Assertions.assertEquals("\"a\" =~ 'a'", ExpressionASTBuilder.builder().build("a =~ 'a'").serializeToText());
+
+        // rhs must be a string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("a =~ b"));
+    }
+
+    @Test
+    public void test_NotRegexMatchOperator() {
+        Assertions.assertEquals("\"a\" !~ 'a'", ExpressionASTBuilder.builder().build("a !~ 'a'").serializeToText());
+
+        // rhs must be a string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> ExpressionASTBuilder.builder().build("a !~ b"));
     }
 }

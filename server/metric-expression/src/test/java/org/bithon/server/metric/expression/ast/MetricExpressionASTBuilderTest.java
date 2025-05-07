@@ -187,6 +187,24 @@ public class MetricExpressionASTBuilderTest {
     }
 
     @Test
+    public void test_RegexMatchPredicateExpression() {
+        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName =~ '192.'})[5m] > 1");
+        Assertions.assertEquals("instanceName =~ '192.'", expression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
+
+        // hasToken require string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName =~ ab})[5m] > 1"));
+    }
+
+    @Test
+    public void test_RegexNotMatchPredicateExpression() {
+        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName !~ '192.'})[5m] > 1");
+        Assertions.assertEquals("instanceName !~ '192.'", expression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
+
+        // hasToken require string literal
+        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName !~ ab})[5m] > 1"));
+    }
+
+    @Test
     public void test_NotPredicateExpression() {
         // not contains
         MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not contains 'a'})[5m] is null");
@@ -276,21 +294,21 @@ public class MetricExpressionASTBuilderTest {
         {
             MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu)[5m] > 10%[-7m]");
             Assertions.assertEquals("avg(jvm-metrics.cpu)[5m] > 10%[-7m]",
-                                expression.serializeToText(IdentifierQuotaStrategy.NONE));
+                                    expression.serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         // One filter
         {
             MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'})[5m] > 10%[-5m]");
             Assertions.assertEquals("avg(jvm-metrics.cpu{appName = \"a\"})[5m] > 10%[-5m]",
-                                expression.serializeToText(IdentifierQuotaStrategy.NONE));
+                                    expression.serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
         // Two filters
         {
             MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName contains 'a', instanceName contains '192.'})[5m] > 10%[-5m]");
             Assertions.assertEquals("avg(jvm-metrics.cpu{appName contains \"a\", instanceName contains \"192.\"})[5m] > 10%[-5m]",
-                                expression.serializeToText(IdentifierQuotaStrategy.NONE));
+                                    expression.serializeToText(IdentifierQuotaStrategy.NONE));
         }
 
 
@@ -298,7 +316,7 @@ public class MetricExpressionASTBuilderTest {
         {
             MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("count(   jvm-metrics.cpu{appName contains 'a', instanceName contains '192.'})[5m]  >  1");
             Assertions.assertEquals("count(jvm-metrics.cpu{appName contains \"a\", instanceName contains \"192.\"})[5m] > 1",
-                                expression.serializeToText());
+                                    expression.serializeToText());
         }
     }
 
@@ -330,29 +348,29 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_SingleQuoteInLabel() {
         Assertions.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0",
-                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0")
-                                                      .serializeToText());
+                                MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0")
+                                                          .serializeToText());
         Assertions.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0",
-                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = 'bithon-web-\\'local'})[1m] > 0").serializeToText());
+                                MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = 'bithon-web-\\'local'})[1m] > 0").serializeToText());
     }
 
     @Test
     public void test_DoubleQuoteInLabel() {
         Assertions.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0",
-                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0")
-                                                      .serializeToText());
+                                MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 0")
+                                                          .serializeToText());
 
         Assertions.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-\\\"local\"})[1m] > 0",
-                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-\\\"local\"})[1m] > 0")
-                                                      .serializeToText());
+                                MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-\\\"local\"})[1m] > 0")
+                                                          .serializeToText());
 
     }
 
     @Test
     public void test_NegativePercentage() {
         Assertions.assertEquals("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]",
-                            MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]")
-                                                      .serializeToText());
+                                MetricExpressionASTBuilder.parse("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > -5%[-1d]")
+                                                          .serializeToText());
     }
 
     @Test

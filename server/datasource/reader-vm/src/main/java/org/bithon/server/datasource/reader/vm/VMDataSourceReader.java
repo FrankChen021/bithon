@@ -115,12 +115,25 @@ public class VMDataSourceReader implements IDataSourceReader {
 
         ColumnarTable table = new ColumnarTable();
         Column tsColumn = table.addColumn(Column.create(TimestampSpec.COLUMN_ALIAS, IDataType.LONG, 256));
+        if (CollectionUtils.isNotEmpty(query.getGroupBy())) {
+            for (String group : query.getGroupBy()) {
+                table.addColumn(Column.create(group, IDataType.STRING, 256));
+            }
+        }
         Column valColumn = table.addColumn(Column.create(metric, IDataType.DOUBLE, 256));
 
         for (IVMQueryRpc.SeriesData series : response.getData().getResult()) {
             for (double[] valuesInRow : series.getValues()) {
-                // Return timestamp in SECONDS
+                // Fill dimension columns
+                for (String group : query.getGroupBy()) {
+                    String value = series.getMetric().getOrDefault(group, "");
+                    table.getColumn(group).addString(value);
+                }
+
+                // Fill timestamp (in SECONDS) column
                 tsColumn.addLong((long) valuesInRow[0]);
+
+                // Fill value column
                 valColumn.addDouble(valuesInRow[1]);
             }
         }

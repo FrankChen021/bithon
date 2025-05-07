@@ -17,12 +17,14 @@
 package org.bithon.server.datasource.reader.h2;
 
 import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.AbstractFunction;
 import org.bithon.component.commons.expression.function.Functions;
@@ -38,6 +40,7 @@ import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByElement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +51,31 @@ import java.util.List;
  * @date 17/4/23 11:20 pm
  */
 public class H2SqlDialect implements ISqlDialect {
+
+    @Override
+    public Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this) {
+            private IExpression toRegexpLikeExpression(BinaryExpression expr) {
+                return new FunctionExpression("regexp_like",
+                                              expr.getLhs(),
+                                              expr.getRhs(),
+                                              // https://www.h2database.com/html/functions.html?utm_source=chatgpt.com#regexp_like
+                                              // Supports multiline and newline mode
+                                              LiteralExpression.ofString("nm"));
+            }
+
+            @Override
+            public void serialize(BinaryExpression binaryExpression) {
+                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                    this.serialize(toRegexpLikeExpression(binaryExpression));
+                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                    this.serialize(new LogicalExpression.NOT(toRegexpLikeExpression(binaryExpression)));
+                } else {
+                    super.serialize(binaryExpression);
+                }
+            }
+        };
+    }
 
     @Override
     public String quoteIdentifier(String identifier) {
@@ -79,7 +107,7 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(\"%s\")", field);
     }
 
-    public static class UnixTimestampFunction extends AbstractFunction {
+    static class UnixTimestampFunction extends AbstractFunction {
         public UnixTimestampFunction() {
             super("UNIX_TIMESTAMP", IDataType.LONG, IDataType.LONG);
         }
@@ -136,7 +164,7 @@ public class H2SqlDialect implements ISqlDialect {
                                             LiteralExpression.ofString("%" + ((LiteralExpression<?>) expression.getRhs()).asString()));
                 }
                 if (expression instanceof ConditionalExpression.HasToken) {
-                    return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
+                    return new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs());
                 }
                 return super.visit(expression);
             }

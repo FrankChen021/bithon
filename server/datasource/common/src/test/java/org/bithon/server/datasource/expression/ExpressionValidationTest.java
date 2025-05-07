@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.common.expression;
+package org.bithon.server.datasource.expression;
 
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
@@ -25,10 +25,8 @@ import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.LongColumn;
 import org.bithon.server.datasource.column.StringColumn;
-import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

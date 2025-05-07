@@ -19,6 +19,8 @@ package org.bithon.server.datasource.reader.jdbc.statement.ast;
 import lombok.Data;
 import lombok.Getter;
 import org.bithon.server.datasource.query.ast.IASTNode;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.SelectStatementSerializer;
 
 /**
  * Take SQL as an example, this AST node represents a whole SELECT statement.
@@ -42,5 +44,11 @@ public class SelectStatement implements IASTNode {
 
     public void setOrderBy(OrderByClause... orderBy) {
         this.orderBy = orderBy;
+    }
+
+    public String toSQL(ISqlDialect sqlDialect) {
+        SelectStatementSerializer generator = new SelectStatementSerializer(sqlDialect);
+        generator.generate(this);
+        return generator.getSQL();
     }
 }

@@ -45,7 +45,6 @@ import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseSqlDialect;
 import org.bithon.server.datasource.reader.h2.H2SqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
@@ -145,10 +144,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        // Generate and assert the SQL statement
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            sum("totalCount") AS "t"
@@ -156,7 +151,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -179,9 +174,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            sum("totalCount" * 2) AS "t"
@@ -189,7 +181,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -215,9 +207,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
                                            "appName",
@@ -226,7 +215,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00')
                                     GROUP BY "appName", "_timestamp"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -253,9 +242,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -271,7 +257,7 @@ public class SelectStatementBuilderTest {
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -300,9 +286,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -318,7 +301,7 @@ public class SelectStatementBuilderTest {
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -346,9 +329,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
@@ -366,7 +346,7 @@ public class SelectStatementBuilderTest {
                                       GROUP BY "appName", "instanceName", "_timestamp"
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -399,9 +379,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
@@ -428,7 +405,7 @@ public class SelectStatementBuilderTest {
                                       WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000725)
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -460,9 +437,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            CASE WHEN ( "totalCount" <> 0 ) THEN ( "responseTime" / "totalCount" ) ELSE ( 0 ) END AS "avg"
@@ -483,7 +457,7 @@ public class SelectStatementBuilderTest {
                                       WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000725)
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -506,9 +480,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -524,7 +495,7 @@ public class SelectStatementBuilderTest {
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -557,9 +528,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -577,7 +545,7 @@ public class SelectStatementBuilderTest {
                                       GROUP BY "appName", "instanceName"
                                     )
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -610,9 +578,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -628,7 +593,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "instanceName", "a"
                                     HAVING "a" > 5
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -657,9 +622,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -669,7 +631,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
                                     GROUP BY "appName", "instanceName"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -707,9 +669,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
@@ -726,7 +685,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     GROUP BY "appName", "instanceName", "activeThreads", "_timestamp"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -761,9 +720,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -787,7 +743,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     ORDER BY "timestamp" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -817,9 +773,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -836,7 +789,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     ORDER BY "timestamp" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(clickHouseDialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -872,9 +825,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -898,7 +848,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     ORDER BY "timestamp" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -930,9 +880,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(mysql);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT `appName`,
                                            `instanceName`,
@@ -956,7 +903,7 @@ public class SelectStatementBuilderTest {
                                     ) AS `tbl1`
                                     ORDER BY `timestamp` asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(mysql));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -991,9 +938,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
@@ -1013,7 +957,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     ORDER BY "appName" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(5, selectStatement.getSelectorList().size());
@@ -1051,9 +995,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            count(distinct "instance") AS "instanceCount"
@@ -1062,7 +1003,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -1091,9 +1032,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            count(1) AS "cnt"
@@ -1102,7 +1040,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -1142,9 +1080,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            count(1) AS "cnt"
@@ -1153,7 +1088,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName"
                                     ORDER BY "appName" asc
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(2, selectStatement.getSelectorList().size());
@@ -1189,9 +1124,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -1208,7 +1140,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     WHERE "avg" > 0.2
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -1241,9 +1173,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -1253,7 +1182,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "instanceName"
                                     HAVING "cnt" > 1000
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -1286,9 +1215,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            "instanceName",
@@ -1298,7 +1224,7 @@ public class SelectStatementBuilderTest {
                                     GROUP BY "appName", "instanceName"
                                     HAVING "totalCount" > 1000
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -1332,9 +1258,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
@@ -1355,7 +1278,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -1392,9 +1315,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(clickHouseDialect);
-        sqlGenerator.generate(selectStatement);
-
         // NOTE that in the WHERE clause, the rhs is 5.0, however, our input is 5
         // This is because the avgResponse is defined as DOUBLE,
         // and there's a type conversion in 'ExpressionTypeValidator'
@@ -1415,7 +1335,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     WHERE "avgResponseTime" > 5.0
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(clickHouseDialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -1445,9 +1365,6 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "appName",
                                            sumMerge("clickedSum") AS "t1",
@@ -1456,7 +1373,7 @@ public class SelectStatementBuilderTest {
                                     WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
                                     GROUP BY "appName"
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(clickHouseDialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(3, selectStatement.getSelectorList().size());
@@ -1485,10 +1402,6 @@ public class SelectStatementBuilderTest {
                                                                 .groupBy(List.of("appName"))
                                                                 .schema(schema)
                                                                 .build();
-
-        SqlGenerator sqlGenerator = new SqlGenerator(h2Dialect);
-        sqlGenerator.generate(selectStatement);
-
         Assertions.assertEquals("""
                                     SELECT "_timestamp",
                                            "appName",
@@ -1506,7 +1419,7 @@ public class SelectStatementBuilderTest {
                                     )
                                     WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000720)
                                     """.trim(),
-                                sqlGenerator.getSQL());
+                                selectStatement.toSQL(h2Dialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());
@@ -1522,6 +1435,58 @@ public class SelectStatementBuilderTest {
 
         Assertions.assertEquals("t2", selectStatement.getSelectorList().get(3).getOutputName());
         Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
+    }
+
+    @Test
+    public void test_RegularExpressionMatch() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        {
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                               "appName",
+                                               sumMerge("clickedSum") AS "t1"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((regexp_like("bithon_jvm_metrics"."appName", 'bithon.*', 'nm')) AND (NOT regexp_like("bithon_jvm_metrics"."instanceName", '192.*', 'nm')))
+                                        GROUP BY "appName", "_timestamp"
+                                        """.trim(),
+                                    selectStatement.toSQL(h2Dialect));
+        }
+
+        {
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                               "appName",
+                                               sumMerge("clickedSum") AS "t1"
+                                        FROM "bithon_jvm_metrics"
+                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((match("bithon_jvm_metrics"."appName", 'bithon.*')) AND (NOT match("bithon_jvm_metrics"."instanceName", '192.*')))
+                                        GROUP BY "appName", "_timestamp"
+                                        """.trim(),
+                                    selectStatement.toSQL(clickHouseDialect));
+        }
+
+        {
+            Assertions.assertEquals("""
+                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS `_timestamp`,
+                                               `appName`,
+                                               sumMerge(`clickedSum`) AS `t1`
+                                        FROM `bithon_jvm_metrics`
+                                        WHERE (`timestamp` >= fromUnixTimestamp(1722000120)) AND (`timestamp` < fromUnixTimestamp(1722000720)) AND ((REGEXP_LIKE(`bithon_jvm_metrics`.`appName`, 'bithon.*')) AND (NOT REGEXP_LIKE(`bithon_jvm_metrics`.`instanceName`, '192.*')))
+                                        GROUP BY `appName`, `_timestamp`
+                                        """.trim(),
+                                    selectStatement.toSQL(mysql));
+        }
     }
 
     /**

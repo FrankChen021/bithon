@@ -35,7 +35,6 @@ import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
-import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -160,9 +159,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                                 .sqlDialect(this.sqlDialect)
                                                                 .build();
 
-        SqlGenerator sqlGenerator = new SqlGenerator(this.sqlDialect);
-        sqlGenerator.generate(selectStatement);
-        return fetch(sqlGenerator.getSQL(), query.getResultFormat());
+        return fetch(selectStatement.toSQL(this.sqlDialect),
+                     query.getResultFormat());
     }
 
     @Override
@@ -179,11 +177,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
-        SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.generate(selectStatement);
-        String sql = generator.getSQL();
 
-        return executeSql(sql);
+        return executeSql(selectStatement.toSQL(this.sqlDialect));
     }
 
     @Override
@@ -196,9 +191,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
-        SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.generate(selectStatement);
-        String sql = generator.getSQL();
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
 
         log.info("Executing {}", sql);
         Record record = dslContext.fetchOne(sql);
@@ -237,9 +231,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
-        SqlGenerator generator = new SqlGenerator(sqlDialect);
-        generator.generate(selectStatement);
-        String sql = generator.getSQL();
+
+        String sql = selectStatement.toSQL(this.sqlDialect);
 
         log.info("Executing {}", sql);
         List<Record> records = dslContext.fetch(sql);

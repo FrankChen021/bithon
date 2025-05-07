@@ -57,7 +57,7 @@ labelSelectorExpression
   ;
 
 labelPredicateExpression
-  : LT|LTE|GT|GTE|NE|EQ
+  : LT|LTE|GT|GTE|NE|EQ|REGEX_MATCH|NOT_REGEX_MATCH
   | NOT? (CONTAINS|STARTSWITH|ENDSWITH|HASTOKEN)
   ;
 
@@ -111,6 +111,8 @@ GT: '>';
 GTE: '>=';
 NE: '<>' | '!=';
 EQ: '=';
+REGEX_MATCH: '=~';
+NOT_REGEX_MATCH: '!~';
 IS: I S;
 IN: I N;
 NOT: N O T;

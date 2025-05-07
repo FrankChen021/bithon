@@ -94,7 +94,9 @@ public class ConstantFoldingOptimizer extends AbstractOptimizer {
 
     @Override
     public IExpression visit(ArithmeticExpression expression) {
-        super.visit(expression);
+        // Apply optimization on both LHS and RHS first
+        expression.setLhs(expression.getLhs().accept(this));
+        expression.setRhs(expression.getRhs().accept(this));
 
         // Turn 'a - (-b)' into 'a + b', where b is a literal, for further constant folding optimization
         if (expression.getOperator() == ArithmeticExpression.ArithmeticOperator.SUB
@@ -120,17 +122,23 @@ public class ConstantFoldingOptimizer extends AbstractOptimizer {
         return expression;
     }
 
-    public IExpression fold(IExpression expression) {
+    private IExpression fold(IExpression expression) {
         if (expression instanceof ArithmeticExpression) {
             ArithmeticExpression arithmeticExpression = (ArithmeticExpression) expression;
 
             IExpression lhs = fold(arithmeticExpression.getLhs());
             IExpression rhs = fold(arithmeticExpression.getRhs());
 
-            // Fold constants directly
             if (arithmeticExpression.getLhs() instanceof LiteralExpression
                 && arithmeticExpression.getRhs() instanceof LiteralExpression) {
+                // Both lhs and rhs are literal, do evaluation directly
                 return LiteralExpression.of(expression.evaluate(null));
+            }
+
+            // Handling consecutive divisions
+            IExpression optimized = foldConsecutiveDivision(arithmeticExpression);
+            if (optimized != null) {
+                return optimized;
             }
 
             if (!arithmeticExpression.getOperator().isAssociative()) {
@@ -138,7 +146,6 @@ public class ConstantFoldingOptimizer extends AbstractOptimizer {
                 return arithmeticExpression.getOperator()
                                            .newExpression(lhs, rhs);
             }
-
 
             //
             // Flatten and fold for associative ops (like +, *)
@@ -173,6 +180,40 @@ public class ConstantFoldingOptimizer extends AbstractOptimizer {
         }
 
         return expression;
+    }
+
+    /**
+     * raw expression: a / 4 / 8
+     * ast: DIV( DIV(a/4), 8)
+     * optimize to: DIV(a, 32)
+     */
+    private IExpression foldConsecutiveDivision(ArithmeticExpression arithmeticExpression) {
+        if (arithmeticExpression.getOperator() != ArithmeticExpression.ArithmeticOperator.DIV
+            || !(arithmeticExpression.getRhs() instanceof LiteralExpression)) {
+            return null;
+        }
+
+        // Check if LHS is also a division with a constant divisor
+        IExpression lhs = arithmeticExpression.getLhs();
+        IExpression rhs = arithmeticExpression.getRhs();
+
+        if (!(lhs instanceof ArithmeticExpression)
+            || ((ArithmeticExpression) lhs).getOperator() != ArithmeticExpression.ArithmeticOperator.DIV
+            || !(((ArithmeticExpression) lhs).getRhs() instanceof LiteralExpression)) {
+            return null;
+        }
+
+        ArithmeticExpression lhsDivExpr = (ArithmeticExpression) lhs;
+        LiteralExpression<?> divisor1 = (LiteralExpression<?>) lhsDivExpr.getRhs();
+        LiteralExpression<?> divisor2 = (LiteralExpression<?>) rhs;
+
+        // Combine the divisors by multiplying them
+        Number combinedDivisor = (Number) new ArithmeticExpression.MUL(divisor1, divisor2).evaluate(null);
+
+        return new ArithmeticExpression.DIV(
+            lhsDivExpr.getLhs(),
+            LiteralExpression.of(combinedDivisor)
+        );
     }
 
     /**

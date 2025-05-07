@@ -347,6 +347,14 @@ public class MetricExpressionASTBuilder {
                     checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The expected value of 'hasToken' predicate must be type of string literal.");
                     yield new ConditionalExpression.HasToken(identifier, expected);
                 }
+                case MetricExpressionParser.REGEX_MATCH -> {
+                    checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The rhs of '=~' predicate must be type of string literal.");
+                    yield new ConditionalExpression.RegularExpressionMatchExpression(identifier, expected);
+                }
+                case MetricExpressionParser.NOT_REGEX_MATCH -> {
+                    checkIfTrue(expected instanceof LiteralExpression.StringLiteral, "The rhs of '!~' predicate must be type of string literal.");
+                    yield new ConditionalExpression.RegularExpressionNotMatchExpression(identifier, expected);
+                }
                 default -> throw new RuntimeException("Unsupported predicate type: " + predicateType);
             };
         }

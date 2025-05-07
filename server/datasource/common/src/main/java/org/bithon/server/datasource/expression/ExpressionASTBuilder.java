@@ -196,14 +196,10 @@ public class ExpressionASTBuilder {
             TerminalNode op = (TerminalNode) ctx.getChild(1);
 
             return switch (op.getSymbol().getType()) {
-                case ExpressionLexer.ADD ->
-                    new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.SUB ->
-                    new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.MUL ->
-                    new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
-                case ExpressionLexer.DIV ->
-                    new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.ADD -> new ArithmeticExpression.ADD(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.SUB -> new ArithmeticExpression.SUB(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.MUL -> new ArithmeticExpression.MUL(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
+                case ExpressionLexer.DIV -> new ArithmeticExpression.DIV(ctx.getChild(0).accept(this), ctx.getChild(2).accept(this));
                 default -> throw new InvalidExpressionException("Unsupported arithmetic operator");
             };
         }
@@ -242,6 +238,14 @@ public class ExpressionASTBuilder {
                     case ExpressionLexer.STARTSWITH -> new ConditionalExpression.StartsWith(left, right);
                     case ExpressionLexer.ENDSWITH -> new ConditionalExpression.EndsWith(left, right);
                     case ExpressionLexer.CONTAINS -> new ConditionalExpression.Contains(left, right);
+                    case ExpressionLexer.REGEX_MATCH -> {
+                        InvalidExpressionException.throwIfTrue(!(right instanceof LiteralExpression), "The rhs of =~ operator must be a string constant");
+                        yield new ConditionalExpression.RegularExpressionMatchExpression(left, right);
+                    }
+                    case ExpressionLexer.NOT_REGEX_MATCH -> {
+                        InvalidExpressionException.throwIfTrue(!(right instanceof LiteralExpression), "The rhs of !~ operator must be a string constant");
+                        yield new ConditionalExpression.RegularExpressionNotMatchExpression(left, right);
+                    }
                     default -> throw new InvalidExpressionException("Unsupported type: %d", op.getSymbol().getType());
                 };
             }
@@ -388,18 +392,12 @@ public class ExpressionASTBuilder {
             TerminalNode literal = ctx.getChild(TerminalNode.class, 0);
 
             return switch (literal.getSymbol().getType()) {
-                case ExpressionLexer.INTEGER_LITERAL ->
-                    LiteralExpression.ofLong(Long.parseLong(literal.getText().replace("_", "")));
-                case ExpressionLexer.DECIMAL_LITERAL ->
-                    LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
-                case ExpressionLexer.STRING_LITERAL ->
-                    LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
-                case ExpressionLexer.BOOL_LITERAL ->
-                    LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
-                case ExpressionLexer.READABLE_SIZE_LITERAL ->
-                    LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
-                case ExpressionLexer.READABLE_PERCENTAGE_LITERAL ->
-                    LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
+                case ExpressionLexer.INTEGER_LITERAL -> LiteralExpression.ofLong(Long.parseLong(literal.getText().replace("_", "")));
+                case ExpressionLexer.DECIMAL_LITERAL -> LiteralExpression.ofDouble(Double.parseDouble(literal.getText().replace("_", "")));
+                case ExpressionLexer.STRING_LITERAL -> LiteralExpression.ofString(StringUtils.unEscape(TokenUtils.getUnQuotedString(literal.getSymbol()), '\\', '\''));
+                case ExpressionLexer.BOOL_LITERAL -> LiteralExpression.ofBoolean("true".equals(literal.getText().toLowerCase(Locale.ENGLISH)));
+                case ExpressionLexer.READABLE_SIZE_LITERAL -> LiteralExpression.of(HumanReadableNumber.of(literal.getText()));
+                case ExpressionLexer.READABLE_PERCENTAGE_LITERAL -> LiteralExpression.of(HumanReadablePercentage.of(literal.getText()));
 
                 default -> throw new InvalidExpressionException("unexpected right expression type");
             };
