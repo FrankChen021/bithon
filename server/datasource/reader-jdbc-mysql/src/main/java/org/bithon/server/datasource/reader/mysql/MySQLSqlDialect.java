@@ -42,9 +42,9 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
-import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByElement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 import java.util.ArrayList;
 import java.util.Arrays;

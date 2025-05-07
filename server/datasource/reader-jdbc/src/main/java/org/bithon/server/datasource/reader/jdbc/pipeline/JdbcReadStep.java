@@ -24,7 +24,6 @@ import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.SqlGenerator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.jooq.Cursor;
 import org.jooq.DSLContext;
@@ -53,9 +52,7 @@ public class JdbcReadStep implements IQueryStep {
         this.selectStatement = selectStatement;
         this.isScalar = isScalar;
 
-        SqlGenerator sqlGenerator = new SqlGenerator(sqlDialect);
-        sqlGenerator.generate(selectStatement);
-        this.sql = sqlGenerator.getSQL();
+        this.sql = selectStatement.toSQL(sqlDialect);
     }
 
     @Override

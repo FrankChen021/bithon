@@ -27,7 +27,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 /**
  * @author frank.chen021@outlook.com

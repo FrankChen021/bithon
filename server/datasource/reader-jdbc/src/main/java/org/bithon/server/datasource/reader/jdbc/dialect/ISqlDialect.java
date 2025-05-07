@@ -21,8 +21,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
-import org.bithon.server.datasource.reader.jdbc.statement.Expression2Sql;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
+import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS

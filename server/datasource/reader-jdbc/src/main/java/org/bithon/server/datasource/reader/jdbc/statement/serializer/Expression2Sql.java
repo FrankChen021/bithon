@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.jdbc.statement;
+package org.bithon.server.datasource.reader.jdbc.statement.serializer;
 
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
