@@ -671,8 +671,8 @@ public class SelectStatementBuilder {
         }
 
         return new IExpression[]{
-            new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
-            new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toTimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
+            new ComparisonExpression.GTE(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(start) : LiteralExpression.of(start.getMilliseconds() / 1000)),
+            new ComparisonExpression.LT(timestampColumn, useTimestampText ? sqlDialect.toISO8601TimestampExpression(end) : LiteralExpression.of(end.getMilliseconds() / 1000)),
             };
     }
 }

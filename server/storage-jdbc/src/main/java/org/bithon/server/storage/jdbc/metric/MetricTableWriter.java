@@ -71,7 +71,7 @@ class MetricTableWriter implements IOnceTableWriter {
             for (IInputRow inputRow : inputRowList) {
 
                 int index = 1;
-                statement.setObject(index++, new Timestamp(inputRow.getColAsLong("timestamp")).toLocalDateTime());
+                statement.setTimestamp(index++, new Timestamp(inputRow.getColAsLong("timestamp")));
 
                 // dimensions
                 for (Field<?> dimension : table.getDimensions()) {

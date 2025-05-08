@@ -36,6 +36,7 @@ public class RetryableExceptions {
                    || message.startsWith("Unexpected end of file from server")
                    // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
                    || message.startsWith("Error writing request body to server")
+                   || message.contains("The target server failed to respond")
                );
     }
 }

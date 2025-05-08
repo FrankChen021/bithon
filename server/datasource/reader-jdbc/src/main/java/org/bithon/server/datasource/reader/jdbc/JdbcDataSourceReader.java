@@ -172,8 +172,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         for (Selector selector : query.getSelectors()) {
             selectStatement.getSelectorList().add(selector.getSelectExpression(), selector.getOutput(), selector.getDataType());
         }
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
@@ -188,8 +188,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         SelectStatement selectStatement = new SelectStatement();
         selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         selectStatement.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
 
         String sql = selectStatement.toSQL(this.sqlDialect);
@@ -226,8 +226,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         SelectStatement selectStatement = new SelectStatement();
         selectStatement.getFrom().setExpression(new TableIdentifier(query.getSchema().getDataStoreSpec().getStore()));
         selectStatement.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
-        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getStartTime())));
-        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toTimestampExpression(query.getInterval().getEndTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
+        selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
         selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
