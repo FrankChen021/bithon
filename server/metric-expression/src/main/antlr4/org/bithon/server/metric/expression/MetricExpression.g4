@@ -39,7 +39,7 @@ dataSourceExpression
   ;
 
 metricNameExpression
-  : IDENTIFIER
+  : IDENTIFIER | COLON_IDENTIFIER
   ;
 
 labelExpression
@@ -143,6 +143,11 @@ NULL_LITERAL: N U L L;
 // Note that the dash character is allowed in the identifier
 IDENTIFIER
    : [A-Za-z_][A-Za-z_0-9-]*
+   ;
+
+// Allow colon in identifier
+COLON_IDENTIFIER
+   : [A-Za-z_:][A-Za-z_0-9-:]*
    ;
 
 // case insensitive
