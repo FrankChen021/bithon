@@ -57,7 +57,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
      * The column <code>bithon_application_instance.timestamp</code>. update
      * time
      */
-    public final TableField<BithonApplicationInstanceRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "update time");
+    public final TableField<BithonApplicationInstanceRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "update time");
 
     /**
      * The column <code>bithon_application_instance.appName</code>.

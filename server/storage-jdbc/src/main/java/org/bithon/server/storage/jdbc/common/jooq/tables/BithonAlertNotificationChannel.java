@@ -71,13 +71,13 @@ public class BithonAlertNotificationChannel extends TableImpl<BithonAlertNotific
      * The column <code>bithon_alert_notification_channel.created_at</code>.
      * create time
      */
-    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "create time");
+    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "create time");
 
     /**
      * The column <code>bithon_alert_notification_channel.updated_at</code>.
      * update time
      */
-    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "update time");
+    public final TableField<BithonAlertNotificationChannelRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "update time");
 
     private BithonAlertNotificationChannel(Name alias, Table<BithonAlertNotificationChannelRecord> aliased) {
         this(alias, aliased, null);

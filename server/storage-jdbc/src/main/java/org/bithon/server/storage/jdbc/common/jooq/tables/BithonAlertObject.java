@@ -92,12 +92,12 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     /**
      * The column <code>bithon_alert_object.created_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_object.updated_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_object.last_operator</code>.

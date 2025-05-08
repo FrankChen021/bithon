@@ -56,7 +56,7 @@ public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
     /**
      * The column <code>bithon_meta_schema.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonMetaSchemaRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Created Timestamp");
+    public final TableField<BithonMetaSchemaRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_meta_schema.name</code>. Schema Name
