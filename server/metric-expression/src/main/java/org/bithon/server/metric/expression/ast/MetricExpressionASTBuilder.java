@@ -94,7 +94,7 @@ public class MetricExpressionASTBuilder {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    public static IExpression build(MetricExpressionParser.AtomicMetricExpressionImplContext metricExpression) {
+    public static IExpression build(MetricExpressionParser.MetricAggregationExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 
@@ -128,12 +128,7 @@ public class MetricExpressionASTBuilder {
         }
 
         @Override
-        public IExpression visitAtomicMetricExpression(MetricExpressionParser.AtomicMetricExpressionContext ctx) {
-            return visitAtomicMetricExpressionImpl(ctx.atomicMetricExpressionImpl());
-        }
-
-        @Override
-        public IExpression visitAtomicMetricExpressionImpl(MetricExpressionParser.AtomicMetricExpressionImplContext ctx) {
+        public IExpression visitMetricAggregationExpression(MetricExpressionParser.MetricAggregationExpressionContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
@@ -192,6 +187,16 @@ public class MetricExpressionASTBuilder {
             expression.setGroupBy(groupBy);
             expression.setWindow(duration);
 
+            return expression;
+        }
+
+        @Override
+        public IExpression visitMetricFilterExpression(MetricExpressionParser.MetricFilterExpressionContext ctx) {
+            IExpression expression = ctx.metricExpression().accept(this);
+            if (!(expression instanceof MetricExpression metricExpression)) {
+                throw new InvalidExpressionException("The metric filter expression must be a metric expression");
+            }
+
             //
             // Metric Predicate
             //
@@ -221,12 +226,11 @@ public class MetricExpressionASTBuilder {
                                                        expected,
                                                        offset);
 
-                expression.setPredicate(predicate);
-                expression.setExpected(expected);
-                expression.setOffset(offset);
+                metricExpression.setPredicate(predicate);
+                metricExpression.setExpected(expected);
+                metricExpression.setOffset(offset);
             }
-
-            return expression;
+            return metricExpression;
         }
 
         private static PredicateEnum getPredicate(int predicateToken,
