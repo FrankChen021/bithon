@@ -64,7 +64,7 @@ bithon:
         type: mysql
 
         # Make sure the database has been created
-        url: jdbc:mysql://localhost:3306/bithon
+        url: jdbc:mysql://localhost:3306/bithon?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
         # com.mysql.cj.jdbc.Driver is the driver class name for MySQL 5
         driverClassName: com.mysql.cj.jdbc.Driver
         username: root
