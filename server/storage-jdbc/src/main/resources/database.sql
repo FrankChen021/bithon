@@ -64,7 +64,7 @@ CREATE TABLE `bithon_agent_setting`
     `settingName` varchar(64)  NOT NULL COMMENT '',
     `setting`      TEXT COMMENT 'Setting text',
     `format`      varchar(16)  NOT NULL COMMENT 'Format of the Setting, can be either "json" or "yaml"',
-    `updatedAt`   datetime     NOT NULL COMMENT '',
+    `updatedAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     UNIQUE KEY `key_appName` (`appName`, `settingName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

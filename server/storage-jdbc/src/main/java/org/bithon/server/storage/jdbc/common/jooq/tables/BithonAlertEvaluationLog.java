@@ -54,7 +54,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     /**
      * The column <code>bithon_alert_evaluation_log.timestamp</code>.
      */
-    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_evaluation_log.alert_id</code>. Alert ID

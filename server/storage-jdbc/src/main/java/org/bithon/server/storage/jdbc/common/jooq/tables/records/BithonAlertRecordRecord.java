@@ -139,7 +139,7 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
 
     /**
      * Setter for <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
     public void setNotificationStatus(Integer value) {
         set(8, value);
@@ -147,7 +147,7 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
 
     /**
      * Getter for <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
     public Integer getNotificationStatus() {
         return (Integer) get(8);

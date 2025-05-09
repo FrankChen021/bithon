@@ -54,7 +54,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonAgentSettingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Created Timestamp");
+    public final TableField<BithonAgentSettingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_agent_setting.appName</code>.
@@ -85,7 +85,7 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>.
      */
-    public final TableField<BithonAgentSettingRecord, LocalDateTime> UPDATEDAT = createField(DSL.name("updatedAt"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "");
+    public final TableField<BithonAgentSettingRecord, LocalDateTime> UPDATEDAT = createField(DSL.name("updatedAt"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "");
 
     private BithonAgentSetting(Name alias, Table<BithonAgentSettingRecord> aliased) {
         this(alias, aliased, null);

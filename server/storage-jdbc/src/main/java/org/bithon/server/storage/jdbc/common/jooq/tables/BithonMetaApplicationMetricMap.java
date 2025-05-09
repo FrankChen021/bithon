@@ -55,7 +55,7 @@ public class BithonMetaApplicationMetricMap extends TableImpl<BithonMetaApplicat
      * The column <code>bithon_meta_application_metric_map.timestamp</code>.
      * update time
      */
-    public final TableField<BithonMetaApplicationMetricMapRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "update time");
+    public final TableField<BithonMetaApplicationMetricMapRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "update time");
 
     /**
      * The column <code>bithon_meta_application_metric_map.application</code>.

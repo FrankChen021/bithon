@@ -54,7 +54,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     /**
      * The column <code>bithon_trace_span.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceSpanRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span.appName</code>.

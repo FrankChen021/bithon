@@ -91,13 +91,13 @@ public class BithonAlertRecord extends TableImpl<BithonAlertRecordRecord> {
     /**
      * The column <code>bithon_alert_record.created_at</code>. create timestamp
      */
-    public final TableField<BithonAlertRecordRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "create timestamp");
+    public final TableField<BithonAlertRecordRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "create timestamp");
 
     /**
      * The column <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
-    public final TableField<BithonAlertRecordRecord, Integer> NOTIFICATION_STATUS = createField(DSL.name("notification_status"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.inline("0", SQLDataType.INTEGER)), this, "-1:waiting ack，1:ACK");
+    public final TableField<BithonAlertRecordRecord, Integer> NOTIFICATION_STATUS = createField(DSL.name("notification_status"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.inline("0", SQLDataType.INTEGER)), this, "-1:waiting ack1:ACK");
 
     /**
      * The column <code>bithon_alert_record.notification_result</code>. JSON

@@ -54,7 +54,7 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
     /**
      * The column <code>bithon_event.timestamp</code>. reported Timestamp
      */
-    public final TableField<BithonEventRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "reported Timestamp");
+    public final TableField<BithonEventRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "reported Timestamp");
 
     /**
      * The column <code>bithon_event.appName</code>.

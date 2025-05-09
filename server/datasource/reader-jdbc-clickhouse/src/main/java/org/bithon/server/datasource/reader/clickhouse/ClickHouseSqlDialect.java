@@ -105,7 +105,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+    public IExpression toISO8601TimestampExpression(TimeSpan timeSpan) {
         return new FunctionExpression(TimeFunction.FromUnixTimestamp.INSTANCE, LiteralExpression.LongLiteral.ofLong(timeSpan.getMilliseconds() / 1000));
     }
 

@@ -59,7 +59,7 @@ bithon:
 
     providers:
       clickhouse:
-        url: jdbc:clickhouse://localhost:8123/bithon
+        url: jdbc:clickhouse://localhost:8123/bithon?use_server_time_zone=true
         username: default
         password:
         #

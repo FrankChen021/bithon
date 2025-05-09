@@ -56,7 +56,7 @@ public class BithonWebDashboard extends TableImpl<BithonWebDashboardRecord> {
     /**
      * The column <code>bithon_web_dashboard.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonWebDashboardRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Created Timestamp");
+    public final TableField<BithonWebDashboardRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_web_dashboard.name</code>. Name

@@ -56,7 +56,7 @@ class MappingTableJdbcWriter implements IOnceTableWriter {
             for (TraceIdMapping mapping : mappings) {
                 statement.setObject(1, mapping.getTraceId());
                 statement.setObject(2, mapping.getUserId());
-                statement.setObject(3, new Timestamp(mapping.getTimestamp()).toLocalDateTime());
+                statement.setTimestamp(3, new Timestamp(mapping.getTimestamp()));
                 statement.addBatch();
             }
 

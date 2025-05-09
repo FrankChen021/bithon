@@ -57,6 +57,9 @@ public class TimeSpan {
         return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
     }
 
+    /**
+     * @param l milliseconds
+     */
     public static TimeSpan of(long l) {
         return new TimeSpan(l);
     }

@@ -42,6 +42,7 @@ import org.bithon.server.alerting.manager.api.model.UpdateRuleRequest;
 import org.bithon.server.alerting.manager.biz.AlertCommandService;
 import org.bithon.server.alerting.manager.biz.BizException;
 import org.bithon.server.commons.json.JsonPayloadFormatter;
+import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
@@ -214,6 +215,7 @@ public class AlertRuleApi {
     @Data
     public static class GetRuleByFolderRequest {
         private String parentFolder;
+        private OrderBy orderBy;
     }
 
     @Data
@@ -227,7 +229,7 @@ public class AlertRuleApi {
         List<ListRuleDTO> ruleObject = storage.getRuleList(request.getParentFolder() == null ? "" : request.getParentFolder().trim(),
                                                            null,
                                                            null,
-                                                           null,
+                                                           request.getOrderBy(),
                                                            null);
 
         return GetRuleByFolderResponse.builder()

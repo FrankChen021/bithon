@@ -64,8 +64,8 @@ public class ClickHouseDataSourceReader extends JdbcDataSourceReader {
             dimension,
             query.getSchema().getDataStoreSpec().getStore(),
             condition,
-            sqlDialect.toTimestampExpression(start).serializeToText(),
-            sqlDialect.toTimestampExpression(end).serializeToText(),
+            sqlDialect.toISO8601TimestampExpression(start).serializeToText(),
+            sqlDialect.toISO8601TimestampExpression(end).serializeToText(),
             dimension,
             dimension);
 

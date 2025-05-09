@@ -98,7 +98,7 @@ public class H2SqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression toTimestampExpression(TimeSpan timeSpan) {
+    public IExpression toISO8601TimestampExpression(TimeSpan timeSpan) {
         return LiteralExpression.StringLiteral.ofString(timeSpan.toISO8601());
     }
 

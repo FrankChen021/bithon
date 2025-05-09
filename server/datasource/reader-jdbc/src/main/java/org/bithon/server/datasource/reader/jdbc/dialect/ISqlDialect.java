@@ -24,6 +24,8 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
+import java.sql.Timestamp;
+
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
  *
@@ -52,7 +54,11 @@ public interface ISqlDialect {
      */
     boolean needTableAlias();
 
-    IExpression toTimestampExpression(TimeSpan timeSpan);
+    IExpression toISO8601TimestampExpression(TimeSpan timeSpan);
+
+    default IExpression toISO8601TimestampExpression(Timestamp timestamp) {
+        return toISO8601TimestampExpression(TimeSpan.of(timestamp.getTime()));
+    }
 
     String stringAggregator(String field);
 

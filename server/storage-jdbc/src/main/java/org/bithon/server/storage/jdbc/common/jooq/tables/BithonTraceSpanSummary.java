@@ -55,7 +55,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
      * The column <code>bithon_trace_span_summary.timestamp</code>. Milli
      * Seconds
      */
-    public final TableField<BithonTraceSpanSummaryRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceSpanSummaryRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span_summary.appName</code>.

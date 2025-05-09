@@ -54,7 +54,7 @@ public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
     /**
      * The column <code>bithon_trace_mapping.timestamp</code>. Milli Seconds
      */
-    public final TableField<BithonTraceMappingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Milli Seconds");
+    public final TableField<BithonTraceMappingRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_mapping.user_tx_id</code>. user side

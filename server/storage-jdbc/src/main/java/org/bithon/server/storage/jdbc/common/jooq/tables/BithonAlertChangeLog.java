@@ -83,7 +83,7 @@ public class BithonAlertChangeLog extends TableImpl<BithonAlertChangeLogRecord> 
      * The column <code>bithon_alert_change_log.created_at</code>. Create
      * timestamp
      */
-    public final TableField<BithonAlertChangeLogRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Create timestamp");
+    public final TableField<BithonAlertChangeLogRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Create timestamp");
 
     private BithonAlertChangeLog(Name alias, Table<BithonAlertChangeLogRecord> aliased) {
         this(alias, aliased, null);

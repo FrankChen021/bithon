@@ -77,13 +77,13 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * The column <code>bithon_alert_state.last_evaluated_at</code>. The last
      * time the alert is evaluated
      */
-    public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_EVALUATED_AT = createField(DSL.name("last_evaluated_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "The last time the alert is evaluated");
+    public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_EVALUATED_AT = createField(DSL.name("last_evaluated_at"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "The last time the alert is evaluated");
 
     /**
      * The column <code>bithon_alert_state.update_at</code>. when the record is
      * updated
      */
-    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "when the record is updated");
+    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "when the record is updated");
 
     /**
      * The column <code>bithon_alert_state.payload</code>. JSON formatted
