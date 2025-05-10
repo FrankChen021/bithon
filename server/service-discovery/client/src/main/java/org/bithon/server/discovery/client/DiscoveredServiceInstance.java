@@ -39,7 +39,8 @@ class DiscoveredServiceInstance {
     }
 
     public String getURL() {
-        return contextPath == null ? "http://" + host + ":" + port : "http://" + host + ":" + port + contextPath;
+        String normalizedContextPath = (contextPath != null && !contextPath.startsWith("/")) ? "/" + contextPath : contextPath;
+        return normalizedContextPath == null ? "http://" + host + ":" + port : "http://" + host + ":" + port + normalizedContextPath;
     }
 
     @Override
