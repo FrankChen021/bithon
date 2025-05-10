@@ -73,6 +73,23 @@ Once the docker runs, you can visit http://localhost:9897 to see the UI and the 
 > In production deployment, you should properly configure the server.
 > You can take a look at [example configuration files](../server/server-starter/src/main/resources) for reference.
 
+## Run from docker-compose
+
+This docker-compose.yml file integrates the backend service and front service as well as ClickHouse as storage.
+You can run the following command to start the whole system.
+
+```bash
+docker-compose -f docker/docker-compose.yml up
+```
+
+Once all services in the docker-compose are up, you can visit http://localhost:9900 to access UI.
+And by default, the application itself is configured to be self-monitored, you will see the metrics/tracing of the application itself.
+
+> NOTE
+> 1. The docker-compose.yml file pulls images from the DockerHub by default. You can change the image name to the one you built locally.
+> 2. http://localhost:9900 is the address of the front service configured in the docker-compose.yml file if you don't make any changes to the file.
+> You can customize the port number by your need.
+
 ## Integrate the agent in your image
 
 ### Package the agent in your image

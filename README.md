@@ -31,24 +31,16 @@ The above pic illustrates the main components of this project, including:
 
 # Preview
 
-You can use the docker images in the Docker Hub to get a preview.
+You can use the [docker-compose.yml](docker/docker-compose.yml) to start the whole system for preview.
 
-1. Start the backend service
-   ```bash
-   docker run --network=host -e bithon_application_env=local -e JAVA_OPTS="-Dspring.profiles.active=all-in-one" -it bithon/server:latest
-   ``` 
+```bash
+docker-compose -f docker/docker-compose.yml up
+```
 
-   This starts the backend services with all-in-one profile, which includes all the services like tracing, event, metric, ctrl and alerting, using H2 database as back end storage.
-   And also the backend services is monitored by itself, you can see the metrics and tracing logs of the backend services itself.
+Once all services in the docker-compose are up, you can visit http://localhost:9900 to access UI.
+And by default, the application itself is configured to be self-monitored, you will see the metrics/tracing of the application itself.
 
-2. Start the front-end service
 
-   ```bash
-   docker run --network=host -e NEXT_PUBLIC_BITHON_API_SERVER_URL=http://localhost:9897 -itd bithon/web-app:latest
-   ```
-   Change the environment variable `NEXT_PUBLIC_BITHON_API_SERVER_URL` to point to your own backend server if needed.
-
-After the above steps, visit [http://localhost:3000](http://localhost:3000) to experience.
 
 ## Demo
 A demo is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.

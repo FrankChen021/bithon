@@ -1,0 +1,81 @@
+#
+# This all-in-one profile is just an example.
+# It combines other profiles to enable webapp, collector and use the H2 database as storage.
+#
+spring:
+  config:
+    import:
+      - classpath:application-controller.yml
+      - classpath:application-receiver.yml
+      - classpath:application-pipeline-to-local.yml
+      - classpath:application-webapp.yml
+      - classpath:application-alerting.yml
+      - classpath:application-security.yml
+
+bithon:
+  storage:
+    tracing:
+      enabled: true
+      provider: clickhouse
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+
+    metric:
+      enabled: true
+      provider: clickhouse
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+
+    event:
+      enabled: true
+      provider: clickhouse
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT1M
+
+    meta:
+      enabled: true
+      provider: clickhouse
+      ttl:
+        enabled: true
+        ttl: PT5M
+        cleanPeriod: PT1M
+
+    setting:
+      enabled: true
+      provider: clickhouse
+
+    dashboard:
+      enabled: true
+      provider: clickhouse
+
+    alerting:
+      all:
+        provider: clickhouse
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+      log:
+        provider: clickhouse
+        ttl:
+          enabled: true
+          ttl: P1D
+          cleanPeriod: PT3M
+
+    providers:
+      clickhouse:
+        type: clickhouse
+
+        # The container name specified in docker-compose.yml
+        url: jdbc:clickhouse://bithon-clickhouse:8123/bithon?use_server_time_zone=true
+        username: admin
+        password: admin654321
+
+
