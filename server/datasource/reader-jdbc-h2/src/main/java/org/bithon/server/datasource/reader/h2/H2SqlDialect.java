@@ -107,8 +107,8 @@ public class H2SqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(\"%s\")", field);
     }
 
-    static class UnixTimestampFunction extends AbstractFunction {
-        public UnixTimestampFunction() {
+    static class ToUnixTimestampFunction extends AbstractFunction {
+        public ToUnixTimestampFunction() {
             super("UNIX_TIMESTAMP", IDataType.LONG, IDataType.LONG);
         }
 
@@ -129,7 +129,7 @@ public class H2SqlDialect implements ISqlDialect {
                                        .name("FIRST_VALUE")
                                        .args(new ArrayList<>(List.of(new IdentifierExpression(field))))
                                        .partitionBy(new ArithmeticExpression.MUL(
-                                           new ArithmeticExpression.DIV(new FunctionExpression(new UnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
+                                           new ArithmeticExpression.DIV(new FunctionExpression(new ToUnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
                                            LiteralExpression.of(window)
                                        ))
                                        .orderBy(new OrderByElement(IdentifierExpression.of("timestamp")))

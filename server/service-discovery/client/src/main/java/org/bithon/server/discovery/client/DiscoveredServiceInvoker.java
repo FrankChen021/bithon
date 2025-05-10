@@ -262,7 +262,7 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
                                               template.header("X-Bithon-Token", token.toString());
                                           }
                                       })
-                                      .target(type, "http://" + instance.getHost() + ":" + instance.getPort());
+                                      .target(type, instance.getURL());
 
             // The created feignObject is also a java proxy.
             // To invoke the method on the proxy object, we need to get its InvocationHandler object first.

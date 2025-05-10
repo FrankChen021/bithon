@@ -28,3 +28,11 @@ spring:
         watch:
           enabled: false
         server-addr: nacos.server:80
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - info
+          - health

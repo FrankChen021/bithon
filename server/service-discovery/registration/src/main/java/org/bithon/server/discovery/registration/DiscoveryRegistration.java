@@ -56,6 +56,8 @@ public class DiscoveryRegistration {
                           .filter(Objects::nonNull)
                           .forEach(serviceDeclaration -> {
                               registrationServices.put("bithon.service." + serviceDeclaration.name(), "true");
+                              registrationServices.put("bithon.service.context-path",
+                                                       applicationContext.getEnvironment().getProperty("server.servlet.context-path", String.class));
                           });
 
                     serviceClazz = serviceClazz.getSuperclass();
