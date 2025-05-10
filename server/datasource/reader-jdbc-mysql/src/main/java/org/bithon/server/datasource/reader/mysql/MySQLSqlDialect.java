@@ -108,8 +108,8 @@ public class MySQLSqlDialect implements ISqlDialect {
         return StringUtils.format("group_concat(`%s`)", field);
     }
 
-    public static class UnixTimestampFunction extends AbstractFunction {
-        public UnixTimestampFunction() {
+    public static class ToUnixTimestampFunction extends AbstractFunction {
+        public ToUnixTimestampFunction() {
             super("UNIX_TIMESTAMP", IDataType.LONG, IDataType.LONG);
         }
 
@@ -159,7 +159,7 @@ public class MySQLSqlDialect implements ISqlDialect {
                                        .name("FIRST_VALUE")
                                        .args(new ArrayList<>(List.of(new IdentifierExpression(field))))
                                        .partitionBy(new ArithmeticExpression.MUL(
-                                           new DivisionExpression(new FunctionExpression(new UnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
+                                           new DivisionExpression(new FunctionExpression(new ToUnixTimestampFunction(), List.of(new IdentifierExpression("timestamp"))), LiteralExpression.of(window)),
                                            LiteralExpression.of(window)
                                        ))
                                        .orderBy(new OrderByElement(new IdentifierExpression("timestamp")))
