@@ -21,6 +21,7 @@ import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +57,8 @@ public class DiscoveryRegistration {
                           .filter(Objects::nonNull)
                           .forEach(serviceDeclaration -> {
                               registrationServices.put("bithon.service." + serviceDeclaration.name(), "true");
+                              registrationServices.put("bithon.service.context-path",
+                                                       applicationContext.getEnvironment().getProperty("server.servlet.context-path", String.class));
                           });
 
                     serviceClazz = serviceClazz.getSuperclass();

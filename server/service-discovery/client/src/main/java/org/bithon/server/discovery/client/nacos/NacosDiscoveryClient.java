@@ -44,7 +44,9 @@ public class NacosDiscoveryClient implements IDiscoveryClient {
             List<DiscoveredServiceInstance> instanceList = discovery.getInstances(props.getService())
                                                                     .stream()
                                                                     .filter(serviceInstance -> serviceInstance.getMetadata().containsKey("bithon.service." + serviceName))
-                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(), serviceInstance.getPort()))
+                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(),
+                                                                                                                          serviceInstance.getPort(),
+                                                                                                                          serviceInstance.getMetadata().get("bithon.service.context-path")))
                                                                     .toList();
             if (instanceList.isEmpty()) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(), "Not found any instance of service [%s]", serviceName);

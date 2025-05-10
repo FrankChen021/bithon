@@ -351,7 +351,7 @@ public class AgentServiceProxyFactory {
                                                                                   .encoder(applicationContext.getBean(Encoder.class))
                                                                                   .decoder(applicationContext.getBean(Decoder.class))
                                                                                   .errorDecoder(new ErrorResponseDecoder(applicationContext.getBean(ObjectMapper.class)))
-                                                                                  .target(IAgentControllerApi.class, "http://" + controller.getHost() + ":" + controller.getPort());
+                                                                                  .target(IAgentControllerApi.class, controller.getURL());
 
                                               try {
                                                   return proxyApi.callAgentService(token,
