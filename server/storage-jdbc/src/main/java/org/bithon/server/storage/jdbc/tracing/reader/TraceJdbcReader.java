@@ -62,8 +62,6 @@ import org.jooq.SelectSeekStep1;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -102,10 +100,19 @@ public class TraceJdbcReader implements ITraceReader {
         SelectConditionStep<Record> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN.getUnqualifiedName().quotedName())
                                                     .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
-            sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp().toLocalDateTime()));
+            // NOTE: we don't use Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start) because the generated SQL might turn the start into a date time string which might cause time zone issues
+            IExpression expr = new ComparisonExpression.GTE(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(start)
+            );
+            sql = sql.and(sqlDialect.createSqlSerializer(null).serialize(expr));
         }
         if (end != null) {
-            sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end.toTimestamp().toLocalDateTime()));
+            IExpression expr = new ComparisonExpression.LT(
+                new IdentifierExpression(Tables.BITHON_TRACE_SPAN.TIMESTAMP.getName()),
+                sqlDialect.toISO8601TimestampExpression(end)
+            );
+            sql = sql.and(sqlDialect.createSqlSerializer(null).serialize(expr));
         }
 
         // For spans coming from the same application instance, sort them by the start time
@@ -330,22 +337,7 @@ public class TraceJdbcReader implements ITraceReader {
                          .fetchOne((v) -> {
                              TraceIdMapping mapping = new TraceIdMapping();
                              mapping.setTraceId(v.getValue(0, String.class));
-
-                             //
-                             // Since the timestamp will be used to query the trace span table again,
-                             // to make sure the timestamp is passed back to the server side correctly, we need to convert it to a timestamp in local time zone
-                             //
-                             // Convert to timestamp to client timezone (system default)
-                             Timestamp dbTimestamp = v.get(1, Timestamp.class);
-                             ZoneId clientZone = ZoneId.systemDefault();
-                             ZoneId serverZone = ZoneId.of("UTC");
-
-                             // Convert from server timezone to client timezone
-                             LocalDateTime localDateTime = dbTimestamp.toLocalDateTime();
-                             ZonedDateTime serverDateTime = localDateTime.atZone(serverZone);
-                             ZonedDateTime clientDateTime = serverDateTime.withZoneSameInstant(clientZone);
-
-                             mapping.setTimestamp(Timestamp.valueOf(clientDateTime.toLocalDateTime()).getTime());
+                             mapping.setTimestamp(v.getValue(1, Timestamp.class).getTime());
                              mapping.setUserId(userId);
                              return mapping;
                          });
