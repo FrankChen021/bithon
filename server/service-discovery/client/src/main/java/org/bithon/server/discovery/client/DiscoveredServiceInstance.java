@@ -17,7 +17,6 @@
 package org.bithon.server.discovery.client;
 
 import jakarta.annotation.Nullable;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**

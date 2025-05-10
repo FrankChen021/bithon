@@ -21,7 +21,6 @@ import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import java.util.Map;
 import java.util.Objects;
