@@ -66,6 +66,10 @@ public class TraceApi {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Use V2 instead
+     */
+    @Deprecated
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
         Watch<List<TraceSpan>> getSpanList = new Watch<>(() -> {
