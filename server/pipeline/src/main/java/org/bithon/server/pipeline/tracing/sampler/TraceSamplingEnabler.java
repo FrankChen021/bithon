@@ -18,6 +18,7 @@ package org.bithon.server.pipeline.tracing.sampler;
 
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -34,9 +35,11 @@ public class TraceSamplingEnabler implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
-        TracePipelineConfig pipelineConfig = Binder.get(context.getEnvironment())
-                                                   .bind(properties.prefix(), TracePipelineConfig.class)
-                                                   .get();
-        return pipelineConfig.isEnabled() && pipelineConfig.isMetricOverSpanEnabled();
+        BindResult<TracePipelineConfig> result = Binder.get(context.getEnvironment())
+                                                       .bind(properties.prefix(), TracePipelineConfig.class);
+
+        return result.isBound()
+               && result.get().isEnabled()
+               && result.get().isMetricOverSpanEnabled();
     }
 }
