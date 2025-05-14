@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 14/5/25 11:07 am
+ * @date 14/5/25 11:07 am
  */
 class HasTokenFunctionOptimizer {
     static IExpression optimize(FunctionExpression expression) {

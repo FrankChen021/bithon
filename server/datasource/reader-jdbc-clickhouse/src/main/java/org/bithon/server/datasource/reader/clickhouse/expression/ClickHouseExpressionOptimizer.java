@@ -61,9 +61,15 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 expression.getRhs()
             );
         }
+
+        if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression regularExpressionMatchExpression) {
+            return RegularExpressionMatchOptimizer.optimize(regularExpressionMatchExpression);
+        }
+
         if (expression instanceof ConditionalExpression.HasToken) {
             return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
         }
+
         return super.visit(expression);
     }
 
