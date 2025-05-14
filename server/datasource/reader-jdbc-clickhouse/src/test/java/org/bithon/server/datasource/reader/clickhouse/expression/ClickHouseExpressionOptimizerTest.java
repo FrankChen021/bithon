@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.clickhouse;
+package org.bithon.server.datasource.reader.clickhouse.expression;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.Functions;
