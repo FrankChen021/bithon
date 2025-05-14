@@ -43,7 +43,7 @@ public class BeanMethod$Invoke extends AroundInterceptor {
             component = "spring-bean";
         }
 
-        aopContext.setSpan(span.component(component)
+        aopContext.setSpan(span.name(component)
                                .method(beanClass, aopContext.getMethod())
                                .start());
 

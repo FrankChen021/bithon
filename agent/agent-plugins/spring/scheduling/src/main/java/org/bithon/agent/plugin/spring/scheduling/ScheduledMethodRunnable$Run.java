@@ -51,7 +51,7 @@ public class ScheduledMethodRunnable$Run extends AroundInterceptor {
         String targetClass = runnable.getMethod().getDeclaringClass().getName();
 
         aopContext.setSpan(context.currentSpan()
-                                  .component("spring-scheduler")
+                                  .name("spring-scheduler")
                                   .kind(SpanKind.TIMER)
                                   .method(runnable.getMethod())
                                   .tag("uri", "spring-scheduler://" + targetClass)

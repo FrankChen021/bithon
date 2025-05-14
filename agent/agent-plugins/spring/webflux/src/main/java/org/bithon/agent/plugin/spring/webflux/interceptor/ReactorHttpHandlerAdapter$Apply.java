@@ -103,7 +103,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
 
                 if (traceContext != null) {
                     traceContext.currentSpan()
-                                .component(Components.HTTP_SERVER)
+                                .name(Components.HTTP_SERVER)
                                 .tag(Tags.Http.SERVER, "webflux")
                                 .tag(Tags.Net.PEER, request.remoteAddress())
                                 .tag(Tags.Http.URL, request.uri())
@@ -205,7 +205,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AroundInterceptor {
             return;
         }
 
-        if (!Components.HTTP_SERVER.equals(span.component())) {
+        if (!Components.HTTP_SERVER.equals(span.name())) {
             // Directly close the context so that the tracing context prints the debug message
             traceContext.finish();
             return;

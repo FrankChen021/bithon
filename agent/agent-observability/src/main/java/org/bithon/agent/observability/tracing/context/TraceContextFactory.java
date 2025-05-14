@@ -144,7 +144,7 @@ public class TraceContextFactory {
         ITraceSpan span = traceContext.copy()
                                       .reporter(traceContext.reporter())
                                       .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
-                                      .component(name);
+                                      .name(name);
         if (injectedTo != null && setter != null) {
             span.context().propagate(injectedTo, setter);
         }

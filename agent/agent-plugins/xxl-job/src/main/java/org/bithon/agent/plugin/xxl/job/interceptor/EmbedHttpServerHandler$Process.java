@@ -45,7 +45,7 @@ public class EmbedHttpServerHandler$Process extends AroundInterceptor {
         // Currently no samplingPercentage is designed for simplicity
         TraceContextHolder.attach(TraceContextFactory.newContext(SamplingMode.FULL))
                           .currentSpan()
-                          .component("xxl-job")
+                          .name("xxl-job")
                           .kind(SpanKind.SERVER)
                           .method(aopContext.getTargetClass(), aopContext.getMethod())
                           .tag(Tags.Http.METHOD, method.name())
