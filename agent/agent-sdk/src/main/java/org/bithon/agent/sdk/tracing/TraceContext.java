@@ -17,6 +17,8 @@
 package org.bithon.agent.sdk.tracing;
 
 
+import org.bithon.agent.sdk.tracing.impl.NoopSpan;
+
 import java.util.logging.Logger;
 
 /**
@@ -38,6 +40,6 @@ public class TraceContext {
 
     public static ISpan newScopedSpan() {
         LOGGER.warning("The agent is not loaded.");
-        return null;
+        return NoopSpan.INSTANCE;
     }
 }
