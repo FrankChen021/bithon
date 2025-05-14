@@ -27,19 +27,36 @@ import java.util.logging.Logger;
  */
 public class TraceContext {
     private static final Logger LOGGER = Logger.getLogger(TraceContext.class.getName());
+    private static final long LOG_INTERVAL_MS = 5000; // 5 seconds
+    private static long lastLogTime = 0;
+
+    private static synchronized boolean shouldLog() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastLogTime > LOG_INTERVAL_MS) {
+            lastLogTime = currentTime;
+            return true;
+        }
+        return false;
+    }
 
     public static String currentTraceId() {
-        LOGGER.warning("The agent is not loaded.");
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
         return null;
     }
 
     public static String currentSpanId() {
-        LOGGER.warning("The agent is not loaded.");
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
         return null;
     }
 
     public static ISpan newScopedSpan() {
-        LOGGER.warning("The agent is not loaded.");
+        if (shouldLog()) {
+            LOGGER.warning("The agent is not loaded.");
+        }
         return NoopSpan.INSTANCE;
     }
 }
