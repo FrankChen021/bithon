@@ -53,7 +53,7 @@ public class BrpcMethodInterceptor extends AroundInterceptor {
         }
 
         aopContext.setSpan(context.currentSpan()
-                                  .component("brpc")
+                                  .name("brpc")
                                   .kind(SpanKind.SERVER)
                                   .method(aopContext.getTargetClass(), aopContext.getMethod())
                                   .tag("uri", "brpc://" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod())

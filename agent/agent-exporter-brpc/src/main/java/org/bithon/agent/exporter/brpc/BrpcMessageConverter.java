@@ -112,7 +112,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                                                                    .setStartTime(span.startTime())
                                                                    .setEndTime(span.endTime())
                                                                    .setKind(span.kind().toString())
-                                                                   .setName(span.component())
+                                                                   .setName(span.name())
                                                                    .setClazz(span.clazz())
                                                                    .setMethod(span.method());
 

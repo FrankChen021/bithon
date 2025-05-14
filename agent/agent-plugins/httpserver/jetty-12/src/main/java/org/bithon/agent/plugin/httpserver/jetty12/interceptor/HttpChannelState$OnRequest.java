@@ -68,7 +68,7 @@ public class HttpChannelState$OnRequest extends AfterInterceptor {
         ITraceContext traceContext = Tracer.get().propagator().extract(request, (carrier, key) -> carrier.getHeaders().get(key));
         if (traceContext != null) {
             traceContext.currentSpan()
-                        .component(Components.HTTP_SERVER)
+                        .name(Components.HTTP_SERVER)
                         .tag(Tags.Http.SERVER, "jetty")
                         .tag(Tags.Net.PEER, request.getConnectionMetaData().getRemoteSocketAddress())
                         .tag(Tags.Http.URL, request.getHttpURI() == null ? null : request.getHttpURI().getPathQuery())

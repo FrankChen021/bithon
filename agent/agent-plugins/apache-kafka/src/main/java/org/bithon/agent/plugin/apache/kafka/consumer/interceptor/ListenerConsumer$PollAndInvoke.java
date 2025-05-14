@@ -67,7 +67,7 @@ public class ListenerConsumer$PollAndInvoke extends AroundInterceptor {
         // Start the span even if this span is the type of TraceMode.LOGGING
         // so that the trace id can be injected into MDC for logging only
         aopContext.setSpan(context.currentSpan()
-                                  .component(Components.KAFKA)
+                                  .name(Components.KAFKA)
                                   .kind(SpanKind.CONSUMER)
                                   .method(aopContext.getTargetClass(), aopContext.getMethod())
                                   .start());

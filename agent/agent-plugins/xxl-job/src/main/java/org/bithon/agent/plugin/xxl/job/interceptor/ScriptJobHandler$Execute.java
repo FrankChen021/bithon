@@ -45,7 +45,7 @@ public class ScriptJobHandler$Execute extends AroundInterceptor {
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
         TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
-                                      .component("script-job");
+                                      .name("script-job");
 
         int jobId = (int) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobId");
         GlueTypeEnum type = (GlueTypeEnum) ReflectionUtils.getFieldValue(aopContext.getTarget(), "glueType");

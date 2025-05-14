@@ -50,4 +50,9 @@ public class TraceContextHolder {
         ITraceContext ctx = HOLDER.get();
         return ctx == null ? null : (ctx.traceMode().equals(TraceMode.TRACING) ? ctx.traceId() : null);
     }
+
+    public static String currentSpanId() {
+        ITraceContext ctx = HOLDER.get();
+        return ctx == null ? null : (ctx.traceMode().equals(TraceMode.TRACING) ? ctx.currentSpan().spanId() : null);
+    }
 }

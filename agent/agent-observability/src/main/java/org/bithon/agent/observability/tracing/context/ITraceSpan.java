@@ -45,9 +45,9 @@ public interface ITraceSpan {
 
     ITraceSpan kind(SpanKind kind);
 
-    String component();
+    String name();
 
-    ITraceSpan component(String component);
+    ITraceSpan name(String name);
 
     Map<String, String> tags();
 

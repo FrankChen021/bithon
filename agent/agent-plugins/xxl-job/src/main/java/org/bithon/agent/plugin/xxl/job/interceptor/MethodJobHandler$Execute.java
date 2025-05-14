@@ -44,7 +44,7 @@ public class MethodJobHandler$Execute extends AroundInterceptor {
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
         TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
-                                      .component("method-job");
+                                      .name("method-job");
 
         Method targetMethod = (Method) ReflectionUtils.getFieldValue(aopContext.getTarget(), "method");
         aopContext.setSpan(span.method(targetMethod)

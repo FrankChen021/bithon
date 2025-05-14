@@ -61,7 +61,7 @@ public class JobRunShell$Run extends AroundInterceptor {
         }
 
         aopContext.setSpan(context.currentSpan()
-                                  .component("quartz")
+                                  .name("quartz")
                                   .kind(SpanKind.TIMER)
                                   .method(aopContext.getTargetClass(), aopContext.getMethod())
                                   .start());
