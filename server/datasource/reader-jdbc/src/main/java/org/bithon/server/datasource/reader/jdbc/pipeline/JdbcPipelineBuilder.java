@@ -19,6 +19,7 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
@@ -33,6 +34,7 @@ import org.jooq.DSLContext;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -98,9 +100,11 @@ public class JdbcPipelineBuilder {
         LiteralExpression.LongLiteral window = (LiteralExpression.LongLiteral) windowFunctionExpression.getFrame().getStart();
         IdentifierExpression orderBy = (IdentifierExpression) windowFunctionExpression.getOrderBy()[0].getName();
 
-        List<String> keys = Arrays.stream(windowFunctionExpression.getPartitionBy())
-                                  .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
-                                  .toList();
+        List<String> keys = CollectionUtils.isEmpty(windowFunctionExpression.getPartitionBy()) ?
+            Collections.emptyList()
+            : Arrays.stream(windowFunctionExpression.getPartitionBy())
+                    .map((expr) -> ((IdentifierExpression) expr).getIdentifier())
+                    .toList();
 
         SelectStatement subQuery = (SelectStatement) selectStatement.getFrom().getExpression();
 
