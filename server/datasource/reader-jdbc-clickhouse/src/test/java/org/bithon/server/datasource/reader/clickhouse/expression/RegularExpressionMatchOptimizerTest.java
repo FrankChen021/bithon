@@ -256,6 +256,92 @@ public class RegularExpressionMatchOptimizerTest {
         assertEquals("column like '%a__b%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
+    @Test
+    public void testNotMatch_Like() {
+        IExpression expr = createNotMatchExpression("a.b");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+
+        assertInstanceOf(LogicalExpression.NOT.class, optimized);
+        assertEquals("NOT (column like '%a_b%')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testEscapedDotPattern() {
+        IExpression expr = createMatchExpression("a\\.b");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Escaped dot should not be converted to underscore
+        assertInstanceOf(ConditionalExpression.Contains.class, optimized);
+        assertEquals("column contains 'a\\.b'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testMixedDotAndEscapedDot() {
+        IExpression expr = createMatchExpression("a.b\\.c");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like '%a_b.c%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testDigitsOnlyPattern() {
+        IExpression expr = createMatchExpression("^[0-9]+$");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ComparisonExpression.GT.class, optimized);
+        assertEquals("column > '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testDigitsOnlyPatternWithOptional() {
+        IExpression expr = createMatchExpression("^[0-9]*$");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ComparisonExpression.GTE.class, optimized);
+        assertEquals("column >= '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testDigitsShorthandPattern() {
+        IExpression expr = createMatchExpression("^\\d+$");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ComparisonExpression.GT.class, optimized);
+        assertEquals("column > '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testWordCharPattern() {
+        IExpression expr = createMatchExpression("^\\w+$");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(LikeOperator.class, optimized);
+        assertEquals("column like '[a-zA-Z0-9_]%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testNotMatch_DigitsOnly() {
+        IExpression expr = createNotMatchExpression("^[0-9]+$");
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+
+        assertInstanceOf(ComparisonExpression.LTE.class, optimized);
+        assertEquals("column <= '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testEmptyRHS() {
+        // Test with non-string literal right-hand side
+        ConditionalExpression.RegularExpressionMatchExpression expr = new ConditionalExpression.RegularExpressionMatchExpression(
+            testColumn, 
+            new IdentifierExpression("pattern") // Not a string literal
+        );
+        IExpression optimized = RegularExpressionMatchOptimizer.optimize(expr);
+
+        // Should remain unchanged
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+    }
+
     private IExpression createMatchExpression(String pattern) {
         return new ConditionalExpression.RegularExpressionMatchExpression(
             testColumn,
