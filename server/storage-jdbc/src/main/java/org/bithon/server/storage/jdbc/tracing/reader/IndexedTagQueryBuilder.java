@@ -17,9 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing.reader;
 
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.server.storage.jdbc.common.dialect.Expression2Sql;
-import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -56,7 +54,7 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             // NOTE:
             // instantiate the TagFilterSerializer for each loop
             // because it internally holds some states for each 'serialize' method call
-            query = query.and(new Expression2Sql(null, sqlDialect).serialize(filter));
+            query = query.and(this.sqlDialect.createSqlSerializer(null).serialize(filter));
         }
 
         if (query != null) {
@@ -67,21 +65,6 @@ class IndexedTagQueryBuilder extends NestQueryBuilder {
             }
         } else {
             return this.in;
-        }
-    }
-
-    static class TagFilterSerializer extends Expression2Sql {
-        private final int index;
-
-        TagFilterSerializer(ISqlDialect sqlDialect, int index) {
-            super(null, sqlDialect);
-            this.index = index;
-        }
-
-        @Override
-        public boolean visit(IdentifierExpression expression) {
-            sb.append(this.quoteIdentifier.apply("f" + index));
-            return false;
         }
     }
 }

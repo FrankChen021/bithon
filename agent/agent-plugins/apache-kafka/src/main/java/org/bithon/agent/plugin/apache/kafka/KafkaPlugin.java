@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.apache.kafka;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.matcher.Matchers;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.agent.instrumentation.aop.interceptor.precondition.PropertyFileValuePrecondition;
 import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
@@ -36,13 +37,22 @@ public class KafkaPlugin implements IPlugin {
 
         return Arrays.asList(
             forClass("org.apache.kafka.clients.consumer.KafkaConsumer")
+                .when(
+                    // From 3.7.0, the KafkaConsumer class is delegated to LegacyKafkaConsumer internally
+                    // The instrumentation is moved to Kafka37Plugin and later
+                    new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                      "version",
+                                                      PropertyFileValuePrecondition.VersionLT.of("3.7.0"))
+                )
+
                 .onConstructor()
                 .andArgs("org.apache.kafka.clients.consumer.ConsumerConfig",
                          "org.apache.kafka.common.serialization.Deserializer<K>",
                          "org.apache.kafka.common.serialization.Deserializer<V>")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Ctor")
+
                 .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
+                .andVisibility(Visibility.PUBLIC)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
                 .build(),
 
@@ -50,23 +60,17 @@ public class KafkaPlugin implements IPlugin {
             forClass("org.apache.kafka.clients.consumer.internals.Fetcher$FetchResponseMetricAggregator")
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Ctor")
+
                 .onMethod("record")
                 .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchResponseMetricAggregator$Record")
                 .build(),
 
-            // 3.7
-            forClass("org.apache.kafka.clients.consumer.internals.LegacyKafkaConsumer")
-                .onMethod("poll")
-                .andVisibility(Visibility.PRIVATE)
-                .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.KafkaConsumer$Poll")
-                .build(),
-
-            // 3.7
-            // The Fetcher$FetchResponseMetricAggregator in previous release is renamed to FetchMetricsAggregator
+            // Since 3.5, the Fetcher$FetchResponseMetricAggregator in the previous release is renamed to FetchMetricsAggregator
             forClass("org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator")
                 .onConstructor()
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Ctor")
+
                 .onMethod("record")
                 .andArgsSize(3)
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.consumer.interceptor.FetchMetricsAggregator$Record")
@@ -112,6 +116,9 @@ public class KafkaPlugin implements IPlugin {
                 .build(),
 
             forClass("org.apache.kafka.clients.NetworkClient")
+                .when(new PropertyFileValuePrecondition("kafka/kafka-version.properties",
+                                                        "version",
+                                                        PropertyFileValuePrecondition.VersionGTE.of("1.0.0")))
                 .onMethod("completeResponses")
                 .interceptedBy("org.bithon.agent.plugin.apache.kafka.network.interceptor.NetworkClient$CompleteResponses")
                 .build(),

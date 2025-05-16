@@ -112,7 +112,7 @@ public class ConfigurationManager {
      */
     public static synchronized ConfigurationManager create() {
         if (INSTANCE == null) {
-            INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml"));
+            INSTANCE = create(AgentDirectory.getSubDirectory(AgentDirectory.CONF_DIR + separator + "agent.yml"), true);
         }
         return INSTANCE;
     }
@@ -120,8 +120,13 @@ public class ConfigurationManager {
     /**
      * Exposed for testing
      */
-    static ConfigurationManager create(File defaultConfigLocation) {
-        return new ConfigurationManager(PropertySource.from(PropertySourceType.INTERNAL, defaultConfigLocation, true),
+    public static ConfigurationManager createForTesting(File defaultConfigLocation) {
+        INSTANCE = create(defaultConfigLocation, false);
+        return INSTANCE;
+    }
+
+    private static ConfigurationManager create(File defaultConfigLocation, boolean checkFileExists) {
+        return new ConfigurationManager(PropertySource.from(PropertySourceType.INTERNAL, defaultConfigLocation, checkFileExists),
                                         ExternalSource.build(),
                                         CommandLineArgsSource.build("bithon."),
                                         EnvironmentSource.build("bithon_"));

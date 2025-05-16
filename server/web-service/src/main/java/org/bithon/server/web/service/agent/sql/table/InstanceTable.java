@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +51,7 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
         for (DiscoveredServiceInstance instance : instanceList) {
             invoker.getExecutor()
                    .submit(() -> this.invoker.createUnicastApi(IAgentControllerApi.class, () -> instance)
-                                             .getAgentInstanceList(agentInstance))
+                                             .getAgentInstanceList(null, agentInstance))
                    .thenAccept((returning) -> {
                        List<Object[]> objectLists = returning.stream()
                                                              .map(IAgentControllerApi.AgentInstanceRecord::toObjectArray)
@@ -79,6 +79,7 @@ public class InstanceTable extends AbstractBaseTable implements IPushdownPredica
 
     @Override
     public Map<String, Boolean> getPredicates() {
+        // APP_NAME is NOT push down so that it supports more operators such as LIKE for better analysis support
         return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, false);
     }
 }

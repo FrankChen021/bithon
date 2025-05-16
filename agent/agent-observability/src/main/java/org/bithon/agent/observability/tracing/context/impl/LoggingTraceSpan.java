@@ -83,12 +83,12 @@ class LoggingTraceSpan implements ITraceSpan {
     }
 
     @Override
-    public String component() {
+    public String name() {
         return null;
     }
 
     @Override
-    public ITraceSpan component(String component) {
+    public ITraceSpan name(String name) {
         return this;
     }
 

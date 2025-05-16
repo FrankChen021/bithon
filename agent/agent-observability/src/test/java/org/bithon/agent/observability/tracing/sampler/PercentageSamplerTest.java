@@ -18,8 +18,9 @@ package org.bithon.agent.observability.tracing.sampler;
 
 import org.bithon.agent.observability.tracing.config.TraceSamplingConfig;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +39,7 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("0%");
 
         for (int i = 0; i < 100; i++) {
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
     }
 
@@ -46,22 +47,22 @@ public class PercentageSamplerTest {
     public void test_Percentage_Minimum() {
         ISampler sampler = createSampler("0.001%");
 
-        Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+        Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
         for (int i = 0; i < TraceSamplingConfig.PRECISION_MULTIPLIER - 1; i++) {
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
-        Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+        Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
     }
 
     @Test
     public void test_Percentage1() {
         ISampler sampler = createSampler("1%");
 
-        Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+        Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
         for (int i = 0; i < 99; i++) {
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
-        Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+        Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
     }
 
     @Test
@@ -69,10 +70,10 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("25%");
 
         for (int i = 0; i < 10; i++) {
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
     }
 
@@ -81,9 +82,9 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("33%");
 
         for (int i = 0; i < 5; i++) {
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
     }
 
@@ -92,8 +93,8 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("50%");
 
         for (int i = 0; i < 10; i++) {
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
     }
 
@@ -102,10 +103,10 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("75%");
 
         for (int i = 0; i < 10; i++) {
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
-            Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
         }
     }
 
@@ -114,7 +115,7 @@ public class PercentageSamplerTest {
         ISampler sampler = createSampler("100%");
 
         for (int i = 0; i < 101; i++) {
-            Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
+            Assertions.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
         }
     }
 }

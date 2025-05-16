@@ -1,0 +1,277 @@
+{
+  "name": "application-overview",
+  "folder": "metrics",
+  "title": "Application Overview",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200
+          },
+          {
+            "name": "instanceName",
+            "width": 300
+          }
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Avg Cpu Usage",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "avgCpuUsage",
+            "expression": "avg(processCpuLoad)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Instance",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/jvm-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "instanceCount",
+            "expression": "cardinality(instanceName)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Incoming HTTP Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/http-incoming-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Outgoing HTTP Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/http-outgoing-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "http-outgoing-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(requestCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Exceptions",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/exception-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(eventCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "GRPC Client Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/grpc-client-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "grpc-client-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "callCount",
+            "expression": "sum(callCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Kafka Produced Records",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/kafka-producer-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "kafka-producer-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "records",
+            "expression": "sum(recordCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Kafka Consumed Byte Rate (Bps)",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/kafka-consumer-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "kafka-consumer-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "consumedRecords",
+            "expression": "sum(consumedRecords)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "Redis Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/redis-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "redis-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "MongoDb Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/mongodb-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "mongodb-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "SQLs",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/sql-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "sql-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(callCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "ZooKeeper Client Requests",
+      "width": 1,
+      "type": "stat",
+      "link": "/dashboard/zookeeper-client-metrics?appName={appName}&instanceName={instanceName}",
+      "query": {
+        "dataSource": "zookeeper-client-metrics",
+        "type": "groupBy",
+        "fields": [
+          {
+            "name": "totalCount",
+            "expression": "sum(totalCount)"
+          }
+        ],
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    }
+  ]
+}

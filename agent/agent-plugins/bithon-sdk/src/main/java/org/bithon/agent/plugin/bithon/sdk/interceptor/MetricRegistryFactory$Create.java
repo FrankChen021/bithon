@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.ReplaceInterceptor;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
-import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.instrumentation.loader.PluginClassLoader;
+import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
 import org.bithon.agent.observability.metric.collector.IMetricCollectorBase;
 import org.bithon.agent.observability.metric.collector.MetricCollectorManager;
@@ -67,7 +67,7 @@ public class MetricRegistryFactory$Create extends ReplaceInterceptor {
         MetricRegistryInvocationHandler proxyHandler = new MetricRegistryInvocationHandler(name,
                                                                                            dimensionSpec,
                                                                                            metricClass);
-        Object delegate = Proxy.newProxyInstance(PluginClassLoaderManager.getDefaultLoader(),
+        Object delegate = Proxy.newProxyInstance(PluginClassLoader.getClassLoader(),
                                                  new Class[]{IMetricsRegistry.class, IMetricCollector2.class},
                                                  proxyHandler);
 

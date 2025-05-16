@@ -22,12 +22,13 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
+import static org.bithon.component.commons.expression.IDataTypeIndex.TYPE_INDEX_STRING;
+
 /**
  * @author Frank Chen
  * @date 30/6/23 5:22 pm
  */
 public enum IDataType {
-
     STRING {
         @Override
         public boolean canCastFrom(IDataType dataType) {
@@ -72,6 +73,11 @@ public enum IDataType {
         @Override
         public Number scaleTo(Number value, int scale) {
             return value;
+        }
+
+        @Override
+        public int getTypeIndex() {
+            return TYPE_INDEX_STRING;
         }
     },
 
@@ -121,6 +127,11 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             return value;
         }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_LONG;
+        }
     },
 
     BOOLEAN {
@@ -167,6 +178,11 @@ public enum IDataType {
         @Override
         public Number scaleTo(Number value, int scale) {
             return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
+        }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_BOOLEAN;
         }
     },
 
@@ -215,12 +231,17 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
         }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_DOUBLE;
+        }
     },
 
     /**
      * The DateTime that stores the time in milliseconds
      */
-    DATETIME_3 {
+    DATETIME_MILLI {
         @Override
         public boolean canCastFrom(IDataType dataType) {
             return false;
@@ -264,6 +285,11 @@ public enum IDataType {
         @Override
         public Number scaleTo(Number value, int scale) {
             return null;
+        }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_DATETIME_MILLI;
         }
     },
 
@@ -312,6 +338,11 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_OBJECT;
+        }
     },
 
     ARRAY {
@@ -359,6 +390,11 @@ public enum IDataType {
         public Number scaleTo(Number value, int scale) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public int getTypeIndex() {
+            return IDataTypeIndex.TYPE_INDEX_ARRAY;
+        }
     };
 
     public abstract boolean canCastFrom(IDataType dataType);
@@ -379,4 +415,5 @@ public enum IDataType {
 
     public abstract Number scaleTo(Number value, int scale);
 
+    public abstract int getTypeIndex();
 }

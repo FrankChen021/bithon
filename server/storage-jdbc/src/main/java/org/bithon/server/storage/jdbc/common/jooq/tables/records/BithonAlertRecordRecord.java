@@ -16,7 +16,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Alerting History Records
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRecord> implements Record10<String, String, String, String, String, String, String, LocalDateTime, Integer, String> {
 
     private static final long serialVersionUID = 1L;
@@ -139,7 +139,7 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
 
     /**
      * Setter for <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
     public void setNotificationStatus(Integer value) {
         set(8, value);
@@ -147,7 +147,7 @@ public class BithonAlertRecordRecord extends TableRecordImpl<BithonAlertRecordRe
 
     /**
      * Getter for <code>bithon_alert_record.notification_status</code>.
-     * -1:waiting ack，1:ACK
+     * -1:waiting ack1:ACK
      */
     public Integer getNotificationStatus() {
         return (Integer) get(8);

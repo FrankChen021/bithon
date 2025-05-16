@@ -129,18 +129,18 @@ To do this, we can add environment variable `bithon_application_instance` in the
 
 ## Dispatcher Configuration
 
-The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
+The default exporter configuration locates in the `agent.yml` file under `agent-distribution` module.
 
 ```yaml
-dispatchers:
+exporters:
   metric:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9898
   tracing:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9895
     batchSize: 500
@@ -148,7 +148,7 @@ dispatchers:
     queueSize: 8192
   event:
     client:
-      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.exporter.brpc.BrpcChannelFactory
       maxLifeTime: 300000
     servers: 127.0.0.1:9896
     batchSize: 100
@@ -234,18 +234,18 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 # Tracing Configurations
 
-| configuration                                               | description                                                                                                                                                                       | default           | example                                 |
-|-------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|-----------------------------------------|
-| tracing.samplingConfigs.default.samplingPercentage          | Percentage of incoming HTTP requests to be sampled. <br/>Zero or negative means no sampling, while 100% or above means all requests will be sampled. The minimum value is 0.001%. | 1%                | 50%(means 50% requests will be sampled) |
-| tracing.samplingConfigs.brpc.samplingPercentage             | Percentage of BRPC requests to be sampled.                                                                                                                                        | 1%                | 50%(means 50% requests will be sampled) |
-| tracing.samplingConfigs.quartz.samplingPercentage           | Percentage of quartz jobs to be sampled.                                                                                                                                          | 1%                | 50%(means 50% jobs will be sampled)     |
-| tracing.samplingConfigs.spring-scheduler.samplingPercentage | Percentage of spring scheduled jobs to be sampled.                                                                                                                                | 1%                | 50%(means 50% jobs will be sampled)     |
-| tracing.samplingConfigs.kafka-consumer.samplingPercentage   | Percentage of spring scheduled jobs to be sampled.                                                                                                                                | 1%                | 50%(means 50% jobs will be sampled)     |
-| tracing.samplingConfigs.grpc.samplingPercentage             | Percentage of GRPC requests at the server side to be sampled.                                                                                                                     | 1%                | 50%(means 50% requests will be sampled) |
-| tracing.disabled                                            | Whether to enable tracing.                                                                                                                                                        | false             |                                         |
-| tracing.debug                                               | Whether to enable the logging of span events.                                                                                                                                     | false             |                                         |
-| tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                    | 'X-Bithon-Trace-' |                                         |
-| tracing.traceIdGenerator                                    | The algorithm that is used to generate trace id. <br/> See <code>org.bithon.agent.observability.tracing.id.ITraceIdGenerator</code> to know more.                                 | 'uuidv7'          |                                         |
+| configuration                                               | description                                                                                                                                                                                | default           | example                                 |
+|-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|-----------------------------------------|
+| tracing.samplingConfigs.default.samplingPercentage          | Percentage of incoming HTTP requests to be sampled. <br/>Zero or negative means no sampling, while 100% or above means all requests will be sampled. The minimum and step value is 0.001%. | 100%              | 50%(means 50% requests will be sampled) |
+| tracing.samplingConfigs.brpc.samplingPercentage             | Percentage of BRPC requests to be sampled.                                                                                                                                                 | 1%                | 50%(means 50% requests will be sampled) |
+| tracing.samplingConfigs.quartz.samplingPercentage           | Percentage of quartz jobs to be sampled.                                                                                                                                                   | 1%                | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.spring-scheduler.samplingPercentage | Percentage of spring scheduled jobs to be sampled.                                                                                                                                         | 1%                | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.kafka-consumer.samplingPercentage   | Percentage of spring scheduled jobs to be sampled.                                                                                                                                         | 0.1%              | 50%(means 50% jobs will be sampled)     |
+| tracing.samplingConfigs.grpc.samplingPercentage             | Percentage of GRPC requests at the server side to be sampled.                                                                                                                              | 1%                | 50%(means 50% requests will be sampled) |
+| tracing.disabled                                            | Whether to enable tracing.                                                                                                                                                                 | false             |                                         |
+| tracing.debug                                               | Whether to enable the logging of span events.                                                                                                                                              | false             |                                         |
+| tracing.traceResponseHeader                                 | The header name in a HTTP response that contains the trace-id.                                                                                                                             | 'X-Bithon-Trace-' |                                         |
+| tracing.traceIdGenerator                                    | The algorithm that is used to generate trace id. <br/> See <code>org.bithon.agent.observability.tracing.id.ITraceIdGenerator</code> to know more.                                          | 'uuidv7'          |                                         |
 
 ## Plugin Configurations
 
@@ -265,5 +265,4 @@ For example, to disable the `spring-bean` plugin, use
 
 ### Plugin Configuration
 
-- [Alibaba Druid](plugin/alibaba-druid.md)
 - [Spring WebFlux](plugin/spring-webflux.md)

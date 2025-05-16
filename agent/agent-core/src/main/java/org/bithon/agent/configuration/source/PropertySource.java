@@ -69,8 +69,8 @@ public class PropertySource implements Comparable<PropertySource> {
     }
 
     public static PropertySource from(PropertySourceType source, File configFilePath, boolean checkFileExists) {
-        ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath.getName());
         try (FileInputStream fs = new FileInputStream(configFilePath)) {
+            ConfigurationFormat fileFormat = ConfigurationFormat.determineFormatFromFile(configFilePath.getName());
             return from(source, configFilePath.getName(), fileFormat, fs);
         } catch (FileNotFoundException e) {
             if (checkFileExists) {

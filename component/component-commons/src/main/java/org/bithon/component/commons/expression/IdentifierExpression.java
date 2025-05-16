@@ -16,26 +16,56 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/4/7 20:16
  */
 public class IdentifierExpression implements IExpression {
 
+    public static IdentifierExpression of(String identifier) {
+        return new IdentifierExpression(identifier);
+    }
+
+    public static IdentifierExpression of(String identifier, IDataType argType) {
+        IdentifierExpression expr = new IdentifierExpression(identifier);
+        expr.setDataType(argType);
+        return expr;
+    }
+
     /**
      * NOT final to allow AST optimization
      */
+    private String qualifier;
     private String identifier;
-    private boolean isQualified;
     private IDataType dataType;
 
     public IdentifierExpression(String identifier) {
         setIdentifier(identifier);
     }
 
+    public IdentifierExpression(String identifier, IDataType dataType) {
+        setIdentifier(identifier);
+        this.dataType = dataType;
+    }
+
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
+    }
+
     public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-        this.isQualified = identifier.indexOf('.') > 0;
+        int idx = identifier.indexOf('.');
+        if (idx > 0) {
+            this.qualifier = identifier.substring(0, idx);
+            this.identifier = identifier.substring(idx + 1);
+        } else {
+            this.identifier = identifier;
+        }
+    }
+
+    public String getQualifier() {
+        return qualifier;
     }
 
     public String getIdentifier() {
@@ -48,7 +78,7 @@ public class IdentifierExpression implements IExpression {
     }
 
     public boolean isQualified() {
-        return isQualified;
+        return this.qualifier != null;
     }
 
     @Override
@@ -56,8 +86,9 @@ public class IdentifierExpression implements IExpression {
         return dataType;
     }
 
-    public void setDataType(IDataType dataType) {
+    public IdentifierExpression setDataType(IDataType dataType) {
         this.dataType = dataType;
+        return this;
     }
 
     @Override
@@ -68,6 +99,11 @@ public class IdentifierExpression implements IExpression {
     @Override
     public <T> T accept(IExpressionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
     }
 
     @Override

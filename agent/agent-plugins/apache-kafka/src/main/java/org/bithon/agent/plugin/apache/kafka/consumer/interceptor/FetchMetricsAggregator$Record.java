@@ -25,7 +25,8 @@ import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetricRegis
 import org.bithon.agent.plugin.apache.kafka.consumer.metrics.ConsumerMetrics;
 
 /**
- * {@link FetchMetricsAggregator#Record(TopicPartition partition, int bytes, int records)}
+ * {@link org.apache.kafka.clients.consumer.internals.FetchMetricsAggregator#record(TopicPartition, int, int)}
+ *
  * @author frank.chen021@outlook.com
  * @date 6/7/24 11:01 pm
  */
@@ -34,10 +35,12 @@ public class FetchMetricsAggregator$Record extends AfterInterceptor {
     private final ConsumerMetricRegistry metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-consumer-metrics", ConsumerMetricRegistry::new);
 
     @Override
-    public void after(AopContext aopContext) throws Exception {
+    public void after(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }
+
+        // context is injected by FetchMetricsAggregator$Ctor
         KafkaPluginContext kafkaPluginContext = aopContext.getInjectedOnTargetAs();
         if (kafkaPluginContext == null) {
             return;

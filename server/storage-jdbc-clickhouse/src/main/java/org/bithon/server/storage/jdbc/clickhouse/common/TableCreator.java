@@ -33,6 +33,8 @@ import org.jooq.impl.SQLDataType;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -104,7 +106,7 @@ public class TableCreator {
                                                            config.getDatabase(),
                                                            tableName,
                                                            config.getOnClusterExpression(),
-                                                           getFieldDeclarationExpression(table),
+                                                           getFieldDeclarationExpression(table, true),
                                                            getIndexText()));
 
             // replace macro in the template to suit for ReplicatedMergeTree
@@ -187,6 +189,33 @@ public class TableCreator {
                 createTableStatement.append(")");
             }
 
+            // ONLY partitioned table supports customized TTL
+            if (partitionByExpression != null && !StringUtils.isEmpty(config.getTtl())) {
+                boolean hasTimestamp = false;
+
+                Matcher matcher = Pattern.compile("\\(([a-zA-Z_][a-zA-Z0-9_]*)\\)").matcher(config.getTtl());
+                if (matcher.find()) {
+                    String column = matcher.group(1);
+
+                    for (Field<?> field : table.fields()) {
+                        if (field.getName().equals(column)) {
+                            String typeName = field.getDataType().getTypeName();
+                            if ("timestamp".equals(typeName) || "datetime".equals(typeName)) {
+                                hasTimestamp = true;
+                                break;
+                            } else {
+                                throw new IllegalStateException("TTL expression is built upon a non-timestamp column [" + column + ", type=" + typeName + "]");
+                            }
+                        }
+                    }
+                }
+
+                if (hasTimestamp) {
+                    createTableStatement.append("\nTTL ");
+                    createTableStatement.append(config.getTtl());
+                }
+            }
+
             if (!StringUtils.isEmpty(config.getCreateTableSettings())) {
                 createTableStatement.append("\nSETTINGS ");
                 createTableStatement.append(config.getCreateTableSettings());
@@ -208,7 +237,7 @@ public class TableCreator {
                                          config.getDatabase(),
                                          table.getName(),
                                          config.getOnClusterExpression()));
-            sb.append(getFieldDeclarationExpression(table));
+            sb.append(getFieldDeclarationExpression(table, false));
 
             final StringBuilder shardingKey = new StringBuilder();
             if (this.replacingMergeTreeVersion != null) {
@@ -246,7 +275,7 @@ public class TableCreator {
         }
     }
 
-    private String getFieldDeclarationExpression(Table<?> table) {
+    private String getFieldDeclarationExpression(Table<?> table, boolean isCodecSupported) {
 
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> field : table.fields()) {
@@ -263,7 +292,7 @@ public class TableCreator {
                 }
             }
 
-            sb.append(StringUtils.format("`%s` %s ", field.getName(), typeName));
+            sb.append(StringUtils.format("`%s` %s", field.getName(), typeName));
 
             Field<?> defaultValue = dataType.defaultValue();
             if (defaultValue != null) {
@@ -271,7 +300,15 @@ public class TableCreator {
                 if (defaultValueText.toUpperCase(Locale.ENGLISH).startsWith("CURRENT_TIMESTAMP")) {
                     defaultValueText = "now()";
                 }
-                sb.append(StringUtils.format("DEFAULT %s", defaultValueText));
+                sb.append(StringUtils.format(" DEFAULT %s", defaultValueText));
+            }
+
+            if (isCodecSupported) {
+                if (Number.class.isAssignableFrom(dataType.getType())) {
+                    sb.append(" CODEC(T64, ZSTD)");
+                } else if (String.class.equals(dataType.getType())) {
+                    sb.append(" CODEC(ZSTD(1))");
+                }
             }
 
             sb.append(",\n");

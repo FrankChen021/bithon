@@ -67,7 +67,7 @@ public class InterceptorInstaller {
     public void installOn(Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
-        new AgentBuilder.Default()
+        AgentBuilder agentBuilder = new AgentBuilder.Default()
             .assureReadEdgeFromAndTo(inst, IBithonObject.class)
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("org.bithon.shaded.net.bytebuddy.").or(ElementMatchers.isSynthetic())))
@@ -84,10 +84,20 @@ public class InterceptorInstaller {
                     return builder;
                 }
 
+                if (descriptor.getPrecondition() != null
+                    && !descriptor.getPrecondition().matches(classLoader, typeDescription)) {
+                    log.info("Interceptor for class [{}] not installed because precondition [{}] not satisfied",
+                             typeDescription.getName(),
+                             descriptor.getPrecondition().toString());
+                    return builder;
+                }
+
                 //
                 // Transform target class to a type of IBithonObject
                 //
-                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                if (typeDescription.isInterface()) {
+                    log.warn("Attempt to install interceptors on interface [{}]. This is not supported.", typeDescription.getName());
+                } else if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     // define an object field on this class to hold objects across interceptors for state sharing
                     builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_VOLATILE)
                                      .implement(IBithonObject.class)
@@ -98,10 +108,9 @@ public class InterceptorInstaller {
                 // install interceptors for the current matched type
                 //
                 for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
-
                     // Run checkers first to see if an interceptor can be installed
                     if (mp.getPrecondition() != null && !mp.getPrecondition().matches(classLoader, typeDescription)) {
-                        log.info("[{}] Interceptor on class [{}] not installed because precondition [{}] not satisfied",
+                        log.info("[{}] Interceptor for class [{}] not installed because precondition [{}] not satisfied",
                                  mp.getPlugin(),
                                  typeDescription.getName(),
                                  mp.getPrecondition().toString());
@@ -115,10 +124,15 @@ public class InterceptorInstaller {
                 }
 
                 return builder;
-            })
+            });
+
+        // Under UT mode, the debugger might be NULL
+        if (InstrumentationHelper.getAopDebugger() != null) {
             // Listener is always installed to catch ERRORS even if the debugger is not enabled
-            .with(InstrumentationHelper.getAopDebugger().withTypes(types))
-            .installOn(inst);
+            agentBuilder = agentBuilder.with(InstrumentationHelper.getAopDebugger().withTypes(types));
+        }
+
+        agentBuilder.installOn(inst);
     }
 
     public static class Installer {
@@ -172,7 +186,7 @@ public class InterceptorInstaller {
                     break;
                 case AFTER: {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AfterAdvice.class : ConstructorAfterAdvice.class;
+                                           AfterAdvice.class : ConstructorAfterAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)
@@ -184,7 +198,7 @@ public class InterceptorInstaller {
 
                 case AROUND: {
                     Class<?> adviceClazz = descriptor.getMethodType() == MethodType.NON_CONSTRUCTOR ?
-                        AroundAdvice.class : AroundConstructorAdvice.class;
+                                           AroundAdvice.class : AroundConstructorAdvice.class;
 
                     builder = builder.visit(newInstaller(Advice.withCustomMapping()
                                                                .bind(AdviceAnnotation.InterceptorName.class, nameResolver)

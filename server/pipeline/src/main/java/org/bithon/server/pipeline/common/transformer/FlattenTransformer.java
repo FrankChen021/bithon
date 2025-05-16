@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.PathExpression;
+import org.bithon.server.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.PathExpression;
 
 import java.util.Arrays;
 import java.util.List;

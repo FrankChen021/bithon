@@ -19,14 +19,14 @@ package org.bithon.server.storage.tracing;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.ObjectColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.sum.AggregateLongSumColumn;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.ObjectColumn;
+import org.bithon.server.datasource.column.StringColumn;
+import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
 
 import java.util.ArrayList;
@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public class TraceTableSchema implements ISchema {
 
+    public static final String TRACE_SPAN_SUMMARY_SCHEMA_NAME = "trace_span_summary";
+    public static final String TRACE_SPAN_TAG_INDEX_SCHEMA_NAME = "trace_span_tag_index";
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
     private final String name;
 
@@ -126,15 +128,18 @@ public class TraceTableSchema implements ISchema {
     }
 
     public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
-        return new TraceTableSchema("trace_span_summary",
+        return new TraceTableSchema(TRACE_SPAN_SUMMARY_SCHEMA_NAME,
                                     traceStorage,
-                                    Arrays.asList(new StringColumn("appName",
+                                    Arrays.asList(new StringColumn("traceId", "traceId"),
+                                                  new StringColumn("appName",
                                                                    "appName"),
                                                   new StringColumn("instanceName",
                                                                    "instanceName"),
                                                   new StringColumn("status",
                                                                    "status"),
                                                   new StringColumn("name", "name"),
+                                                  new StringColumn("clazz", "clazz"),
+                                                  new StringColumn("method", "method"),
                                                   new StringColumn("normalizedUrl",
                                                                    "url"),
                                                   new StringColumn("kind", "kind"),
@@ -142,7 +147,10 @@ public class TraceTableSchema implements ISchema {
 
                                                   // microsecond
                                                   new AggregateLongSumColumn("costTimeMs",
-                                                                             "costTimeMs"))
+                                                                             "costTimeMs"),
+
+                                                  // microsecond
+                                                  new AggregateLongSumColumn("startTimeUs", "startTimeUs"))
         );
     }
 
@@ -158,7 +166,7 @@ public class TraceTableSchema implements ISchema {
             }
         }
 
-        return new TraceTableSchema("trace_span_tag_index",
+        return new TraceTableSchema(TRACE_SPAN_TAG_INDEX_SCHEMA_NAME,
                                     traceStorage,
                                     dimensionSpecs);
 

@@ -90,7 +90,7 @@
                     return 'Search by alert name';
                 },
 
-                uniqueId: 'alertId',
+                uniqueId: 'id',
                 columns: [{
                     field: 'appName',
                     title: 'Application',
@@ -101,13 +101,13 @@
                     field: 'name',
                     title: 'Name',
                     formatter: (value, row) => {
-                        return `<a href="/web/alerting/alert/detail?id=${row.alertId}&appName=${row.appName}">${value}</a>`;
+                        return `<a href="/web/alerting/alert/detail?id=${row.id}&appName=${row.appName}">${value}</a>`;
                     }
                 }, {
-                    field: 'enabled',
+                    field: 'disabled',
                     title: 'Status',
                     formatter: (value, row) => {
-                        return (row.enabled ? "Enabled" : "Disabled");
+                        return (row.disabled ? "Disabled" : "Enabled");
                     }
                 }, {
                     field: 'alertStatus',
@@ -121,7 +121,7 @@
                             return '-';
                         }
                         const text = new Date().diff(value);
-                        return `<a target="_blank" href="/web/alerting/records?alertId=${row.alertId}&id=${row.lastRecordId}">${text}</a>`;
+                        return `<a target="_blank" href="/web/alerting/records?alertId=${row.id}&id=${row.lastRecordId}">${text}</a>`;
                     }
                 }, {
                     field: 'createdAt',
@@ -141,14 +141,14 @@
                     field: 'lastOperator',
                     title: 'Last Operator',
                 }, {
-                    field: 'alertId',
+                    field: 'id',
                     title: 'Operations',
                     formatter: (value, row) => {
                         return '<div class="btn-group btn-group-sm" role="group" aria-label="...">' +
-                            '<button class="btn btn-outline-primary" onclick="enableAlert(\'' + row.alertId + '\')"><span class="' + (row.enabled ? "glyphicon glyphicon-pause" : "glyphicon glyphicon-play") + '"></span>&nbsp;' + (row.enabled ? "Disable" : "Enable") + '</button>' +
-                            //'<button class="btn btn-outline-primary" onclick="updateAlert(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-cog"></span>&nbsp;Modify</button>' +
-                            '<button class="btn btn-outline-primary" onclick="deleteAlert(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-remove"></span>&nbsp;Delete</button>' +
-                            '<button class="btn btn-outline-primary" onclick="showRunningLogs(\'' + row.alertId + '\')"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;Logs</button>' +
+                            '<button class="btn btn-outline-primary" onclick="enableAlert(\'' + row.id + '\')"><span class="' + (!row.disabled ? "glyphicon glyphicon-pause" : "glyphicon glyphicon-play") + '"></span>&nbsp;' + (row.disabled ? "Enable" : "Disable") + '</button>' +
+                            //'<button class="btn btn-outline-primary" onclick="updateAlert(\'' + row.id + '\')"><span class="glyphicon glyphicon-cog"></span>&nbsp;Modify</button>' +
+                            '<button class="btn btn-outline-primary" onclick="deleteAlert(\'' + row.id + '\')"><span class="glyphicon glyphicon-remove"></span>&nbsp;Delete</button>' +
+                            '<button class="btn btn-outline-primary" onclick="showRunningLogs(\'' + row.id + '\')"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;Logs</button>' +
                             '</div>';
                     }
                 }]
@@ -172,12 +172,12 @@
             const alert = $('#alertTable').bootstrapTable('getRowByUniqueId', id);
             let api = "";
             let action = "";
-            if (alert.enabled) {
-                api = "/api/alerting/alert/disable";
-                action = "DISABLE";
-            } else {
+            if (alert.disabled) {
                 api = "/api/alerting/alert/enable";
                 action = "ENABLE";
+            } else {
+                api = "/api/alerting/alert/disable";
+                action = "DISABLE";
             }
             bootbox.confirm({
                 title: "Confirmation",
@@ -190,7 +190,7 @@
                         type: "POST",
                         url: api,
                         async: true,
-                        data: JSON.stringify(alert),
+                        data: JSON.stringify({alertId: alert.id}),
                         dataType: "json",
                         contentType: "application/json",
                         success: function (data) {

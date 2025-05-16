@@ -26,7 +26,7 @@ import org.bithon.server.storage.jdbc.common.jooq.tables.BithonWebDashboard;
 /**
  * Convenience access to all tables in the default schema.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
 
     /**
@@ -50,7 +50,7 @@ public class Tables {
     public static final BithonAlertNotificationChannel BITHON_ALERT_NOTIFICATION_CHANNEL = BithonAlertNotificationChannel.BITHON_ALERT_NOTIFICATION_CHANNEL;
 
     /**
-     * Alert
+     * Alert Rules
      */
     public static final BithonAlertObject BITHON_ALERT_OBJECT = BithonAlertObject.BITHON_ALERT_OBJECT;
 

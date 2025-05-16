@@ -16,12 +16,17 @@
 
 package org.bithon.agent.observability.tracing.context.propagation.w3c;
 
+import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextFactory;
+import org.bithon.agent.observability.tracing.context.TraceState;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
 import org.bithon.agent.observability.tracing.context.propagation.ITracePropagator;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationGetter;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
+import org.bithon.component.commons.utils.StringUtils;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,39 +47,49 @@ public class W3CTraceContextExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        String[] ids = traceParent.split("-");
-        if (ids.length != 4) {
+        List<String> ids = StringUtils.split(traceParent, "-");
+        if (ids.size() != 4) {
             return null;
         }
 
         // version
-        if (ids[0].length() != 2) {
+        if (ids.get(0).length() != 2) {
             return null;
         }
 
         // traceId
-        if (ids[1].length() != 32) {
+        String traceId = ids.get(1);
+        if (traceId.length() != 32 || !StringUtils.isHexString(traceId)) {
             return null;
         }
 
         // parent span id
-        if (ids[2].length() != 16) {
+        String parentSpanId = ids.get(2);
+        if (parentSpanId.length() != 16 || !StringUtils.isHexString(parentSpanId)) {
             return null;
         }
 
         // trace flags
-        if (ids[3].length() != 2) {
+        String traceFlags = ids.get(3);
+        if (traceFlags.length() != 2 || !StringUtils.isHexString(traceFlags)) {
             return null;
         }
 
-        return TraceContextFactory.newContext(isSampled(ids[3]) ? SamplingMode.FULL : SamplingMode.NONE, ids[1], ids[2])
+        String traceState = getter.get(request, W3CTraceContextHeader.TRACE_HEADER_STATE);
+        TraceState attributes = TraceState.deserialize(traceState);
+
+        return TraceContextFactory.newContext(getSamplingMode(traceFlags),
+                                              traceId,
+                                              parentSpanId,
+                                              Tracer.get().spanIdGenerator())
+                                  .traceState(attributes)
                                   .currentSpan()
                                   .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION))
                                   .context();
     }
 
-    private boolean isSampled(String id) {
-        int flag = id.charAt(0) - '0' * 16 + (id.charAt(1) - '0');
-        return (flag & SAMPLED_FLAG) == SAMPLED_FLAG;
+    private SamplingMode getSamplingMode(String traceFlags) {
+        int flag = traceFlags.charAt(0) - '0' * 16 + (traceFlags.charAt(1) - '0');
+        return (flag & SAMPLED_FLAG) == SAMPLED_FLAG ? SamplingMode.FULL : SamplingMode.NONE;
     }
 }

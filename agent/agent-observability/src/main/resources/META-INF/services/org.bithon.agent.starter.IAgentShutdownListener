@@ -1,1 +1,1 @@
-org.bithon.agent.observability.dispatcher.DispatchShutdown
+org.bithon.agent.observability.exporter.ExporterShutdown

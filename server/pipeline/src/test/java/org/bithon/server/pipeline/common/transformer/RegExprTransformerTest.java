@@ -19,9 +19,9 @@ package org.bithon.server.pipeline.common.transformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
+import org.bithon.server.datasource.input.InputRow;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
@@ -42,7 +42,7 @@ public class RegExprTransformerTest {
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("exception", "Code: 60, e.displayText()")));
         newTransformer.transform(row1);
-        Assert.assertEquals("60", row1.getCol("exceptionCode"));
+        Assertions.assertEquals("60", row1.getCol("exceptionCode"));
     }
 
     @Test
@@ -57,6 +57,6 @@ public class RegExprTransformerTest {
         InputRow row1 = new InputRow(new HashMap<>());
         row1.updateColumn("tags", ImmutableMap.of("exception", "Code: 60, e.displayText()"));
         newTransformer.transform(row1);
-        Assert.assertEquals("60", row1.getCol("exceptionCode"));
+        Assertions.assertEquals("60", row1.getCol("exceptionCode"));
     }
 }

@@ -46,7 +46,7 @@ public class GlueJobHandler$Execute extends AroundInterceptor {
         ITraceContext traceContext = TraceContextFactory.newContext(SamplingMode.FULL, ctx.getTraceId(), ctx.getParentSpanId());
         TraceContextHolder.attach(traceContext);
         ITraceSpan span = traceContext.currentSpan()
-                                      .component("glue-job");
+                                      .name("glue-job");
 
         IJobHandler job = (IJobHandler) ReflectionUtils.getFieldValue(aopContext.getTarget(), "jobHandler");
         aopContext.setSpan(span.method(job.getClass(), "execute")

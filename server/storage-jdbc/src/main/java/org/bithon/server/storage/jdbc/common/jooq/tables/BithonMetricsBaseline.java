@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * This table keeps the date when the metrics will be kept for ever
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetricsBaseline extends TableImpl<BithonMetricsBaselineRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -67,7 +67,7 @@ public class BithonMetricsBaseline extends TableImpl<BithonMetricsBaselineRecord
      * The column <code>bithon_metrics_baseline.create_time</code>. Created
      * Timestamp
      */
-    public final TableField<BithonMetricsBaselineRecord, LocalDateTime> CREATE_TIME = createField(DSL.name("create_time"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "Created Timestamp");
+    public final TableField<BithonMetricsBaselineRecord, LocalDateTime> CREATE_TIME = createField(DSL.name("create_time"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "Created Timestamp");
 
     private BithonMetricsBaseline(Name alias, Table<BithonMetricsBaselineRecord> aliased) {
         this(alias, aliased, null);

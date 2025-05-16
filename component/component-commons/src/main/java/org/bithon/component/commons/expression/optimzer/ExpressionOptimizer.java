@@ -16,26 +16,17 @@
 
 package org.bithon.component.commons.expression.optimzer;
 
-import org.bithon.component.commons.expression.ArithmeticExpression;
-import org.bithon.component.commons.expression.ArrayAccessExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.expression.IExpressionVisitor;
-import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.bithon.component.commons.expression.MacroExpression;
-import org.bithon.component.commons.expression.MapAccessExpression;
-import org.bithon.component.commons.expression.TernaryExpression;
 import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * @author Frank Chen
@@ -47,208 +38,6 @@ public class ExpressionOptimizer {
         return expression.accept(new ConstantFunctionOptimizer())
                          .accept(new LogicalExpressionOptimizer())
                          .accept(new ConstantFoldingOptimizer());
-    }
-
-    public static class AbstractOptimizer implements IExpressionVisitor<IExpression> {
-        @Override
-        public IExpression visit(LiteralExpression<?> expression) {
-            return expression;
-        }
-
-        /**
-         * Flatten Logical Expression
-         */
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            List<IExpression> operands = expression.getOperands();
-
-            for (int i = 0; i < operands.size(); i++) {
-                // Apply optimization on the operand
-                IExpression subExpression = operands.get(i).accept(this);
-
-                if (subExpression == null) {
-                    operands.remove(i);
-                    i--;
-                } else if (expression instanceof LogicalExpression.AND && subExpression instanceof LogicalExpression.AND
-                    || (expression instanceof LogicalExpression.OR && subExpression instanceof LogicalExpression.OR)
-                    || (expression instanceof LogicalExpression.NOT && subExpression instanceof LogicalExpression.AND)
-                ) {
-                    operands.remove(i);
-
-                    // Flatten nested AND/OR expression
-                    List<IExpression> nestedExpressions = ((LogicalExpression) subExpression).getOperands();
-                    for (IExpression nest : nestedExpressions) {
-                        operands.add(i++, nest);
-                    }
-
-                    // The nested has N elements, since we remove one element first,
-                    // the number total added elements is N - 1
-                    i--;
-                } else {
-                    operands.set(i, subExpression);
-                }
-            }
-
-            if (!(expression instanceof LogicalExpression.NOT) && operands.size() == 1) {
-                return expression.getOperands().get(0);
-            }
-
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(IdentifierExpression expression) {
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ExpressionList expression) {
-            optimizeExpressionList(expression.getExpressions());
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(FunctionExpression expression) {
-            optimizeExpressionList(expression.getArgs());
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ArrayAccessExpression expression) {
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(MapAccessExpression expression) {
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ArithmeticExpression expression) {
-            expression.setLhs(expression.getLhs().accept(this));
-            expression.setRhs(expression.getRhs().accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            expression.setLhs(expression.getLhs().accept(this));
-            expression.setRhs(expression.getRhs().accept(this));
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(MacroExpression expression) {
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(TernaryExpression expression) {
-            expression.setConditionExpression(expression.getConditionExpression().accept(this));
-            expression.setTrueExpression(expression.getTrueExpression().accept(this));
-            expression.setFalseExpression(expression.getFalseExpression().accept(this));
-            if (expression.getConditionExpression() instanceof LiteralExpression) {
-                if (((LiteralExpression<?>) (expression.getConditionExpression())).asBoolean()) {
-                    return expression.getTrueExpression();
-                } else {
-                    return expression.getFalseExpression();
-                }
-            }
-            return expression;
-        }
-
-        private void optimizeExpressionList(List<IExpression> expressions) {
-            final ListIterator<IExpression> iterator = expressions.listIterator();
-            while (iterator.hasNext()) {
-                IExpression optimized = iterator.next().accept(this);
-                if (optimized == null) {
-                    iterator.remove();
-                } else {
-                    iterator.set(optimized);
-                }
-            }
-        }
-    }
-
-    static class ConstantFoldingOptimizer extends AbstractOptimizer {
-        @Override
-        public IExpression visit(LogicalExpression expression) {
-            int literalCount = 0;
-
-            for (int i = 0; i < expression.getOperands().size(); i++) {
-                IExpression newOperand = expression.getOperands().get(i).accept(this);
-                expression.getOperands().set(i, newOperand);
-
-                literalCount += newOperand instanceof LiteralExpression ? 1 : 0;
-            }
-
-            if (literalCount == expression.getOperands().size()) {
-                // All operands are literal, do constant folding
-                return LiteralExpression.of(expression.evaluate(null));
-            } else {
-                return expression;
-            }
-        }
-
-        /**
-         * Optimize the function expression by folding the constant parameters
-         */
-        @Override
-        public IExpression visit(FunctionExpression expression) {
-            if (expression.getFunction().isAggregator()) {
-                return expression;
-            }
-            if (!expression.getFunction().isDeterministic()) {
-                return expression;
-            }
-
-            int literalCount = 0;
-            for (int i = 0; i < expression.getArgs().size(); i++) {
-                IExpression newParameter = expression.getArgs().get(i).accept(this);
-                expression.getArgs().set(i, newParameter);
-
-                literalCount += newParameter instanceof LiteralExpression ? 1 : 0;
-            }
-            if (literalCount == expression.getArgs().size()) {
-                return LiteralExpression.of(expression.evaluate(null));
-            }
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ArrayAccessExpression expression) {
-            IExpression arrayExpression = expression.getArray().accept(this);
-            if (arrayExpression instanceof LiteralExpression) {
-                Object[] array = ((LiteralExpression<?>) arrayExpression).asArray();
-                if (array.length > expression.getIndex()) {
-                    return LiteralExpression.of(array[expression.getIndex()]);
-                } else {
-                    throw new RuntimeException("Out of index");
-                }
-            }
-            expression.setArray(arrayExpression);
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ArithmeticExpression expression) {
-            super.visit(expression);
-
-            if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
-                return LiteralExpression.of(expression.evaluate(null));
-            }
-            return expression;
-        }
-
-        @Override
-        public IExpression visit(ConditionalExpression expression) {
-            expression.setLhs(expression.getLhs().accept(this));
-            expression.setRhs(expression.getRhs().accept(this));
-            if (expression.getLhs() instanceof LiteralExpression && expression.getRhs() instanceof LiteralExpression) {
-                return LiteralExpression.of(expression.evaluate(null));
-            }
-            return expression;
-        }
     }
 
     /**
@@ -311,18 +100,10 @@ public class ExpressionOptimizer {
                 // Turn the expression: 'NOT var not in ('xxx')' into 'var in (xxx)'
                 return new ConditionalExpression.In(((ConditionalExpression.NotIn) subExpression).getLhs(),
                                                     (ExpressionList) ((ConditionalExpression.NotIn) subExpression).getRhs());
-            } else if (subExpression instanceof ConditionalExpression.NotLike) {
-                // Turn the expression: 'NOT var not like 'xxx'' into 'var like (xxx)'
-                return new ConditionalExpression.Like(((ConditionalExpression.NotLike) subExpression).getLhs(),
-                                                      ((ConditionalExpression.NotLike) subExpression).getRhs());
             } else if (subExpression instanceof ConditionalExpression.In) {
                 // Turn into In into NotIn
                 return new ConditionalExpression.NotIn(((ConditionalExpression.In) subExpression).getLhs(),
                                                        (ExpressionList) ((ConditionalExpression.In) subExpression).getRhs());
-            } else if (subExpression instanceof ConditionalExpression.Like) {
-                // Turn into Like into NotLike
-                return new ConditionalExpression.NotLike(((ConditionalExpression.Like) subExpression).getLhs(),
-                                                         ((ConditionalExpression.Like) subExpression).getRhs());
             } else if (subExpression instanceof ComparisonExpression.EQ) {
                 // Turn '=' into '<>'
                 return new ComparisonExpression.NE(((ComparisonExpression.EQ) subExpression).getLhs(),
@@ -347,6 +128,9 @@ public class ExpressionOptimizer {
                 // Turn '>= into '<'
                 return new ComparisonExpression.LT(((ComparisonExpression.GTE) subExpression).getLhs(),
                                                    ((ComparisonExpression.GTE) subExpression).getRhs());
+            } else if (subExpression instanceof LogicalExpression.NOT) {
+                // NOT (NOT (xxx))  => xxx
+                return ((LogicalExpression.NOT) subExpression).getOperands().get(0);
             }
 
             return expression;

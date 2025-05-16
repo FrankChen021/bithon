@@ -20,8 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Frank Chen
@@ -36,7 +37,20 @@ public class HumanReadablePercentageSerializerTest {
         m.addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer());
         om.registerModule(m);
 
-        HumanReadablePercentage percentage = om.readValue(om.writeValueAsString(HumanReadablePercentage.parse("50%")), HumanReadablePercentage.class);
-        Assert.assertEquals("50%", percentage.toString());
+        String serialized = om.writeValueAsString(HumanReadablePercentage.of("50%"));
+        HumanReadablePercentage percentage = om.readValue(serialized, HumanReadablePercentage.class);
+        Assertions.assertEquals("50%", percentage.toString());
+    }
+
+    @Test
+    public void test_Deserialization_SimpleString() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        SimpleModule m = new SimpleModule();
+        m.addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer());
+        m.addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer());
+        om.registerModule(m);
+
+        HumanReadablePercentage percentage = om.readValue("\"50%\"", HumanReadablePercentage.class);
+        Assertions.assertEquals("50%", percentage.toString());
     }
 }

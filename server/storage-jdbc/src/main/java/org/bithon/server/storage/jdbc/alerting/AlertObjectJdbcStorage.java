@@ -22,22 +22,22 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.utils.SqlLikeExpression;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.Order;
+import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.ObjectAction;
 import org.bithon.server.storage.alerting.pojo.AlertChangeLogObject;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
 import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
-import org.bithon.server.storage.alerting.pojo.ListAlertDTO;
 import org.bithon.server.storage.alerting.pojo.ListResult;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.Order;
-import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.storage.alerting.pojo.ListRuleDTO;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -45,13 +45,12 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SortField;
+import org.jooq.SelectOrderByStep;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -81,12 +80,12 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         );
     }
 
-    public AlertObjectJdbcStorage(DSLContext dslContext,
-                                  ISqlDialect sqlDialect,
-                                  String objectTableSelectName,
-                                  String stateTableSelectName,
-                                  ObjectMapper objectMapper,
-                                  AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
+    protected AlertObjectJdbcStorage(DSLContext dslContext,
+                                     ISqlDialect sqlDialect,
+                                     String objectTableSelectName,
+                                     String stateTableSelectName,
+                                     ObjectMapper objectMapper,
+                                     AlertingStorageConfiguration.AlertStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
         this.quotedObjectTableSelectName = objectTableSelectName;
@@ -96,10 +95,15 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public void initialize() {
+    public final void initialize() {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
+
+        createTableIfNotExists();
+    }
+
+    protected void createTableIfNotExists() {
         this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_OBJECT)
                        .columns(Tables.BITHON_ALERT_OBJECT.fields())
                        .indexes(Tables.BITHON_ALERT_OBJECT.getIndexes()).execute();
@@ -108,22 +112,17 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                        .columns(Tables.BITHON_ALERT_CHANGE_LOG.fields())
                        .indexes(Tables.BITHON_ALERT_CHANGE_LOG.getIndexes())
                        .execute();
-
-        this.dslContext.createTableIfNotExists(Tables.BITHON_ALERT_STATE)
-                       .columns(Tables.BITHON_ALERT_STATE.fields())
-                       .indexes(Tables.BITHON_ALERT_STATE.getIndexes())
-                       .execute();
     }
 
     @Override
-    public List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end) {
+    public List<AlertStorageObject> getRuleListByTime(Timestamp start, Timestamp end) {
         return dslContext.selectFrom(this.quotedObjectTableSelectName)
                          .where(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.between(start.toLocalDateTime(), end.toLocalDateTime()))
                          .fetch(this::toStorageObject);
     }
 
     @Override
-    public boolean existAlertById(String alertId) {
+    public boolean existRuleById(String alertId) {
         // use fetchCount instead of fetchExists
         // because the former one uses 'exists' subclause in the generated SQL,
         // and for ClickHouse, this clause is not recognizable
@@ -133,16 +132,16 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public boolean existAlertByName(String name) {
+    public boolean existRuleByName(String name) {
         return this.fetchCount(this.quotedObjectTableSelectName,
                                Tables.BITHON_ALERT_OBJECT.ALERT_NAME.eq(name),
                                Tables.BITHON_ALERT_OBJECT.DELETED.eq(0)) > 0;
     }
 
     @Override
-    public AlertStorageObject getAlertById(String alertId) {
+    public AlertStorageObject getRuleById(String ruleId) {
         return dslContext.selectFrom(this.quotedObjectTableSelectName)
-                         .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
+                         .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(ruleId))
                          .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0))
                          .fetchOne(this::toStorageObject);
     }
@@ -173,7 +172,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public void createAlert(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
+    public void createRule(AlertStorageObject alert, String operator, Timestamp createTimestamp, Timestamp updateTimestamp) {
         try {
             dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
                       .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, alert.getName())
@@ -188,14 +187,14 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                       .set(Tables.BITHON_ALERT_OBJECT.UPDATED_AT, updateTimestamp.toLocalDateTime())
                       .execute();
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException(StringUtils.format("Alert object with id [%s] already exists.", alert.getId()));
+            throw new RuntimeException(StringUtils.format("Alert rule with id [%s] already exists.", alert.getId()));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
+    public boolean updateRule(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
         try {
             return dslContext.update(Tables.BITHON_ALERT_OBJECT)
                              .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getName())
@@ -213,7 +212,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public boolean disableAlert(String alertId, String operator) {
+    public boolean disableRule(String alertId, String operator) {
         return dslContext.update(Tables.BITHON_ALERT_OBJECT)
                          .set(Tables.BITHON_ALERT_OBJECT.DISABLED, 1)
                          .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -223,7 +222,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public boolean enableAlert(String alertId, String operator) {
+    public boolean enableRule(String alertId, String operator) {
         return dslContext.update(Tables.BITHON_ALERT_OBJECT)
                          .set(Tables.BITHON_ALERT_OBJECT.DISABLED, 0)
                          .set(Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR, operator)
@@ -233,7 +232,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public boolean deleteAlert(String alertId, String operator) {
+    public boolean deleteRule(String alertId, String operator) {
         return dslContext.update(Tables.BITHON_ALERT_OBJECT)
                          .set(Tables.BITHON_ALERT_OBJECT.DELETED, 1)
                          .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
@@ -253,71 +252,86 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
     }
 
     @Override
-    public int getAlertListSize(String appName, String alertName) {
+    public int getRuleListSize(String appName, String ruleName) {
         Condition condition = Tables.BITHON_ALERT_OBJECT.DELETED.eq(0);
 
         if (StringUtils.hasText(appName)) {
             condition = condition.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
-        if (StringUtils.hasText(alertName)) {
-            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
+        if (StringUtils.hasText(ruleName)) {
+            condition = condition.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(ruleName)));
         }
 
         return this.fetchCount(this.quotedObjectTableSelectName, condition);
     }
 
     @Override
-    public List<ListAlertDTO> getAlertList(String appName,
-                                           String alertName,
-                                           OrderBy orderBy,
-                                           Limit limit) {
-        SelectConditionStep<?> selectSql = dslContext.select(Tables.BITHON_ALERT_OBJECT.ALERT_ID,
-                                                             Tables.BITHON_ALERT_OBJECT.ALERT_NAME,
-                                                             Tables.BITHON_ALERT_OBJECT.DISABLED,
-                                                             Tables.BITHON_ALERT_OBJECT.APP_NAME,
-                                                             Tables.BITHON_ALERT_OBJECT.CREATED_AT,
-                                                             Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
-                                                             Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
-                                                             Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
-                                                             Tables.BITHON_ALERT_STATE.ALERT_STATUS,
-                                                             Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR)
-                                                     .from(this.quotedObjectTableSelectName)
-                                                     .leftJoin(StringUtils.format("(SELECT * FROM %s) AS %s", this.quotedStateTableSelectName, sqlDialect.quoteIdentifier(Tables.BITHON_ALERT_STATE.getName())))
-                                                     .on(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(Tables.BITHON_ALERT_STATE.ALERT_ID))
-                                                     .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
+    public List<ListRuleDTO> getRuleList(String folder,
+                                         String appName,
+                                         String ruleName,
+                                         OrderBy orderBy,
+                                         Limit limit) {
+        Select<?> selectStatement = dslContext.select(Tables.BITHON_ALERT_OBJECT.ALERT_ID,
+                                                      Tables.BITHON_ALERT_OBJECT.ALERT_NAME,
+                                                      Tables.BITHON_ALERT_OBJECT.DISABLED,
+                                                      Tables.BITHON_ALERT_OBJECT.APP_NAME,
+                                                      Tables.BITHON_ALERT_OBJECT.PAYLOAD,
+                                                      Tables.BITHON_ALERT_OBJECT.CREATED_AT,
+                                                      Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
+                                                      Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT,
+                                                      Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
+                                                      Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
+                                                      Tables.BITHON_ALERT_STATE.ALERT_STATUS,
+                                                      Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR)
+                                              .from(this.quotedObjectTableSelectName)
+                                              .leftJoin(StringUtils.format("(SELECT * FROM %s) AS %s", this.quotedStateTableSelectName, sqlDialect.quoteIdentifier(Tables.BITHON_ALERT_STATE.getName())))
+                                              .on(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(Tables.BITHON_ALERT_STATE.ALERT_ID))
+                                              .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(0));
 
         if (StringUtils.hasText(appName)) {
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
+            selectStatement = ((SelectConditionStep<?>) selectStatement).and(Tables.BITHON_ALERT_OBJECT.APP_NAME.eq(appName));
         }
-        if (StringUtils.hasText(alertName)) {
-            selectSql = selectSql.and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.like("%" + alertName + "%"));
+        if (StringUtils.hasText(ruleName)) {
+            selectStatement = ((SelectConditionStep<?>) selectStatement).and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.likeIgnoreCase(SqlLikeExpression.toLikePattern(ruleName)));
         }
-
-        SortField<?> orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT.desc();
-        Field<?>[] orderByFields = new Field[]{
-            Tables.BITHON_ALERT_OBJECT.UPDATED_AT,
-            Tables.BITHON_ALERT_STATE.LAST_ALERT_AT
-        };
-        for (Field<?> field : orderByFields) {
-            if (field.getName().equals(orderBy.getName())) {
-                if (Order.desc.equals(orderBy.getOrder())) {
-                    orderByField = field.desc();
-                } else {
-                    orderByField = field.asc();
-                }
+        if (StringUtils.hasText(folder)) {
+            if (!folder.endsWith("/")) {
+                folder = folder + '/';
             }
+            selectStatement = ((SelectConditionStep<?>) selectStatement).and(Tables.BITHON_ALERT_OBJECT.ALERT_NAME.startsWith(folder));
         }
 
-        return dslContext.fetch(getAlertListSql(selectSql.orderBy(orderByField)
-                                                         .offset(limit.getOffset())
-                                                         .limit(limit.getLimit())))
+        if (orderBy != null) {
+            Field<?> orderByField;
+            if ("name".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_ALERT_OBJECT.ALERT_NAME;
+            } else if ("enabled".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_ALERT_OBJECT.DISABLED;
+            } else if ("lastAlertAt".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_ALERT_STATE.LAST_ALERT_AT;
+            } else if ("alertStatus".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_ALERT_STATE.ALERT_STATUS;
+            } else if ("createdAt".equals(orderBy.getName())) {
+                orderByField = Tables.BITHON_ALERT_OBJECT.CREATED_AT;
+            } else {
+                orderByField = Tables.BITHON_ALERT_OBJECT.UPDATED_AT;
+            }
+            selectStatement = ((SelectConditionStep<?>) selectStatement).orderBy(Order.desc.equals(orderBy.getOrder()) ? orderByField.desc() : orderByField.asc());
+        }
+
+        if (orderBy != null && limit != null) {
+            selectStatement = ((SelectOrderByStep<?>) selectStatement).offset(limit.getOffset()).limit(limit.getLimit());
+        }
+
+        return dslContext.fetch(selectStatement)
                          .map((record) -> {
-                             ListAlertDTO obj = new ListAlertDTO();
-                             obj.setAlertId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
-                             obj.setAlertName(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_NAME));
+                             ListRuleDTO obj = new ListRuleDTO();
+                             obj.setId(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_ID));
+                             obj.setName(record.get(Tables.BITHON_ALERT_OBJECT.ALERT_NAME));
                              obj.setDisabled(record.get(Tables.BITHON_ALERT_OBJECT.DISABLED) != 0);
 
                              obj.setAppName(record.get(Tables.BITHON_ALERT_OBJECT.APP_NAME));
+                             obj.setPayload(record.get(Tables.BITHON_ALERT_OBJECT.PAYLOAD));
 
                              // It's very strange that under H2,
                              // the returned object is a type of Timestamp instead of LocalDateTime
@@ -335,27 +349,13 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                              }
                              obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
 
-                             Integer status = record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS);
-                             obj.setAlertStatus(status == null ? AlertStatus.PENDING : AlertStatus.fromCode(status));
-                             return obj;
-                         });
-    }
-
-    @Override
-    public Map<String, AlertStateObject> getAlertStates() {
-        return dslContext.selectFrom(this.quotedStateTableSelectName)
-                         .fetchMap(Tables.BITHON_ALERT_STATE.ALERT_ID, (record) -> {
-                             AlertStateObject obj = new AlertStateObject();
-                             obj.setStatus(AlertStatus.fromCode(record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS)));
-
-                             Object timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_ALERT_AT);
-                             // It's strange that the returned object is typeof Timestamp under H2
-                             if (timestamp instanceof Timestamp) {
-                                 obj.setLastAlertAt(((Timestamp) timestamp).toLocalDateTime());
-                             } else {
-                                 obj.setLastAlertAt((LocalDateTime) timestamp);
+                             timestamp = record.get(Tables.BITHON_ALERT_STATE.LAST_EVALUATED_AT);
+                             if (timestamp != null) {
+                                 obj.setLastEvaluatedAt(timestamp instanceof Timestamp ? (Timestamp) timestamp : Timestamp.valueOf((LocalDateTime) timestamp));
                              }
-                             obj.setLastRecordId(record.get(Tables.BITHON_ALERT_STATE.LAST_RECORD_ID));
+
+                             Integer status = record.get(Tables.BITHON_ALERT_STATE.ALERT_STATUS);
+                             obj.setAlertStatus(status == null ? AlertStatus.READY : AlertStatus.fromCode(status));
                              return obj;
                          });
     }

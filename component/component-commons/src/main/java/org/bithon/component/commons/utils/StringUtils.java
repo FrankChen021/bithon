@@ -16,14 +16,15 @@
 
 package org.bithon.component.commons.utils;
 
-import org.bithon.component.commons.exception.HttpMappableException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -49,7 +50,7 @@ public class StringUtils {
     }
 
     public static boolean hasText(String str) {
-        return (str != null && !str.isEmpty() && containsText(str));
+        return str != null && !str.isEmpty() && containsText(str);
     }
 
     public static boolean isEmpty(String v) {
@@ -61,8 +62,7 @@ public class StringUtils {
     }
 
     private static boolean containsText(CharSequence str) {
-        int strLen = str.length();
-        for (int i = 0; i < strLen; i++) {
+        for (int i = 0, len = str.length(); i < len; i++) {
             if (!Character.isWhitespace(str.charAt(i))) {
                 return true;
             }
@@ -76,9 +76,9 @@ public class StringUtils {
 
     public static String from(InputStream inputStream) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int length;
         byte[] buffer = new byte[1024];
-        while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
             bos.write(buffer, 0, length);
         }
         bos.flush();
@@ -181,52 +181,59 @@ public class StringUtils {
     }
 
     /**
-     * @param input      The input string that needs to be escaped.
-     *                   If the input has escaped character by using leading \ character,
-     *                   the escaped character will not be escaped again.
-     * @param escapeChar The character that is used to escape the single quote. Like ' or \
+     * For all character of toBeEscaped in the input, escape it with escapeCharacter.
+     * @param escapeCharacter the character that will be inserted before the target character
+     * @param toBeEscaped the character to be searched and escaped in the given input
      */
-    public static String escapeSingleQuoteIfNecessary(String input, char escapeChar) {
-        int i = input.indexOf('\'');
-        if (i < 0) {
-            // If no single quote found, no escape is needed
+    public static String escape(String input, char escapeCharacter, char toBeEscaped) {
+        if (input == null || input.isEmpty()) {
             return input;
         }
 
-        StringBuilder escaped = new StringBuilder(input.length() + 1);
-        {
-            // Processing from non-escape character
-            while (i > 0 && input.charAt(--i) == '\\') {
-            }
-            if (i > 0) {
-                // Before the slash character, there are characters
-                escaped.append(input, 0, i);
-            }
-
-            for (int size = input.length(); i < size; i++) {
-                char c = input.charAt(i);
-                if (c == '\\') {
-                    if (i + 1 == size) {
-                        throw new HttpMappableException(400,
-                                                        StringUtils.format("The string literal[%s] has ill-format escaping at the end of the string."));
-                    }
-                    char next = input.charAt(++i);
-                    if (next == '\'') {
-                        escaped.append(escapeChar);
-                    } else {
-                        escaped.append('\\');
-                    }
-                    escaped.append(next);
-                } else if (c == '\'') {
-                    // Escape the single quote
-                    escaped.append(escapeChar);
-                    escaped.append(c);
-                } else {
-                    escaped.append(c);
-                }
+        int inputLength = input.length();
+        StringBuilder escaped = new StringBuilder(inputLength + 1);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+            if (c == toBeEscaped) {
+                escaped.append(escapeCharacter).append(c);
+            } else {
+                escaped.append(c);
             }
         }
         return escaped.toString();
+    }
+
+    public static String unEscape(String input, char escapeCharacter, char escaped) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        int inputLength = input.length();
+
+        StringBuilder unEscaped = new StringBuilder(inputLength);
+        for (int i = 0; i < inputLength; i++) {
+            char c = input.charAt(i);
+
+            if (c == escapeCharacter && i + 1 < inputLength) {
+                char next = input.charAt(i + 1);
+                if (next == escaped) {
+                    unEscaped.append(next);
+                    i++;
+                    continue;
+                }
+            }
+
+            unEscaped.append(c);
+        }
+        return unEscaped.toString();
+    }
+
+    public static Map<String, String> extractKeyValueParis(String kvPairs,
+                                                           String pairSeparator,
+                                                           String kvSeparator,
+                                                           Map<String, String> map) {
+        extractKeyValueParis(kvPairs, 0, pairSeparator, kvSeparator, map::put);
+        return map;
     }
 
     public static void extractKeyValueParis(String kvPairs,
@@ -247,13 +254,13 @@ public class StringUtils {
      * (c,d)
      *
      * @param kvPairs       the input string
-     * @param startingFrom  the position of the kvPairs to extract from
+     * @param kvStart       the position in the kvPairs to extract from
      * @param pairSeparator the separator of k-v pair
      * @param kvSeparator   the separator of key and value
      * @param kvConsumer    the callback processing for an extracted key-value pair
      */
     public static void extractKeyValueParis(String kvPairs,
-                                            int startingFrom,
+                                            int kvStart,
                                             String pairSeparator,
                                             String kvSeparator,
                                             BiConsumer<String, String> kvConsumer) {
@@ -261,32 +268,96 @@ public class StringUtils {
             return;
         }
 
-        int tokenStart = startingFrom;
-        int tokenEnd;
         do {
-            tokenEnd = kvPairs.indexOf(kvSeparator, tokenStart);
-            if (tokenEnd > tokenStart) {
-                // Find the parameter name
-                String name = kvPairs.substring(tokenStart, tokenEnd);
+            int kvEnd = kvPairs.indexOf(pairSeparator, kvStart);
+            if (kvEnd == -1) {
+                kvEnd = kvPairs.length();
+            }
 
-                // +1 to skip the kvSeparator
-                tokenStart = tokenEnd + 1;
+            if (kvEnd - kvStart > 0) {
 
-                // Find the parameter value
-                tokenEnd = kvPairs.indexOf(pairSeparator, tokenStart);
-                if (tokenEnd == -1) { // If there's no '&' found, the whole is the value
-                    kvConsumer.accept(name, kvPairs.substring(tokenStart));
-                } else { // If there's a pair separator found, get the substring as value
-                    kvConsumer.accept(name, kvPairs.substring(tokenStart, tokenEnd));
+                // Find kvSeparator in the range of [kvStart, kvEnd)
+                int kvSeparatorIndex;
+                for (kvSeparatorIndex = kvStart; kvSeparatorIndex < kvEnd; kvSeparatorIndex++) {
+                    if (kvPairs.regionMatches(kvSeparatorIndex, kvSeparator, 0, kvSeparator.length())) {
+                        kvConsumer.accept(getTrimedSubstring(kvPairs, kvStart, kvSeparatorIndex),
+                                          getTrimedSubstring(kvPairs, kvSeparatorIndex + kvSeparator.length(), kvEnd));
+                        break;
+                    }
                 }
 
-                tokenStart = tokenEnd + 1;
-            } else if (tokenEnd == tokenStart) {
-                // extra '=' found, e.g: queryString equals to kvSeparator
-                tokenStart = tokenEnd + 1;
+                if (kvSeparatorIndex == kvEnd) {
+                    // The kvSeparator is not found in the given range, treat the whole content as the key
+                    kvConsumer.accept(getTrimedSubstring(kvPairs, kvStart, kvEnd), "");
+                }
             } else {
-                // Not found '=', tokenEnd is -1,
+                // Skip empty pair
             }
-        } while (tokenEnd != -1);
+
+            kvStart = kvEnd + pairSeparator.length();
+        } while (kvStart < kvPairs.length());
+    }
+
+    public static boolean isHexString(String text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if ((c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Split the input string by the separator and returns a list of separated trimmed strings.
+     * NOTE: Empty string at the end of the list is not included in the result list
+     */
+    public static List<String> split(String str, String separator) {
+        if (str == null || separator == null || separator.isEmpty()) {
+            throw new IllegalArgumentException("Input string and separator must not be null or empty");
+        }
+
+        List<String> parts = new ArrayList<>();
+        int start = 0;
+        int separatorIndex;
+        int separatorLength = separator.length();
+        while ((separatorIndex = str.indexOf(separator, start)) != -1) {
+            parts.add(getTrimedSubstring(str, start, separatorIndex));
+
+            start = separatorIndex + separatorLength;
+        }
+
+        // if start == 0, the substring method returns itself
+        if (start == 0) {
+            parts.add(str);
+        } else {
+            String last = getTrimedSubstring(str, start, str.length());
+            if (!last.isEmpty()) { // Skip the last empty string
+                parts.add(last);
+            }
+        }
+
+        return parts;
+    }
+
+    /**
+     * @param start inclusive
+     * @param end   exclusive
+     */
+    private static String getTrimedSubstring(String str, int start, int end) {
+        // Trim the leading whitespaces
+        while (start < end && Character.isWhitespace(str.charAt(start))) {
+            start++;
+        }
+
+        // Trim the trailing whitespaces
+        while (end > start && Character.isWhitespace(str.charAt(end - 1))) {
+            end--;
+        }
+
+        return str.substring(start, end);
     }
 }

@@ -21,49 +21,58 @@ import org.bithon.agent.observability.tracing.Tracer;
 import org.bithon.agent.observability.tracing.context.impl.LoggingTraceContext;
 import org.bithon.agent.observability.tracing.context.impl.TracingContext;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
+import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.tracing.Tags;
-
-import java.util.regex.Pattern;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 18:04
  */
 public class TraceContextFactory {
-    static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
     public static ITraceContext newContext(SamplingMode samplingMode) {
-        return newContext(samplingMode, Tracer.get().traceIdGenerator().newId(), null);
+        return newContext(samplingMode, Tracer.get().traceIdGenerator().newId(), null, Tracer.get().spanIdGenerator());
     }
 
-    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId) {
-        return newContext(samplingMode,
-                          traceId,
-                          parentSpanId,
-                          Tracer.get().spanIdGenerator().newSpanId());
+    public static ITraceContext newContext(SamplingMode samplingMode,
+                                           String traceId,
+                                           String parentSpanId) {
+        return newContext(samplingMode, traceId, parentSpanId, Tracer.get().spanIdGenerator().newSpanId(), Tracer.get().spanIdGenerator());
     }
 
-    public static ITraceContext newContext(SamplingMode samplingMode, String traceId, String parentSpanId, String spanId) {
+    public static ITraceContext newContext(SamplingMode samplingMode,
+                                           String traceId,
+                                           String parentSpanId,
+                                           ISpanIdGenerator spanIdGenerator) {
+        return newContext(samplingMode, traceId, parentSpanId, spanIdGenerator.newSpanId(), spanIdGenerator);
+    }
+
+    public static ITraceContext newContext(SamplingMode samplingMode,
+                                           String traceId,
+                                           String parentSpanId,
+                                           String spanId,
+                                           ISpanIdGenerator spanIdGenerator) {
         //
         // check compatibility of trace id
         //
         String upstreamTraceId = null;
-        if (traceId.length() != 32 || !UUID_PATTERN.matcher(traceId).matches()) {
+        if (traceId.length() != 32 || !StringUtils.isHexString(traceId)) {
             upstreamTraceId = traceId;
             traceId = Tracer.get().traceIdGenerator().newId();
         }
 
         //
-        // create trace context
+        // Create trace context
         //
         ITraceContext context;
         switch (samplingMode) {
             case FULL:
-                context = new TracingContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
+                context = new TracingContext(traceId, spanIdGenerator).reporter(Tracer.get().reporter());
                 break;
             case NONE:
-                context = new LoggingTraceContext(traceId, Tracer.get().spanIdGenerator());
+                context = new LoggingTraceContext(traceId, spanIdGenerator);
                 break;
             default:
                 // actually never happen
@@ -135,7 +144,7 @@ public class TraceContextFactory {
         ITraceSpan span = traceContext.copy()
                                       .reporter(traceContext.reporter())
                                       .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
-                                      .component(name);
+                                      .name(name);
         if (injectedTo != null && setter != null) {
             span.context().propagate(injectedTo, setter);
         }

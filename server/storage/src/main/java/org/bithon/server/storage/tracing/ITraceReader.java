@@ -16,38 +16,37 @@
 
 package org.bithon.server.storage.tracing;
 
-import lombok.Data;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.utils.CloseableIterator;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 3:28 下午
  */
 public interface ITraceReader extends IDataSourceReader {
-    List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
+    CloseableIterator<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(IExpression filter,
                                  List<IExpression> indexedTagFilters,
                                  Timestamp start,
                                  Timestamp end,
-                                 String orderBy,
-                                 Order order,
-                                 int pageNumber,
-                                 int pageSize);
+                                 OrderBy orderBy,
+                                 Limit limit);
 
-    List<Map<String, Object>> getTraceDistribution(IExpression filter,
-                                                   List<IExpression> indexedTagFilters,
-                                                   Timestamp start,
-                                                   Timestamp end,
-                                                   int interval);
+    ColumnarTable getTraceDistribution(IExpression filter,
+                                       List<IExpression> indexedTagFilters,
+                                       Timestamp start,
+                                       Timestamp end,
+                                       long interval);
 
     int getTraceListSize(IExpression filter,
                          List<IExpression> indexedTagFilters,
@@ -61,10 +60,4 @@ public interface ITraceReader extends IDataSourceReader {
      */
     TraceIdMapping getTraceIdByMapping(String userId);
 
-    @Data
-    class Histogram {
-        private double lower;
-        private double upper;
-        private double height;
-    }
 }

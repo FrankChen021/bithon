@@ -19,6 +19,10 @@
 
         <dependency>
             <groupId>org.bithon.server</groupId>
+            <artifactId>datasource-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bithon.server</groupId>
             <artifactId>server-web-service</artifactId>
         </dependency>
         <dependency>
@@ -37,8 +41,13 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -789,7 +789,7 @@ class Dashboard {
         if (query.type === 'list') {
             path = '/api/datasource/list/v2';
         } else {
-            path = thisQuery.groupBy === undefined ? '/api/datasource/groupBy/v2' : '/api/datasource/groupBy/v3';
+            path = '/api/datasource/groupBy/v3';
         }
         const loadOptions = {
             url: apiHost + path,
@@ -958,7 +958,7 @@ class Dashboard {
         const queryFieldsCount = chartDescriptor.query.fields.length;
 
         chartComponent.load({
-            url: apiHost + (thisQuery.groupBy === undefined ? "/api/datasource/timeseries/v3" : "/api/datasource/timeseries/v4"),
+            url: apiHost + "/api/datasource/timeseries/v4",
             ajaxData: JSON.stringify(thisQuery),
             processResult: (data) => {
                 const timeLabels = [];

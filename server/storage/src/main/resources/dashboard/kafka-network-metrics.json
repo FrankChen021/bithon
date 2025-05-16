@@ -1,0 +1,98 @@
+{
+  "name": "kafka-network-metrics",
+  "title": "Kafka Network",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "kafka-network-metrics",
+        "fields": [
+          {"name": "appName", "width": 200, "allowClear": false},
+          "instanceName",
+          "type",
+          "cluster",
+          "nodeId",
+          "groupId",
+          "clientId",
+          "exception"
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "QPS",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "qps"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-network-metrics",
+        "fields": [
+          "type",
+          "qps"
+        ]
+      }
+    },
+    {
+      "title": "Latency",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "millisecond"
+        }
+      ],
+      "columns": [
+        "minResponseTime",
+        "avgResponseTime",
+        "maxResponseTime"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "kafka-network-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      },
+      "details": {
+        "columns": [
+          "cluster",
+          "type",
+          {
+            "name": "minResponseTime",
+            "format": "millisecond"
+          },
+          {
+            "name": "avgResponseTime",
+            "format": "millisecond"
+          },
+          {
+            "name": "maxResponseTime",
+            "format": "millisecond"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "kafka-network-metrics",
+          "fields": [
+            {"name": "count","expression": "count()"},
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "groupBy": ["cluster", "type"],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          }
+        }
+      }
+    }
+  ]
+}

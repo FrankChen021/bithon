@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -24,11 +25,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.query.Limit;
-import org.bithon.server.storage.datasource.query.OrderBy;
-import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
+import org.bithon.server.datasource.query.Query;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -53,8 +57,12 @@ public class QueryRequest {
     @NotEmpty
     private List<QueryField> fields;
 
+    /**
+     * Use LinkedHashSet to keep the order of the client side
+     */
     @Nullable
-    private List<String> groupBy;
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<String> groupBy;
 
     @Nullable
     private OrderBy orderBy;
@@ -62,6 +70,9 @@ public class QueryRequest {
     @Valid
     @Nullable
     private Limit limit;
+
+    @Nullable
+    private HumanReadableDuration offset;
 
     private Query.ResultFormat resultFormat;
 }

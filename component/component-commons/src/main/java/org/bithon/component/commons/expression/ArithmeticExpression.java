@@ -16,8 +16,10 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.StringUtils;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
@@ -26,9 +28,68 @@ import java.sql.Timestamp;
  */
 public abstract class ArithmeticExpression extends BinaryExpression {
 
+    public enum ArithmeticOperator {
+        ADD(true, 0) {
+            @Override
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
+                return new ADD(lhs, rhs);
+            }
+        },
+        SUB(false, 0) {
+            @Override
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
+                return new SUB(lhs, rhs);
+            }
+        },
+        MUL(true, 1) {
+            @Override
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
+                return new MUL(lhs, rhs);
+            }
+        },
+        DIV(false, 1) {
+            @Override
+            public IExpression newExpression(IExpression lhs, IExpression rhs) {
+                return new DIV(lhs, rhs);
+            }
+        };
+
+        private final boolean associative;
+
+        /**
+         * it’s the value that does nothing to the result of the operation.
+         * For example, 0 is the identity for addition and 1 is the identity for multiplication.
+         */
+        private final long identity;
+
+        ArithmeticOperator(boolean associative,
+                           long identity) {
+            this.associative = associative;
+            this.identity = identity;
+        }
+
+        public boolean isAssociative() {
+            return associative;
+        }
+
+        public long getIdentity() {
+            return identity;
+        }
+
+        public abstract IExpression newExpression(IExpression lhs, IExpression rhs);
+    }
+
     protected ArithmeticExpression(String operator, IExpression lhs, IExpression rhs) {
         super(operator, lhs, rhs);
     }
+
+    /// An operator op is associative if:
+    ///
+    ///   (a op b) op c == a op (b op c)
+    ///
+    /// (1 + 2) + 3 == 1 + (2 + 3) == 6, ADD is associative, so is MUL
+    /// (5 - 2) - 1 = 2 ≠ 5 - (2 - 1) = 4, SUB is not associative, so is DIV
+    public abstract ArithmeticOperator getOperator();
 
     @Override
     public IDataType getDataType() {
@@ -50,7 +111,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
         if (lhsValue instanceof Number) {
             Number rValue = asNumber(rhsValue);
-            if (lhsValue instanceof Double || rhsValue instanceof Double) {
+            if (lhsValue instanceof Double
+                || lhsValue instanceof HumanReadablePercentage
+                || rhsValue instanceof Double
+                || rhsValue instanceof HumanReadablePercentage
+            ) {
                 return evaluate(((Number) lhsValue).doubleValue(), rValue.doubleValue());
             }
             return evaluate(((Number) lhsValue).longValue(), rValue.longValue());
@@ -62,6 +127,19 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         throw new UnsupportedOperationException(StringUtils.format("Not support '+' on type of %s and %s",
                                                                    lhsValue.getClass().getSimpleName(),
                                                                    rhsValue.getClass().getSimpleName()));
+    }
+
+    public Number evaluate(Number lhsValue, Number rhsValue) {
+        if (lhsValue instanceof Double
+            || rhsValue instanceof Double
+            || lhsValue instanceof BigDecimal
+            || rhsValue instanceof BigDecimal
+            || lhsValue instanceof HumanReadablePercentage
+            || rhsValue instanceof HumanReadablePercentage
+        ) {
+            return evaluate(lhsValue.doubleValue(), rhsValue.doubleValue());
+        }
+        return evaluate(lhsValue.longValue(), rhsValue.longValue());
     }
 
     @Override
@@ -97,6 +175,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
 
         @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.ADD;
+        }
+
+        @Override
         protected double evaluate(double v1, double v2) {
             return v1 + v2;
         }
@@ -110,6 +193,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
     public static class SUB extends ArithmeticExpression {
         public SUB(IExpression lhs, IExpression rhs) {
             super("-", lhs, rhs);
+        }
+
+        @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.SUB;
         }
 
         @Override
@@ -129,6 +217,11 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         }
 
         @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.MUL;
+        }
+
+        @Override
         protected double evaluate(double v1, double v2) {
             return v1 * v2;
         }
@@ -141,7 +234,17 @@ public abstract class ArithmeticExpression extends BinaryExpression {
 
     public static class DIV extends ArithmeticExpression {
         public DIV(IExpression lhs, IExpression rhs) {
-            super("/", lhs, rhs);
+            super("/", lhs, validNotZero(rhs));
+        }
+
+        private static IExpression validNotZero(IExpression rhs) {
+            if (rhs instanceof LiteralExpression) {
+                Object value = ((LiteralExpression<?>) rhs).getValue();
+                if (value instanceof Number && ((Number) value).doubleValue() == 0) {
+                    throw new ArithmeticException("Divisor CAN'T be ZERO");
+                }
+            }
+            return rhs;
         }
 
         @Override
@@ -152,6 +255,16 @@ public abstract class ArithmeticExpression extends BinaryExpression {
         @Override
         protected long evaluate(long v1, long v2) {
             return v1 / v2;
+        }
+
+        @Override
+        public ArithmeticOperator getOperator() {
+            return ArithmeticOperator.DIV;
+        }
+
+        @Override
+        public IDataType getDataType() {
+            return IDataType.DOUBLE;
         }
     }
 }

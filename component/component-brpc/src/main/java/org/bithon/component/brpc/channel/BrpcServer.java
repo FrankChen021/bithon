@@ -77,8 +77,8 @@ public class BrpcServer implements Closeable {
     BrpcServer(BrpcServerBuilder builder) {
         Preconditions.checkNotNull(builder.serverId, "serverId must be set");
 
-        this.acceptorGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-s-acceptor-" + builder.serverId));
-        this.ioGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.of("brpc-s-io-" + builder.serverId));
+        this.acceptorGroup = new NioEventLoopGroup(1, NamedThreadFactory.nonDaemonThreadFactory("brpc-server-" + builder.serverId));
+        this.ioGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.nonDaemonThreadFactory("brpc-s-work-" + builder.serverId));
 
         this.invocationManager = new InvocationManager();
         this.sessionManager = new SessionManager(this.invocationManager);
@@ -149,6 +149,9 @@ public class BrpcServer implements Closeable {
         return sessionManager.getSessions();
     }
 
+    /**
+     * {@link SessionNotFoundException} will be thrown if the remote application is not connected to this server
+     */
     public Session getSession(String remoteAppId) {
         return sessionManager.getSessions()
                              .stream()

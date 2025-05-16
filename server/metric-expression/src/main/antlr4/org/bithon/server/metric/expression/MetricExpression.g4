@@ -1,7 +1,7 @@
 grammar MetricExpression;
 
 alertExpression
-  : metricExpression                                    #simpleAlertExpression
+  : atomicMetricExpressionImpl                          #simpleAlertExpression
   | alertExpression AND alertExpression                 #logicalAlertExpression
   | alertExpression OR alertExpression                  #logicalAlertExpression
   | LEFT_PARENTHESIS alertExpression RIGHT_PARENTHESIS  #parenthesisAlertExpression
@@ -9,8 +9,17 @@ alertExpression
 
 // sum by (a,b,c) (metric {})
 metricExpression
+  : atomicMetricExpressionImpl                        #atomicMetricExpression
+  | metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
+  | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
+  | '(' metricExpression ')'                          #parenthesisMetricExpression
+  | numberLiteralExpression #metricLiteralExpression // This allows to use literal expression in arithmetic expression
+  ;
+
+atomicMetricExpressionImpl
   : aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? (metricPredicateExpression metricExpectedExpression)?
   ;
+
 
 aggregatorExpression
   : IDENTIFIER
@@ -39,7 +48,7 @@ labelExpression
   ;
 
 durationExpression
-  : LEFT_SQUARE_BRACKET DURATION_LITERAL RIGHT_SQUARE_BRACKET
+  : LEFT_SQUARE_BRACKET '-' ? DURATION_LITERAL RIGHT_SQUARE_BRACKET
   ;
 
 labelSelectorExpression
@@ -48,8 +57,8 @@ labelSelectorExpression
   ;
 
 labelPredicateExpression
-  : LT|LTE|GT|GTE|NE|EQ
-  | NOT? (CONTAINS|STARTSWITH|ENDSWITH|LIKE)
+  : LT|LTE|GT|GTE|NE|EQ|REGEX_MATCH|NOT_REGEX_MATCH
+  | NOT? (CONTAINS|STARTSWITH|ENDSWITH|HASTOKEN)
   ;
 
 metricPredicateExpression
@@ -58,7 +67,11 @@ metricPredicateExpression
  ;
 
 literalExpression
-  : STRING_LITERAL | INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | NULL_LITERAL | SIZE_LITERAL
+  : STRING_LITERAL | numberLiteralExpression | NULL_LITERAL
+  ;
+
+numberLiteralExpression
+  : '-' ? (INTEGER_LITERAL | DECIMAL_LITERAL | PERCENTAGE_LITERAL | SIZE_LITERAL | DURATION_LITERAL)
   ;
 
 literalListExpression
@@ -77,6 +90,11 @@ AND : A N D;
 OR: O R;
 ID: [A-Z];
 
+ADD: '+' ;
+SUB: '-';
+MUL: '*' ;
+DIV: '/';
+
 LEFT_PARENTHESIS: '(';
 RIGHT_PARENTHESIS: ')';
 LEFT_CURLY_BRACE: '{';
@@ -93,10 +111,12 @@ GT: '>';
 GTE: '>=';
 NE: '<>' | '!=';
 EQ: '=';
+REGEX_MATCH: '=~';
+NOT_REGEX_MATCH: '!~';
 IS: I S;
 IN: I N;
 NOT: N O T;
-LIKE: L I K E;
+HASTOKEN: H A S T O K E N;
 CONTAINS: C O N T A I N S;
 STARTSWITH: S T A R T S W I T H;
 ENDSWITH: E N D S W I T H;
@@ -108,9 +128,9 @@ DURATION_LITERAL: INTEGER_LITERAL [smhd];
 // 5Ki -- simplifed binary format, = 5 * 1024
 // 5KiB -- binary format,          = 5 * 1024
 SIZE_LITERAL: INTEGER_LITERAL ('K' ('i' | 'iB')? | 'M' ('i' | 'iB')? | 'G' ('i' | 'iB')? | 'T' ('i' | 'iB')? | 'P' ('i' | 'iB')?);
-INTEGER_LITERAL: '-'?([1-9][0-9]*|[0]);
-DECIMAL_LITERAL: '-'?[0-9]+'.'[0-9]*;
-PERCENTAGE_LITERAL:  [0-9]+('.'[0-9]+)*'%';
+INTEGER_LITERAL: ([1-9][0-9]*|[0]);
+DECIMAL_LITERAL: [0-9]+'.'[0-9]*;
+PERCENTAGE_LITERAL: [0-9]+('.'[0-9]+)*'%';
 
 // Allow using single quote or double quote
 STRING_LITERAL

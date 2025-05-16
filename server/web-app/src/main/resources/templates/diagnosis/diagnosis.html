@@ -211,7 +211,7 @@
           "instanceUpTime",
           {
             "name": "heapUsed",
-            "expression": "round(heapUsed * 100.0/heapMax, 2)"
+            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
           },
           "heapMax",
           "processCpuLoad"

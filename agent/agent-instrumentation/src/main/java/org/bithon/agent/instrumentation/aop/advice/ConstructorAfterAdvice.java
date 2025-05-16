@@ -56,6 +56,8 @@ public class ConstructorAfterAdvice {
                                     name,
                                     e.getMessage()),
                       e);
+
+            interceptor.exception(e);
         }
     }
 }

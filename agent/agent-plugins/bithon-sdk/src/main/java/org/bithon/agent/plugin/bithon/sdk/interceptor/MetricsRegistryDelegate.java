@@ -16,9 +16,10 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.observability.dispatcher.IMessageConverter;
-import org.bithon.agent.observability.metric.collector.IMeasurement;
+import org.bithon.agent.observability.exporter.IMessageConverter;
 import org.bithon.agent.observability.metric.collector.IMetricCollector2;
+import org.bithon.agent.observability.metric.model.IMeasurement;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.metric.model.schema.IDimensionSpec;
 import org.bithon.agent.observability.metric.model.schema.IMetricSpec;
 import org.bithon.agent.observability.metric.model.schema.LongLastMetricSpec;
@@ -39,6 +40,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,12 +55,12 @@ import java.util.stream.Collectors;
 public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
-    private final Supplier<Object> metricInstantiator;
+    private final Supplier<Object> metricObjectCreator;
     private final Schema schema;
     /**
      * keep metrics that won't be cleared when they have been collected
      */
-    private final Map<List<String>, IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
+    private final Map<String[], IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
     private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
@@ -71,7 +74,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
                                                  .orElseThrow(() -> new SdkException("Class[%s] has no default ctor",
                                                                                      metricClass.getName()));
         defaultCtor.setAccessible(true);
-        this.metricInstantiator = () -> {
+        this.metricObjectCreator = () -> {
             try {
                 return defaultCtor.newInstance();
             } catch (Exception e) {
@@ -105,27 +108,22 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             throw new SdkException("[%s] has no metric defined");
         }
 
-        // reserved metric
-        metricsSpec.add(new LongSumMetricSpec("interval"));
-
         this.schema = new Schema(name, dimensionSpecs, metricsSpec);
     }
 
     public Object getOrCreateMetric(boolean retained, String... dimensions) {
-
         if (dimensions.length != schema.getDimensionsSpec().size()) {
             throw new RuntimeException("dimensions not matched. Expected dimensions: " + schema.getDimensionsSpec());
         }
 
-        List<String> dimensionList = Arrays.asList(dimensions);
-
         //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
+
         //noinspection unchecked
-        return ((Measurement) map.computeIfAbsent(dimensionList, key -> {
-            Object metricProvider = metricInstantiator.get();
-            return new Measurement(metricProvider, dimensionList, metricField);
-        })).getMetricProvider();
+        return ((Measurement) map.computeIfAbsent(dimensions, key -> {
+            Object metricObject = metricObjectCreator.get();
+            return new Measurement(metricObject, Dimensions.of(dimensions), metricField);
+        })).getMetricObject();
     }
 
     public Schema getSchema() {
@@ -134,37 +132,66 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     @Override
     public boolean isEmpty() {
-        // this make sure the schema will be sent to remote server even if the metric set is empty
+        // Make sure the schema will be sent to remote server even if the metric set is empty
         // so that remote server could show the data source
         return false;
     }
 
     @Override
     public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
-        Map<List<String>, IMeasurement> metricMap = this.metricsMap;
-        this.metricsMap = new ConcurrentHashMap<>();
-        metricMap.putAll(retainedMetricsMap);
+        Collection<IMeasurement> measurementList = collectMeasurements();
 
-        return messageConverter.from(this.schema, metricMap.values(), timestamp, interval);
+        return messageConverter.from(this.schema, measurementList, timestamp, interval);
+    }
+
+    private Collection<IMeasurement> collectMeasurements() {
+        if (metricsMap.isEmpty()) {
+            // There might be cases that when the code runs here,
+            // another thread is attempting to add metrics to the map.
+            // It's OK that we return null here, as the metrics will be collected in the next round
+            return this.retainedMetricsMap.isEmpty() ? Collections.emptyList() : this.retainedMetricsMap.values();
+        }
+
+        Map<List<String>, IMeasurement> collected = this.metricsMap;
+        // clear the map for the next round
+        this.metricsMap = new ConcurrentHashMap<>();
+
+        if (this.retainedMetricsMap.isEmpty()) {
+            return collected.values();
+        }
+
+        List<IMeasurement> measurementList = new ArrayList<>(collected.values());
+        measurementList.addAll(this.retainedMetricsMap.values());
+        return measurementList;
     }
 
     static class Measurement implements IMeasurement {
-        private final List<String> dimensions;
-        private final Object metricProvider;
+        private final Dimensions dimensions;
+
+        /**
+         * The user object that defines metrics
+         */
+        private final Object metricObject;
+
         private final List<Field> metricFields;
 
-        Measurement(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
+        Measurement(Object metricObject, Dimensions dimensions, List<Field> metricFields) {
             this.dimensions = dimensions;
-            this.metricProvider = metricProvider;
+            this.metricObject = metricObject;
             this.metricFields = metricFields;
         }
 
-        public Object getMetricProvider() {
-            return metricProvider;
+        public Object getMetricObject() {
+            return metricObject;
         }
 
         @Override
-        public List<String> getDimensions() {
+        public long getTimestamp() {
+            return 0;
+        }
+
+        @Override
+        public Dimensions getDimensions() {
             return dimensions;
         }
 
@@ -181,12 +208,12 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
             Field field = this.metricFields.get(index);
             try {
-                IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
+                IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricObject);
                 return provider.value();
             } catch (IllegalAccessException e) {
                 LOG.error("Can't get value of [{}] on class [{}]: {}",
                           field.getName(),
-                          metricProvider.getClass().getName(),
+                          metricObject.getClass().getName(),
                           e.getMessage());
                 return Long.MAX_VALUE;
             }

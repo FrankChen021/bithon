@@ -80,6 +80,8 @@ public class AfterAdvice {
                                     aopContext.getTargetClass().getSimpleName(),
                                     e.getMessage()),
                       e);
+
+            interceptor.exception(e);
         }
 
         returning = aopContext.getReturning();

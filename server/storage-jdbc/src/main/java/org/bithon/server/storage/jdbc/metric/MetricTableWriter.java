@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.metric;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.RetryUtils;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.storage.jdbc.common.IOnceTableWriter;
 import org.jooq.Field;
 import org.springframework.dao.DuplicateKeyException;
@@ -71,7 +71,7 @@ class MetricTableWriter implements IOnceTableWriter {
             for (IInputRow inputRow : inputRowList) {
 
                 int index = 1;
-                statement.setObject(index++, new Timestamp(inputRow.getColAsLong("timestamp")).toLocalDateTime());
+                statement.setTimestamp(index++, new Timestamp(inputRow.getColAsLong("timestamp")));
 
                 // dimensions
                 for (Field<?> dimension : table.getDimensions()) {

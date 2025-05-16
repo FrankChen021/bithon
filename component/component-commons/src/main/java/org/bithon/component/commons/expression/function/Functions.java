@@ -50,9 +50,9 @@ public class Functions implements IFunctionProvider {
     public Functions() {
         register(new NumberFunction.Round());
 
-        register(new StringFunction.StartsWith());
-        register(new StringFunction.EndsWith());
-        register(new StringFunction.HasToken());
+        register(StringFunction.StartsWith.INSTANCE);
+        register(StringFunction.EndsWith.INSTANCE);
+        register(StringFunction.HasToken.INSTANCE);
         register(new StringFunction.Lower());
         register(new StringFunction.Upper());
         register(new StringFunction.Substring());
@@ -64,14 +64,18 @@ public class Functions implements IFunctionProvider {
 
         register(new TimeFunction.ToStartOfMinute());
         register(new TimeFunction.Now());
+        register(TimeFunction.ToMilliSeconds.INSTANCE);
+        register(TimeFunction.ToMicroSeconds.INSTANCE);
+        register(TimeFunction.ToNanoSeconds.INSTANCE);
+        register(TimeFunction.FromUnixTimestamp.INSTANCE);
 
-        register(new AggregateFunction.Min());
-        register(new AggregateFunction.Max());
-        register(new AggregateFunction.Sum());
-        register(new AggregateFunction.Count());
-        register(new AggregateFunction.Avg());
-        register(new AggregateFunction.First());
-        register(new AggregateFunction.Last());
+        register(AggregateFunction.Min.INSTANCE);
+        register(AggregateFunction.Max.INSTANCE);
+        register(AggregateFunction.Sum.INSTANCE);
+        register(AggregateFunction.Count.INSTANCE);
+        register(AggregateFunction.Avg.INSTANCE);
+        register(AggregateFunction.First.INSTANCE);
+        register(AggregateFunction.Last.INSTANCE);
     }
 
     public void register(IFunction function) {

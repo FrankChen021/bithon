@@ -35,6 +35,8 @@ public class TopoTransformers {
         this.addTopoTransformer(new RedisMetricTopoTransformer());
         this.addTopoTransformer(new MongoDbMetricTopoTransformer());
         this.addTopoTransformer(new SqlMetricTopoTransformer());
+        this.addTopoTransformer(new ZooKeeperClientTopoTransformer());
+        this.addTopoTransformer(new GrpcClientTopoTransformer());
     }
 
     public void addTopoTransformer(ITopoTransformer transformer) {

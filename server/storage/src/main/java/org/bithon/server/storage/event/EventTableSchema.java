@@ -19,17 +19,17 @@ package org.bithon.server.storage.event;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.DateTimeColumn;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.store.IDataStoreSpec;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.DateTimeColumn;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.StringColumn;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.store.IDataStoreSpec;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +51,7 @@ public class EventTableSchema implements ISchema {
 
     private final String name;
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
-    private final Map<String, IColumn> columnMap = new HashMap<>();
+    private final Map<String, IColumn> columnMap = new LinkedHashMap<>();
     private final IDataStoreSpec dataStoreSpec;
 
     public EventTableSchema(String name, IEventStorage storage, List<IColumn> columns) {

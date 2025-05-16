@@ -33,12 +33,13 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @ConfigurationProperties(prefix = "bithon.pipelines.traces")
 public class TracePipelineConfig extends PipelineConfig {
 
     private boolean metricOverSpanEnabled = true;
 
+    // NOTE: if change to this property name, please also make sure to change the corresponding property name in TraceIdMappingBatchExtractor
     private List<TraceIdMappingConfig> mapping;
 
     private BatchConfig batch;

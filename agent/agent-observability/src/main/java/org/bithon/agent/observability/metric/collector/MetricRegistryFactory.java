@@ -51,4 +51,11 @@ public class MetricRegistryFactory {
         //noinspection unchecked
         return (R) collector.registry;
     }
+
+    public static <T extends IMetricSet, R extends MetricRegistry<T>> R register(Supplier<R> supplier) {
+        MetricRegistry.Collector<T> collector = MetricCollectorManager.getInstance()
+                                                                      .register(new MetricRegistry.Collector<T>(supplier.get()));
+        //noinspection unchecked
+        return (R) collector.registry;
+    }
 }

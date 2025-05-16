@@ -35,8 +35,6 @@ import org.bithon.component.commons.time.Clock;
  */
 public class LoggingTraceContext implements ITraceContext {
 
-    //private final static ITraceReporter noopTraceReporter = spans -> {
-    //};
     private final Clock clock = new Clock();
 
     private final ISpanIdGenerator spanIdGenerator;

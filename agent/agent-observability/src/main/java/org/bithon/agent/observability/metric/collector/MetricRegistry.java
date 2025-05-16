@@ -17,14 +17,15 @@
 package org.bithon.agent.observability.metric.collector;
 
 import org.bithon.agent.instrumentation.expt.AgentException;
-import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.exporter.IMessageConverter;
+import org.bithon.agent.observability.metric.model.IMeasurement;
 import org.bithon.agent.observability.metric.model.IMetricSet;
 import org.bithon.agent.observability.metric.model.IMetricValueProvider;
+import org.bithon.agent.observability.metric.model.schema.Dimensions;
 import org.bithon.agent.observability.metric.model.schema.Schema2;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +43,8 @@ public class MetricRegistry<T extends IMetricSet> {
     private final Schema2 schema;
     private final Supplier<T> supplier;
     private final boolean clearAfterCollect;
-    private final Map<List<String>, IMeasurement> removedMap = new ConcurrentHashMap<>();
-    private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
+    private final Map<Dimensions, IMeasurement> removedMap = new ConcurrentHashMap<>();
+    private Map<Dimensions, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
     public MetricRegistry(String name, List<String> dimensionSpec, Class<T> metricClass, Supplier<T> newMetricSupplier, boolean clearAfterCollect) {
         List<String> metricsSpec = new ArrayList<>();
@@ -63,35 +64,35 @@ public class MetricRegistry<T extends IMetricSet> {
         if (dimensions.length != this.schema.getDimensionsSpec().size()) {
             throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length);
         }
-        return createMetrics(Arrays.asList(dimensions), supplier.get());
+        return createMetrics(Dimensions.of(dimensions), supplier.get());
     }
 
     @SuppressWarnings("unchecked")
-    public T getMetrics(List<String> dimensions) {
-        if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
+    public T getMetrics(Dimensions dimensions) {
+        if (dimensions.length() != this.schema.getDimensionsSpec().size()) {
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length());
         }
         Measurement measurement = (Measurement) metricsMap.get(dimensions);
         return measurement == null ? null : (T) measurement.metrics;
     }
 
     @SuppressWarnings("unchecked")
-    public T createMetrics(List<String> dimensions, T metrics) {
-        if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
+    public T createMetrics(Dimensions dimensions, T metrics) {
+        if (dimensions.length() != this.schema.getDimensionsSpec().size()) {
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length());
         }
         Measurement measurement = (Measurement) metricsMap.computeIfAbsent(dimensions, key -> new Measurement(dimensions, metrics));
         return (T) measurement.metrics;
     }
 
-    public T getOrCreateMetrics(List<String> dimensions, Supplier<T> supplier) {
-        if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
+    public T getOrCreateMetrics(Dimensions dimensions, Supplier<T> supplier) {
+        if (dimensions.length() != this.schema.getDimensionsSpec().size()) {
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length());
         }
         return createMetrics(dimensions, supplier.get());
     }
 
-    public void removeMetrics(List<String> dimensions) {
+    public void removeMetrics(Dimensions dimensions) {
         IMeasurement measurement = metricsMap.remove(dimensions);
         if (measurement != null) {
             removedMap.put(dimensions, measurement);
@@ -99,16 +100,21 @@ public class MetricRegistry<T extends IMetricSet> {
     }
 
     private class Measurement implements IMeasurement {
-        private final List<String> dimensions;
+        private final Dimensions dimensions;
         private final IMetricSet metrics;
 
-        Measurement(List<String> dimensions, IMetricSet metrics) {
+        Measurement(Dimensions dimensions, IMetricSet metrics) {
             this.dimensions = dimensions;
             this.metrics = metrics;
         }
 
         @Override
-        public List<String> getDimensions() {
+        public long getTimestamp() {
+            return 0;
+        }
+
+        @Override
+        public Dimensions getDimensions() {
             return dimensions;
         }
 
@@ -139,7 +145,7 @@ public class MetricRegistry<T extends IMetricSet> {
         public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
             registry.onCollect();
 
-            Map<List<String>, IMeasurement> metrics = registry.metricsMap;
+            Map<Dimensions, IMeasurement> metrics = registry.metricsMap;
             if (registry.clearAfterCollect) {
                 registry.metricsMap = new ConcurrentHashMap<>();
             }

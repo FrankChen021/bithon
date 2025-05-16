@@ -3,4 +3,4 @@
 	url = https://github.com/FrankChen021/jOOQ.git
 [submodule "server/opentelemetry/opentelemetry-proto"]
 	path = server/opentelemetry/opentelemetry-proto
-	url = git@github.com:FrankChen021/opentelemetry-proto.git
+	url = https://github.com/FrankChen021/opentelemetry-proto.git

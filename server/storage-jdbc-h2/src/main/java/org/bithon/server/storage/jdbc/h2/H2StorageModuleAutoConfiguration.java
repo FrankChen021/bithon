@@ -22,15 +22,16 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertStateJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.EvaluationLogJdbcStorage;
 import org.bithon.server.storage.jdbc.alerting.NotificationChannelJdbcStorage;
+import org.bithon.server.storage.jdbc.dashboard.DashboardJdbcStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.bithon.server.storage.jdbc.web.DashboardJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -59,12 +60,7 @@ public class H2StorageModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(H2SqlDialect.class);
-
                 context.registerSubtypes(new NamedType(JdbcStorageProviderConfiguration.class, "h2"),
-
-                                         // Allow reading external H2 directly
-                                         new NamedType(ExternalH2DataStoreSpec.class, "h2"),
 
                                          new NamedType(MetricJdbcStorage.class, "h2"),
                                          new NamedType(SettingJdbcStorage.class, "h2"),
@@ -78,8 +74,9 @@ public class H2StorageModuleAutoConfiguration {
                                          new NamedType(EvaluationLogJdbcStorage.class, "h2"),
                                          new NamedType(AlertObjectJdbcStorage.class, "h2"),
                                          new NamedType(AlertRecordJdbcStorage.class, "h2"),
+                                         new NamedType(AlertStateJdbcStorage.class, "h2"),
                                          new NamedType(NotificationChannelJdbcStorage.class, "h2")
-                                         );
+                );
             }
         };
     }

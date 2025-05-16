@@ -16,7 +16,7 @@
 
 package org.bithon.agent.observability.metric.collector;
 
-import org.bithon.agent.observability.dispatcher.IMessageConverter;
+import org.bithon.agent.observability.exporter.IMessageConverter;
 
 import java.util.List;
 

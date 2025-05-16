@@ -17,10 +17,10 @@
 package org.bithon.server.storage.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.common.IStorage;
 import org.bithon.server.storage.common.expiration.IExpirable;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
 
 import java.io.IOException;
 import java.util.List;

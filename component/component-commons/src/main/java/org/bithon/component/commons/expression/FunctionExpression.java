@@ -16,8 +16,8 @@
 
 package org.bithon.component.commons.expression;
 
-import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.IFunction;
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.Preconditions;
 
 import java.util.ArrayList;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
  * @date 30/6/23 6:21 pm
  */
 public class FunctionExpression implements IExpression {
+    private final String name;
     private final IFunction function;
 
     /**
@@ -37,8 +38,15 @@ public class FunctionExpression implements IExpression {
      */
     private final List<IExpression> args;
 
+    /**
+     * @param args MUST be a WRITABLE list
+     */
     public FunctionExpression(IFunction function, List<IExpression> args) {
+        Preconditions.checkNotNull(function, "function object cannot be null");
+        function.validateArgs(args);
+
         this.function = function;
+        this.name = function.getName();
         this.args = args;
     }
 
@@ -46,8 +54,14 @@ public class FunctionExpression implements IExpression {
         this(function, new ArrayList<>(Arrays.asList(args)));
     }
 
+    public FunctionExpression(String name, IExpression... args) {
+        this.name = name;
+        this.function = null;
+        this.args = new ArrayList<>(Arrays.asList(args));
+    }
+
     public String getName() {
-        return function.getName();
+        return name;
     }
 
     public List<IExpression> getArgs() {
@@ -90,13 +104,12 @@ public class FunctionExpression implements IExpression {
         return visitor.visit(this);
     }
 
-    public static FunctionExpression create(String functionName, String... args) {
-        IFunction function = Functions.getInstance().getFunction(functionName);
-        Preconditions.checkNotNull(function, "Function [%s] not found.", functionName);
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
+    }
 
-        return new FunctionExpression(function,
-                                      Arrays.stream(args)
-                                            .map(IdentifierExpression::new)
-                                            .collect(Collectors.toList()));
+    public static FunctionExpression create(IFunction function, IExpression... args) {
+        return new FunctionExpression(function, args);
     }
 }

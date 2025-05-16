@@ -23,6 +23,7 @@ import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextListener;
 import org.bithon.agent.observability.tracing.context.TraceMode;
+import org.bithon.agent.observability.tracing.context.TraceState;
 import org.bithon.agent.observability.tracing.context.propagation.PropagationSetter;
 import org.bithon.agent.observability.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.observability.tracing.reporter.ITraceReporter;
@@ -44,17 +45,36 @@ public class TracingContext implements ITraceContext {
 
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();
-    private final Clock clock = new Clock();
+    private final Clock clock;
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private ITraceReporter reporter;
+    private TraceState attributes;
 
     private boolean finished = false;
 
     public TracingContext(String traceId,
                           ISpanIdGenerator spanIdGenerator) {
+        this(traceId, spanIdGenerator, new Clock());
+    }
+
+    private TracingContext(String traceId,
+                           ISpanIdGenerator spanIdGenerator,
+                           Clock clock) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
+        this.clock = clock;
+    }
+
+    @Override
+    public ITraceContext traceState(TraceState attributes) {
+        this.attributes = attributes;
+        return this;
+    }
+
+    @Override
+    public TraceState traceState() {
+        return attributes;
     }
 
     @Override
@@ -120,12 +140,17 @@ public class TracingContext implements ITraceContext {
 
             this.spans.clear();
             this.spanStack.clear();
+            this.finished = true;
+            return;
+        }
+
+        // Allow this method to be re-entered
+        if (this.finished) {
             return;
         }
 
         // Mark the context as FINISHED first to prevent user code to access spans in the implementation of 'report' below
         this.finished = true;
-
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
@@ -200,7 +225,11 @@ public class TracingContext implements ITraceContext {
 
     @Override
     public ITraceContext copy() {
-        return new TracingContext(this.traceId, this.spanIdGenerator).reporter(this.reporter);
+        return new TracingContext(this.traceId,
+                                  this.spanIdGenerator,
+                                  // For all copied trace context that has the same traceId,
+                                  // use the same clock to ensure the microsecond calculation is based on the same time base
+                                  this.clock).reporter(this.reporter);
     }
 
     @Override

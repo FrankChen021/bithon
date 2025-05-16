@@ -31,7 +31,7 @@
         <module>agent-core</module>
         <module>agent-observability</module>
         <module>agent-controller</module>
-        <module>agent-dispatcher-brpc</module>
+        <module>agent-exporter-brpc</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
         <module>agent-main</module>
@@ -72,7 +72,7 @@
             <!-- Dispatcher brpc client -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-dispatcher-brpc</artifactId>
+                <artifactId>agent-exporter-brpc</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -91,13 +91,7 @@
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-sdk</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.2</version>
+                <version>1.2.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -105,25 +99,18 @@
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.1.0</version>
-                </plugin>
+                <!-- Package agent jars-->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.0.2</version>
                 </plugin>
+
+                <!--Assembly the distribution of agent-->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>3.3.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>1.8</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -131,7 +118,6 @@
             <plugin>
                 <groupId>de.thetaphi</groupId>
                 <artifactId>forbiddenapis</artifactId>
-                <version>3.1</version>
                 <configuration>
                     <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
                     <bundledSignatures>
@@ -144,6 +130,7 @@
                     <signaturesFiles>
                         <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
                         <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
+                        <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-agent.txt</signaturesFile>
                     </signaturesFiles>
                     <excludes>
                         <exclude>**/SomeAvroDatum.class</exclude>

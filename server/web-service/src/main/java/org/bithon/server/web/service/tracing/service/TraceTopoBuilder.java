@@ -111,7 +111,7 @@ public class TraceTopoBuilder {
 
         TraceTopo.Link link = this.links.computeIfAbsent(srcNodeName + "->" + dstNodeName,
                                                          v -> new TraceTopo.Link(srcNodeName, dstNodeName));
-        link.incrCount(source.costTime, !"200".equals(source.status));
+        link.incrCount(source.costTime, source.status.compareTo("400") >= 0 && !"OK".equals(source.status));
         return link;
     }
 
@@ -137,7 +137,7 @@ public class TraceTopoBuilder {
         // Step 2. Traverse the tree to get Topo
         //
         for (TraceSpanBo root : (List<TraceSpanBo>) spans) {
-            buildLink(root, root.children);
+            buildLink(root, root, root.children);
         }
 
         //
@@ -239,7 +239,8 @@ public class TraceTopoBuilder {
      * Span: SERVER ---> PRODUCER ---> CONSUMER
      * Topo: SERVER ---> PRODUCER ---> CONSUMER
      */
-    private boolean buildLink(TraceSpanBo parentSpan, List<?> childSpans) {
+    @SuppressWarnings("unchecked")
+    private boolean buildLink(TraceSpanBo upstreamApplication, TraceSpanBo parentSpan, List<?> childSpans) {
         // Determine if a tree path has a termination node.
         // Termination node is a node ends with 'CLIENT' or 'PRODUCER' span
         // OR a CLIENT/PRODUCER span that has no child CLIENT/PRODUCER span.
@@ -256,11 +257,16 @@ public class TraceTopoBuilder {
         //
         boolean hasTermination = false;
 
-        //noinspection unchecked
+        TraceSpanBo prevSpan = parentSpan;
         for (TraceSpanBo childSpan : (List<TraceSpanBo>) childSpans) {
+            // Update the depth and gap
+            childSpan.gap = childSpan.startTime - prevSpan.startTime;
+            childSpan.depth = parentSpan.depth + 1;
 
-            if (parentSpan.getAppName().equals(childSpan.getAppName())
-                && Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())
+            prevSpan = childSpan;
+
+            if (upstreamApplication.getAppName().equals(childSpan.getAppName())
+                && Objects.equals(upstreamApplication.getInstanceName(), childSpan.getInstanceName())
                 && !SpanKind.SERVER.name().equals(childSpan.getKind())
                 && !SpanKind.CONSUMER.name().equals(childSpan.getKind())) {
                 // The instance of childSpan is the same as the parentSpan,
@@ -269,16 +275,16 @@ public class TraceTopoBuilder {
                 // But if the childSpan is a SERVER/CONSUMER, it means the application itself sends a request/message to itself,
                 // in that case, we need to go to the 'else' case
                 //
-                if (buildLink(parentSpan, childSpan.children)) {
+                if (buildLink(upstreamApplication, childSpan, childSpan.children)) {
                     hasTermination = true;
                 }
             } else {
                 // There's a link from the parentSpan to the childSpan,
                 // for this parentSpan, it terminates
                 hasTermination = true;
-                this.addLink(parentSpan, childSpan);
+                this.addLink(upstreamApplication, childSpan);
 
-                buildLink(childSpan, childSpan.children);
+                buildLink(childSpan, childSpan, childSpan.children);
             }
 
             // This childSpan is a CLIENT termination.
@@ -303,6 +309,9 @@ public class TraceTopoBuilder {
                         } else {
                             remoteInstance = childSpan.getTag(Tags.Net.PEER);
                         }
+                    } else if (childSpan.getTag(Tags.Rpc.SYSTEM) != null) {
+                        remoteApplication = childSpan.getTag(Tags.Rpc.SYSTEM);
+                        remoteInstance = childSpan.getTag(Tags.Net.PEER);
                     } else {
                         remoteApplication = "Unknown";
                     }

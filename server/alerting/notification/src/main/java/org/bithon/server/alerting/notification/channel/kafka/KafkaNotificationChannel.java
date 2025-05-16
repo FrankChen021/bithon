@@ -35,8 +35,11 @@ import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,7 +48,7 @@ import java.util.Map;
 public class KafkaNotificationChannel implements INotificationChannel {
 
     @JsonIgnore
-    private final KafkaProducer<String, String> alertProducer;
+    private volatile KafkaProducer<String, String> alertProducer;
 
     @JsonIgnore
     private final ObjectMapper om;
@@ -71,31 +74,53 @@ public class KafkaNotificationChannel implements INotificationChannel {
         Preconditions.checkIfTrue(StringUtils.hasText(this.props.bootstrapServers), "bootstrapServers property can not be empty");
 
         this.om = om;
-
-        Map<String, Object> producerProps = this.props.getProducerProps() == null ? new HashMap<>() : new HashMap<>(this.props.getProducerProps());
-        producerProps.putIfAbsent(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.props.getBootstrapServers());
-        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.putIfAbsent(ProducerConfig.LINGER_MS_CONFIG, 100);
-        this.alertProducer = new KafkaProducer<>(producerProps);
     }
 
     @Override
     public void send(NotificationMessage message) throws IOException {
+        if (alertProducer == null) {
+            synchronized (this) {
+                if (alertProducer == null) {
+                    alertProducer = createProducer(this.props.getBootstrapServers(), this.props.getProducerProps() == null ? Collections.emptyMap() : this.props.getProducerProps());
+                }
+            }
+        }
+
         String content = om.writeValueAsString(message);
         log.info("Sending alert:{}", content);
         alertProducer.send(new ProducerRecord<>(this.props.getTopic(), content));
     }
 
     @Override
+    public void test(NotificationMessage message, Duration timeout) throws Exception {
+        String content = om.writeValueAsString(message);
+
+        Map<String, String> props = new HashMap<>(this.props.getProducerProps() == null ? Collections.emptyMap() : this.props.getProducerProps());
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, String.valueOf(timeout.toMillis()));
+        try (KafkaProducer<String, String> producer = createProducer(this.props.bootstrapServers, props)) {
+            producer.send(new ProducerRecord<>(this.props.getTopic(), content)).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @Override
     public void close() {
-        this.alertProducer.close();
+        if (this.alertProducer != null) {
+            this.alertProducer.close();
+        }
     }
 
     @Override
     public String toString() {
         return "KafkaNotificationChannel{" +
-            "topic='" + this.props.topic + '\'' +
-            '}';
+               "topic='" + this.props.topic + '\'' +
+               '}';
+    }
+
+    private KafkaProducer<String, String> createProducer(String bootstrapServers, Map<String, String> props) {
+        Map<String, Object> producerProps = new HashMap<>(props);
+        producerProps.putIfAbsent(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return new KafkaProducer<>(producerProps);
     }
 }

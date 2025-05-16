@@ -17,7 +17,7 @@
 package org.bithon.server.pipeline.metrics.topo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.storage.meta.EndPointType;
 import org.springframework.util.StringUtils;
 

@@ -19,26 +19,19 @@ package org.bithon.server.alerting.evaluator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.BaselineMetricCacheManager;
-import org.bithon.server.alerting.evaluator.storage.local.AlertStateLocalMemoryStorage;
-import org.bithon.server.alerting.evaluator.storage.redis.AlertStateRedisStorage;
+import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
+import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
+import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
+import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
-import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.IAlertRecordStorage;
+import org.bithon.server.storage.alerting.IEvaluationLogStorage;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
-
-import java.io.IOException;
-import java.util.HashMap;
 
 /**
  * @author Frank Chen
@@ -47,29 +40,24 @@ import java.util.HashMap;
 @Configuration
 @Conditional(EvaluatorModuleEnabler.class)
 @ImportAutoConfiguration(value = {AlertingStorageConfiguration.class})
-@EnableFeignClients
-@Import(FeignClientsConfiguration.class)
 public class EvaluatorModuleAutoConfiguration {
 
     @Bean
-    public IAlertStateStorage alertStateStorage(ObjectMapper objectMapper,
-                                                Environment environment) throws IOException {
-        HashMap<?, ?> stateConfig = Binder.get(environment)
-                                          .bind("bithon.alerting.evaluator.state", HashMap.class)
-                                          .orElseGet(() -> null);
-        Preconditions.checkIfTrue(stateConfig.containsKey("type"), "Missed 'type' property for bithon.alerting.evaluator.state");
+    public AlertEvaluator alertEvaluator(AlertRepository repository,
+                                         IEvaluationLogStorage logStorage,
+                                         IAlertRecordStorage recordStorage,
+                                         IDataSourceApi dataSourceApi,
+                                         ServerProperties serverProperties,
+                                         INotificationApiInvoker notificationApiInvoker,
+                                         ObjectMapper objectMapper) {
 
-        String jsonType = objectMapper.writeValueAsString(stateConfig);
-        try {
-            return objectMapper.readValue(jsonType, IAlertStateStorage.class);
-        } catch (InvalidTypeIdException e) {
-            throw new RuntimeException("Not found state storage with type " + stateConfig.get("type"));
-        }
-    }
-
-    @Bean
-    public BaselineMetricCacheManager cacheManager(IDataSourceApi dataSourceApi) {
-        return new BaselineMetricCacheManager(dataSourceApi);
+        return new AlertEvaluator(repository,
+                                  logStorage,
+                                  recordStorage,
+                                  dataSourceApi,
+                                  serverProperties,
+                                  notificationApiInvoker,
+                                  objectMapper);
     }
 
     @Bean
@@ -87,8 +75,8 @@ public class EvaluatorModuleAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(AlertStateLocalMemoryStorage.class,
-                                         AlertStateRedisStorage.class);
+                context.registerSubtypes(LocalStateManager.class
+                );
             }
         };
     }

@@ -16,11 +16,8 @@
 
 package org.bithon.agent.instrumentation.loader;
 
-import org.bithon.agent.instrumentation.expt.AgentException;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -41,7 +38,7 @@ public class JarClassLoader extends ClassLoader {
     private final List<JarFile> jars;
     private final IClassLoaderProvider[] parents;
 
-    interface IClassLoaderProvider {
+    public interface IClassLoaderProvider {
         ClassLoader getClassLoader();
     }
 
@@ -60,24 +57,26 @@ public class JarClassLoader extends ClassLoader {
 
     public JarClassLoader(String name, File directory, ClassLoader... parents) {
         this(name,
-             directory,
+             JarResolver.resolve(directory),
              Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
-    }
-
-    public List<JarFile> getJars() {
-        return jars;
     }
 
     /**
      * @param name used for logging
      */
-    public JarClassLoader(String name, File directory, IClassLoaderProvider... parents) {
+    public JarClassLoader(String name,
+                          List<JarFile> jars,
+                          IClassLoaderProvider... parents) {
         // NOTE: parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
         this.name = name;
-        this.jars = JarResolver.resolve(directory);
+        this.jars = jars;
         this.parents = parents;
+    }
+
+    public List<JarFile> getJars() {
+        return jars;
     }
 
     @Override
@@ -167,19 +166,6 @@ public class JarClassLoader extends ClassLoader {
                 return iterator.next();
             }
         };
-    }
-
-    public InputStream getClassStream(String name) throws IOException {
-        String path = name.replace('.', '/').concat(".class");
-        for (JarFile jarFile : jars) {
-            JarEntry entry = jarFile.getJarEntry(path);
-            if (entry == null) {
-                continue;
-            }
-
-            return jarFile.getInputStream(entry);
-        }
-        throw new AgentException("Can't find clazz [%s].", name);
     }
 
     public byte[] getClassByteCode(String name) throws IOException {

@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
@@ -156,6 +157,17 @@ public abstract class LiteralExpression<T> implements IExpression {
         return value.toString();
     }
 
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
+    }
+
+    public abstract boolean canNegate();
+
+    public LiteralExpression<T> negate() {
+        throw new UnsupportedOperationException("Not support negate for " + this.getClass().getSimpleName());
+    }
+
     public static class StringLiteral extends LiteralExpression<String> {
         public StringLiteral(String value) {
             super(value);
@@ -164,6 +176,11 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public boolean asBoolean() {
             return "true".equals(value);
+        }
+
+        @Override
+        public boolean canNegate() {
+            return false;
         }
 
         @Override
@@ -187,7 +204,7 @@ public abstract class LiteralExpression<T> implements IExpression {
                     case STRING:
                         return this;
 
-                    case DATETIME_3: {
+                    case DATETIME_MILLI: {
                         try {
                             long timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(value).getTime();
 
@@ -232,7 +249,7 @@ public abstract class LiteralExpression<T> implements IExpression {
                 case BOOLEAN:
                     return new LiteralExpression.BooleanLiteral(value != 0);
 
-                case DATETIME_3:
+                case DATETIME_MILLI:
                     return new TimestampLiteral(value);
 
                 default:
@@ -243,6 +260,16 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public boolean asBoolean() {
             return value != 0;
+        }
+
+        @Override
+        public boolean canNegate() {
+            return true;
+        }
+
+        @Override
+        public LongLiteral negate() {
+            return LiteralExpression.ofLong(-value);
         }
     }
 
@@ -280,6 +307,16 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public boolean asBoolean() {
             return value != 0;
+        }
+
+        @Override
+        public boolean canNegate() {
+            return true;
+        }
+
+        @Override
+        public DoubleLiteral negate() {
+            return LiteralExpression.ofDouble(-value);
         }
     }
 
@@ -321,6 +358,16 @@ public abstract class LiteralExpression<T> implements IExpression {
         public IDataType getDataType() {
             return IDataType.DOUBLE;
         }
+
+        @Override
+        public boolean canNegate() {
+            return true;
+        }
+
+        @Override
+        public BigDecimalLiteral negate() {
+            return LiteralExpression.ofDecimal(value.negate());
+        }
     }
 
     public static class BooleanLiteral extends LiteralExpression<Boolean> {
@@ -339,6 +386,11 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public boolean asBoolean() {
             return value;
+        }
+
+        @Override
+        public boolean canNegate() {
+            return true;
         }
 
         public BooleanLiteral negate() {
@@ -371,7 +423,7 @@ public abstract class LiteralExpression<T> implements IExpression {
 
         @Override
         public IDataType getDataType() {
-            return IDataType.DATETIME_3;
+            return IDataType.DATETIME_MILLI;
         }
 
         @Override
@@ -382,6 +434,16 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public boolean asBoolean() {
             return value != 0;
+        }
+
+        @Override
+        public boolean canNegate() {
+            return true;
+        }
+
+        @Override
+        public TimestampLiteral negate() {
+            return new TimestampLiteral(-value);
         }
     }
 
@@ -412,6 +474,11 @@ public abstract class LiteralExpression<T> implements IExpression {
         public String toString() {
             return "null";
         }
+
+        @Override
+        public boolean canNegate() {
+            return false;
+        }
     }
 
     public static class AsteriskLiteral extends LiteralExpression<String> {
@@ -441,6 +508,11 @@ public abstract class LiteralExpression<T> implements IExpression {
         public String toString() {
             return "AsteriskLiteral(*)";
         }
+
+        @Override
+        public boolean canNegate() {
+            return false;
+        }
     }
 
     public static class ReadableDurationLiteral extends LiteralExpression<HumanReadableDuration> {
@@ -461,6 +533,17 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean canNegate() {
+            return true;
+        }
+
+        @Override
+        public ReadableDurationLiteral negate() {
+            return new ReadableDurationLiteral(HumanReadableDuration.of(this.value.getDuration().negated(),
+                                                                        this.value.getUnit()));
         }
     }
 
@@ -483,6 +566,12 @@ public abstract class LiteralExpression<T> implements IExpression {
         public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public boolean canNegate() {
+            // TODO: to be implemented
+            return false;
+        }
     }
 
     public static class ReadablePercentageLiteral extends LiteralExpression<HumanReadablePercentage> {
@@ -503,6 +592,12 @@ public abstract class LiteralExpression<T> implements IExpression {
         @Override
         public LiteralExpression<?> castTo(IDataType targetType) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean canNegate() {
+            // TODO: to be implemented
+            return false;
         }
     }
 }

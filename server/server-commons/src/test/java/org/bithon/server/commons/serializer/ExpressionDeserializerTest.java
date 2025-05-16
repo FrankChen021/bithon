@@ -26,8 +26,9 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,8 +49,7 @@ public class ExpressionDeserializerTest {
                                                            new IdentifierExpression("a"),
                                                            new ConditionalExpression.In(new IdentifierExpression("a"),
                                                                                         new ExpressionList(LiteralExpression.ofLong(1),
-                                                                                                           LiteralExpression.ofLong(2))),
-                                                           new ConditionalExpression.Like(new IdentifierExpression("a"), LiteralExpression.ofString("c"))
+                                                                                                           LiteralExpression.ofLong(2)))
         );
 
         String jsonText = om.writeValueAsString(expression);
@@ -58,7 +58,7 @@ public class ExpressionDeserializerTest {
         IExpression deserialized = om.readValue(jsonText, IExpression.class);
         String jsonText2 = om.writeValueAsString(deserialized);
 
-        Assert.assertEquals(jsonText, jsonText2);
+        Assertions.assertEquals(jsonText, jsonText2);
     }
 
 }

@@ -18,8 +18,8 @@ package org.bithon.server.alerting.evaluator.evaluator;
 
 import lombok.Builder;
 import lombok.Data;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,12 +31,12 @@ import java.util.Map;
 @Data
 @Builder
 public class AlertRecordPayload {
-    // Evaluation start
+    // Evaluation start, inclusive
     private long start;
 
-    // Evaluation end
+    // Evaluation end, inclusive
     private long end;
 
     private Collection<AlertExpression> expressions;
-    private Map<String, ExpressionEvaluationResult> conditionEvaluation;
+    private Map<String, EvaluationOutputs> evaluationOutputs;
 }

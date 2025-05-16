@@ -13,3 +13,20 @@ Content-Type: application/json
 {
   "alertId": "f7f87ce1e0b444919b123849f4c7939e"
 }
+
+### Get alert record list
+POST http://localhost:9897/api/alerting/alert/record/list
+Content-Type: application/json
+
+{
+  "alertId": "16a5ff9d09bf4ab2811185720ace4b24"
+}
+
+### Get alert record list
+POST http://localhost:9897/api/alerting/alert/record/list
+Content-Type: application/json
+
+{
+  "alertId": "16a5ff9d09bf4ab2811185720ace4b24"
+}
+

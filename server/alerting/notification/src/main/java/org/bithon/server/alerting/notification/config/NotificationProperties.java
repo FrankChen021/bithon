@@ -28,5 +28,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties("bithon.alerting.notification")
 public class NotificationProperties {
+    /**
+     * use managerHost instead
+     */
+    @Deprecated
     private String managerURL;
+
+    private String managerHost = "http://localhost:9897";
+    private String detailPath = "web/alerting/record/detail?recordId={id}";
 }

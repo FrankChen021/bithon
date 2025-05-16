@@ -20,34 +20,35 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.expression.ExpressionASTBuilder;
+import org.bithon.server.datasource.input.IInputRow;
 
 /**
  * @author Frank Chen
  * @date 22/1/24 10:31 pm
  */
+@Slf4j
 public class DropTransformer extends AbstractTransformer {
     @Getter
     private final String expr;
 
-    @Getter
-    private final boolean debug;
-
     @JsonIgnore
     private final IExpression dropExpression;
 
+    // Runtime property
+    private long droppedCount = 0;
+    private volatile long lastLogTime = System.currentTimeMillis();
+
     @JsonCreator
     public DropTransformer(@JsonProperty("expr") String expr,
-                           @JsonProperty("debug") Boolean debug,
                            @JsonProperty("where") String where) {
         super(where);
 
         this.expr = Preconditions.checkArgumentNotNull("expr", expr);
-        this.debug = debug != null && debug;
 
         this.dropExpression = ExpressionASTBuilder.builder()
                                                   .functions(Functions.getInstance()).build(this.expr);
@@ -56,7 +57,24 @@ public class DropTransformer extends AbstractTransformer {
 
     @Override
     protected TransformResult transformInternal(IInputRow inputRow) throws TransformException {
+        boolean dropped = ((boolean) dropExpression.evaluate(inputRow));
+
+        if (dropped) {
+            long now = System.currentTimeMillis();
+
+            synchronized (this) {
+                droppedCount++;
+
+                if (now - lastLogTime > 5_000) {
+                    log.info("Expression [{}] drops [{}]", this.expr, droppedCount);
+
+                    lastLogTime = now;
+                    droppedCount = 0;
+                }
+            }
+        }
+
         // When the expression satisfies, this input should be DROPPED
-        return ((boolean) dropExpression.evaluate(inputRow)) ? TransformResult.DROP : TransformResult.CONTINUE;
+        return dropped ? TransformResult.DROP : TransformResult.CONTINUE;
     }
 }

@@ -25,21 +25,24 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
+import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.DataCleaner;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.reader.TraceJdbcReader;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.TraceTableSchema;
 import org.jooq.Table;
+import org.springframework.context.ApplicationContext;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -59,11 +62,13 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration configuration,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         super(configuration.getDslContext(),
               objectMapper,
               storageConfig,
-              sqlDialectManager);
+              sqlDialectManager,
+              applicationContext);
         this.clickHouseConfig = configuration.getClickHouseConfig();
     }
 
@@ -72,7 +77,6 @@ public class TraceStorage extends TraceJdbcStorage {
         if (!this.storageConfig.isCreateTable()) {
             return;
         }
-
 
         getDefaultTableCreator(Tables.BITHON_TRACE_SPAN_SUMMARY)
             .secondaryIndex(Tables.BITHON_TRACE_SPAN_SUMMARY.NORMALIZEDURL.getName(), new SecondaryIndex("bloom_filter", 1))
@@ -161,8 +165,8 @@ public class TraceStorage extends TraceJdbcStorage {
     public ITraceReader createReader() {
         return new TraceJdbcReader(this.dslContext,
                                    this.objectMapper,
-                                   this.traceSpanSchema,
-                                   this.traceTagIndexSchema,
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
+                                   this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
                                    this.sqlDialectManager.getSqlDialect(this.dslContext)) {
 
@@ -173,7 +177,7 @@ public class TraceStorage extends TraceJdbcStorage {
             }
 
             @Override
-            protected String getSQL(String sql) {
+            protected String decorateSQL(String sql) {
                 return sql + " SETTINGS distributed_product_mode = 'global'";
             }
         };

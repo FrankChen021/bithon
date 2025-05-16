@@ -31,11 +31,12 @@ public class RetryableExceptions {
         return message != null
                && (message.startsWith("Connect timed out")
                    || message.contains("connect timed out")
-                   || message.startsWith("Connection reset")
-                   || message.startsWith("Connection refused")
+                   || message.contains("Connection reset")
+                   || message.contains("Connection refused")
                    || message.startsWith("Unexpected end of file from server")
                    // The following is thrown from sun.net.www.protocol.http.HTTPURLConnection
                    || message.startsWith("Error writing request body to server")
+                   || message.contains("The target server failed to respond")
                );
     }
 }

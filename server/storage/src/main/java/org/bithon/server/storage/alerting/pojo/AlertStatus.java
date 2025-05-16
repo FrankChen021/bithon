@@ -22,25 +22,68 @@ package org.bithon.server.storage.alerting.pojo;
  */
 public enum AlertStatus {
     /**
-     * PENDING for evaluation
+     * The initial status of an alert, ready for evaluation
      */
-    PENDING(0),
+    READY(0) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return (newStatus == PENDING || newStatus == ALERTING);
+        }
+    },
 
     /**
-     * An alert is firing
+     * The rule is evaluated as true, but wait for more evaluation to fire
      */
-    FIRING(10),
+    PENDING(5) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == ALERTING || newStatus == RESOLVED;
+        }
+    },
+
+    /**
+     * The alert has been triggered
+     */
+    ALERTING(10) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == SUPPRESSING || newStatus == RESOLVED;
+        }
+    },
+
+    /**
+     * The alert has been triggered, but the notification is suppressed during the silence period
+     */
+    SUPPRESSING(15) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == ALERTING || newStatus == RESOLVED;
+        }
+    },
 
     /**
      * A fired alert is resolved
      */
-    RESOLVED(20);
+    RESOLVED(20) {
+        @Override
+        public boolean canTransitTo(AlertStatus newStatus) {
+            return newStatus == PENDING
+                   || newStatus == ALERTING
+                   || newStatus == SUPPRESSING;
+        }
+    };
 
     private final int statusCode;
 
     AlertStatus(int statusCode) {
         this.statusCode = statusCode;
     }
+
+    /**
+     * check if the status can transit to the new status.
+     * the old status and the new status SHOULD NOT be the same.
+     */
+    public abstract boolean canTransitTo(AlertStatus newStatus);
 
     public static AlertStatus fromCode(int statusCode) {
         for (AlertStatus status : AlertStatus.values()) {

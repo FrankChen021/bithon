@@ -61,6 +61,20 @@
       <groupId>org.bithon.server</groupId>
       <artifactId>service-discovery-declaration</artifactId>
     </dependency>
+
+    <!--
+      Controller API requires JWT security
+    -->
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-web-security</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

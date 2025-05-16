@@ -24,6 +24,7 @@ import org.bithon.agent.observability.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.plugin.apache.kafka.KafkaPluginContext;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetricRegistry;
 import org.bithon.agent.plugin.apache.kafka.network.metrics.NetworkMetrics;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -41,8 +42,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
     private Field authenticationExceptionField;
 
     public NetworkClient$CompleteResponses() {
-        metricRegistry = MetricRegistryFactory.getOrCreateRegistry("kafka-network",
-                                                                   NetworkMetricRegistry::new);
+        metricRegistry = MetricRegistryFactory.register(NetworkMetricRegistry::new);
 
         try {
             authenticationExceptionField = ReflectionUtils.getField(ClientResponse.class, "authenticationException");
@@ -59,11 +59,16 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
         }
 
         List<ClientResponse> responses = aopContext.getArgAs(0);
+        if (CollectionUtils.isEmpty(responses)) {
+            return;
+        }
+
         for (ClientResponse response : responses) {
 
-            ApiKeys apiKeys = response.requestHeader().apiKey();
+            ApiKeys apiKeys = getResponseApiKeys(response);
             String messageType = apiKeys.name;
-            String nodeId = response.destination();
+
+            String nodeId = getResponseNodeId(response);
 
             // Process the node id for messages sending to group coordinator
             if (apiKeys.id == ApiKeys.LEAVE_GROUP.id
@@ -81,23 +86,7 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
                 }
             }
 
-            String exceptionName = response.wasDisconnected() ? "Disconnected" : "";
-
-            // authenticationException is only support in some higher version (at least 1.0 version has no such exception)
-            // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
-            Exception exception = null;
-            if (authenticationExceptionField != null) {
-                try {
-                    exception = (Exception) authenticationExceptionField.get(response);
-                } catch (IllegalAccessException ignored) {
-                }
-            }
-            if (exception == null) {
-                exception = response.versionMismatch();
-            }
-            if (exception != null) {
-                exceptionName = exception.getClass().getSimpleName();
-            }
+            String exceptionName = getException(response);
 
             NetworkMetrics metrics = metricRegistry.getOrCreateMetrics(messageType,
                                                                        pluginContext.broker,
@@ -111,6 +100,37 @@ public class NetworkClient$CompleteResponses extends AfterInterceptor {
             metrics.minResponseTime.update(latency);
             metrics.responseTime.update(latency);
             metrics.maxResponseTime.update(latency);
+        }
+    }
+
+    protected ApiKeys getResponseApiKeys(ClientResponse response) {
+        return response.requestHeader().apiKey();
+    }
+
+    protected String getResponseNodeId(ClientResponse response) {
+        return response.destination();
+    }
+
+    protected String getException(ClientResponse response) {
+        // authenticationException is only support in some higher version (at least 1.0 version has no such exception)
+        // So, we need to use reflection to get the value so that this code is compatible with these old Kafka clients
+        Exception exception = null;
+        if (authenticationExceptionField != null) {
+            try {
+                exception = (Exception) authenticationExceptionField.get(response);
+            } catch (IllegalAccessException ignored) {
+            }
+        }
+
+        // the versionMisMatch is supported since 0.11
+        if (exception != null) {
+            exception = response.versionMismatch();
+        }
+
+        if (exception == null) {
+            return response.wasDisconnected() ? "Disconnected" : "";
+        } else {
+            return exception.getClass().getSimpleName();
         }
     }
 }

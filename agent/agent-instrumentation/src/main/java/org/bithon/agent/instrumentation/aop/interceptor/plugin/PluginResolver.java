@@ -22,7 +22,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.descriptor.Descriptors;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.instrumentation.expt.AgentException;
 import org.bithon.agent.instrumentation.loader.JarClassLoader;
-import org.bithon.agent.instrumentation.loader.PluginClassLoaderManager;
+import org.bithon.agent.instrumentation.loader.PluginClassLoader;
 import org.bithon.agent.instrumentation.logging.ILogger;
 import org.bithon.agent.instrumentation.logging.LoggerFactory;
 
@@ -41,11 +41,11 @@ import java.util.stream.Collectors;
  */
 public abstract class PluginResolver {
 
-    private final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
+    private static final ILogger LOG = LoggerFactory.getLogger(PluginResolver.class);
 
     public PluginResolver() {
         // create plugin class loader first
-        PluginClassLoaderManager.createDefault();
+        PluginClassLoader.createClassLoader();
     }
 
     public Descriptors resolveInterceptors() {
@@ -56,7 +56,7 @@ public abstract class PluginResolver {
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
 
-            descriptors.merge(plugin.getBithonClassDescriptor());
+            descriptors.merge(plugin.getBithonClassDescriptor(), plugin.getPreconditions());
 
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
@@ -70,9 +70,9 @@ public abstract class PluginResolver {
     /**
      * Resolve the interceptor type ({@link InterceptorType}) for each interceptor declared in each plugin
      */
-    private void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
+    public static void resolveInterceptorType(Collection<Descriptors.Descriptor> descriptors) {
         LOG.info("Resolving interceptor type from all enabled plugins...");
-        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoaderManager.getDefaultLoader());
+        InterceptorTypeResolver resolver = new InterceptorTypeResolver(PluginClassLoader.getClassLoader());
 
         for (Descriptors.Descriptor descriptor : descriptors) {
             for (Descriptors.MethodPointCuts pointcut : descriptor.getMethodPointCuts()) {
@@ -81,9 +81,9 @@ public abstract class PluginResolver {
                         InterceptorType type = resolver.resolve(pointcutDescriptor.getInterceptorClassName());
                         pointcutDescriptor.setInterceptorType(type);
                     } catch (AgentException e) {
-                        LOG.error("Unable to resolve interceptor type for [{}]. Exception: {}",
-                                  pointcutDescriptor.getInterceptorClassName(),
-                                  e.getMessage());
+                        // This is typically an error caused by the plugin developer,
+                        // So we throw an exception to exit the application let the developer know the problem
+                        throw new AgentException("Unable to resolve interceptor type for [" + pointcutDescriptor.getInterceptorClassName() + "]:" + e.getMessage());
                     }
                 }
             }
@@ -92,7 +92,7 @@ public abstract class PluginResolver {
     }
 
     private List<IPlugin> loadPlugins() {
-        JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
+        JarClassLoader pluginClassLoader = (JarClassLoader) PluginClassLoader.getClassLoader();
         return pluginClassLoader.getJars()
                                 .stream()
                                 .flatMap(JarFile::stream)

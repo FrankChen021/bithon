@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 import java.io.IOException;
 import java.util.ArrayList;

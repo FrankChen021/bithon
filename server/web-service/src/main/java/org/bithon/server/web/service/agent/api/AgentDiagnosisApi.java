@@ -20,6 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -37,40 +42,56 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 import org.apache.calcite.sql.validate.SqlValidatorException;
 import org.apache.calcite.util.NlsString;
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.forbidden.SuppressForbidden;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.agent.sql.AgentSchema;
+import org.bithon.server.web.service.agent.sql.table.AgentServiceProxyFactory;
 import org.bithon.server.web.service.agent.sql.table.IPushdownPredicateProvider;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionEngine;
+import org.bithon.server.web.service.common.calcite.SqlExecutionResult;
 import org.bithon.server.web.service.common.output.IOutputFormatter;
 import org.bithon.server.web.service.common.output.JsonCompactOutputFormatter;
 import org.bithon.server.web.service.common.output.TabSeparatedOutputFormatter;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
-import org.bithon.server.web.service.common.sql.SqlExecutionEngine;
-import org.bithon.server.web.service.common.sql.SqlExecutionResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Frank Chen
  * @date 23/2/23 9:10 pm
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
@@ -78,14 +99,17 @@ public class AgentDiagnosisApi {
 
     private final SqlExecutionEngine sqlExecutionEngine;
     private final ObjectMapper objectMapper;
+    private final ApplicationContext applicationContext;
+    private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public AgentDiagnosisApi(DiscoveredServiceInvoker discoveredServiceInvoker,
-                             SqlExecutionEngine sqlExecutionEngine,
                              ObjectMapper objectMapper,
                              ApplicationContext applicationContext) {
         this.objectMapper = objectMapper;
-        this.sqlExecutionEngine = sqlExecutionEngine;
+        this.sqlExecutionEngine = new SqlExecutionEngine();
         this.sqlExecutionEngine.addSchema("agent", new AgentSchema(discoveredServiceInvoker, applicationContext));
+        this.applicationContext = applicationContext;
+        this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 
     @PostMapping(value = "/api/agent/query")
@@ -97,38 +121,31 @@ public class AgentDiagnosisApi {
                                             "Content-Type with application/x-www-form-urlencoded is not accepted. Please use text/plain instead.");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext() == null ? null : SecurityContextHolder.getContext().getAuthentication();
-        String authorization = authentication == null ? null : (String) authentication.getPrincipal();
-
         SqlExecutionResult result = this.sqlExecutionEngine.executeSql(query, (sqlNode, queryContext) -> {
-            if (authentication != null) {
-                // Use user-based authorization first
-                queryContext.set("_token", authorization);
-            }
-
             SqlNode whereNode;
-            SqlNode from = null;
+            SqlNode tableNode;
             if (sqlNode.getKind() == SqlKind.ORDER_BY) {
                 whereNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getWhere();
-                from = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
+                tableNode = ((SqlSelect) ((SqlOrderBy) sqlNode).query).getFrom();
             } else if (sqlNode.getKind() == SqlKind.SELECT) {
                 whereNode = ((SqlSelect) (sqlNode)).getWhere();
-                from = ((SqlSelect) (sqlNode)).getFrom();
+                tableNode = ((SqlSelect) (sqlNode)).getFrom();
             } else if (sqlNode.getKind() == SqlKind.UPDATE) {
                 whereNode = ((SqlUpdate) (sqlNode)).getCondition();
+                tableNode = ((SqlUpdate) sqlNode).getTargetTable();
             } else {
                 throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unsupported SQL Kind: %s", sqlNode.getKind());
             }
 
             Map<String, Boolean> pushdownPredicates = Collections.emptyMap();
-            if (from != null) {
-                if (!(from instanceof SqlIdentifier)) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", from.toString());
+            if (tableNode != null) {
+                if (!(tableNode instanceof SqlIdentifier)) {
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Not supported '%s'. The 'from' clause can only be an identifier", tableNode.toString());
                 }
 
-                List<String> names = ((SqlIdentifier) from).names;
+                List<String> names = ((SqlIdentifier) tableNode).names;
                 if (names.size() != 2) {
-                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", from.toString());
+                    throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(), "Unknown identifier: %s", tableNode.toString());
                 }
 
                 Schema schema = queryContext.getRootSchema().getSubSchema(names.get(0));
@@ -153,7 +170,7 @@ public class AgentDiagnosisApi {
                 pushdownPredicates.forEach((predicate, required) -> {
                     if (required && queryContext.get(predicate) == null) {
                         throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
-                                                        "The filter '%s' is required but not provided",
+                                                        "Missing filter on '%s' in the given SQL. Please update your SQL to continue.",
                                                         predicate);
                     }
                 });
@@ -204,8 +221,8 @@ public class AgentDiagnosisApi {
                 return super.visit(call);
             }
 
-            String identifier = ((SqlIdentifier) identifierNode).getSimple().toLowerCase(Locale.ENGLISH);
-            if (!IAgentControllerApi.PARAMETER_NAME_TOKEN.equals(identifier) && !pushDownPredicates.containsKey(identifier)) {
+            String identifier = ((SqlIdentifier) identifierNode).getSimple();
+            if (!pushDownPredicates.containsKey(identifier)) {
                 return super.visit(call);
             }
 
@@ -222,6 +239,159 @@ public class AgentDiagnosisApi {
             call.setOperand(1, SqlLiteral.createBoolean(true, new SqlParserPos(-1, -1)));
             return null;
         }
+    }
+
+    @Data
+    public static class ProfileRequest {
+        @NotEmpty
+        private String appName;
+
+        @NotEmpty
+        private String instanceName;
+
+        /**
+         * in seconds
+         */
+        @Min(3)
+        @Max(10)
+        private long interval;
+
+        /**
+         * how long the profiling should last for in seconds
+         */
+        @Max(5 * 60)
+        @Min(10)
+        private int duration;
+    }
+
+    @SuppressForbidden
+    @GetMapping("/api/agent/profile/jvm")
+    public SseEmitter profile(@Valid @ModelAttribute ProfileRequest request) {
+        //
+        // Find the controller where the target instance is connected to
+        //
+        DiscoveredServiceInstance controller;
+        {
+            AtomicReference<DiscoveredServiceInstance> controllerRef = new AtomicReference<>();
+            List<DiscoveredServiceInstance> controllerList = discoveredServiceInvoker.getInstanceList(IAgentControllerApi.class);
+            CountDownLatch countDownLatch = new CountDownLatch(controllerList.size());
+            for (DiscoveredServiceInstance controllerInstance : controllerList) {
+                discoveredServiceInvoker.getExecutor()
+                                        .submit(() -> discoveredServiceInvoker.createUnicastApi(IAgentControllerApi.class, () -> controllerInstance)
+                                                                              .getAgentInstanceList(request.getAppName(), request.getInstanceName()))
+                                        .thenAccept((returning) -> {
+                                            if (!returning.isEmpty()) {
+                                                controllerRef.set(controllerInstance);
+                                            }
+                                        })
+                                        .whenComplete((ret, ex) -> countDownLatch.countDown());
+            }
+
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (controllerRef.get() == null) {
+                throw new HttpMappableException(HttpStatus.NOT_FOUND.value(), "No controller found for application instance [appName = %s, instanceName = %s]", request.getAppName(), request.getInstanceName());
+            }
+            controller = controllerRef.get();
+        }
+
+        //
+        // Create service proxy to agent via controller
+        //
+        AgentServiceProxyFactory agentServiceProxyFactory = new AgentServiceProxyFactory(discoveredServiceInvoker, applicationContext);
+        IJvmCommand agentJvmCommand = agentServiceProxyFactory.createUnicastProxy(IJvmCommand.class,
+                                                                                  controller,
+                                                                                  request.getAppName(),
+                                                                                  request.getInstanceName());
+
+
+        ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.daemonThreadFactory("profiling-timer"));
+        ExecutorService profilingExecutor = new ThreadPoolExecutor(1,
+                                                                   1,
+                                                                   0L,
+                                                                   TimeUnit.MILLISECONDS,
+                                                                   new LinkedBlockingQueue<>(1),
+                                                                   NamedThreadFactory.daemonThreadFactory("profiling"),
+                                                                   new ThreadPoolExecutor.DiscardPolicy());
+
+        Runnable stopProfiling = () -> {
+            timer.shutdown();
+            profilingExecutor.shutdown();
+        };
+
+        SseEmitter emitter = new SseEmitter(request.getDuration() * 1000L + 500);
+        emitter.onCompletion(stopProfiling);
+        emitter.onTimeout(stopProfiling);
+        emitter.onError((e) -> stopProfiling.run());
+
+        //
+        // Schedule a task to get information from the target instance continuously
+        //
+        final long duration = request.getDuration();
+        timer.scheduleAtFixedRate(new Runnable() {
+                                      private int elapsed = 0;
+
+                                      @Override
+                                      public void run() {
+
+                                          try {
+                                              emitter.send(SseEmitter.event()
+                                                                     .id(String.valueOf(elapsed))
+                                                                     .name("timer")
+                                                                     .data(Map.of("elapsed", elapsed,
+                                                                                  "remaining", duration - elapsed),
+                                                                           MediaType.APPLICATION_JSON));
+                                          } catch (IOException e) {
+                                              if (!e.getMessage().contains("Broken pipe")) {
+                                                  emitter.completeWithError(e);
+                                              }
+                                              stopProfiling.run();
+                                              return;
+                                          }
+
+                                          if (elapsed % request.getInterval() == 0) {
+
+                                              CompletableFuture.supplyAsync(() -> {
+                                                                   List<IJvmCommand.ThreadInfo> threadInfos = agentJvmCommand.dumpThreads();
+                                                                   return threadInfos;
+                                                               }, profilingExecutor)
+                                                               .thenAccept(threadInfos -> {
+                                                                   try {
+                                                                       emitter.send(SseEmitter.event()
+                                                                                              .id(String.valueOf(elapsed))
+                                                                                              .name("thread")
+                                                                                              .data(threadInfos, MediaType.APPLICATION_JSON));
+                                                                   } catch (IOException e) {
+                                                                       if (!e.getMessage().contains("Broken pipe")) {
+                                                                           emitter.completeWithError(e);
+                                                                       }
+                                                                       stopProfiling.run();
+                                                                   }
+                                                               }).exceptionally((ex) -> {
+                                                                   if (ex != null) {
+                                                                       stopProfiling.run();
+
+                                                                       log.error("Failed to get thread info", ex);
+                                                                   }
+
+                                                                   return null;
+                                                               });
+                                          }
+
+                                          if (elapsed++ >= duration) {
+                                              emitter.complete();
+                                              stopProfiling.run();
+                                          }
+                                      }
+                                  },
+                                  0,
+                                  1,
+                                  TimeUnit.SECONDS);
+
+        return emitter;
     }
 
     @ExceptionHandler({SqlValidatorException.class, SqlParseException.class})

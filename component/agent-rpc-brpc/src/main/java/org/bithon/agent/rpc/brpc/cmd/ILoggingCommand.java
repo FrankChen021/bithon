@@ -32,5 +32,8 @@ public interface ILoggingCommand {
 
     List<LoggerConfiguration> getLoggers();
 
+    /**
+     * @return The number of loggers that have been updated
+     */
     List<Integer> setLogger(String name, LoggingLevel level);
 }

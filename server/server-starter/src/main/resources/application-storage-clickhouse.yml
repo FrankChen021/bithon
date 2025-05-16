@@ -4,39 +4,44 @@
 bithon:
   storage:
     tracing:
-      provider: clickhouse
       enabled: true
+      provider: clickhouse
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     metric:
-      provider: clickhouse
       enabled: true
+      provider: clickhouse
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     event:
-      provider: clickhouse
       enabled: true
+      provider: clickhouse
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     meta:
-      provider: clickhouse
       enabled: true
+      provider: clickhouse
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
+
     setting:
-      provider: clickhouse
       enabled: true
-    web:
       provider: clickhouse
-      type: clickhouse
+
+    dashboard:
+      enabled: true
+      provider: clickhouse
 
     alerting:
       all:
@@ -54,7 +59,7 @@ bithon:
 
     providers:
       clickhouse:
-        url: jdbc:clickhouse://localhost:8123/bithon
+        url: jdbc:clickhouse://localhost:8123/bithon?use_server_time_zone=true
         username: default
         password:
         #
@@ -63,3 +68,4 @@ bithon:
         #onDistributedTable: true
         # can be MergeTree or ReplicateMergeTree(xxxx)
         #engine: MergeTree
+        #ttl: toStartOfDay(timestamp) + INTERVAL 1 DAY MOVE TO VOLUME 'disk1'

@@ -17,8 +17,9 @@
 package org.bithon.server.commons.utils;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Map;
 
@@ -30,101 +31,101 @@ public class UrlUtilsTest {
 
     @Test
     public void test_ParseParameters_EmptyQueryString() {
-        Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost").isEmpty());
-        Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost?").isEmpty());
-        Assert.assertTrue(UrlUtils.parseURLParameters("http://localhost?=").isEmpty());
+        Assertions.assertTrue(UrlUtils.parseURLParameters("http://localhost").isEmpty());
+        Assertions.assertTrue(UrlUtils.parseURLParameters("http://localhost?").isEmpty());
+        Assertions.assertTrue(UrlUtils.parseURLParameters("http://localhost?=").isEmpty());
     }
 
     @Test
     public void test_ParseParameters_EmptyValue() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=");
-        Assert.assertEquals(1, parameters.size());
-        Assert.assertTrue(parameters.containsKey("m"));
-        Assert.assertEquals("", parameters.get("m"));
+        Assertions.assertEquals(1, parameters.size());
+        Assertions.assertTrue(parameters.containsKey("m"));
+        Assertions.assertEquals("", parameters.get("m"));
     }
 
     @Test
     public void test_ParseParameters_MultipleEmptyValues() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=&n=");
-        Assert.assertEquals(2, parameters.size());
-        Assert.assertEquals("", parameters.get("m"));
-        Assert.assertEquals("", parameters.get("n"));
+        Assertions.assertEquals(2, parameters.size());
+        Assertions.assertEquals("", parameters.get("m"));
+        Assertions.assertEquals("", parameters.get("n"));
     }
 
     @Test
     public void test4() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=&n=&");
-        Assert.assertEquals(2, parameters.size());
-        Assert.assertEquals("", parameters.get("m"));
-        Assert.assertEquals("", parameters.get("n"));
+        Assertions.assertEquals(2, parameters.size());
+        Assertions.assertEquals("", parameters.get("m"));
+        Assertions.assertEquals("", parameters.get("n"));
     }
 
     @Test
     public void test5() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n==");
-        Assert.assertEquals(2, parameters.size());
-        Assert.assertEquals("1", parameters.get("m"));
-        Assert.assertEquals("=", parameters.get("n"));
+        Assertions.assertEquals(2, parameters.size());
+        Assertions.assertEquals("1", parameters.get("m"));
+        Assertions.assertEquals("=", parameters.get("n"));
     }
 
     @Test
     public void test6() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m");
-        Assert.assertEquals(0, parameters.size());
+        Assertions.assertEquals(1, parameters.size());
     }
 
     @Test
     public void test_ParseParameters_Normal() {
         Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&");
-        Assert.assertEquals(3, parameters.size());
-        Assert.assertEquals("1", parameters.get("m"));
-        Assert.assertEquals("2", parameters.get("n"));
-        Assert.assertEquals("3", parameters.get("l"));
+        Assertions.assertEquals(3, parameters.size());
+        Assertions.assertEquals("1", parameters.get("m"));
+        Assertions.assertEquals("2", parameters.get("n"));
+        Assertions.assertEquals("3", parameters.get("l"));
     }
 
     @Test
     public void test_ParseParameters_WhiteList() {
         {
             Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&", ImmutableSet.of("n"));
-            Assert.assertEquals(1, parameters.size());
-            Assert.assertEquals("2", parameters.get("n"));
+            Assertions.assertEquals(1, parameters.size());
+            Assertions.assertEquals("2", parameters.get("n"));
         }
         {
             Map<String, String> parameters = UrlUtils.parseURLParameters("http://localhost?m=1&n=2&l=3&", ImmutableSet.of("x"));
-            Assert.assertEquals(0, parameters.size());
+            Assertions.assertEquals(0, parameters.size());
         }
     }
 
     @Test
     public void test_Sanitize() {
         // No value after the '='
-        Assert.assertEquals("http://localhost?password=", UrlUtils.sanitize("http://localhost?password=", "password", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?password=", UrlUtils.sanitize("http://localhost?password=", "password", "HIDDEN"));
 
         // Value is empty
-        Assert.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=    ", "password", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=    ", "password", "HIDDEN"));
 
         // Only one parameter
-        Assert.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=2", "password", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?password=HIDDEN", UrlUtils.sanitize("http://localhost?password=2", "password", "HIDDEN"));
 
         // More parameters, and it's at the end
-        Assert.assertEquals("http://localhost?user=1&password=HIDDEN", UrlUtils.sanitize("http://localhost?user=1&password=2", "password", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?user=1&password=HIDDEN", UrlUtils.sanitize("http://localhost?user=1&password=2", "password", "HIDDEN"));
 
         // More parameters, and it's in the middle
-        Assert.assertEquals("http://localhost?user=1&password=HIDDEN&database=default", UrlUtils.sanitize("http://localhost?user=1&password=2&database=default", "password", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?user=1&password=HIDDEN&database=default", UrlUtils.sanitize("http://localhost?user=1&password=2&database=default", "password", "HIDDEN"));
 
         // No parameters
-        Assert.assertEquals("http://localhost", UrlUtils.sanitize("http://localhost", "localhost", "HIDDEN"));
+        Assertions.assertEquals("http://localhost", UrlUtils.sanitize("http://localhost", "localhost", "HIDDEN"));
 
         // No matched parameter
-        Assert.assertEquals("http://localhost?p=1&q=2&r=3", UrlUtils.sanitize("http://localhost?p=1&q=2&r=3", "localhost", "HIDDEN"));
+        Assertions.assertEquals("http://localhost?p=1&q=2&r=3", UrlUtils.sanitize("http://localhost?p=1&q=2&r=3", "localhost", "HIDDEN"));
 
         // No host
-        Assert.assertEquals("?query=select+1&password=HIDDEN", UrlUtils.sanitize("?query=select+1&password=2", "password", "HIDDEN"));
+        Assertions.assertEquals("?query=select+1&password=HIDDEN", UrlUtils.sanitize("?query=select+1&password=2", "password", "HIDDEN"));
 
         // No host
-        Assert.assertEquals("?password1=2&password=HIDDEN", UrlUtils.sanitize("?password1=2&password=3", "password", "HIDDEN"));
+        Assertions.assertEquals("?password1=2&password=HIDDEN", UrlUtils.sanitize("?password1=2&password=3", "password", "HIDDEN"));
 
-        Assert.assertEquals("?p1=1&pass=&p3=3", UrlUtils.sanitize("?p1=1&pass=&p3=3", "pass", "HIDDEN"));
+        Assertions.assertEquals("?p1=1&pass=&p3=3", UrlUtils.sanitize("?p1=1&pass=&p3=3", "pass", "HIDDEN"));
 
     }
 }

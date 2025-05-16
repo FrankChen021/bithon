@@ -19,6 +19,7 @@ package org.bithon.agent.rpc.brpc.cmd;
 import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -37,14 +38,30 @@ public interface IInstrumentationCommand {
         public String methodName;
         public boolean isStatic;
         public String parameters;
-        public String exception;
+        public String instrumentException;
+        public long exceptionCount;
+        public Timestamp lastExceptionTime;
+        public String lastException;
 
         /**
          * Return the object in an object array.
          * The sequence of the values in the array MUST be in accordance with the sequence of fields
          */
         public Object[] toObjects() {
-            return new Object[]{interceptor, clazzLoader, hitCount, clazzName, returnType, methodName, isStatic, parameters, exception};
+            return new Object[]{
+                interceptor,
+                clazzLoader,
+                hitCount,
+                clazzName,
+                returnType,
+                methodName,
+                isStatic,
+                parameters,
+                instrumentException,
+                exceptionCount,
+                lastExceptionTime,
+                lastException
+            };
         }
     }
 

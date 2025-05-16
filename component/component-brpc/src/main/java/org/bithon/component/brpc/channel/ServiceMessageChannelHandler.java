@@ -120,7 +120,6 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
         } else {
             LOG.warn("channel is not writable, disable auto reading for back pressing");
             ctx.channel().config().setAutoRead(false);
-            ctx.flush();
         }
         ctx.fireChannelWritabilityChanged();
     }

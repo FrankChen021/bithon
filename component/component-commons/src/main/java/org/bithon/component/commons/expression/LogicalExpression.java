@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.serialization.ExpressionSerializer;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -23,6 +24,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * AND/OR
@@ -31,17 +35,13 @@ import java.util.Locale;
  */
 public abstract class LogicalExpression implements IExpression {
 
-    public static final String AND = "AND";
-    public static final String OR = "OR";
-    public static final String NOT = "NOT";
-
     public static LogicalExpression create(String operator, List<IExpression> expressions) {
         switch (operator) {
-            case AND:
+            case AND.OP:
                 return new AND(expressions);
-            case OR:
+            case OR.OP:
                 return new OR(expressions);
-            case NOT:
+            case NOT.OP:
                 return new NOT(expressions);
             default:
                 throw new UnsupportedOperationException("Unsupported operator " + operator);
@@ -95,6 +95,11 @@ public abstract class LogicalExpression implements IExpression {
         return visitor.visit(this);
     }
 
+    @Override
+    public void serializeToText(ExpressionSerializer serializer) {
+        serializer.serialize(this);
+    }
+
     public abstract LogicalExpression copy(List<IExpression> expressionList);
 
     public static boolean toBoolean(Object value) {
@@ -129,12 +134,16 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     public static class AND extends LogicalExpression {
+        public static final String OP = "AND";
+
         public AND(List<IExpression> operands) {
-            super(AND, operands);
+            super(OP, operands);
         }
 
         public AND(IExpression... expressions) {
-            super(AND, new ArrayList<>(Arrays.asList(expressions)));
+            super(OP, Stream.of(expressions)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList()));
         }
 
         @Override
@@ -148,6 +157,11 @@ public abstract class LogicalExpression implements IExpression {
             return true;
         }
 
+        public IExpression and(IExpression expression) {
+            this.operands.add(expression);
+            return this;
+        }
+
         @Override
         public LogicalExpression copy(List<IExpression> expressionList) {
             return new AND(expressionList);
@@ -155,15 +169,16 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     public static class OR extends LogicalExpression {
+        public static final String OP = "OR";
 
         public OR(List<IExpression> operands) {
-            super(OR, operands);
+            super(OP, operands);
         }
 
         public OR(IExpression... operands) {
             // Arrays.asList returns unmodified copy,
             // but we need a modifiable one so that further optimizer can be applied on this expression
-            super(OR, new ArrayList<>(Arrays.asList(operands)));
+            super(OP, new ArrayList<>(Arrays.asList(operands)));
         }
 
         @Override
@@ -184,19 +199,20 @@ public abstract class LogicalExpression implements IExpression {
     }
 
     public static class NOT extends LogicalExpression {
+        public static final String OP = "NOT";
 
         public NOT(List<IExpression> operands) {
-            super(NOT, operands);
+            super(OP, operands);
         }
 
         public NOT(IExpression... operands) {
             // Arrays.asList returns unmodified copy,
             // but we need a modifiable one so that further optimizer can be applied on this expression
-            super(NOT, new ArrayList<>(Arrays.asList(operands)));
+            super(OP, new ArrayList<>(Arrays.asList(operands)));
         }
 
         public NOT(IExpression expression) {
-            super(NOT, new ArrayList<>(Collections.singletonList(expression)));
+            super(OP, new ArrayList<>(Collections.singletonList(expression)));
         }
 
         @Override

@@ -28,7 +28,7 @@ import java.util.Set;
  * @date 2020/12/29
  */
 public class Validator {
-    public static Object validate(Object obj) {
+    public static <T> T validate(T obj) {
         jakarta.validation.Validator validator = Validation.buildDefaultValidatorFactory()
                                                          .getValidator();
 

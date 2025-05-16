@@ -52,9 +52,18 @@
         <module>storage-jdbc-clickhouse</module>
         <module>storage-jdbc-h2</module>
         <module>storage-jdbc-mysql</module>
+        <module>storage-jdbc-postgresql</module>
+        <module>datasource/common</module>
+        <module>datasource/reader-jdbc</module>
+        <module>datasource/reader-jdbc-clickhouse</module>
+        <module>datasource/reader-jdbc-h2</module>
+        <module>datasource/reader-jdbc-mysql</module>
+        <module>datasource/reader-jdbc-postgresql</module>
+        <module>datasource/reader-vm</module>
         <module>opentelemetry</module>
         <module>collector</module>
         <module>metric-expression</module>
+        <module>web-security</module>
         <module>web-service</module>
         <module>web-app</module>
 
@@ -99,13 +108,6 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid-spring-boot-starter</artifactId>
                 <version>1.1.24</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>2.11.0</version>
             </dependency>
 
             <dependency>
@@ -188,6 +190,46 @@
                 <artifactId>server-storage-jdbc-clickhouse</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-storage-jdbc-postgresql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-mysql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-jdbc-postgresql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>datasource-reader-vm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.bithon.server</groupId>
@@ -202,6 +244,11 @@
             <dependency>
                 <groupId>org.bithon.server</groupId>
                 <artifactId>server-web-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bithon.server</groupId>
+                <artifactId>server-web-security</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

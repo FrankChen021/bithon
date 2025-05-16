@@ -20,8 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bithon.component.commons.utils.HumanReadableNumber;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,21 +30,33 @@ import org.junit.Test;
  */
 public class HumanReadableNumberSerializerTest {
 
-    @Test
-    public void test_Deserialization() throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
+    private ObjectMapper om;
+
+    @BeforeEach
+    public void setUp() {
+        om = new ObjectMapper();
         SimpleModule m = new SimpleModule();
         m.addDeserializer(HumanReadableNumber.class, new HumanReadableSizeDeserializer());
         m.addSerializer(HumanReadableNumber.class, new HumanReadableSizeSerializer());
         om.registerModule(m);
+    }
 
-        Assert.assertEquals("5G", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5G")), HumanReadableNumber.class)
-                                    .toString());
+    @Test
+    public void test_SerializationAndDeserialization() throws JsonProcessingException {
+        Assertions.assertEquals("5G", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5G")), HumanReadableNumber.class)
+                                        .toString());
 
-        Assert.assertEquals("5Gi", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5Gi")), HumanReadableNumber.class)
+        Assertions.assertEquals("5Gi", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5Gi")), HumanReadableNumber.class)
                                      .toString());
 
-        Assert.assertEquals("5GiB", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5GiB")), HumanReadableNumber.class)
+        Assertions.assertEquals("5GiB", om.readValue(om.writeValueAsString(HumanReadableNumber.of("5GiB")), HumanReadableNumber.class)
                                       .toString());
+    }
+
+    @Test
+    public void test_DeserializeFromSimpleString() throws JsonProcessingException {
+        // Deserialization from simple string
+        Assertions.assertEquals("5GiB", om.readValue("\"5GiB\"", HumanReadableNumber.class).toString());
+
     }
 }

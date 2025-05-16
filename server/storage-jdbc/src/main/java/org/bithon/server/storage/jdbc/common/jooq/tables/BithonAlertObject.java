@@ -33,9 +33,9 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Alert
+ * Alert Rules
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -59,9 +59,9 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     public final TableField<BithonAlertObjectRecord, String> ALERT_ID = createField(DSL.name("alert_id"), SQLDataType.VARCHAR(32).nullable(false), this, "UUID");
 
     /**
-     * The column <code>bithon_alert_object.alert_name</code>.
+     * The column <code>bithon_alert_object.alert_name</code>. Rule name
      */
-    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "");
+    public final TableField<BithonAlertObjectRecord, String> ALERT_NAME = createField(DSL.name("alert_name"), SQLDataType.VARCHAR(128).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Rule name");
 
     /**
      * The column <code>bithon_alert_object.app_name</code>.
@@ -92,12 +92,12 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     /**
      * The column <code>bithon_alert_object.created_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_object.updated_at</code>.
      */
-    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertObjectRecord, LocalDateTime> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_object.last_operator</code>.
@@ -109,7 +109,7 @@ public class BithonAlertObject extends TableImpl<BithonAlertObjectRecord> {
     }
 
     private BithonAlertObject(Name alias, Table<BithonAlertObjectRecord> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment("Alert"), TableOptions.table());
+        super(alias, null, aliased, parameters, DSL.comment("Alert Rules"), TableOptions.table());
     }
 
     /**

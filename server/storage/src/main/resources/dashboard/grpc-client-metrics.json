@@ -1,0 +1,293 @@
+{
+  "name": "grpc-client-metrics",
+  "title": "GRPC Client",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "grpc-client-metrics",
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
+          "instanceName",
+          "service",
+          "method",
+          "status",
+          "server"
+        ]
+      }
+    ],
+    "showFilterInput": true
+  },
+  "charts": [
+    {
+      "title": "QPS",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        {
+          "name": "qps"
+        },
+        {
+          "name": "callCount",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "dataSource": "grpc-client-metrics",
+        "fields": [
+          "qps",
+          "callCount"
+        ]
+      },
+      "details": {
+        "type": "groupBy",
+        "columns": [
+          "server",
+          "service",
+          "method",
+          "status",
+          "qps",
+          "callCount"
+        ],
+        "query": {
+          "type": "timeseries",
+          "dataSource": "grpc-client-metrics",
+          "fields": [
+            "qps",
+            "callCount"
+          ],
+          "groupBy": [
+            "server",
+            "service",
+            "method",
+            "status"
+          ],
+          "orderBy": {
+            "name": "qps",
+            "order": "desc"
+          },
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "server": "tags['net.peer']",
+            "service": "clazz",
+            "method": "method",
+            "status": "status"
+          },
+          "filter": "tags['rpc.system'] = 'grpc' AND kind = 'CLIENT'"
+        }
+      }
+    },
+    {
+      "title": "Response Time",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        {
+          "name": "minResponseTime",
+          "format": "nanosecond"
+        },
+        {
+          "name": "avgResponseTime",
+          "format": "nanosecond"
+        },
+        {
+          "name": "maxResponseTime",
+          "format": "nanosecond"
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "grpc-client-metrics",
+        "fields": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      },
+      "details": {
+        "columns": [
+          "server",
+          "service",
+          "method",
+          "status",
+          "callCount",
+          {
+            "name": "minResponseTime",
+            "title": "min",
+            "format": "nanosecond"
+          },
+          {
+            "name": "avgResponseTime",
+            "title": "avg",
+            "format": "nanosecond"
+          },
+          {
+            "name": "maxResponseTime",
+            "title": "max",
+            "format": "nanosecond"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "callCount",
+            "minResponseTime",
+            "avgResponseTime",
+            "maxResponseTime"
+          ],
+          "groupBy": [
+            "server",
+            "service",
+            "method",
+            "status"
+          ],
+          "orderBy": {
+            "name": "avgResponseTime",
+            "order": "desc"
+          },
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "server": "tags['net.peer']",
+            "service": "clazz",
+            "method": "method",
+            "status": "status"
+          },
+          "filter": "tags['rpc.system'] = 'grpc' AND kind = 'CLIENT'"
+        }
+      }
+    },
+    {
+      "title": "Errors",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "errorCount"
+      ],
+      "query": {
+        "dataSource": "grpc-client-metrics",
+        "type": "timeseries",
+        "fields": [
+          "errorCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "server",
+          "service",
+          "method",
+          "status",
+          "callCount",
+          "errorCount"
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "callCount",
+            "errorCount"
+          ],
+          "groupBy": [
+            "server",
+            "service",
+            "method",
+            "status"
+          ],
+          "filter": "status <> 'OK'",
+          "orderBy": {
+            "name": "errorCount",
+            "order": "desc"
+          },
+          "limit": 15
+        },
+        "tracing": {
+          "mappings": {
+            "server": "tags['net.peer']",
+            "service": "clazz",
+            "method": "method",
+            "status": "status"
+          },
+          "filter": "tags['rpc.system'] = 'grpc' AND kind = 'CLIENT'"
+        }
+      }
+    },
+    {
+      "title": "IO",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "byte_rate"
+        },
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        "bytesSentRate",
+        "bytesReceivedRate",
+        {
+          "name": "bytesSent",
+          "yAxis": 1
+        },
+        {
+          "name": "bytesReceived",
+          "yAxis": 1
+        }
+      ],
+      "query": {
+        "dataSource": "grpc-client-metrics",
+        "type": "timeseries",
+        "fields": [
+          "bytesSentRate",
+          "bytesReceivedRate",
+          "bytesSent",
+          "bytesReceived"
+        ]
+      },
+      "details": {
+        "columns": [
+          "server",
+          "service",
+          "method",
+          "callCount",
+          "status",
+          {
+            "name": "bytesSentRate",
+            "format": "byte_rate"
+          },
+          {
+            "name": "bytesReceivedRate",
+            "format": "byte_rate"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "fields": [
+            "callCount",
+            "bytesSentRate",
+            "bytesReceivedRate"
+          ],
+          "groupBy": [
+            "server",
+            "service",
+            "method",
+            "status"
+          ],
+          "orderBy": {
+            "name": "bytesSentRate",
+            "order": "desc"
+          },
+          "limit": 15
+        }
+      }
+    }
+  ]
+}

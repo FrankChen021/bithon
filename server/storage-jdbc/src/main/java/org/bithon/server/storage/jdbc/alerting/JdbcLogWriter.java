@@ -61,10 +61,12 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.TIMESTAMP,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.ALERT_ID,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.SEQUENCE,
+                                                                    Tables.BITHON_ALERT_EVALUATION_LOG.LEVEL,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.CLAZZ,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.INSTANCE,
                                                                     Tables.BITHON_ALERT_EVALUATION_LOG.MESSAGE)
                                                         .values((LocalDateTime) null,
+                                                                null,
                                                                 null,
                                                                 null,
                                                                 null,
@@ -83,6 +85,7 @@ public class JdbcLogWriter implements IEvaluationLogWriter {
             step = step.bind(log.getTimestamp(),
                              log.getAlertId(),
                              log.getSequence(),
+                             log.getLevel(),
                              clazz,
                              this.instance,
                              log.getMessage());

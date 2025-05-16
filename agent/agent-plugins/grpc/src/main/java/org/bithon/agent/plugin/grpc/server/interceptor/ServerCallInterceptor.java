@@ -32,6 +32,7 @@ import org.bithon.agent.observability.tracing.context.ITraceSpan;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
 import org.bithon.agent.observability.tracing.context.TraceMode;
 import org.bithon.agent.observability.tracing.context.propagation.ITraceContextExtractor;
+import org.bithon.agent.plugin.grpc.utils.MessageUtils;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 
@@ -78,7 +79,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
 
         ITraceSpan rootSpan = context.reporter(Tracer.get().reporter())
                                      .currentSpan()
-                                     .component("grpc-server")
+                                     .name("grpc-server")
                                      .kind(SpanKind.SERVER)
                                      .method(serviceName, methodName)
                                      .tag(Tags.Rpc.SYSTEM, "grpc")
@@ -108,6 +109,10 @@ public class ServerCallInterceptor implements ServerInterceptor {
 
         @Override
         public void sendMessage(RSP message) {
+            int messageSize = MessageUtils.getMessageSize(message);
+            if (messageSize > 0) {
+                this.rootSpan.tag(Tags.Rpc.RPC_SERVER_RSP_SIZE, messageSize);
+            }
             super.sendMessage(message);
         }
 
@@ -134,6 +139,10 @@ public class ServerCallInterceptor implements ServerInterceptor {
 
         @Override
         public void onMessage(REQ message) {
+            int size = MessageUtils.getMessageSize(message);
+            if (size > 0) {
+                rootSpan.tag(Tags.Rpc.RPC_SERVER_REQ_SIZE, size);
+            }
             try {
                 delegate().onMessage(message);
             } catch (Throwable t) {

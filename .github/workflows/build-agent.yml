@@ -1,0 +1,77 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Agent Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
+  # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.
+  # On the master branch, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
+  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-jdk8-{0}', github.sha) || format('ci-jdk8-{0}', github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Setup JDK17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      #
+      # separate shaded building from other modules because if it's built with other modules,
+      # there might be library pollution in the agent-distribution
+      #
+      - name: Install shaded libs
+        run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
+
+      - name: Compilation
+        run: mvn clean install -T 1C -ntp --activate-profiles agent,component -Dmaven.javadoc.skip=true -DskipTests
+
+      # Set up JDK 8 for testing
+      - name: Set up JDK8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      # Execute UT after compilation
+      - name: UT
+        run: mvn surefire:test -P-server
+
+      #
+      # Follow steps are for release, we only enable them for changes on the master branch
+      #
+      # https://github.com/marketplace/actions/delete-tag-and-release
+      - name: Delete agent tag
+        if: github.ref == 'refs/heads/master'
+        uses: dev-drprasad/delete-tag-and-release@v1.1
+        with:
+          delete_release: true # default: false
+          tag_name: agent-distribution-latest
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release agent
+        if: github.ref == 'refs/heads/master'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          body: "The latest agent"
+          overwrite: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: agent-distribution-latest
+          tag: agent-distribution-latest
+          asset_name: agent-distribution.zip
+          file: agent/agent-distribution/target/agent-distribution.zip

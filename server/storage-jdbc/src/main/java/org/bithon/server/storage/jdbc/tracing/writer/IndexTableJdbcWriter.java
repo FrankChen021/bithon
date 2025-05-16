@@ -24,6 +24,7 @@ import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -87,7 +88,7 @@ class IndexTableJdbcWriter implements IOnceTableWriter {
         try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
             for (Object[] index : tagIndices) {
                 // timestamp
-                statement.setObject(1, index[0]);
+                statement.setTimestamp(1, (Timestamp) index[0]);
 
                 for (int i = 1; i < index.length; i++) {
                     statement.setObject(i + 1, StringUtils.getOrEmpty((String) index[i]));

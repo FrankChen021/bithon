@@ -16,9 +16,8 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +27,10 @@ import java.util.Map;
  * @date 24/11/21 7:08 pm
  */
 @Data
-@AllArgsConstructor
+@Builder
 public class GetTraceByIdResponse {
-    private List<TraceSpan> spans;
+    private int totalSpans;
+    private List<TraceSpanBo> spans;
     private TraceTopo topo;
 
     private Map<String, Long> profileEvents;

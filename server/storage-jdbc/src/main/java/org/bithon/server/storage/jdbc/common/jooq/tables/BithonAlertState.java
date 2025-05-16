@@ -14,11 +14,11 @@ import org.bithon.server.storage.jdbc.common.jooq.Keys;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertStateRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function5;
+import org.jooq.Function7;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row5;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Alerting State
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -74,10 +74,22 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     public final TableField<BithonAlertStateRecord, String> LAST_RECORD_ID = createField(DSL.name("last_record_id"), SQLDataType.VARCHAR(32), this, "The PK ID in bithon_alert_record table");
 
     /**
+     * The column <code>bithon_alert_state.last_evaluated_at</code>. The last
+     * time the alert is evaluated
+     */
+    public final TableField<BithonAlertStateRecord, LocalDateTime> LAST_EVALUATED_AT = createField(DSL.name("last_evaluated_at"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "The last time the alert is evaluated");
+
+    /**
      * The column <code>bithon_alert_state.update_at</code>. when the record is
      * updated
      */
-    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false), this, "when the record is updated");
+    public final TableField<BithonAlertStateRecord, LocalDateTime> UPDATE_AT = createField(DSL.name("update_at"), SQLDataType.LOCALDATETIME(0).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "when the record is updated");
+
+    /**
+     * The column <code>bithon_alert_state.payload</code>. JSON formatted
+     * runtime info. See AlertStateObject$Payload to know more
+     */
+    public final TableField<BithonAlertStateRecord, String> PAYLOAD = createField(DSL.name("payload"), SQLDataType.CLOB, this, "JSON formatted runtime info. See AlertStateObject$Payload to know more");
 
     private BithonAlertState(Name alias, Table<BithonAlertStateRecord> aliased) {
         this(alias, aliased, null);
@@ -162,18 +174,18 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<String, Integer, LocalDateTime, String, LocalDateTime> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row7<String, Integer, LocalDateTime, String, LocalDateTime, LocalDateTime, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function7<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -181,7 +193,7 @@ public class BithonAlertState extends TableImpl<BithonAlertStateRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super String, ? super Integer, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

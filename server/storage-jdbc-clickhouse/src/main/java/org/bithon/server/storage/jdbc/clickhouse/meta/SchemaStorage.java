@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.component.commons.security.HashGenerator;
-import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.component.commons.utils.HashUtils;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.SecondaryIndex;
@@ -127,7 +127,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+        schema.setSignature(HashUtils.sha256Hex(schemaText));
 
         dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
@@ -140,7 +140,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     @Override
     public void putIfNotExist(String name, ISchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+        schema.setSignature(HashUtils.sha256Hex(schemaText));
 
         if (dslContext.fetchCount(Tables.BITHON_META_SCHEMA, Tables.BITHON_META_SCHEMA.NAME.eq(name)) > 0) {
             return;
@@ -165,7 +165,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
         dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                  .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
+                  .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashUtils.sha256Hex(schemaText))
                   .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now.toLocalDateTime())
                   .execute();
     }

@@ -23,11 +23,11 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.service.UriNormalizer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transformer.TransformResult;
 import org.bithon.server.storage.common.ApplicationType;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 
@@ -116,7 +116,17 @@ public class TraceSpanTransformer implements ITransformer {
                 }
             }
         } else {
-            uri = tags.getOrDefault(Tags.Http.TARGET, "");
+            if (tags.containsKey(Tags.Rpc.SYSTEM)) {
+                // For old agent that does not record the 'uri' property
+                uri = StringUtils.format("%s://%s/%s/%s",
+                                         tags.get(Tags.Rpc.SYSTEM),
+                                         span.getTags().get(Tags.Net.PEER),
+                                         span.clazz,
+                                         span.method);
+                tags.put("uri", uri);
+            } else {
+                uri = tags.getOrDefault(Tags.Http.TARGET, "");
+            }
         }
 
         if (StringUtils.hasText(uri)) {

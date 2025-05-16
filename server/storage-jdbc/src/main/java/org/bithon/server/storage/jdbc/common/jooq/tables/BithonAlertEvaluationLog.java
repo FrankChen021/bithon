@@ -14,12 +14,12 @@ import org.bithon.server.storage.jdbc.common.jooq.Indexes;
 import org.bithon.server.storage.jdbc.common.jooq.tables.records.BithonAlertEvaluationLogRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function6;
+import org.jooq.Function7;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row6;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Evaluation logs of alert
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLogRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -54,7 +54,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     /**
      * The column <code>bithon_alert_evaluation_log.timestamp</code>.
      */
-    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false), this, "");
+    public final TableField<BithonAlertEvaluationLogRecord, LocalDateTime> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.LOCALDATETIME(3).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP(3)", SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * The column <code>bithon_alert_evaluation_log.alert_id</code>. Alert ID
@@ -72,6 +72,12 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
      * instance that runs the evaluation
      */
     public final TableField<BithonAlertEvaluationLogRecord, String> INSTANCE = createField(DSL.name("instance"), SQLDataType.VARCHAR(32).nullable(false), this, "The instance that runs the evaluation");
+
+    /**
+     * The column <code>bithon_alert_evaluation_log.level</code>. Logger Level:
+     * INFO, WARN, ERROR
+     */
+    public final TableField<BithonAlertEvaluationLogRecord, String> LEVEL = createField(DSL.name("level"), SQLDataType.VARCHAR(16).nullable(false).defaultValue(DSL.inline("", SQLDataType.VARCHAR)), this, "Logger Level: INFO, WARN, ERROR");
 
     /**
      * The column <code>bithon_alert_evaluation_log.clazz</code>. Logger Class
@@ -168,18 +174,18 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<LocalDateTime, String, Long, String, String, String> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row7<LocalDateTime, String, Long, String, String, String, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function6<? super LocalDateTime, ? super String, ? super Long, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function7<? super LocalDateTime, ? super String, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -187,7 +193,7 @@ public class BithonAlertEvaluationLog extends TableImpl<BithonAlertEvaluationLog
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super LocalDateTime, ? super String, ? super Long, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super LocalDateTime, ? super String, ? super Long, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

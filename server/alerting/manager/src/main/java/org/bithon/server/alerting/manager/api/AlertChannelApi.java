@@ -20,31 +20,40 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
-import org.bithon.server.alerting.common.model.AlertExpression;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.parser.AlertExpressionASTParser;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
-import org.bithon.server.alerting.manager.api.parameter.ApiResponse;
-import org.bithon.server.alerting.manager.biz.JsonPayloadFormatter;
+import org.bithon.server.alerting.manager.api.model.ApiResponse;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
 import org.bithon.server.alerting.notification.channel.NotificationChannelFactory;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.message.OutputMessage;
+import org.bithon.server.commons.json.JsonPayloadFormatter;
+import org.bithon.server.datasource.query.Limit;
+import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.storage.alerting.IAlertNotificationChannelStorage;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
+import org.bithon.server.storage.alerting.Label;
+import org.bithon.server.storage.alerting.pojo.AlertStatus;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
+import org.bithon.server.storage.alerting.pojo.AlertStorageObjectPayload;
 import org.bithon.server.storage.alerting.pojo.NotificationChannelObject;
+import org.bithon.server.storage.alerting.pojo.NotificationProps;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -56,16 +65,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2023/12/22 19:12
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(ManagerModuleEnabler.class)
@@ -83,7 +96,8 @@ public class AlertChannelApi {
         this.objectMapper = objectMapper;
     }
 
-    @Data
+    @Getter
+    @Setter
     public static class CreateChannelRequest {
         @NotEmpty
         private String name;
@@ -118,26 +132,52 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
+    @Getter
+    @Setter
+    public static class TestChannelRequest extends CreateChannelRequest {
+        // The timeout in seconds
+        @Min(1)
+        @Max(60)
+        private int timeout = 10;
+    }
+
     @PostMapping("/api/alerting/channel/test")
-    public ApiResponse<Void> testChannel(@Validated @RequestBody CreateChannelRequest request) throws Exception {
+    public ApiResponse<Void> testChannel(@Validated @RequestBody TestChannelRequest request) throws Exception {
         String props = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
         try (INotificationChannel channel = NotificationChannelFactory.create(request.getType(),
                                                                               request.getName(),
                                                                               props,
                                                                               this.objectMapper)) {
-            channel.send(NotificationMessage.builder()
+            channel.test(NotificationMessage.builder()
                                             .alertRecordId("fake")
-                                            .expressions(Collections.singletonList((AlertExpression) AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
-                                            .conditionEvaluation(ImmutableMap.of("1", new ExpressionEvaluationResult(
-                                                EvaluationResult.MATCHED,
-                                                new OutputMessage("1", "2", "1")
-                                            )))
+                                            .expressions(AlertRule.flattenExpressions(AlertExpressionASTParser.parse("count(jvm-metrics.processCpuLoad)[1m] > 1")))
+                                            .evaluationOutputs(ImmutableMap.of("1",
+                                                                               EvaluationOutputs.of(EvaluationOutput.builder()
+                                                                                                                    .matched(true)
+                                                                                                                    .label(Label.EMPTY)
+                                                                                                                    .current("1")
+                                                                                                                    .threshold("2")
+                                                                                                                    .delta("1")
+                                                                                                                    .build())))
+                                            .status(AlertStatus.ALERTING)
                                             .alertRule(AlertRule.builder()
                                                                 .id("fake")
                                                                 .name("Notification Channel Test")
                                                                 .expr("avg(processCpuLoad) > 1")
+                                                                .every(HumanReadableDuration.DURATION_1_MINUTE)
+                                                                .notificationProps(NotificationProps.builder()
+                                                                                                    .channels(Collections.singletonList(request.getName()))
+                                                                                                    .silence(HumanReadableDuration.of(10, TimeUnit.MINUTES))
+                                                                                                    .build())
                                                                 .build())
-                                            .build());
+                                            .build(),
+                         Duration.ofSeconds(request.getTimeout()));
+        } catch (RuntimeException e) {
+            log.error(StringUtils.format("Failed to send notification to channel [%s]", request.getName()), e);
+            throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
+                                            "Failed to send notification to channel [%s]: %s",
+                                            request.getName(),
+                                            e.getMessage());
         }
 
         return ApiResponse.success();
@@ -152,9 +192,13 @@ public class AlertChannelApi {
     @PostMapping("/api/alerting/channel/delete")
     public ApiResponse<?> deleteChannel(@Validated @RequestBody DeleteChannelRequest request) {
         // Check if it's used
-        List<AlertStorageObject> alerts = alertStorage.getAlertListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
+        List<AlertStorageObject> alerts = alertStorage.getRuleListByTime(new Timestamp(0), new Timestamp(System.currentTimeMillis()));
         for (AlertStorageObject alert : alerts) {
-            if (alert.getPayload().getNotifications().contains(request.getName())) {
+            AlertStorageObjectPayload payload = alert.getPayload();
+            if (payload.getNotifications() != null && alert.getPayload().getNotifications().contains(request.getName())) {
+                return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getName()));
+            }
+            if (payload.getNotificationProps() != null && payload.getNotificationProps().getChannels().contains(request.getName())) {
                 return ApiResponse.fail(StringUtils.format("The notification channel can't be deleted because it's used by alert [%s].", alert.getName()));
             }
         }
@@ -163,8 +207,46 @@ public class AlertChannelApi {
         return ApiResponse.success();
     }
 
+    @Getter
+    @Setter
+    public static class UpdateChannelRequest {
+        @NotBlank
+        private String name;
+
+        private Map<String, Object> props;
+    }
+
+    @PostMapping("/api/alerting/channel/update")
+    public void updateChannel(@Validated @RequestBody UpdateChannelRequest request) throws IOException {
+        NotificationChannelObject channel = channelStorage.getChannel(request.getName());
+        if (channel == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                            "The channel with name [%s] does not exist",
+                                            request.getName());
+        }
+
+        String newProps = CollectionUtils.isEmpty(request.getProps()) ? "{}" : this.objectMapper.writeValueAsString(request.getProps());
+
+        // Make sure the given request can be used to create a channel object correctly
+        NotificationChannelFactory.create(channel.getType(),
+                                          request.getName(),
+                                          newProps,
+                                          this.objectMapper)
+                                  .close();
+
+        if (!channelStorage.updateChannel(channel, newProps)) {
+            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            "Failed to update the channel with name [%s]",
+                                            request.getName());
+        }
+    }
+
     @Data
-    public static class GetChannelRequest {
+    public static class GetChannelListRequest {
+        private String name;
+        private OrderBy orderBy;
+        private Limit limit;
+
         /**
          * The format of the returned props
          * Can be either one of yaml/json
@@ -175,16 +257,24 @@ public class AlertChannelApi {
 
     @Getter
     @AllArgsConstructor
-    public static class GetChannelResponse {
+    public static class GetChannelListResponse {
         private int total;
         private List<Map<String, Object>> rows;
     }
 
-    @PostMapping("/api/alerting/channel/get")
-    public GetChannelResponse getChannels(@Validated @RequestBody GetChannelRequest request) {
+    @PostMapping("/api/alerting/channel/list")
+    public GetChannelListResponse getChannelList(@Validated @RequestBody GetChannelListRequest request) {
         JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
 
-        List<Map<String, Object>> channels = this.channelStorage.getChannels(0)
+        IAlertNotificationChannelStorage.GetChannelRequest req = IAlertNotificationChannelStorage.GetChannelRequest.builder()
+                                                                                                                   .name(request.getName())
+                                                                                                                   .since(0)
+                                                                                                                   .orderBy(request.getOrderBy())
+                                                                                                                   .limit(request.getLimit())
+                                                                                                                   .build();
+
+        int total = this.channelStorage.getChannelsSize(req);
+        List<Map<String, Object>> channels = this.channelStorage.getChannels(req)
                                                                 .stream()
                                                                 .map((obj) -> {
                                                                     // Use LinkedHashMap to keep order
@@ -196,7 +286,44 @@ public class AlertChannelApi {
                                                                     return map;
                                                                 })
                                                                 .collect(Collectors.toList());
-        return new GetChannelResponse(channels.size(), channels);
+        return new GetChannelListResponse(total, channels);
+    }
+
+    @Getter
+    @Setter
+    public static class GetChannelRequest {
+        @NotBlank
+        private String name;
+
+        /**
+         * The format of the returned props
+         * Can be either one of yaml/json
+         */
+        @NotBlank
+        private String format = "json";
+    }
+
+    public static class GetChannelResponse extends TreeMap<String, Object> {
+    }
+
+    @PostMapping("/api/alerting/channel/get")
+    public GetChannelResponse getChannel(@Validated @RequestBody GetChannelRequest request) {
+        JsonPayloadFormatter formatter = JsonPayloadFormatter.get(request.getFormat());
+
+        NotificationChannelObject channel = this.channelStorage.getChannel(request.getName());
+        if (channel == null) {
+            throw new HttpMappableException(HttpStatus.NOT_FOUND.value(),
+                                            "The channel with name [%s] does not exist",
+                                            request.getName());
+        }
+
+        GetChannelResponse resp = new GetChannelResponse();
+
+        resp.put("name", channel.getName());
+        resp.put("type", channel.getType());
+        resp.put("props", formatter.format(channel.getPayload(), this.objectMapper, null));
+        resp.put("createdAt", channel.getCreatedAt());
+        return resp;
     }
 
     @Data
@@ -207,7 +334,9 @@ public class AlertChannelApi {
 
     @PostMapping("/api/alerting/channel/names")
     public GetChannelNamesResponse getChannelNames() {
-        List<String> channels = this.channelStorage.getChannels(0)
+        List<String> channels = this.channelStorage.getChannels(IAlertNotificationChannelStorage.GetChannelRequest.builder()
+                                                                                                                  .since(0)
+                                                                                                                  .build())
                                                    .stream()
                                                    .map(NotificationChannelObject::getName)
                                                    .collect(Collectors.toList());
@@ -220,6 +349,7 @@ public class AlertChannelApi {
     @PostMapping("/api/alerting/channel/blackhole")
     public void blackHole(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        log.info("Received notification: {}", body);
         response.getWriter().write(body);
         response.setStatus(HttpStatus.OK.value());
     }

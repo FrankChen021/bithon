@@ -18,9 +18,9 @@ package org.bithon.server.storage.jdbc.clickhouse;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertObjectStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertRecordStorage;
+import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertStateStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.EvaluationLogStorage;
 import org.bithon.server.storage.jdbc.clickhouse.alerting.NotificationChannelStorage;
 import org.bithon.server.storage.jdbc.clickhouse.event.EventStorage;
@@ -63,19 +63,14 @@ public class ClickHouseStorageAutoConfiguration {
                                          SchemaStorage.class,
                                          SettingStorage.class,
                                          DashboardStorage.class,
-                                         ClickHouseSqlDialect.class,
 
                                          // alerting
                                          AlertObjectStorage.class,
                                          AlertRecordStorage.class,
+                                         AlertStateStorage.class,
                                          EvaluationLogStorage.class,
                                          NotificationChannelStorage.class
-                                        );
-
-                // Allow reading external ClickHouse directly
-                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "clickhouse"));
-                // For backward compatibility
-                context.registerSubtypes(new NamedType(ExternalClickHouseDataStoreSpec.class, "external"));
+                );
             }
         };
     }

@@ -1,0 +1,87 @@
+{
+  "displayText": "ZooKeeper Client Metrics",
+  "name": "zookeeper-client-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName"
+    },
+    {
+      "name": "instanceName"
+    },
+    {
+      "name": "operation"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "server"
+    },
+    {
+      "name": "path"
+    },
+    {
+      "name": "traceId"
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "Accumulative Response Time",
+      "unit": "nanosecond",
+      "visible": false
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "Max Response time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longSum",
+      "name": "totalCount",
+      "displayText": "total count of requests"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesSent"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesReceived"
+    },
+    {
+      "type": "post",
+      "name": "avgResponseTime",
+      "expression": "round(sum(responseTime) * 1.0 /sum(totalCount),2)",
+      "displayText": "Avg cost time",
+      "unit": "nanosecond",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "qps",
+      "expression": "round(sum(totalCount)/{interval}, 2)",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
+}
+
+
+

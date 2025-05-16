@@ -87,13 +87,13 @@ class TracingSpan implements ITraceSpan {
     }
 
     @Override
-    public String component() {
+    public String name() {
         return component;
     }
 
     @Override
-    public TracingSpan component(String component) {
-        this.component = component;
+    public TracingSpan name(String name) {
+        this.component = name;
         return this;
     }
 
@@ -104,7 +104,7 @@ class TracingSpan implements ITraceSpan {
 
     @Override
     public TracingSpan tag(String name, String value) {
-        if (value != null) {
+        if (name != null && value != null) {
             tags.put(name, value);
         }
         return this;
@@ -168,7 +168,7 @@ class TracingSpan implements ITraceSpan {
     public ITraceSpan newChildSpan(String name) {
         return tracingContext.newSpan(this.spanId,
                                       tracingContext.spanIdGenerator().newSpanId())
-                             .component(name);
+                             .name(name);
     }
 
     @Override
@@ -196,14 +196,14 @@ class TracingSpan implements ITraceSpan {
     @Override
     public String toString() {
         return "TraceSpan[name=" + this.component +
-                ", traceId=" + this.traceId() +
-                ", spanId=" + this.spanId +
-                ", parentId=" + this.parentSpanId +
-                ", clazz=" + this.clazz +
-                ", method=" + this.method +
-                ", kind=" + this.kind +
-                ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
-                ", exception=" + this.tags.getOrDefault(Tags.Exception.TYPE, "") +
-                "]";
+               ", traceId=" + this.traceId() +
+               ", spanId=" + this.spanId +
+               ", parentId=" + this.parentSpanId +
+               ", clazz=" + this.clazz +
+               ", method=" + this.method +
+               ", kind=" + this.kind +
+               ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
+               ", exception=" + this.tags.getOrDefault(Tags.Exception.TYPE, "") +
+               "]";
     }
 }

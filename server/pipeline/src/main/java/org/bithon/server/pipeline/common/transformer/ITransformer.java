@@ -34,9 +34,9 @@ package org.bithon.server.pipeline.common.transformer;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.datasource.input.IInputRow;
 
 /**
  * NOTE: for implementations, SHOULD use {@link AbstractTransformer}

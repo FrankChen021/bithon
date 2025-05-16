@@ -25,8 +25,8 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.expression.ExpressionASTBuilder;
+import org.bithon.server.datasource.input.IInputRow;
 
 public abstract class AbstractTransformer implements ITransformer {
 

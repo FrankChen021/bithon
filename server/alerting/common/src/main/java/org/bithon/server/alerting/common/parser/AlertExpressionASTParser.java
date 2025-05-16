@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
@@ -40,11 +41,11 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTEPr
 import org.bithon.server.alerting.common.evaluator.metric.relative.RelativeLTPredicate;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.commons.antlr4.SyntaxErrorListener;
-import org.bithon.server.metric.expression.MetricExpression;
-import org.bithon.server.metric.expression.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.MetricExpressionBaseVisitor;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
+import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 
 import java.util.List;
 
@@ -54,6 +55,9 @@ import java.util.List;
  */
 public class AlertExpressionASTParser {
 
+    /**
+     * The return is either a MetricExpression or a LogicalExpression
+     */
     public static IExpression parse(String expression) {
         MetricExpressionLexer lexer = new MetricExpressionLexer(CharStreams.fromString(expression));
         lexer.getErrorListeners().clear();
@@ -83,7 +87,11 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitSimpleAlertExpression(MetricExpressionParser.SimpleAlertExpressionContext ctx) {
-            MetricExpression metricExpression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            IExpression expression = MetricExpressionASTBuilder.build(ctx.atomicMetricExpressionImpl());
+            if (!(expression instanceof MetricExpression metricExpression)) {
+                throw new InvalidExpressionException("Complex expression is not supported now.");
+            }
+
             if (metricExpression.getPredicate() == null) {
                 // the general metric expression allows null predicate, but for alerting, it's a compulsory field
                 throw new InvalidExpressionException("Missing predicate expression");
@@ -108,29 +116,49 @@ public class AlertExpressionASTParser {
         @Override
         public IExpression visitLogicalAlertExpression(MetricExpressionParser.LogicalAlertExpressionContext ctx) {
             List<MetricExpressionParser.AlertExpressionContext> contextList = ctx.alertExpression();
-            MetricExpressionParser.AlertExpressionContext left = contextList.get(0);
-            MetricExpressionParser.AlertExpressionContext right = contextList.get(1);
+
+            IExpression left = contextList.get(0).accept(this);
+            IExpression right = contextList.get(1).accept(this);
+
+            if (left instanceof AlertExpression leftAlertExpression
+                && right instanceof AlertExpression rightAlertExpression) {
+
+                // For two non-empty GROUP-BY, the two sets MUST be the same
+                if (CollectionUtils.isNotEmpty(leftAlertExpression.getMetricExpression().getGroupBy())
+                    && CollectionUtils.isNotEmpty(rightAlertExpression.getMetricExpression().getGroupBy())) {
+
+                    if (!leftAlertExpression.getMetricExpression()
+                                            .getGroupBy()
+                                            .equals(rightAlertExpression.getMetricExpression().getGroupBy())) {
+
+                        throw new InvalidExpressionException("The BY expression of the two expression [%s] , [%s] are NOT the same.",
+                                                             left.serializeToText(),
+                                                             right.serializeToText());
+                    }
+                }
+            }
+
             TerminalNode op = ctx.getChild(TerminalNode.class, 0);
             if (op.getSymbol().getType() == MetricExpressionParser.AND) {
-                return new LogicalExpression.AND(left.accept(this), right.accept(this));
+                return new LogicalExpression.AND(left, right);
             } else {
-                return new LogicalExpression.OR(left.accept(this), right.accept(this));
+                return new LogicalExpression.OR(left, right);
             }
         }
     }
 
     private static IMetricEvaluator createMetricEvaluator(MetricExpression metricExpression) {
-        LiteralExpression expected = metricExpression.getExpected();
-        HumanReadableDuration expectedWindow = metricExpression.getExpectedWindow();
+        LiteralExpression<?> expected = metricExpression.getExpected();
+        HumanReadableDuration offset = metricExpression.getOffset();
 
         IMetricEvaluator metricEvaluator;
         switch (metricExpression.getPredicate()) {
             case LT:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new LessThanPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeLTPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new LessThanPredicate(expected.getValue());
                     }
@@ -138,11 +166,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case LTE:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeLTEPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new LessThanOrEqualPredicate(expected.getValue());
                     }
@@ -150,11 +178,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case GT:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new GreaterThanPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeGTPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     }
@@ -162,11 +190,11 @@ public class AlertExpressionASTParser {
                 break;
 
             case GTE:
-                if (expectedWindow == null) {
+                if (offset == null) {
                     metricEvaluator = new GreaterOrEqualPredicate(expected.getValue());
                 } else {
                     if (expected.getValue() instanceof HumanReadablePercentage) {
-                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), expectedWindow);
+                        metricEvaluator = new RelativeGTEPredicate((Number) expected.getValue(), offset);
                     } else {
                         metricEvaluator = new GreaterThanPredicate(expected.getValue());
                     }

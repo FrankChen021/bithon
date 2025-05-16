@@ -25,6 +25,7 @@
 
 <suppressions>
   <suppress files="opentelemetry-proto[\\/]" checks=".*"/>
+  <suppress files="target/generated-test-sources" checks=".*"/>
 
   <!-- See http://checkstyle.sourceforge.net/config_filters.html#SuppressionFilter for examples -->
 

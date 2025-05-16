@@ -16,7 +16,7 @@
 
 ARG JDK_VERSION=21
 
-FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} as builder
+FROM maven:3.9.6-eclipse-temurin-${JDK_VERSION} AS builder
 
 ARG BUILD_FROM_SOURCE="true"
 
@@ -29,19 +29,19 @@ COPY . /src
 
 # Build shaded
 WORKDIR /src/shaded
-RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -ntp clean install -DskipTests \
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp clean install -DskipTests -T 1C \
       ; fi
 
 # Build jOOQ
 WORKDIR /src/server/jOOQ
-RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -ntp clean install -DskipTests \
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+      mvn -ntp clean install -DskipTests -T 1C \
       ; fi
 
 # Build Server
 WORKDIR /src
-RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
+RUN if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
       mvn -ntp -pl server/server-starter -am \
       clean package \
       -T 1C \
@@ -49,7 +49,6 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
     ; fi
 
 FROM eclipse-temurin:${JDK_VERSION}
-COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
@@ -60,17 +59,19 @@ COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh \
   && mkdir -p /opt/shared/conf
 
-ENV JAVA_OPTS ""
-ENV APP_OPTS ""
+ENV JAVA_OPTS=""
+ENV APP_OPTS=""
 ENV ENABLE_AGENT=true
 
 # Remember to replace the URI to the URI of your own distribution
-ENV AGENT_URI https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
+ENV AGENT_URI=https://github.com/FrankChen021/bithon/releases/download/agent-distribution-latest/agent-distribution.zip
 
 # Replace the glibc memory allocator to jemalloc
-ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so"
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so"
 
 VOLUME /opt/shared/conf
 
 WORKDIR /opt
+
+COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 ENTRYPOINT ["/startup.sh"]

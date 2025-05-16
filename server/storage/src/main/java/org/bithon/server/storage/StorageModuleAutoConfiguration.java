@@ -16,17 +16,25 @@
 
 package org.bithon.server.storage;
 
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.common.provider.StorageProviderManager;
+import org.bithon.server.storage.dashboard.DashboardStorageConfig;
+import org.bithon.server.storage.dashboard.IDashboardStorage;
+import org.bithon.server.storage.datasource.ISchemaStorage;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.event.EventStorageConfig;
 import org.bithon.server.storage.event.EventTableSchema;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CacheableMetadataStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
-import org.bithon.server.storage.meta.ISchemaStorage;
 import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.MetricDataSourceSpec;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
@@ -49,6 +57,29 @@ import java.util.List;
  */
 @Configuration
 public class StorageModuleAutoConfiguration {
+
+    @Bean
+    public Module internalDataSourceModule() {
+        return new Module() {
+            @Override
+            public String getModuleName() {
+                return "internal-storage-module";
+            }
+
+            @Override
+            public Version version() {
+                return Version.unknownVersion();
+            }
+
+            @Override
+            public void setupModule(SetupContext context) {
+                // For backward compatibility
+                context.registerSubtypes(new NamedType(MetricDataSourceSpec.class, "internal"));
+
+                context.registerSubtypes(new NamedType(MetricDataSourceSpec.class, "metric"));
+            }
+        };
+    }
 
     interface SchemaInitializer {
         void initialize(SchemaManager schemaManager);
@@ -187,5 +218,49 @@ public class StorageModuleAutoConfiguration {
             initializer.initialize(manager);
         }
         return manager;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "bithon.storage.dashboard.enabled", havingValue = "true")
+    public IDashboardStorage dashboardStorage(ObjectMapper om,
+                                              StorageProviderManager storageProviderManager,
+                                              DashboardStorageConfig storageConfig) throws IOException {
+        String providerName = StringUtils.isEmpty(storageConfig.getProvider()) ? storageConfig.getType() : storageConfig.getProvider();
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(providerName),
+                                              "[%s] is not properly configured to enable the storage for the dashboard module.",
+                                              storageConfig.getClass(),
+                                              "provider");
+
+        // create storage
+        IDashboardStorage storage = storageProviderManager.createStorage(providerName, IDashboardStorage.class);
+        storage.initialize();
+
+        // load or update schemas
+        try {
+            Resource[] resources = new PathMatchingResourcePatternResolver()
+                .getResources("classpath:/dashboard/*.json");
+            for (Resource resource : resources) {
+
+                JsonNode dashboard = om.readTree(resource.getInputStream());
+                JsonNode nameNode = dashboard.get("name");
+                if (nameNode == null) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] miss the name property", resource.getFilename()));
+                }
+
+                String name = nameNode.asText();
+                if (StringUtils.isEmpty(name)) {
+                    throw new RuntimeException(StringUtils.format("dashboard [%s] has empty name property", resource.getFilename()));
+                }
+
+                // deserialize and then serialize again to compact the json string
+                String payload = om.writeValueAsString(dashboard);
+
+                storage.putIfNotExist(nameNode.asText(), payload);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return storage;
     }
 }

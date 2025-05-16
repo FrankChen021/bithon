@@ -17,8 +17,9 @@
 package org.bithon.server.web.service.common;
 
 import org.bithon.server.web.service.common.bucket.TimeBucket;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,8 +41,8 @@ public class TimeBucketTest {
         long end = System.currentTimeMillis() + 40_000;
 
         TimeBucket bucket = getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getCount());
-        Assert.assertEquals(60, bucket.getLength());
+        Assertions.assertEquals(1, bucket.getCount());
+        Assertions.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -50,8 +51,8 @@ public class TimeBucketTest {
         long end = System.currentTimeMillis() + fromMinute(1);
 
         TimeBucket bucket = getTimeBucket(start, end);
-        Assert.assertEquals(1, bucket.getCount());
-        Assert.assertEquals(60, bucket.getLength());
+        Assertions.assertEquals(1, bucket.getCount());
+        Assertions.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -60,8 +61,8 @@ public class TimeBucketTest {
         long end = System.currentTimeMillis() + fromMinute(5);
 
         TimeBucket bucket = getTimeBucket(start, end);
-        Assert.assertEquals(5, bucket.getCount());
-        Assert.assertEquals(60, bucket.getLength());
+        Assertions.assertEquals(5, bucket.getCount());
+        Assertions.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -70,8 +71,8 @@ public class TimeBucketTest {
         long end = System.currentTimeMillis() + fromMinute(59);
 
         TimeBucket bucket = getTimeBucket(start, end);
-        Assert.assertEquals(59, bucket.getCount());
-        Assert.assertEquals(60, bucket.getLength());
+        Assertions.assertEquals(59, bucket.getCount());
+        Assertions.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -80,8 +81,8 @@ public class TimeBucketTest {
         long end = System.currentTimeMillis() + fromMinute(60);
 
         TimeBucket bucket = getTimeBucket(start, end);
-        Assert.assertEquals(60, bucket.getCount());
-        Assert.assertEquals(60, bucket.getLength());
+        Assertions.assertEquals(60, bucket.getCount());
+        Assertions.assertEquals(60, bucket.getLength());
     }
 
     @Test
@@ -92,8 +93,8 @@ public class TimeBucketTest {
         TimeBucket bucket = getTimeBucket(start, end);
 
         // After 60 minutes, the step is 12, so there should be 12 + 1 bucket in total
-        Assert.assertEquals(12 + 1, bucket.getCount());
-        Assert.assertEquals(300, bucket.getLength());
+        Assertions.assertEquals(12 + 1, bucket.getCount());
+        Assertions.assertEquals(300, bucket.getLength());
     }
 
     @Test
@@ -104,10 +105,10 @@ public class TimeBucketTest {
         TimeBucket bucket = getTimeBucket(start, end);
 
         // 10 minute per bucket
-        Assert.assertEquals(60 * 10, bucket.getLength());
+        Assertions.assertEquals(60 * 10, bucket.getLength());
 
         // 36 buckets
-        Assert.assertEquals(36, bucket.getCount());
+        Assertions.assertEquals(36, bucket.getCount());
     }
 
     @Test
@@ -117,7 +118,7 @@ public class TimeBucketTest {
 
         TimeBucket bucket = getTimeBucket(start, end);
 
-        Assert.assertEquals(600, bucket.getLength());
-        Assert.assertEquals(36 + 1, bucket.getCount());
+        Assertions.assertEquals(600, bucket.getLength());
+        Assertions.assertEquals(36 + 1, bucket.getCount());
     }
 }

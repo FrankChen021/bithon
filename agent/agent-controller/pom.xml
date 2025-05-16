@@ -21,10 +21,13 @@
       <groupId>org.bithon.component</groupId>
       <artifactId>agent-rpc-brpc</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-observability</artifactId>
     </dependency>
   </dependencies>
 </project>

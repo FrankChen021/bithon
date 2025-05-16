@@ -18,10 +18,11 @@ package org.bithon.server.storage.datasource;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactor;
+import org.bithon.component.commons.concurrency.ScheduledExecutorServiceFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.meta.ISchemaStorage;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.SchemaException;
 import org.springframework.context.SmartLifecycle;
 
 import java.io.IOException;
@@ -171,7 +172,7 @@ public class SchemaManager implements SmartLifecycle {
         incrementalLoadSchemas();
 
         // start periodic loader
-        loaderScheduler = ScheduledExecutorServiceFactor.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
+        loaderScheduler = ScheduledExecutorServiceFactory.newSingleThreadScheduledExecutor(NamedThreadFactory.nonDaemonThreadFactory("schema-loader"));
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas,
                                                // no delay to execute the first task
                                                1,

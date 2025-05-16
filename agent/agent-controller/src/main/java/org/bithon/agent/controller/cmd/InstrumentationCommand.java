@@ -21,6 +21,7 @@ import org.bithon.agent.instrumentation.aop.interceptor.InterceptorSupplier;
 import org.bithon.agent.instrumentation.aop.interceptor.installer.InstallerRecorder;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,10 @@ public class InstrumentationCommand implements IInstrumentationCommand, IAgentCo
                     m.methodName = method.getMethodName();
                     m.isStatic = method.isStatic();
                     m.parameters = method.getParameters();
-                    m.exception = supplier.getException();
+                    m.instrumentException = supplier.getException();
+                    m.exceptionCount = supplier.get() == null ? -1 : supplier.get().getExceptionCount();
+                    m.lastExceptionTime = new Timestamp(supplier.get() == null ? 0 : supplier.get().getLastExceptionTime());
+                    m.lastException = supplier.get() == null ? null : InterceptorSupplier.getStackTrace(supplier.get().getLastException());
                     returning.add(m);
                 }
             } else {

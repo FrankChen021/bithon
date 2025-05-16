@@ -16,7 +16,7 @@
 
 package org.bithon.server.storage.metrics;
 
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 import java.io.IOException;
 import java.util.List;

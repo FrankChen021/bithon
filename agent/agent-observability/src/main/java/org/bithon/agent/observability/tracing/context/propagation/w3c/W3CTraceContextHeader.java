@@ -17,9 +17,12 @@
 package org.bithon.agent.observability.tracing.context.propagation.w3c;
 
 /**
+ * <a href="https://www.w3.org/TR/trace-context">W3C Trace Context</a>
+ *
  * @author frank.chen021@outlook.com
  * @date 2023/3/17 18:16
  */
-class W3CTraceContextHeader {
+public class W3CTraceContextHeader {
     public static final String TRACE_HEADER_PARENT = "traceparent";
+    public static final String TRACE_HEADER_STATE = "tracestate";
 }

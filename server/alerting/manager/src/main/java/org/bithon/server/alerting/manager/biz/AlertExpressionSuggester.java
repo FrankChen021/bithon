@@ -17,7 +17,7 @@
 package org.bithon.server.alerting.manager.biz;
 
 import com.google.common.collect.ImmutableSet;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.Token;
@@ -26,10 +26,11 @@ import org.bithon.server.commons.autocomplete.CasePreference;
 import org.bithon.server.commons.autocomplete.DefaultLexerAndParserFactory;
 import org.bithon.server.commons.autocomplete.Suggestion;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.metric.expression.MetricExpressionLexer;
 import org.bithon.server.metric.expression.MetricExpressionParser;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 
@@ -48,16 +49,12 @@ import java.util.Set;
 public class AlertExpressionSuggester {
 
     @Data
-    @AllArgsConstructor
+    @Builder
     public static class SuggestionTag {
         private String tagText;
-
-        public static SuggestionTag of(String text) {
-            return new SuggestionTag(text);
-        }
+        private String group;
     }
 
-    private final IDataSourceApi dataSourceApi;
     private final AutoSuggesterBuilder suggesterBuilder;
     private final Set<Integer> predicateOperators = ImmutableSet.of(
         MetricExpressionParser.LT,
@@ -68,14 +65,12 @@ public class AlertExpressionSuggester {
         MetricExpressionParser.EQ,
         MetricExpressionParser.IS,
         MetricExpressionParser.NOT,
-        MetricExpressionParser.LIKE,
+        MetricExpressionParser.HASTOKEN,
         MetricExpressionParser.CONTAINS,
         MetricExpressionParser.STARTSWITH,
         MetricExpressionParser.ENDSWITH);
 
     public AlertExpressionSuggester(IDataSourceApi dataSourceApi) {
-        this.dataSourceApi = dataSourceApi;
-
         DefaultLexerAndParserFactory factory = new DefaultLexerAndParserFactory(
             MetricExpressionLexer.class,
             MetricExpressionParser.class
@@ -86,11 +81,11 @@ public class AlertExpressionSuggester {
 
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_aggregatorExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType == MetricExpressionParser.IDENTIFIER) {
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "max", SuggestionTag.of("Aggregator")));
-                suggestions.add(Suggestion.of(expectedToken.tokenType, "min", SuggestionTag.of("Aggregator")));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "sum", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "count", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "avg", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "max", SuggestionTag.builder().tagText("Aggregator").build()));
+                suggestions.add(Suggestion.of(expectedToken.tokenType, "min", SuggestionTag.builder().tagText("Aggregator").build()));
             }
             return false;
         });
@@ -119,7 +114,7 @@ public class AlertExpressionSuggester {
                     schema.getColumns()
                           .stream()
                           .filter((col) -> (col instanceof StringColumn))
-                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
+                          .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Dimension").build())));
                 }
             }
 
@@ -129,25 +124,45 @@ public class AlertExpressionSuggester {
         // Suggest data source names
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_dataSourceExpression, (inputs, expectedToken, suggestions) -> {
             dataSourceApi.getSchemaNames()
-                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(), SuggestionTag.of("DataSource"))));
+                         .forEach((value) -> suggestions.add(Suggestion.of(expectedToken.tokenType, value.getValue(),
+                                                                           SuggestionTag.builder()
+                                                                                        .tagText("Data Source")
+                                                                                        //TODO:
+                                                                                        .group(null)
+                                                                                        .build())));
             return false;
         });
 
         // Suggest metric names for the metric name expression
+        // sample input: sum(appName.
         this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_metricNameExpression, (inputs, expectedToken, suggestions) -> {
             if (expectedToken.tokenType != MetricExpressionParser.IDENTIFIER) {
                 return false;
             }
 
-            // -1 is the DOT
-            String dataSource = inputs.get(inputs.size() - 2).getText();
+            // sample: sum(appName.
+            // lastIndex: the DOT,
+            // lastIndex - 1: appName(the data source name)
+            // lastIndex - 3: the aggregator name
+            int lastIndex = inputs.size() - 1;
+            String aggregator = inputs.get(lastIndex - 3).getText();
+            boolean isCountAggregator = "count".equalsIgnoreCase(aggregator);
+
+            String dataSource = inputs.get(lastIndex - 1).getText();
             ISchema schema = dataSourceApi.getSchemaByName(dataSource);
             if (schema != null) {
-                schema.getColumns()
-                      .stream()
-                      .filter((col) -> !(col instanceof StringColumn)
-                                       && !col.getName().equals(schema.getTimestampSpec().getColumnName()))
-                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Metric"))));
+                for (IColumn col : schema.getColumns()) {
+                    // For count aggregator, any column can be referenced
+                    // otherwise only numeric column can be referenced
+                    if ((isCountAggregator || (!(col instanceof StringColumn)))
+                        && !col.getName().equals(schema.getTimestampSpec().getColumnName())) {
+                        suggestions.add(Suggestion.of(expectedToken.tokenType,
+                                                      col.getName(),
+                                                      SuggestionTag.builder()
+                                                                   .tagText(col instanceof StringColumn ? "Dimension" : "Metric")
+                                                                   .build()));
+                    }
+                }
             }
 
             return false;
@@ -180,7 +195,7 @@ public class AlertExpressionSuggester {
                 schema.getColumns()
                       .stream()
                       .filter((col) -> (col instanceof StringColumn))
-                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.of("Dimension"))));
+                      .forEach(col -> suggestions.add(Suggestion.of(expectedToken.tokenType, col.getName(), SuggestionTag.builder().tagText("Dimension").build())));
             }
 
             return false;
@@ -205,7 +220,7 @@ public class AlertExpressionSuggester {
                 }
                 String identifier = inputs.get(index).getText();
 
-                // Make sure the literal is in the filter expression by finding the filter expression start
+                // Find the start (the '{' character) of the label expression
                 while (index > 0 && inputs.get(index).getType() != MetricExpressionParser.LEFT_CURLY_BRACE) {
                     if (inputs.get(index).getType() == MetricExpressionParser.RIGHT_CURLY_BRACE) {
                         return false;
@@ -231,7 +246,7 @@ public class AlertExpressionSuggester {
                                                                                                               .endTimeISO8601(TimeSpan.now().ceil(Duration.ofHours(1)).toISO8601())
                                                                                                               .build());
                         for (Map<String, String> dim : dims) {
-                            suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + dim.get("value") + "'", SuggestionTag.of("Value")));
+                            suggestions.add(Suggestion.of(expectedToken.tokenType, "'" + dim.get("value") + "'", SuggestionTag.builder().tagText("Value").build()));
                         }
                     } catch (IOException e) {
                         log.error("Error to get dimensions", e);
@@ -242,6 +257,11 @@ public class AlertExpressionSuggester {
                 return false;
             }
 
+            return false;
+        });
+
+        this.suggesterBuilder.setSuggester(MetricExpressionParser.RULE_numberLiteralExpression, (inputs, expectedToken, suggestions) -> {
+            // No suggestion for number literal expression
             return false;
         });
 

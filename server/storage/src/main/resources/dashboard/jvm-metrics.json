@@ -1,0 +1,391 @@
+{
+  "name": "jvm-metrics",
+  "title": "JVM",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "jvm-metrics",
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
+          "instanceName"
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Instance List",
+      "width": 4,
+      "type": "table",
+      "isCollapsed": true,
+      "columns": [
+        {
+          "name": "index",
+          "title": "No.",
+          "format": "index",
+          "sortable": false,
+          "width": 80,
+          "align": "center"
+        },
+        {
+          "name": "instanceName",
+          "title": "instance",
+          "format": "template",
+          "template": "<a href='/web/metrics/jvm-metrics?appName={appName}&instanceName={instanceName}&interval=c:{interval}'>{instanceName}</a>"
+        },
+        {
+          "name": "processCpuLoad",
+          "format": "percentage"
+        },
+        "processors",
+        {
+          "name": "instanceStartTime",
+          "title": "startTime",
+          "format": "dateTime"
+        },
+        {
+          "name": "instanceUpTime",
+          "title": "upTime",
+          "format": "timeDuration"
+        },
+        {
+          "name": "heapUsed",
+          "format": "percentage"
+        },
+        {
+          "name": "heapMax",
+          "format": "binary_byte"
+        }
+      ],
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          "processors",
+          "instanceStartTime",
+          "instanceUpTime",
+          {
+            "name": "heapUsed",
+            "expression": "round(last(heapUsed) * 100.0/last(heapMax), 2)"
+          },
+          "heapMax",
+          "processCpuLoad"
+        ],
+        "groupBy": [
+          "appName",
+          "instanceName"
+        ],
+        "orderBy": {
+          "name": "instanceUpTime",
+          "order": "asc"
+        },
+        "precondition": {
+          "filters": [
+            "appName"
+          ]
+        }
+      }
+    },
+    {
+      "title": "CPU",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        {
+          "name": "processCpuLoad",
+          "format": "percentage"
+        },
+        {
+          "name": "processors",
+          "yAxis": 1,
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "processCpuLoad",
+            "aggregator": "last"
+          },
+          {
+            "name": "processors",
+            "expression": "last(processors)"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Threads",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "activeThreads",
+        {
+          "name": "totalThreads",
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "activeThreads",
+            "aggregator": "last"
+          },
+          {
+            "name": "totalThreads",
+            "aggregator": "last"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Heap",
+      "width": 1,
+      "type": "line",
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        {
+          "name": "heapUsed",
+          "title": "used"
+        },
+        {
+          "name": "heapMax",
+          "title": "max",
+          "fill": false
+        },
+        {
+          "name": "heapCommitted",
+          "title": "committed",
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "heapUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "heapMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "heapCommitted",
+            "aggregator": "last"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Non-Heap",
+      "width": 1,
+      "type": "line",
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        {
+          "name": "nonHeapUsed",
+          "title": "used"
+        },
+        {
+          "name": "nonHeapMax",
+          "title": "max",
+          "fill": false
+        },
+        {
+          "name": "nonHeapCommitted",
+          "title": "committed",
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "nonHeapUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "nonHeapMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "nonHeapCommitted",
+            "aggregator": "last"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Metaspace",
+      "width": 1,
+      "type": "line",
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        {
+          "name": "metaspaceUsed",
+          "title": "used"
+        },
+        {
+          "name": "metaspaceMax",
+          "title": "max",
+          "fill": false
+        },
+        {
+          "name": "metaspaceCommitted",
+          "title": "committed",
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "metaspaceUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "metaspaceMax",
+            "aggregator": "last"
+          },
+          {
+            "name": "metaspaceCommitted",
+            "aggregator": "last"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Direct Memory",
+      "width": 1,
+      "type": "line",
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "columns": [
+        {
+          "name": "directUsed",
+          "title": "used"
+        },
+        {
+          "name": "directMax",
+          "title": "max",
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          {
+            "name": "directUsed",
+            "aggregator": "last"
+          },
+          {
+            "name": "directMax",
+            "aggregator": "last"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Young GC",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {},
+        {
+          "format": "millisecond"
+        }
+      ],
+      "columns": [
+        "gcCount",
+        {
+          "name": "avgGcTime",
+          "yAxis": 1,
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-gc-metrics",
+        "fields": [
+          "gcCount",
+          "avgGcTime"
+        ],
+        "groupBy": [
+          "gcName"
+        ],
+        "filter": "generation in ('new', 'ZGC Cycles', 'ZGC Pauses', 'ZGC Minor Cycles', 'ZGC Minor Pauses')"
+      }
+    },
+    {
+      "title": "Old GC",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {},
+        {
+          "format": "millisecond"
+        }
+      ],
+      "columns": [
+        "gcCount",
+        {
+          "name": "avgGcTime",
+          "yAxis": 1,
+          "fill": false
+        }
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-gc-metrics",
+        "fields": [
+          {
+            "name": "gcCount",
+            "aggregator": "sum"
+          },
+          {
+            "name": "avgGcTime",
+            "expression": "sum(gcTime)/sum(gcCount)"
+          }
+        ],
+        "groupBy": [
+          "gcName"
+        ],
+        "filter": "generation in ('old', 'ZGC Major Cycles', 'ZGC Major Pauses')"
+      }
+    }
+  ]
+}

@@ -99,7 +99,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.appName = builder.appName;
 
         this.invocationManager = new InvocationManager();
-        this.bossGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.of("brpc-c-io-" + builder.clientId));
+        this.bossGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.daemonThreadFactory("brpc-c-io-" + builder.clientId));
         this.bootstrap = new Bootstrap().group(this.bossGroup)
                                         .channel(NioSocketChannel.class)
                                         .option(ChannelOption.SO_KEEPALIVE, builder.keepAlive)

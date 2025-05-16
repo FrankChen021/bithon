@@ -17,28 +17,27 @@
 package org.bithon.server.web.service.datasource.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.SchemaException;
+import org.bithon.server.datasource.column.ExpressionColumn;
+import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
-import org.bithon.server.storage.datasource.ISchema;
-import org.bithon.server.storage.datasource.SchemaException;
 import org.bithon.server.storage.datasource.SchemaManager;
-import org.bithon.server.storage.datasource.column.ExpressionColumn;
-import org.bithon.server.storage.datasource.column.IColumn;
-import org.bithon.server.storage.datasource.column.aggregatable.IAggregatableColumn;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
-import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Selector;
-import org.bithon.server.storage.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.IMetricWriter;
-import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
@@ -57,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:19 下午
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Conditional(WebServiceModuleEnabler.class)
@@ -99,17 +100,18 @@ public class DataSourceApi implements IDataSourceApi {
                                                     180L,
                                                     TimeUnit.SECONDS,
                                                     new SynchronousQueue<>(),
-                                                    NamedThreadFactory.of("datasource-async"));
+                                                    NamedThreadFactory.nonDaemonThreadFactory("datasource-async"));
         this.discoveredServiceInvoker = discoveredServiceInvoker;
     }
 
     @Override
-    public QueryResponse timeseriesV3(@Validated @RequestBody QueryRequest request) throws IOException {
+    public QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, false, true);
+        Query query = QueryConverter.toQuery(schema, request, true);
         TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
         return QueryResponse.builder()
+                            .meta(query.getSelectors().stream().map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name())).toList())
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -118,12 +120,28 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse timeseriesV4(@Validated @RequestBody QueryRequest request) throws IOException {
+    public QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, true, true);
-        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
+        Query query = QueryConverter.toQuery(schema, request, true);
+
+        List<QueryResponse.QueryResponseColumn> columns = new ArrayList<>();
+        columns.add(new QueryResponse.QueryResponseColumn("_timestamp", IDataType.LONG.name()));
+        columns.addAll(query.getGroupBy()
+                            .stream()
+                            .map((s) -> {
+                                IColumn column = schema.getColumnByName(s);
+                                Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", s);
+                                return new QueryResponse.QueryResponseColumn(column.getName(), column.getDataType().name());
+                            }).toList());
+        columns.addAll(query.getSelectors()
+                            .stream()
+                            .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
+                            .toList());
+
+        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery2(query);
         return QueryResponse.builder()
+                            .meta(columns)
                             .data(result.getMetrics())
                             .startTimestamp(result.getStartTimestamp())
                             .endTimestamp(result.getEndTimestamp())
@@ -133,12 +151,9 @@ public class DataSourceApi implements IDataSourceApi {
 
     @Override
     public QueryResponse list(QueryRequest request) throws IOException {
-        Preconditions.checkNotNull(request.getLimit(), "'limit' should not be NULL.");
-        Preconditions.checkIfTrue(CollectionUtils.isEmpty(request.getGroupBy()), "'groupBy' MUST be empty for list query.");
-
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, false, false);
+        Query query = QueryConverter.toSelectQuery(schema, request);
 
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
 
@@ -149,7 +164,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return request.getLimit().getOffset() == 0 ? reader.count(query) : 0;
             }, asyncExecutor);
 
-            CompletableFuture<List<Map<String, Object>>> list = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<List<?>> list = CompletableFuture.supplyAsync(() -> {
                 // The query is executed in an async task, and the filter AST might be optimized in further processing
                 // To make sure the optimization is thread safe, we create a new AST
                 IExpression filter = QueryFilter.build(schema, request.getFilterExpression());
@@ -158,6 +173,10 @@ public class DataSourceApi implements IDataSourceApi {
 
             try {
                 return QueryResponse.builder()
+                                    .meta(query.getSelectors()
+                                               .stream()
+                                               .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
+                                               .toList())
                                     .total(total.get())
                                     .limit(query.getLimit())
                                     .data(list.get())
@@ -165,9 +184,11 @@ public class DataSourceApi implements IDataSourceApi {
                                     .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                     .build();
             } catch (ExecutionException e) {
+                String message = "Failed to execute the query: " + e.getCause().getMessage();
+                log.error(message, e.getCause());
                 throw new HttpMappableException(e.getCause(),
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                "Unexpected exception occurred");
+                                                message);
             } catch (InterruptedException e) {
                 throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
             }
@@ -175,26 +196,31 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse groupBy(QueryRequest request) throws IOException {
-        ISchema schema = schemaManager.getSchema(request.getDataSource());
-
-        Query query = QueryConverter.toQuery(schema, request, false, false);
-        try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
-            return QueryResponse.builder()
-                                .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
-                                .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
-                                .data(reader.groupBy(query))
-                                .build();
-        }
-    }
-
-    @Override
     public QueryResponse groupByV3(QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
-        Query query = QueryConverter.toQuery(schema, request, true, false);
+        Query query = QueryConverter.toQuery(schema, request, false);
+
+        List<QueryResponse.QueryResponseColumn> groupByColumns = query.getGroupBy()
+                                                                      .stream()
+                                                                      .map((groupBy) -> {
+                                                                          IColumn column = schema.getColumnByName(groupBy);
+                                                                          Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", groupBy);
+                                                                          return new QueryResponse.QueryResponseColumn(column.getName(), column.getDataType().name());
+                                                                      })
+                                                                      .toList();
+
+        List<QueryResponse.QueryResponseColumn> selectColumns = query.getSelectors()
+                                                                     .stream()
+                                                                     .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
+                                                                     .toList();
+        List<QueryResponse.QueryResponseColumn> returnColumns = new ArrayList<>();
+        returnColumns.addAll(groupByColumns);
+        returnColumns.addAll(selectColumns);
+
         try (IDataSourceReader reader = schema.getDataStoreSpec().createReader()) {
             return QueryResponse.builder()
+                                .meta(returnColumns)
                                 .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
                                 .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
                                 .data(reader.groupBy(query))
@@ -253,14 +279,6 @@ public class DataSourceApi implements IDataSourceApi {
             throw new SchemaException.AlreadyExists(schema.getName());
         }
 
-        // TODO:
-        // use writer to initialize the underlying storage
-        // in the future, the initialization should be extracted out of the writer
-        try (IMetricWriter writer = this.metricStorage.createMetricWriter(schema)) {
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         schemaManager.addSchema(schema);
     }
 
@@ -291,7 +309,7 @@ public class DataSourceApi implements IDataSourceApi {
             Query query = Query.builder()
                                .interval(Interval.of(request.getStartTimeISO8601(), request.getEndTimeISO8601()))
                                .schema(schema)
-                               .selectors(Collections.singletonList(new Selector(column.getName())))
+                               .selectors(Collections.singletonList(column.toSelector()))
                                .filter(QueryFilter.build(schema, request.getFilterExpression()))
                                .build();
 

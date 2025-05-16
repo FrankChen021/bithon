@@ -87,16 +87,20 @@
 
     <!-- agent-plugin -->
     <Match>
-        <Class name="org.bithon.agent.plugin.webserver.jetty.interceptor.HttpChannel$HandleException"/>
+        <Class name="org.bithon.agent.plugin.httpserver.jetty.interceptor.HttpChannel$HandleException"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.plugin.webserver.tomcat.interceptor.StandardWrapperValve$Exception"/>
+        <Class name="org.bithon.agent.plugin.httpserver.tomcat.interceptor.StandardWrapperValve$Exception"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>
     <Match>
         <Class name="org.bithon.server.metric.DataSourceSchemaManager"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.plugin.httpclient.reactor.interceptor.HttpClientFinalizer$Connect"/>
+        <Bug pattern="BC_IMPOSSIBLE_INSTANCEOF" />
     </Match>
 
     <!-- agent-controller -->
@@ -109,6 +113,10 @@
     <Match>
         <Class name="org.bithon.component.commons.logging.LoggerConfiguration" />
         <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.component.commons.logging.adaptor.jdk.JdkLoggerFactory" />
+        <Bug pattern="LG_LOST_LOGGER_DUE_TO_WEAK_REFERENCE" />
     </Match>
     <Match>
         <Class name="org.bithon.component.commons.tracing.Tags$Exception" />

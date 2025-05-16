@@ -16,6 +16,9 @@
 
 package org.bithon.component.commons.expression;
 
+import org.bithon.component.commons.expression.function.builtin.StringFunction;
+import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
+
 import java.util.Set;
 
 /**
@@ -104,14 +107,24 @@ public abstract class ConditionalExpression extends BinaryExpression {
         }
     }
 
-    public static class Like extends ConditionalExpression {
+    public static class NotIn extends In {
 
-        public Like(IExpression left, IExpression right) {
-            this("like", left, right);
+        public NotIn(IExpression left, ExpressionList right) {
+            super("not in", left, right);
         }
 
-        public Like(String operator, IExpression left, IExpression right) {
-            super(operator, left, right);
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            return !((boolean) super.evaluate(context));
+        }
+    }
+
+    /**
+     * match token in given input
+     */
+    public static class HasToken extends ConditionalExpression {
+        public HasToken(IExpression left, IExpression right) {
+            super("hasToken", left, right);
         }
 
         @Override
@@ -122,41 +135,7 @@ public abstract class ConditionalExpression extends BinaryExpression {
             }
 
             String pattern = (String) rhs.evaluate(context);
-
-            if (pattern.contains("%")) {
-                // Replace % with .* to convert SQL LIKE pattern to a regex pattern
-                String regexPattern = pattern.replace("%", ".*");
-
-                // Use regex matching to check if the inputString matches the pattern
-                return input.matches(regexPattern);
-            } else {
-                // If the given pattern does not contain '%', check for exact match
-                return input.equals(pattern);
-            }
-        }
-    }
-
-    public static class NotLike extends Like {
-
-        public NotLike(IExpression left, IExpression right) {
-            super("not like", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            return !((boolean) super.evaluate(context));
-        }
-    }
-
-    public static class NotIn extends In {
-
-        public NotIn(IExpression left, ExpressionList right) {
-            super("not in", left, right);
-        }
-
-        @Override
-        public Object evaluate(IEvaluationContext context) {
-            return !((boolean) super.evaluate(context));
+            return StringFunction.HasToken.INSTANCE.evaluate(input, pattern);
         }
     }
 
@@ -220,6 +199,48 @@ public abstract class ConditionalExpression extends BinaryExpression {
         @Override
         public Object evaluate(IEvaluationContext context) {
             return lhs.evaluate(context) == null;
+        }
+    }
+
+    public static class RegularExpressionMatchExpression extends ConditionalExpression {
+        public RegularExpressionMatchExpression(IExpression left, IExpression right) {
+            super("=~", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String serializeToText() {
+            return super.serializeToText();
+        }
+
+        @Override
+        public String serializeToText(IdentifierQuotaStrategy strategy) {
+            return super.serializeToText(strategy);
+        }
+    }
+
+    public static class RegularExpressionNotMatchExpression extends ConditionalExpression {
+        public RegularExpressionNotMatchExpression(IExpression left, IExpression right) {
+            super("!~", left, right);
+        }
+
+        @Override
+        public Object evaluate(IEvaluationContext context) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String serializeToText() {
+            return super.serializeToText();
+        }
+
+        @Override
+        public String serializeToText(IdentifierQuotaStrategy strategy) {
+            return super.serializeToText(strategy);
         }
     }
 }

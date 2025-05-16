@@ -44,14 +44,17 @@ public class Tags {
         public static final String METHOD = "http.method";
 
         /**
-         * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represent the target service
+         * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represents the target service
          * <p>
-         * For example: http://localhost:8080
+         * For example: http://localhost:8080?param1=value1
          * <p>
          */
         public static final String URL = "http.url";
 
         public static final String STATUS = "http.status";
+
+        public static final String REQUEST_CONTENT_LENGTH = "http.request_content_length";
+        public static final String RESPONSE_CONTENT_LENGTH = "http.response_content_length";
 
         public static final String REQUEST_HEADER_PREFIX = "http.request.header.";
         public static final String RESPONSE_HEADER_PREFIX = "http.response.header.";
@@ -132,8 +135,12 @@ public class Tags {
 
         /**
          * database name
+         * Use {@link #NAMESPACE} for mongodb
          */
+        @Deprecated
         public static final String NAME = "db.name";
+        
+        public static final String NAMESPACE = "db.namespace";
 
         /**
          * The statement(SQL) that is being executed
@@ -143,7 +150,7 @@ public class Tags {
         /**
          * The type of statement such as select/delete/update
          */
-        public static final String OPERATION = "db.operation";
+        public static final String OPERATION = "db.operation.name";
 
         public static final String REDIS_DB_INDEX = "db.redis.database_index";
         public static final String MONGODB_DB_COLLECTION = "db.mongodb.collection";
@@ -178,6 +185,11 @@ public class Tags {
     public static class Thread {
         public static final String ID = "thread.id";
         public static final String NAME = "thread.name";
+
+        // Non standard
+        public static final String POOL_CLASS = "thread.pool.class";
+        public static final String POOL_NAME = "thread.pool.name";
+        public static final String POOL_PARALLELISM = "thread.pool.parallelism";
     }
 
     /**
@@ -190,5 +202,17 @@ public class Tags {
         public static final String SYSTEM = "rpc.system";
 
         public static final String REQUEST_META_PREFIX = "rpc.grpc.request.metadata.";
+
+        /**
+         * https://opentelemetry.io/docs/specs/semconv/rpc/rpc-metrics/#metric-rpcserverrequestsize
+         */
+        public static final String RPC_SERVER_REQ_SIZE = "rpc.server.request.size";
+        public static final String RPC_SERVER_RSP_SIZE = "rpc.server.response.size";
+
+        /**
+         * https://opentelemetry.io/docs/specs/semconv/rpc/rpc-metrics/#metric-rpcclientrequestsize
+         */
+        public static final String RPC_CLIENT_REQ_SIZE = "rpc.client.request.size";
+        public static final String RPC_CLIENT_RSP_SIZE = "rpc.client.response.size";
     }
 }

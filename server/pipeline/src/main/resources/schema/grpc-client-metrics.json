@@ -1,0 +1,95 @@
+{
+  "name": "grpc-client-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName"
+    },
+    {
+      "name": "instanceName"
+    },
+    {
+      "name": "service"
+    },
+    {
+      "name": "method"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "server"
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longSum",
+      "name": "callCount"
+    },
+    {
+      "type": "longSum",
+      "name": "errorCount"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesSent"
+    },
+    {
+      "type": "longSum",
+      "name": "bytesReceived"
+    },
+    {
+      "type": "post",
+      "name": "avgResponseTime",
+      "expression": "round(sum(responseTime) * 1.0 /sum(callCount), 2)",
+      "displayText": "Avg cost time",
+      "unit": "nanosecond",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "qps",
+      "expression": "round(sum(callCount)/{interval}, 2)",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "bytesSentRate",
+      "expression": "round(sum(bytesSent)/{interval}, 2)",
+      "displayText": "Avg Sent Byte Rate",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "bytesReceivedRate",
+      "expression": "round(sum(bytesReceived)/{interval}, 2)",
+      "displayText": "Avg Received Byte Rate",
+      "unit": "",
+      "valueType": "double"
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
+}

@@ -19,6 +19,7 @@ package org.bithon.component.brpc.invocation;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.ServiceNotFoundException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -112,13 +113,14 @@ public class ServiceInvocationRunnable implements Runnable {
                 throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
             }
 
+            if (!serviceRegistry.contains(serviceRequest.getServiceName())) {
+                throw new ServiceNotFoundException(serviceRequest.getServiceName());
+            }
+
             ServiceRegistry.ServiceInvoker serviceInvoker = serviceRegistry.findServiceInvoker(serviceRequest.getServiceName(),
                                                                                                serviceRequest.getMethodName());
             if (serviceInvoker == null) {
-                throw new BadRequestException("[Client=%s] Can't find service provider %s#%s",
-                                              channel.remoteAddress().toString(),
-                                              serviceRequest.getServiceName(),
-                                              serviceRequest.getMethodName());
+                throw new ServiceNotFoundException(serviceRequest.getServiceName() + "#" + serviceRequest.getMethodName());
             }
 
             try {
@@ -139,11 +141,15 @@ public class ServiceInvocationRunnable implements Runnable {
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceInvocationRunnable.class).error(StringUtils.format("[Client=%s] Service Invocation on %s#%s",
-                                                                                              channel.remoteAddress().toString(),
-                                                                                              serviceRequest.getServiceName(),
-                                                                                              serviceRequest.getMethodName()),
-                                                                           cause);
+            boolean isClientSideException = e instanceof BadRequestException || e instanceof ServiceNotFoundException;
+            if (!isClientSideException) {
+                LoggerFactory.getLogger(ServiceInvocationRunnable.class).error(StringUtils.format("[Client=%s] Service Invocation on %s#%s",
+                                                                                                  channel.remoteAddress().toString(),
+                                                                                                  serviceRequest.getServiceName(),
+                                                                                                  serviceRequest.getMethodName()),
+                                                                               cause);
+            }
+
             ServiceResponseMessageOut.builder()
                                      .serverResponseAt(System.currentTimeMillis())
                                      .txId(serviceRequest.getTransactionId())

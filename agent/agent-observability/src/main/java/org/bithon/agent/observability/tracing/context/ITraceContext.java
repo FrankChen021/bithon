@@ -27,6 +27,13 @@ import org.bithon.component.commons.time.Clock;
  */
 public interface ITraceContext {
 
+    default ITraceContext traceState(TraceState attributes) {
+        return this;
+    }
+    default TraceState traceState() {
+        return null;
+    }
+
     TraceMode traceMode();
 
     String traceId();

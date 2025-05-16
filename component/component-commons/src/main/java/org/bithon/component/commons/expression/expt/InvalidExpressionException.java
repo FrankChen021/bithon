@@ -32,6 +32,12 @@ public class InvalidExpressionException extends RuntimeException {
         super(StringUtils.format(format, args));
     }
 
+    public static void throwIfTrue(boolean expression, String message, Object... args) {
+        if (expression) {
+            throw new InvalidExpressionException(message, args);
+        }
+    }
+
     public static InvalidExpressionException format(String expression,
                                                     Integer tokenStart,
                                                     Integer tokenEnd,
@@ -41,20 +47,19 @@ public class InvalidExpressionException extends RuntimeException {
         StringBuilder messages = new StringBuilder(128);
         messages.append(StringUtils.format("Invalid expression at line %d:%d %s\n", line, charPositionInLine, error));
 
+        // Add the error line
         String[] lines = expression.split("\n");
         String errorLine = lines[line - 1];
-
         messages.append(errorLine);
 
-        if (tokenStart != null && tokenEnd != null) {
-            messages.append('\n');
-            for (int i = 0; i < charPositionInLine; i++) {
-                messages.append(' ');
-            }
-            int indicatorLength = Math.max(1, tokenEnd - tokenStart + 1);
-            for (int i = 0; i < indicatorLength; i++) {
-                messages.append('^');
-            }
+        // Add an indicator to the position where the error occurs
+        messages.append('\n');
+        for (int i = 0; i < charPositionInLine; i++) {
+            messages.append(' ');
+        }
+        int indicatorLength = (tokenStart != null && tokenEnd != null) ? tokenEnd - tokenStart + 1 : 1;
+        for (int i = 0; i < indicatorLength; i++) {
+            messages.append('^');
         }
 
         return new InvalidExpressionException(messages.toString());

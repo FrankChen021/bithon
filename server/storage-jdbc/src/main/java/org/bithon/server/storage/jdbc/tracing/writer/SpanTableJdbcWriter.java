@@ -63,7 +63,7 @@ public abstract class SpanTableJdbcWriter implements IOnceTableWriter {
     public void run(Connection connection) throws Exception {
         try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
             for (TraceSpan span : spans) {
-                statement.setObject(1, new Timestamp(span.startTime / 1000).toLocalDateTime());
+                statement.setTimestamp(1, new Timestamp(span.startTime / 1000));
                 statement.setObject(2, span.appName);
                 statement.setObject(3, span.instanceName);
                 statement.setObject(4, span.traceId);

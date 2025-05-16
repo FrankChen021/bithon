@@ -64,7 +64,8 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
                     if (annotation != null && serviceName.equals(annotation.name())) {
                         // Found. Return current application instance
                         return Collections.singletonList(new DiscoveredServiceInstance("localhost",
-                                                                                       applicationContext.getEnvironment().getProperty("server.port", Integer.class)));
+                                                                                       applicationContext.getEnvironment().getProperty("server.port", Integer.class),
+                                                                                       applicationContext.getEnvironment().getProperty("server.servlet.context-path", String.class)));
                     }
                 }
 

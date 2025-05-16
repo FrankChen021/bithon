@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
@@ -56,7 +57,7 @@ import java.util.zip.InflaterInputStream;
 @ConditionalOnProperty(value = "bithon.receivers.traces.http.enabled", havingValue = "true")
 public class TraceHttpCollector {
 
-    private final ObjectMapper om;
+    private final ObjectReader objectReader;
     private final TraceHttpCollectorConfig config;
     private final ThreadPoolExecutor executor;
 
@@ -66,14 +67,15 @@ public class TraceHttpCollector {
     public TraceHttpCollector(TraceHttpCollectorConfig config,
                               ObjectMapper objectMapper) {
         this.config = config;
-        this.om = objectMapper;
         this.executor = new ThreadPoolExecutor(1,
                                                4,
                                                1L,
                                                TimeUnit.MINUTES,
                                                new LinkedBlockingQueue<>(8),
-                                               NamedThreadFactory.of("trace-http-processor"),
+                                               NamedThreadFactory.nonDaemonThreadFactory("trace-http-processor"),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        this.objectReader = objectMapper.readerFor(TraceSpan.class);
     }
 
     @PostMapping("/api/collector/trace")
@@ -111,7 +113,7 @@ public class TraceHttpCollector {
         List<TraceSpan> spans = new ArrayList<>(config.getMaxRowsPerBatch());
 
         // Create parser manually so that this parser can be accessed in the catch handler
-        try (JsonParser parser = om.createParser(is)) {
+        try (JsonParser parser = objectReader.createParser(is)) {
             try {
                 JsonToken token = parser.nextToken();
                 if (token != JsonToken.START_ARRAY) {
@@ -120,7 +122,7 @@ public class TraceHttpCollector {
 
                 // JSONArray format
                 while (parser.nextToken() == JsonToken.START_OBJECT) {
-                    spans.add(om.readValue(parser, TraceSpan.class));
+                    spans.add(objectReader.readValue(parser));
 
                     // This controls the size of content reading from HTTP,
                     // to avoid excessive memory pressure at the collector side

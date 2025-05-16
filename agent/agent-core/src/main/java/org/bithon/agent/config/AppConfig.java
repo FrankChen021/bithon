@@ -42,15 +42,30 @@ public class AppConfig {
     private int port = 0;
 
     /**
-     * Indicate the host and port of the monitored application instance.
-     * In the format of ip:port
+     * Indicate the name of the monitored application instance.
+     * By default, the agent will generate the instance name automatically by using the current host ip address.
+     * There are two cases that user might want to specify the instance name manually.
      * <p>
-     * This is not for configuration.
-     * In most cases, the agent automatically retrieves this field.
-     * But if the application is deployed in Docker on different host, the container ip may be the same.
+     * Case 1: If the application is deployed in Docker on different host, the container ip may be the same.
      * In such a case, user can use this configuration to override the automatically retrieved instance name.
+     *
+     * Case 2: If application is deployed in K8S, if you want to use the pod name as the instance name, you can set this configuration.
      */
     private String instance;
+
+    /**
+     * Some application forks subprocesses, and if the host application has bithon_application_instance configured,
+     * subprocesses will inherit the instance name from the parent process.
+     * This causes two different processes to share the same instance name,
+     * and it's NOT able to tell the difference from monitoring.
+     *
+     * To solve such a problem,
+     * subprocesses can define this configuration
+     * to force using generated instance name instead of bithon_application_instance.
+     *
+     * The default value of this field is set to 'false' to keep backward compatibility.
+     */
+    private boolean noUseExternalInstanceName = false;
 
     public String getName() {
         return name;
@@ -82,5 +97,13 @@ public class AppConfig {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public boolean isNoUseExternalInstanceName() {
+        return noUseExternalInstanceName;
+    }
+
+    public void setNoUseExternalInstanceName(boolean noUseExternalInstanceName) {
+        this.noUseExternalInstanceName = noUseExternalInstanceName;
     }
 }

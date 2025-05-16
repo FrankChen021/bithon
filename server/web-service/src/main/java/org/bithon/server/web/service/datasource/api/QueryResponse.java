@@ -20,9 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.datasource.query.Limit;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,7 +32,7 @@ import java.util.Collection;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryResponse {
+public class QueryResponse<T> {
 
     /**
      * The number of total records that satisfies the request conditions.
@@ -40,17 +40,30 @@ public class QueryResponse {
      */
     private Integer total;
 
-    /**
-     * The request limit parameter
-     */
     private Limit limit;
-
     private long startTimestamp;
+
+    /**
+     * Input end timestamp
+     */
     private long endTimestamp;
 
     /**
      * in milliseconds
      */
     private long interval;
-    private Collection<?> data;
+    private T data;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class QueryResponseColumn {
+        private String name;
+
+        private String dataType;
+    }
+
+    // The column metadata info in the result set
+    private List<QueryResponseColumn> meta;
 }

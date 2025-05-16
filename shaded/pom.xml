@@ -13,7 +13,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <modules>
-    <module>shaded-alibaba-druid</module>
     <module>shaded-alibaba-sentinel</module>
     <module>shaded-bytebuddy</module>
     <module>shaded-jackson</module>
@@ -26,7 +25,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.5.2</version>
           <configuration>
             <createSourcesJar>true</createSourcesJar>
             <shadeSourcesContent>true</shadeSourcesContent>

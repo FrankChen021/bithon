@@ -25,7 +25,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.logging.RateLimitLogger;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 

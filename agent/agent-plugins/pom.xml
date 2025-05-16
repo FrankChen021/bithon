@@ -15,50 +15,73 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>alibaba-druid</module>
+    <module>apache-zookeeper</module>
     <module>apache-druid</module>
     <module>apache-kafka</module>
+    <module>apache-kafka-0.10</module>
+    <module>apache-kafka-0.10.2</module>
+    <module>apache-kafka-0.11</module>
+    <module>apache-kafka-3.7</module>
+    <module>apache-kafka-3.9</module>
     <module>apache-ozone</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>glassfish</module>
     <module>grpc</module>
     <module>guice</module>
-    <module>mysql-5.x-6.x</module>
-    <module>mysql-8.x</module>
     <module>netty4</module>
     <module>quartz2</module>
     <module>jersey</module>
-    <module>jdk-thread</module>
-    <module>httpclient-okhttp-3.2</module>
-    <module>httpclient-jdk</module>
-    <module>apache-httpcomponents4</module>
-    <module>apache-httpcomponents5</module>
-    <module>httpclient-jetty</module>
-    <module>httpclient-netty3</module>
-    <module>redis-jedis-2.x</module>
-    <module>redis-jedis-3.x</module>
-    <module>redis-jedis-4.x</module>
-    <module>redis-lettuce-5.x</module>
-    <module>redis-redisson</module>
+    <module>jdbc/apache-derby</module>
+    <module>jdbc/alibaba-druid</module>
+    <module>jdbc/clickhouse</module>
+    <module>jdbc/clickhouse-yandex</module>
+    <module>jdbc/common</module>
+    <module>jdbc/h2</module>
+    <module>jdbc/postgresql</module>
+    <module>jdbc/mysql5</module>
+    <module>jdbc/mysql6</module>
+    <module>jdbc/mysql8</module>
+    <module>thread-jdk</module>
+    <module>thread-jdk8</module>
+    <module>thread-jdk9</module>
+    <module>thread-jdk21</module>
+    <module>httpclient/okhttp-3.2</module>
+    <module>httpclient/apache-httpcomponents4</module>
+    <module>httpclient/apache-httpcomponents5</module>
+    <module>httpclient/jdk</module>
+    <module>httpclient/jetty</module>
+    <module>httpclient/netty3</module>
+    <module>httpclient/reactor</module>
+    <module>httpserver/tomcat</module>
+    <module>httpserver/undertow</module>
+    <module>httpserver/jetty</module>
+    <module>httpserver/jetty-12</module>
+    <module>httpserver/netty</module>
+    <module>openfeign</module>
+    <module>redis/jedis-2.x</module>
+    <module>redis/jedis-3.x</module>
+    <module>redis/jedis-4.x</module>
+    <module>redis/lettuce-5.x</module>
+    <module>redis/redisson</module>
     <module>mongodb</module>
     <module>mongodb-3.8</module>
-    <module>logging-log4j2</module>
-    <module>logging-logback</module>
-    <module>spring-bean</module>
-    <module>spring-boot</module>
-    <module>spring-mvc</module>
-    <module>spring-scheduling</module>
-    <module>spring-webflux</module>
-    <module>webserver-tomcat</module>
-    <module>webserver-undertow</module>
-    <module>webserver-jetty</module>
-    <module>webserver-netty</module>
+    <module>logging/log4j2</module>
+    <module>logging/logback</module>
+    <module>spring/bean</module>
+    <module>spring/scheduling</module>
+    <module>spring/webflux</module>
+    <module>spring/webmvc</module>
     <module>xxl-job</module>
   </modules>
 
-  <dependencies>
-    <!-- Use to publish -->
+  <dependencies> <!-- Include all plugins for publication -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-zookeeper</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-druid</artifactId>
@@ -69,6 +92,31 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-apache-kafka</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.10</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.10.2</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-0.11</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.7</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-kafka-3.9</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -114,22 +162,27 @@
     <!-- Web Container-->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-tomcat</artifactId>
+      <artifactId>agent-plugin-httpserver-tomcat</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-undertow</artifactId>
+      <artifactId>agent-plugin-httpserver-undertow</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-jetty</artifactId>
+      <artifactId>agent-plugin-httpserver-jetty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-webserver-netty</artifactId>
+      <artifactId>agent-plugin-httpserver-jetty-12</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpserver-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -141,24 +194,74 @@
     <!-- JDK -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdk-thread</artifactId>
+      <artifactId>agent-plugin-thread-jdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-thread-jdk8</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-thread-jdk9</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-thread-jdk21</artifactId>
       <version>${project.version}</version>
     </dependency>
 
-    <!-- SQL -->
+    <!-- JDBC -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-alibaba-druid</artifactId>
+      <artifactId>agent-plugin-jdbc-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mysql-5.x-6.x</artifactId>
+      <artifactId>agent-plugin-jdbc-apache-derby</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-mysql-8.x</artifactId>
+      <artifactId>agent-plugin-jdbc-clickhouse</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-clickhouse-yandex</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-h2</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-postgresql</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-alibaba-druid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql5</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql6</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-jdbc-mysql8</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -181,12 +284,12 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents4</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents4</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-apache-httpcomponents5</artifactId>
+      <artifactId>agent-plugin-httpclient-apache-httpcomponents5</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -197,6 +300,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-netty3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-httpclient-reactor</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -245,6 +353,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Open Feign -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-openfeign</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Spring -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
@@ -253,12 +368,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-boot</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring-mvc</artifactId>
+      <artifactId>agent-plugin-spring-web</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

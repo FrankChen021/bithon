@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql.table;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -38,8 +38,8 @@ public class JVMOptionTable extends AbstractBaseTable implements IPushdownPredic
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IJvmCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IJvmCommand.class)
                            .getVMOptions()
                            .stream()
                            .map(IJvmCommand.VMOption::getObjects)
@@ -53,6 +53,7 @@ public class JVMOptionTable extends AbstractBaseTable implements IPushdownPredic
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

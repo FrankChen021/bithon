@@ -24,7 +24,8 @@
     <dependency>
       <groupId>com.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
-      <version>0.6.1</version>
+      <!--Revert back to 0.7.2 which still use v1 driver due to the fucking https://github.com/ClickHouse/clickhouse-java/issues/2247-->
+      <version>0.7.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
@@ -38,9 +39,8 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
     </dependency>
   </dependencies>
 

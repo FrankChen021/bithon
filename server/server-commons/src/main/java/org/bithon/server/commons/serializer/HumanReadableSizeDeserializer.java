@@ -19,7 +19,9 @@ package org.bithon.server.commons.serializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.bithon.component.commons.utils.HumanReadableNumber;
+import org.bithon.component.commons.utils.Preconditions;
 
 import java.io.IOException;
 
@@ -30,7 +32,21 @@ import java.io.IOException;
 public class HumanReadableSizeDeserializer extends JsonDeserializer<HumanReadableNumber> {
     @Override
     public HumanReadableNumber deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        return HumanReadableNumber.of(p.getValueAsString());
+        JsonNode node = p.getCodec().readTree(p);
+        if (node.isObject()) {
+            String type = node.get("type").asText();
+            Preconditions.checkIfTrue(HumanReadableSizeSerializer.TYPE_NAME.equals(type),
+                                      "Expecting type to be '%s' but got '%s'",
+                                      HumanReadableSizeSerializer.TYPE_NAME,
+                                      type);
+            return HumanReadableNumber.of(node.get("text").asText());
+        } else {
+            // Simple string
+            if (node.isValueNode()) {
+                return HumanReadableNumber.of(node.asText());
+            }
+            throw new IllegalArgumentException("Expecting a value node but got " + node.getNodeType());
+        }
     }
 
     @Override

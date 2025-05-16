@@ -1,0 +1,248 @@
+{
+  "name": "thread-pool-metrics",
+  "title": "Thread Pool",
+  "folder": "metrics",
+  "filter": {
+    "selectors": [
+      {
+        "type": "datasource",
+        "name": "thread-pool-metrics",
+        "fields": [
+          {
+            "name": "appName",
+            "width": 200,
+            "allowClear": false
+          },
+          "instanceName",
+          "executorClass",
+          "poolName"
+        ]
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Thread Pool Count",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "poolCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "poolCount"
+        ]
+      }
+    },
+    {
+      "title": "Thread Pool",
+      "width": 2,
+      "type": "line",
+      "columns": [
+        "activeThreads",
+        "currentPoolSize"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "activeThreads",
+          "currentPoolSize"
+        ]
+      }
+    },
+    {
+      "title": "Tasks",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        "totalTaskCount",
+        "successfulTaskCount",
+        "queuedTaskCount",
+        "exceptionTaskCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          "successfulTaskCount",
+          "queuedTaskCount",
+          "exceptionTaskCount"
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "totalTaskCount",
+            "successfulTaskCount",
+            "queuedTaskCount",
+            "exceptionTaskCount"
+          ],
+          "groupBy": [
+            "executorClass",
+            "poolName"
+          ],
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "title": "Tasks Duration",
+      "width": 4,
+      "type": "line",
+      "yAxis": [
+        {
+          "format": "microsecond"
+        }
+      ],
+      "columns": [
+        "minDuration",
+        "avgDuration",
+        "maxDuration"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "minDuration",
+          "avgDuration",
+          "maxDuration"
+        ],
+        "filter": "totalTaskCount > 0"
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          "totalTaskCount",
+          {
+            "name": "minDuration",
+            "format": "microsecond"
+          },
+          {
+            "name": "avgDuration",
+            "format": "microsecond"
+          },
+          {
+            "name": "maxDuration",
+            "format": "microsecond"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "totalTaskCount",
+            "minDuration",
+            "avgDuration",
+            "maxDuration"
+          ],
+          "groupBy": [
+            "executorClass",
+            "poolName"
+          ],
+          "filter": "totalTaskCount > 0",
+          "orderBy": {
+            "name": "totalTaskCount",
+            "order": "desc"
+          }
+        }
+      }
+    },
+    {
+      "title": "Rejected Policy",
+      "width": 4,
+      "type": "line",
+      "columns": [
+        {
+          "name": "totalRejectedCount",
+          "fill": false
+        },
+        "callerRunTaskCount",
+        "abortedTaskCount",
+        "discardedTaskCount",
+        "discardedOldestTaskCount",
+        "userRejectedPolicyCount"
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "thread-pool-metrics",
+        "fields": [
+          "totalRejectedCount",
+          "callerRunTaskCount",
+          "abortedTaskCount",
+          "discardedTaskCount",
+          "discardedOldestTaskCount",
+          "userRejectedPolicyCount"
+        ]
+      },
+      "details": {
+        "columns": [
+          "executorClass",
+          "poolName",
+          {
+            "name": "totalRejected",
+            "field": "totalRejectedCount"
+          },
+          {
+            "name": "callerRun",
+            "field": "callerRunTaskCount"
+          },
+          {
+            "name": "aborted",
+            "field": "abortedTaskCount"
+          },
+          {
+            "name": "discarded",
+            "field": "discardedTaskCount"
+          },
+          {
+            "name": "discardedOldest",
+            "field": "discardedOldestTaskCount"
+          },
+          {
+            "name": "userPolicy",
+            "field": "userRejectedPolicyCount"
+          }
+        ],
+        "query": {
+          "type": "groupBy",
+          "dataSource": "thread-pool-metrics",
+          "fields": [
+            "totalRejectedCount",
+            "callerRunTaskCount",
+            "abortedTaskCount",
+            "discardedTaskCount",
+            "discardedOldestTaskCount",
+            "userRejectedPolicyCount"
+          ],
+          "groupBy": [
+            "executorClass",
+            "poolName"
+          ],
+          "filter": "totalRejectedCount > 0",
+          "orderBy": {
+            "name": "totalRejectedCount",
+            "order": "desc"
+          }
+        }
+      }
+    }
+  ]
+}

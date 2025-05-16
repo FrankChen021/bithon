@@ -25,8 +25,8 @@ import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.common.expression.ExpressionASTBuilder;
-import org.bithon.server.storage.datasource.ISchema;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.expression.ExpressionASTBuilder;
 
 import javax.annotation.Nullable;
 

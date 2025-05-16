@@ -19,9 +19,9 @@ package org.bithon.server.pipeline.common.transformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
+import org.bithon.server.datasource.input.InputRow;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
@@ -38,14 +38,14 @@ public class ReplaceTransformerTest {
                                                           "bithon",
                                                           null);
 
-        // deserialize from json to test deserialization
+        // deserialize from JSON to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
         InputRow row = new InputRow(new HashMap<>(ImmutableMap.of("col1", "bison is bison")));
         newTransformer.transform(row);
-        Assert.assertEquals("bithon is bithon", row.getCol("col1"));
+        Assertions.assertEquals("bithon is bithon", row.getCol("col1"));
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ReplaceTransformerTest {
                                                           "bithon",
                                                           "col2 = 'a'");
 
-        // deserialize from json to test deserialization
+        // deserialize from JSON to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
@@ -64,7 +64,7 @@ public class ReplaceTransformerTest {
             InputRow row = new InputRow(new HashMap<>(ImmutableMap.of("col1", "bison is bison",
                                                                       "col2", "a")));
             newTransformer.transform(row);
-            Assert.assertEquals("bithon is bithon", row.getCol("col1"));
+            Assertions.assertEquals("bithon is bithon", row.getCol("col1"));
         }
 
         {
@@ -72,7 +72,7 @@ public class ReplaceTransformerTest {
                                                                       // does not meet the 'where' clause
                                                                       "col2", "aaaaa")));
             newTransformer.transform(row);
-            Assert.assertEquals("bison is bison", row.getCol("col1"));
+            Assertions.assertEquals("bison is bison", row.getCol("col1"));
         }
 
     }

@@ -21,9 +21,10 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationContext;
 import org.bithon.server.alerting.common.evaluator.metric.IMetricEvaluator;
-import org.bithon.server.alerting.common.evaluator.result.AbsoluteComparisonEvaluationOutput;
-import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.alerting.Label;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Frank Chen
@@ -46,42 +48,44 @@ public class NullValuePredicate implements IMetricEvaluator {
     }
 
     @Override
-    public IEvaluationOutput evaluate(IDataSourceApi dataSourceApi,
+    public EvaluationOutputs evaluate(IDataSourceApi dataSourceApi,
                                       String dataSource,
                                       QueryField metric,
                                       TimeSpan start,
                                       TimeSpan end,
                                       String filterExpression,
-                                      List<String> groupBy,
+                                      Set<String> groupBy,
                                       EvaluationContext context) throws IOException {
-        QueryResponse response = dataSourceApi.groupBy(QueryRequest.builder()
-                                                                   .dataSource(dataSource)
-                                                                   .interval(IntervalRequest.builder()
-                                                                                                          .startISO8601(start.toISO8601())
-                                                                                                          .endISO8601(end.toISO8601())
-                                                                                                          .build())
-                                                                   .filterExpression(filterExpression)
-                                                                   .fields(Collections.singletonList(metric))
-                                                                   .groupBy(groupBy)
-                                                                   .build());
+        QueryResponse response = dataSourceApi.groupByV3(QueryRequest.builder()
+                                                                     .dataSource(dataSource)
+                                                                     .interval(IntervalRequest.builder()
+                                                                                              .startISO8601(start.toISO8601())
+                                                                                              .endISO8601(end.toISO8601())
+                                                                                              .build())
+                                                                     .filterExpression(filterExpression)
+                                                                     .fields(Collections.singletonList(metric))
+                                                                     .groupBy(groupBy)
+                                                                     .build());
 
         //noinspection unchecked
         List<Map<String, Object>> now = (List<Map<String, Object>>) response.getData();
-        boolean matches = false;
+        boolean matches;
         Number nowValue = null;
         if (CollectionUtils.isEmpty(now) || !now.get(0).containsKey(metric.getName())) {
             matches = true;
         } else {
             nowValue = (Number) now.get(0).get(metric.getName());
+            matches = nowValue == null;
         }
 
         IDataType valueType = dataSourceApi.getSchemaByName(dataSource).getColumnByName(metric.getName()).getDataType();
-        return new AbsoluteComparisonEvaluationOutput(start,
-                                                      end,
-                                                      nowValue == null ? null : valueType.format(nowValue),
-                                                      "null",
-                                                      nowValue == null ? null : nowValue.toString(),
-                                                      matches);
+        return EvaluationOutputs.of(EvaluationOutput.builder()
+                                                    .matched(matches)
+                                                    .label(Label.EMPTY)
+                                                    .current(nowValue == null ? null : valueType.format(nowValue))
+                                                    .threshold("null")
+                                                    .delta(nowValue == null ? null : nowValue.toString())
+                                                    .build());
     }
 
     @Override

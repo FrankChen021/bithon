@@ -16,14 +16,18 @@
 
 package org.bithon.agent.plugin.apache.druid.interceptor;
 
+import org.apache.druid.query.Query;
 import org.apache.druid.server.QueryLifecycle;
 import org.bithon.agent.instrumentation.aop.context.AopContext;
 import org.bithon.agent.instrumentation.aop.interceptor.declaration.AfterInterceptor;
 import org.bithon.agent.observability.tracing.context.ITraceContext;
 import org.bithon.agent.observability.tracing.context.TraceContextHolder;
-import org.bithon.component.commons.tracing.Tags;
+
+import java.io.IOException;
 
 /**
+ * {@link org.apache.druid.server.QueryLifecycle#initialize(Query)}
+ *
  * @author frank.chen021@outlook.com
  * @date 4/1/22 6:38 PM
  */
@@ -32,13 +36,21 @@ public class QueryLifecycle$Initialize extends AfterInterceptor {
     @Override
     public void after(AopContext aopContext) {
         ITraceContext ctx = TraceContextHolder.current();
-        if (ctx != null) {
-            QueryLifecycle lifecycle = aopContext.getTargetAs();
-            if (!ctx.currentSpan().tags().containsKey("query")) {
-                ctx.currentSpan()
-                   .tag("query_id", lifecycle.getQuery().getId())
-                   .tag(Tags.Database.STATEMENT, lifecycle.getQuery().toString());
-            }
+        if (ctx == null) {
+            return;
+        }
+
+        // Defer initialization to runtime.
+        // This is because the DefaultObjectMapper is part of the druid library,
+        // initializing it in agent might change the loading order of the druid library.
+        QueryLifecycle lifecycle = aopContext.getTargetAs();
+        ctx.currentSpan()
+           .tag("druid.query_id", lifecycle.getQuery().getId());
+
+        try {
+            ctx.currentSpan().tag("druid.query", ObjectMapperInstance.toString(lifecycle.getQuery()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

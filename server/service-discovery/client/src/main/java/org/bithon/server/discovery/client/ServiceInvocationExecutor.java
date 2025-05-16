@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ServiceInvocationExecutor implements AutoCloseable, Executor {
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool(new NamedThreadFactory("service-invoker", true));
+    private final ExecutorService executorService = Executors.newCachedThreadPool(NamedThreadFactory.nonDaemonThreadFactory("service-invoker"));
 
     @Override
     public void close() throws Exception {
@@ -44,6 +44,9 @@ public class ServiceInvocationExecutor implements AutoCloseable, Executor {
             try {
                 return task.call();
             } catch (Exception e) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
                 throw new RuntimeException(e);
             }
         }, executorService);

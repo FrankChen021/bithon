@@ -20,13 +20,14 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
-import org.bithon.server.storage.datasource.ISchema;
 import org.bithon.server.storage.datasource.SchemaManager;
-import org.bithon.server.storage.datasource.query.IDataSourceReader;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
-import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -39,8 +40,10 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -55,6 +58,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected final MetricStorageConfig storageConfig;
     protected final SchemaManager schemaManager;
     protected final ISqlDialect sqlDialect;
+    private final Map<String, Boolean> schemaInitialized = new HashMap<>();
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
@@ -77,15 +81,37 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public final IMetricWriter createMetricWriter(ISchema schema) {
         MetricTable table = toMetricTable(schema);
-        if (schema.getDataStoreSpec().isInternal()) {
-            initialize(schema, table);
-        }
+
+        initializeMetricTableIfNecessary(schema, table);
+
         return createWriter(dslContext, table);
     }
 
     @Override
     public final IDataSourceReader createMetricReader(ISchema schema) {
+        initializeMetricTableIfNecessary(schema, toMetricTable(schema));
+
         return this.createReader(this.dslContext, sqlDialect);
+    }
+
+    private void initializeMetricTableIfNecessary(ISchema schema, MetricTable table) {
+        if (!schema.getDataStoreSpec().isInternal()) {
+            return;
+        }
+
+        boolean initialized = schemaInitialized.getOrDefault(schema.getName(), false);
+        if (initialized) {
+            return;
+        }
+
+        synchronized (schemaInitialized) {
+            initialized = schemaInitialized.getOrDefault(schema.getName(), false);
+            if (initialized) {
+                return;
+            }
+            this.initialize(schema, table);
+            schemaInitialized.put(schema.getName(), true);
+        }
     }
 
     @Override
@@ -112,6 +138,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                                        }
                                    })
                                    .filter(Objects::nonNull)
+                                   .sorted()
                                    .collect(Collectors.toList());
     }
 
@@ -138,7 +165,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     }
 
     protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new MetricJdbcReader(dslContext, sqlDialect);
+        return new JdbcDataSourceReader(dslContext, sqlDialect);
     }
 
     protected void initialize(ISchema dataSource, MetricTable table) {

@@ -34,9 +34,9 @@ import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.datasource.input.IInputRow;
 import org.bithon.server.pipeline.common.FixedSizeBuffer;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 

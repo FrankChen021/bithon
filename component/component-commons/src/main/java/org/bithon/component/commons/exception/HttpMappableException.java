@@ -52,9 +52,14 @@ public class HttpMappableException extends RuntimeException {
         this.causeExceptionClass = causeExceptionClass;
     }
 
-
     public HttpMappableException(Throwable cause, int statusCode, String messageFormat, Object... args) {
         super(StringUtils.format(messageFormat, args), cause);
+        this.statusCode = statusCode;
+        this.causeExceptionClass = cause.getClass().getName();
+    }
+
+    public HttpMappableException(Throwable cause, int statusCode, String message) {
+        super(message, cause);
         this.statusCode = statusCode;
         this.causeExceptionClass = cause.getClass().getName();
     }

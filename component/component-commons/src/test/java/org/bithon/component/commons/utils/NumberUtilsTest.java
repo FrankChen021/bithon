@@ -17,8 +17,8 @@
 
 package org.bithon.component.commons.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,14 +28,14 @@ public class NumberUtilsTest {
 
     @Test
     public void testHexString() {
-        Assert.assertEquals("ff", NumberUtils.toHexString(new byte[]{-1}));
+        Assertions.assertEquals("ff", NumberUtils.toHexString(new byte[]{-1}));
 
-        Assert.assertEquals("00", NumberUtils.toHexString(new byte[]{0}));
+        Assertions.assertEquals("00", NumberUtils.toHexString(new byte[]{0}));
 
-        Assert.assertEquals("01", NumberUtils.toHexString(new byte[]{1}));
+        Assertions.assertEquals("01", NumberUtils.toHexString(new byte[]{1}));
 
-        Assert.assertEquals("1f", NumberUtils.toHexString(new byte[]{0x1F}));
+        Assertions.assertEquals("1f", NumberUtils.toHexString(new byte[]{0x1F}));
 
-        Assert.assertEquals("1b", NumberUtils.toHexString(new byte[]{0x1b}));
+        Assertions.assertEquals("1b", NumberUtils.toHexString(new byte[]{0x1b}));
     }
 }

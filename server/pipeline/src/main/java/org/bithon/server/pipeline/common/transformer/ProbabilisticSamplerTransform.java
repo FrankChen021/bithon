@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.component.commons.utils.NumberUtils;
-import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.datasource.input.IInputRow;
 
 import java.util.concurrent.atomic.AtomicLong;
 

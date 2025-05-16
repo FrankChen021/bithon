@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 
 import javax.annotation.Nullable;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@IntervalRequestValidator
 public class IntervalRequest {
     @NotBlank
     private String startISO8601;
@@ -57,8 +59,15 @@ public class IntervalRequest {
     private Integer bucketCount;
 
     /**
-     * In second
+     * The step (in seconds) between two adjacent data points.
+     * The {@param bucketCount} and this parameter cannot be specified at the same time.
+     * And this parameter has higher priority than {@param bucketCount}
+     */
+    private Integer step;
+
+    /**
+     * Can be null. If null, the step is the same as the window
      */
     @Nullable
-    private Integer minBucketLength;
+    private HumanReadableDuration window;
 }

@@ -16,7 +16,7 @@
 
 package org.bithon.server.discovery.client;
 
-import lombok.AllArgsConstructor;
+import jakarta.annotation.Nullable;
 import lombok.Data;
 
 /**
@@ -24,11 +24,24 @@ import lombok.Data;
  * @date 18/5/24 8:28 pm
  */
 @Data
-@AllArgsConstructor
 public
 class DiscoveredServiceInstance {
     private String host;
     private int port;
+
+    @Nullable
+    private String contextPath;
+
+    public DiscoveredServiceInstance(String host, int port, @Nullable String contextPath) {
+        this.host = host;
+        this.port = port;
+        this.contextPath = contextPath;
+    }
+
+    public String getURL() {
+        String normalizedContextPath = (contextPath != null && !contextPath.startsWith("/")) ? "/" + contextPath : contextPath;
+        return normalizedContextPath == null ? "http://" + host + ":" + port : "http://" + host + ":" + port + normalizedContextPath;
+    }
 
     @Override
     public String toString() {

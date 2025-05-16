@@ -19,9 +19,9 @@ package org.bithon.server.pipeline.common.transformer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.storage.datasource.input.InputRow;
-import org.junit.Assert;
-import org.junit.Test;
+import org.bithon.server.datasource.input.InputRow;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
@@ -45,14 +45,14 @@ public class SplitTransformerTest {
 
         InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("o1", "default.user")));
         newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("database"));
-        Assert.assertEquals("user", row1.getCol("table"));
+        Assertions.assertEquals("default", row1.getCol("database"));
+        Assertions.assertEquals("user", row1.getCol("table"));
 
         // field does not match
         InputRow row2 = new InputRow(new HashMap<>(ImmutableMap.of("o2", "default.user")));
         newTransformer.transform(row2);
-        Assert.assertNull(row2.getCol("database"));
-        Assert.assertNull(row2.getCol("table"));
+        Assertions.assertNull(row2.getCol("database"));
+        Assertions.assertNull(row2.getCol("table"));
     }
 
     @Test
@@ -62,8 +62,8 @@ public class SplitTransformerTest {
         InputRow row1 = new InputRow(new HashMap<>());
         row1.updateColumn("tags", ImmutableMap.of("iterator", "1/5"));
         transformer.transform(row1);
-        Assert.assertEquals("1", row1.getCol("current"));
-        Assert.assertEquals("5", row1.getCol("max"));
+        Assertions.assertEquals("1", row1.getCol("current"));
+        Assertions.assertEquals("5", row1.getCol("max"));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class SplitTransformerTest {
         InputRow row1 = new InputRow(new HashMap<>());
         row1.updateColumn("tags", ImmutableMap.of("db.table", "1/5"));
         transformer.transform(row1);
-        Assert.assertEquals("1", row1.getCol("current"));
-        Assert.assertEquals("5", row1.getCol("max"));
+        Assertions.assertEquals("1", row1.getCol("current"));
+        Assertions.assertEquals("5", row1.getCol("max"));
     }
 }

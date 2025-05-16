@@ -16,16 +16,16 @@
 
 package org.bithon.server.storage.jdbc.event;
 
+import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
+import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.storage.event.IEventReader;
-import org.bithon.server.storage.jdbc.common.dialect.ISqlDialect;
-import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.jooq.DSLContext;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/11/29 21:08
  */
-public class EventJdbcReader extends MetricJdbcReader implements IEventReader {
+public class EventJdbcReader extends JdbcDataSourceReader implements IEventReader {
 
     EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
         super(dslContext, sqlDialect);

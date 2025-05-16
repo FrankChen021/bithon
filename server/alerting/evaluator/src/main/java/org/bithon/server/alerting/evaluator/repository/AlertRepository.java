@@ -23,7 +23,8 @@ import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
-import org.bithon.server.storage.alerting.pojo.AlertStateObject;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.bithon.server.storage.alerting.pojo.AlertState;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -46,16 +47,27 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AlertRepository {
 
     private final IAlertObjectStorage alertObjectStorage;
+    private final IAlertStateStorage alertStateStorage;
     private final Map<String, AlertRule> loadedAlerts = new ConcurrentHashMap<>();
     private final List<IAlertChangeListener> changeListeners = Collections.synchronizedList(new ArrayList<>());
     private Timestamp lastLoadedAt = new Timestamp(0);
 
-    public AlertRepository(IAlertObjectStorage alertObjectStorage) {
+    public AlertRepository(IAlertObjectStorage alertObjectStorage,
+                           IAlertStateStorage alertStateStorage) {
         this.alertObjectStorage = alertObjectStorage;
+        this.alertStateStorage = alertStateStorage;
     }
 
     public Map<String, AlertRule> getLoadedAlerts() {
         return this.loadedAlerts;
+    }
+
+    public Map<String, AlertState> getAlertStates() {
+        return this.alertStateStorage.getAlertStates();
+    }
+
+    public void setAlertState(String alertId, AlertState state) {
+        this.alertStateStorage.updateAlertStates(Map.of(alertId, state));
     }
 
     public void loadChanges() {
@@ -64,7 +76,7 @@ public class AlertRepository {
 
         log.info("Loading Alerts from [{}, {}]", lastTimestamp, now);
 
-        List<AlertStorageObject> alertObjects = alertObjectStorage.getAlertListByTime(lastTimestamp, now);
+        List<AlertStorageObject> alertObjects = alertObjectStorage.getRuleListByTime(lastTimestamp, now);
 
         alertObjects.forEach((alertObject) -> {
             if (alertObject.isDeleted()) {
@@ -78,7 +90,7 @@ public class AlertRepository {
                 if (newRule != null) {
                     AlertRule oldRule = this.loadedAlerts.put(newRule.getId(), newRule);
                     if (oldRule == null) {
-                        this.onCreated(newRule);
+                        this.onLoaded(newRule);
                     } else {
                         this.onUpdated(oldRule, newRule);
                     }
@@ -87,10 +99,6 @@ public class AlertRepository {
         });
 
         this.lastLoadedAt = now;
-    }
-
-    public Map<String, AlertStateObject> loadStatus() {
-        return alertObjectStorage.getAlertStates();
     }
 
     private AlertRule toAlert(AlertStorageObject alertObject) {
@@ -108,11 +116,11 @@ public class AlertRepository {
         this.changeListeners.add(listener);
     }
 
-    private void onCreated(AlertRule alertRule) {
+    private void onLoaded(AlertRule alertRule) {
         IAlertChangeListener[] listeners = this.changeListeners.toArray(new IAlertChangeListener[0]);
         for (IAlertChangeListener listener : listeners) {
             try {
-                listener.onCreated(alertRule);
+                listener.onLoaded(alertRule);
             } catch (Exception e) {
                 log.info("Exception when notify onCreated", e);
             }

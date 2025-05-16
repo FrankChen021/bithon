@@ -14,7 +14,7 @@
 --    limitations under the License.
 --
 
-DROP DATABASE bithon_codegen;
+DROP DATABASE IF EXISTS bithon_codegen;
 CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 
@@ -58,13 +58,13 @@ CREATE TABLE `bithon_meta_schema`
 DROP TABLE IF EXISTS `bithon_agent_setting`;
 CREATE TABLE `bithon_agent_setting`
 (
-    `timestamp`   TIMESTAMP    NOT NULL COMMENT 'Created Timestamp',
+    `timestamp`   TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
     `appName`     varchar(128) NOT NULL COMMENT '',
     `environment` varchar(128) NOT NULL COMMENT '',
     `settingName` varchar(64)  NOT NULL COMMENT '',
     `setting`      TEXT COMMENT 'Setting text',
     `format`      varchar(16)  NOT NULL COMMENT 'Format of the Setting, can be either "json" or "yaml"',
-    `updatedAt`   datetime     NOT NULL COMMENT '',
+    `updatedAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     UNIQUE KEY `key_appName` (`appName`, `settingName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -72,7 +72,7 @@ CREATE TABLE `bithon_agent_setting`
 DROP TABLE IF EXISTS `bithon_trace_span`;
 CREATE TABLE `bithon_trace_span`
 (
-    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
     `appName`      VARCHAR(64)             NOT NULL COMMENT '',
     `instanceName` VARCHAR(64)             NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
@@ -86,7 +86,7 @@ CREATE TABLE `bithon_trace_span`
     `startTimeUs`   BIGINT                 NOT NULL COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL COMMENT 'Micro Second',
     `tags`          TEXT COMMENT 'Kept for compatibility',
-    `attributes`          TEXT COMMENT '',
+    `attributes`    TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) NOT NULL COMMENT '',
     `status`        VARCHAR(32)  NOT NULL COMMENT '',
     KEY `idx_ts_1_traceId` (`traceId`), -- NOTE: jOOQ generates indexes in the alphabetic order not the declaration order
@@ -101,7 +101,7 @@ CREATE TABLE `bithon_trace_span`
 DROP TABLE IF EXISTS `bithon_trace_span_summary`;
 CREATE TABLE `bithon_trace_span_summary`
 (
-    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)              NOT NULL COMMENT 'Milli Seconds',
     `appName`       VARCHAR(64)            NOT NULL COMMENT '',
     `instanceName`  VARCHAR(64)            NOT NULL COMMENT '',
     `name`          VARCHAR(64)            NOT NULL COMMENT '',
@@ -129,7 +129,7 @@ CREATE TABLE `bithon_trace_span_summary`
 DROP TABLE IF EXISTS `bithon_trace_span_tag_index`;
 CREATE TABLE `bithon_trace_span_tag_index`
 (
-    `timestamp`      TIMESTAMP   NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`      TIMESTAMP(3)   NOT NULL COMMENT 'Milli Seconds',
     `f1`             VARCHAR(64) DEFAULT '' COMMENT 'tag value1',
     `f2`             VARCHAR(64) DEFAULT '' COMMENT 'tag value2',
     `f3`             VARCHAR(64) DEFAULT '' COMMENT 'tag value3',
@@ -154,7 +154,7 @@ CREATE TABLE `bithon_trace_span_tag_index`
 DROP TABLE IF EXISTS `bithon_trace_mapping`;
 CREATE TABLE `bithon_trace_mapping`
 (
-    `timestamp`     TIMESTAMP             NOT NULL COMMENT 'Milli Seconds',
+    `timestamp`     TIMESTAMP(3)             NOT NULL COMMENT 'Milli Seconds',
     `user_tx_id`    VARCHAR(64)           NOT NULL COMMENT 'user side transaction id',
     `trace_id`      VARCHAR(64)           NOT NULL COMMENT 'trace id in bithon',
     KEY `idx_trace_mapping_user_tx_id` (`user_tx_id`)
@@ -181,7 +181,7 @@ CREATE TABLE `bithon_web_dashboard`
 (
     `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
     `name`         VARCHAR(64)  NOT NULL COMMENT 'Name',
-    `payload`      TEXT NOT NULL COMMENT 'Schema in JSON',
+    `payload`      MEDIUMTEXT NOT NULL COMMENT 'Schema in JSON',
     `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of payload field, currently SHA256 is applied',
     `deleted`   INT NOT NULL COMMENT '',
     UNIQUE `idx_web_dashboard_name` (`name`),

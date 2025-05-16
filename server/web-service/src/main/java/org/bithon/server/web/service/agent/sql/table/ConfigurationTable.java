@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql.table;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IConfigurationCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class ConfigurationTable extends AbstractBaseTable implements IPushdownPr
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(), IConfigurationCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(), IConfigurationCommand.class)
                            .getConfiguration("YAML", true)
                            .stream()
                            .map((cfg) -> new Object[]{cfg})
@@ -57,6 +57,7 @@ public class ConfigurationTable extends AbstractBaseTable implements IPushdownPr
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

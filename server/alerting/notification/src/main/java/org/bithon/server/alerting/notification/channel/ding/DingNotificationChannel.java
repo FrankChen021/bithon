@@ -24,18 +24,19 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.evaluator.result.EvaluationResult;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
+import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.alerting.notification.channel.INotificationChannel;
-import org.bithon.server.alerting.notification.message.ExpressionEvaluationResult;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
-import org.bithon.server.alerting.notification.message.OutputMessage;
 import org.bithon.server.alerting.notification.message.format.NotificationContent;
 import org.bithon.server.alerting.notification.message.format.NotificationTextSection;
 import org.bithon.server.alerting.notification.message.format.QuotedTextLine;
 import org.bithon.server.alerting.notification.message.format.TextLine;
+
+import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -75,9 +76,9 @@ public class DingNotificationChannel implements INotificationChannel {
         }
         section.add("Alert at", StringUtils.format("MM-dd HH:mm:ss", alertAt));
 
-        for (AlertExpression expression : message.getExpressions()) {
-            ExpressionEvaluationResult result = message.getConditionEvaluation().get(expression.getId());
-            if (result == null || result.getResult() != EvaluationResult.MATCHED || result.getOutputs() != null) {
+        for (AlertExpression expression : message.getExpressions().values()) {
+            EvaluationOutputs outputs = message.getEvaluationOutputs().get(expression.getId());
+            if (outputs == null || !outputs.isMatched()) {
                 continue;
             }
 
@@ -85,13 +86,14 @@ public class DingNotificationChannel implements INotificationChannel {
             text.append(expression.getId());
             text.append(expression.serializeToText());
 
-            OutputMessage output = result.getOutputs();
-            text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
-                                           expression.getMetricExpression().getMetric().getAggregator(),
-                                           expression.getMetricExpression().getFrom(),
-                                           expression.getMetricExpression().getMetric().getName(),
-                                           output.getCurrent(),
-                                           output.getDelta()));
+            for (EvaluationOutput output : outputs) {
+                text.append(StringUtils.format("%s(%s.%s), Now [%s], Incremental [%s]\n",
+                                               expression.getMetricExpression().getMetric().getAggregator(),
+                                               expression.getMetricExpression().getFrom(),
+                                               expression.getMetricExpression().getMetric().getName(),
+                                               output.getCurrent(),
+                                               output.getDelta()));
+            }
 
             section.add(new QuotedTextLine(text.toString()));
             /*
@@ -123,6 +125,11 @@ public class DingNotificationChannel implements INotificationChannel {
                    .header(title)
                    .title(title)
                    .build();
+    }
+
+    @Override
+    public void test(NotificationMessage message, Duration timeout) throws Exception {
+        send(message);
     }
 
     @Override

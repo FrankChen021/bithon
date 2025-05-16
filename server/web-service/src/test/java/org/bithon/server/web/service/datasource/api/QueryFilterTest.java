@@ -21,13 +21,13 @@ import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
 import org.bithon.component.commons.expression.validation.ExpressionValidationException;
-import org.bithon.server.storage.datasource.DefaultSchema;
-import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.column.LongColumn;
-import org.bithon.server.storage.datasource.column.StringColumn;
+import org.bithon.server.datasource.DefaultSchema;
+import org.bithon.server.datasource.TimestampSpec;
+import org.bithon.server.datasource.column.LongColumn;
+import org.bithon.server.datasource.column.StringColumn;
 import org.bithon.server.web.service.datasource.api.impl.QueryFilter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,23 +50,23 @@ public class QueryFilterTest {
     @Test
     public void testValidatedFilterExpression() {
         // Unary literal is not a valid expression
-        Assert.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "123"));
-        Assert.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "'123'"));
-        Assert.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "123.123"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "123"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "'123'"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "123.123"));
 
-        Assert.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "a"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "a"));
 
-        Assert.assertThrows(ExpressionValidationException.class, () -> QueryFilter.build(schema, "a in ('5', 6)"));
+        Assertions.assertThrows(ExpressionValidationException.class, () -> QueryFilter.build(schema, "a in ('5', 6)"));
         QueryFilter.build(schema, "a in ('5', '6')");
 
         // Unary function expression is not a valid filter
-        Assert.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "trim(a)"));
+        Assertions.assertThrows(InvalidExpressionException.class, () -> QueryFilter.build(schema, "trim(a)"));
 
-        Assert.assertTrue(QueryFilter.build(schema, "a > 'a'") instanceof ComparisonExpression);
-        Assert.assertTrue(QueryFilter.build(schema, "a > 'a' AND a < 'a'") instanceof LogicalExpression);
+        Assertions.assertInstanceOf(ComparisonExpression.class, QueryFilter.build(schema, "a > 'a'"));
+        Assertions.assertInstanceOf(LogicalExpression.class, QueryFilter.build(schema, "a > 'a' AND a < 'a'"));
 
-        Assert.assertTrue(QueryFilter.build(schema, "startsWith(a, 'a')") instanceof FunctionExpression);
-        Assert.assertTrue(QueryFilter.build(schema, "endsWith(a, 'a')") instanceof FunctionExpression);
-        Assert.assertTrue(QueryFilter.build(schema, "hasToken(a, 'a')") instanceof FunctionExpression);
+        Assertions.assertInstanceOf(FunctionExpression.class, QueryFilter.build(schema, "startsWith(a, 'a')"));
+        Assertions.assertInstanceOf(FunctionExpression.class, QueryFilter.build(schema, "endsWith(a, 'a')"));
+        Assertions.assertInstanceOf(FunctionExpression.class, QueryFilter.build(schema, "hasToken(a, 'a')"));
     }
 }

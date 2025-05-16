@@ -19,7 +19,7 @@ package org.bithon.server.web.service.agent.sql.table;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IInstrumentationCommand;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -38,8 +38,8 @@ public class InstrumentedMethodTable extends AbstractBaseTable implements IPushd
 
     @Override
     public List<Object[]> getData(SqlExecutionContext executionContext) {
-        return proxyFactory.create(executionContext.getParameters(),
-                                   IInstrumentationCommand.class)
+        return proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                 IInstrumentationCommand.class)
                            .getInstrumentedMethods()
                            .stream()
                            .map(IInstrumentationCommand.InstrumentedMethod::toObjects)
@@ -53,6 +53,7 @@ public class InstrumentedMethodTable extends AbstractBaseTable implements IPushd
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true);
     }
 }

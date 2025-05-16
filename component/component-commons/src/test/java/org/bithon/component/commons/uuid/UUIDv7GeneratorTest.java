@@ -16,8 +16,9 @@
 
 package org.bithon.component.commons.uuid;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,9 +33,9 @@ public class UUIDv7GeneratorTest {
             String compact = uuid.toCompactFormat();
             String full = uuid.toUUIDFormat();
 
-            Assert.assertEquals(32, compact.length());
-            Assert.assertEquals(36, full.length());
-            Assert.assertEquals(compact, full.replace("-", ""));
+            Assertions.assertEquals(32, compact.length());
+            Assertions.assertEquals(36, full.length());
+            Assertions.assertEquals(compact, full.replace("-", ""));
         }
     }
 }

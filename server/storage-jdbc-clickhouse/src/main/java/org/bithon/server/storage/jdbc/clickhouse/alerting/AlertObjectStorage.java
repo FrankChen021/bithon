@@ -23,13 +23,13 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.pojo.AlertStorageObject;
 import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseConfig;
 import org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.clickhouse.common.TableCreator;
-import org.bithon.server.storage.jdbc.common.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
 import org.jooq.Select;
 
@@ -61,11 +61,7 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public void initialize() {
-        if (!this.storageConfig.isCreateTable()) {
-            return;
-        }
-
+    protected void createTableIfNotExists() {
         new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.getName())
                                                       .partitionByExpression(null)
                                                       .createIfNotExist(Tables.BITHON_ALERT_OBJECT);
@@ -73,14 +69,10 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
         new TableCreator(this.config, this.dslContext).partitionByExpression(StringUtils.format("toYYYYMMDD(%s)",
                                                                                                 Tables.BITHON_ALERT_CHANGE_LOG.CREATED_AT.getName()))
                                                       .createIfNotExist(Tables.BITHON_ALERT_CHANGE_LOG);
-
-        new TableCreator(this.config, this.dslContext).useReplacingMergeTree(Tables.BITHON_ALERT_STATE.UPDATE_AT.getName())
-                                                      .partitionByExpression(null)
-                                                      .createIfNotExist(Tables.BITHON_ALERT_STATE);
     }
 
     @Override
-    public boolean updateAlert(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
+    public boolean updateRule(AlertStorageObject oldObject, AlertStorageObject newObject, String operator) {
         try {
             return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
                              .set(Tables.BITHON_ALERT_OBJECT.ALERT_NAME, newObject.getName())
@@ -99,8 +91,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public boolean disableAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+    public boolean disableRule(String alertId, String operator) {
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
@@ -123,8 +115,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public boolean enableAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+    public boolean enableRule(String alertId, String operator) {
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)
@@ -146,8 +138,8 @@ public class AlertObjectStorage extends AlertObjectJdbcStorage {
     }
 
     @Override
-    public boolean deleteAlert(String alertId, String operator) {
-        AlertStorageObject object = this.getAlertById(alertId);
+    public boolean deleteRule(String alertId, String operator) {
+        AlertStorageObject object = this.getRuleById(alertId);
         if (object != null) {
             try {
                 return dslContext.insertInto(Tables.BITHON_ALERT_OBJECT)

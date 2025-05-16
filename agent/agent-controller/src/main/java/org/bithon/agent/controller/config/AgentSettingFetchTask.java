@@ -25,7 +25,7 @@ import org.bithon.agent.controller.IAgentController;
 import org.bithon.component.commons.concurrency.PeriodicTask;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.security.HashGenerator;
+import org.bithon.component.commons.utils.HashUtils;
 import org.bithon.component.commons.utils.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -97,7 +97,7 @@ public class AgentSettingFetchTask extends PeriodicTask {
             String text = entry.getValue();
 
             // Generate signature for further comparison
-            String signature = HashGenerator.sha256Hex(text);
+            String signature = HashUtils.sha256Hex(text);
 
             PropertySource existingPropertySource = existingSources.get(name);
             if (existingPropertySource == null

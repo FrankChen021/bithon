@@ -16,6 +16,7 @@
 
 package org.bithon.agent.configuration;
 
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonGenerator;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonParser;
@@ -39,7 +40,9 @@ public class ObjectMapperConfigurer {
 
     static {
         MODULE.addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer())
-              .addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer());
+              .addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer())
+              .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer())
+              .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer());
     }
 
     public static ObjectMapper configure(ObjectMapper objectMapper) {
@@ -53,12 +56,46 @@ public class ObjectMapperConfigurer {
         public void serialize(HumanReadablePercentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
             gen.writeString(value.toString());
         }
+
+        @Override
+        public Class<HumanReadablePercentage> handledType() {
+            return HumanReadablePercentage.class;
+        }
     }
 
     static class HumanReadablePercentageDeserializer extends JsonDeserializer<HumanReadablePercentage> {
         @Override
         public HumanReadablePercentage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-            return HumanReadablePercentage.parse(p.getText());
+            return HumanReadablePercentage.of(p.getText());
+        }
+
+        @Override
+        public Class<HumanReadablePercentage> handledType() {
+            return HumanReadablePercentage.class;
+        }
+    }
+
+    static class HumanReadableDurationSerializer extends JsonSerializer<HumanReadableDuration> {
+        @Override
+        public void serialize(HumanReadableDuration value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(value.toString());
+        }
+
+        @Override
+        public Class<HumanReadableDuration> handledType() {
+            return HumanReadableDuration.class;
+        }
+    }
+
+    static class HumanReadableDurationDeserializer extends JsonDeserializer<HumanReadableDuration> {
+        @Override
+        public HumanReadableDuration deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+            return HumanReadableDuration.parse(p.getText());
+        }
+
+        @Override
+        public Class<HumanReadableDuration> handledType() {
+            return HumanReadableDuration.class;
         }
     }
 }

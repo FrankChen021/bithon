@@ -16,100 +16,37 @@
 
 package org.bithon.agent.observability.metric.domain.sql;
 
-import org.bithon.agent.observability.metric.model.IMetricSet;
-import org.bithon.agent.observability.metric.model.IMetricValueProvider;
-import org.bithon.agent.observability.metric.model.Max;
-import org.bithon.agent.observability.metric.model.Min;
-import org.bithon.agent.observability.metric.model.Sum;
+import org.bithon.agent.observability.metric.model.annotation.Max;
+import org.bithon.agent.observability.metric.model.annotation.Min;
+import org.bithon.agent.observability.metric.model.annotation.Sum;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/4 11:18 下午
+ * @date 2025/2/5 20:19
  */
-public class SQLMetrics implements IMetricSet {
-    private final Min minResponseTime = new Min();
-    private final Sum responseTime = new Sum();
-    private final Max maxResponseTime = new Max();
-    private final Sum callCount = new Sum();
-    private final Sum errorCount = new Sum();
-    private final Sum queryCount = new Sum();
-    private final Sum updateCount = new Sum();
-    private final Sum bytesIn = new Sum();
-    private final Sum bytesOut = new Sum();
+public class SQLMetrics {
 
-    private final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
-        minResponseTime,
-        responseTime,
-        maxResponseTime,
-        callCount,
-        errorCount,
-        queryCount,
-        updateCount,
-        bytesIn,
-        bytesOut
-    };
+    @Min
+    public long minResponseTime;
 
-    public void update(Boolean isQuery, boolean failed, long responseTime) {
-        this.responseTime.update(responseTime);
-        this.minResponseTime.update(responseTime);
-        this.maxResponseTime.update(responseTime);
-        if (isQuery != null) {
-            if (isQuery) {
-                this.queryCount.incr();
-            } else {
-                this.updateCount.incr();
-            }
-        }
+    /**
+     * nano seconds
+     */
+    @Sum
+    public long responseTime;
 
-        if (failed) {
-            this.errorCount.incr();
-        }
+    @Max
+    public long maxResponseTime;
 
-        this.callCount.incr();
-    }
+    @Sum
+    public long callCount;
 
-    public long peekTotalCount() {
-        return callCount.peek();
-    }
+    @Sum
+    public long errorCount;
 
-    public void updateBytesIn(int bytesIn) {
-        this.bytesIn.update(bytesIn);
-    }
+    @Sum
+    public long bytesIn;
 
-    public void updateBytesOut(int bytesOut) {
-        this.bytesOut.update(bytesOut);
-    }
-
-    public Sum getResponseTime() {
-        return responseTime;
-    }
-
-    public Sum getCallCount() {
-        return callCount;
-    }
-
-    public Sum getErrorCount() {
-        return errorCount;
-    }
-
-    public Sum getQueryCount() {
-        return queryCount;
-    }
-
-    public Sum getUpdateCount() {
-        return updateCount;
-    }
-
-    public Sum getBytesIn() {
-        return bytesIn;
-    }
-
-    public Sum getBytesOut() {
-        return bytesOut;
-    }
-
-    @Override
-    public IMetricValueProvider[] getMetrics() {
-        return metrics;
-    }
+    @Sum
+    public long bytesOut;
 }

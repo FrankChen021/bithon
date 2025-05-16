@@ -20,15 +20,31 @@ import com.sun.management.HotSpotDiagnosticMXBean;
 import org.bithon.agent.instrumentation.aop.InstrumentationHelper;
 import org.bithon.agent.rpc.brpc.cmd.ClassDisassembler;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.management.Descriptor;
+import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -115,6 +131,152 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
                             .map((clazz) -> new ClassDisassembler(clazz).disassemble())
                             .orElse("Class not found");
         return Collections.singletonList(code);
+    }
+
+    @Override
+    public List<JmxBean> getBeans() {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        return mbs.queryNames(null, null)
+                  .stream()
+                  .map((objectName -> {
+                      JmxBean bean = new JmxBean();
+                      bean.domain = objectName.getDomain();
+                      bean.name = objectName.getCanonicalName();
+
+                      try {
+                          MBeanInfo beanInfo = mbs.getMBeanInfo(objectName);
+                          bean.className = beanInfo.getClassName();
+                          bean.description = beanInfo.getDescription();
+                          bean.descriptor = toDescriptor(beanInfo.getDescriptor());
+
+                      } catch (InstanceNotFoundException | IntrospectionException | ReflectionException ignored) {
+                      }
+
+                      return bean;
+                  }))
+                  .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<JmxBeanAttribute> getBeanAttributes(String beanName) {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+        try {
+            // Find bean first
+            ObjectName objectName = new ObjectName(beanName);
+            MBeanInfo bean = mbs.getMBeanInfo(objectName);
+
+            // Fill attribute
+            return Stream.of(bean.getAttributes())
+                         .map((attr) -> {
+                             JmxBeanAttribute jmxBeanAttribute = new JmxBeanAttribute();
+                             jmxBeanAttribute.name = attr.getName();
+                             jmxBeanAttribute.type = attr.getType();
+                             jmxBeanAttribute.description = attr.getDescription();
+                             jmxBeanAttribute.writable = attr.isWritable();
+                             jmxBeanAttribute.readable = attr.isReadable();
+                             jmxBeanAttribute.descriptor = toDescriptor(attr.getDescriptor());
+
+
+                             if (attr.isReadable()) {
+                                 AttributeValue value = getAttributeValue(mbs, objectName, attr.getName());
+
+                                 jmxBeanAttribute.value = value.jsonValue;
+                                 if (value.compositeType != null) {
+                                     jmxBeanAttribute.type = value.compositeType;
+                                 }
+                             } else {
+                                 jmxBeanAttribute.value = "[Unreadable]";
+                             }
+
+                             return jmxBeanAttribute;
+                         })
+                         .sorted(Comparator.comparing(a -> a.name))
+                         .collect(Collectors.toList());
+
+        } catch (MalformedObjectNameException e) {
+            throw new IllegalArgumentException("Malformed object beanName: " + beanName);
+        } catch (ReflectionException | IntrospectionException | InstanceNotFoundException e) {
+            throw new RuntimeException("Unable to get MBeanInfo for " + beanName, e);
+        }
+    }
+
+    @Override
+    public String getBeanAttribute(String beanName, String attributeName) {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+        try {
+            // Find bean first
+            ObjectName objectName = new ObjectName(beanName);
+
+            // Find attribute
+            return getAttributeValue(mbs, objectName, attributeName).jsonValue;
+        } catch (MalformedObjectNameException e) {
+            throw new IllegalArgumentException("Malformed object beanName: " + beanName);
+        }
+    }
+
+    static class AttributeValue {
+        String compositeType;
+        String jsonValue;
+
+        public AttributeValue(String compositeType, String jsonValue) {
+            this.compositeType = compositeType;
+            this.jsonValue = jsonValue;
+        }
+    }
+
+    private AttributeValue getAttributeValue(MBeanServer mbs, ObjectName objectName, String attributeName) {
+        String type = null;
+        try {
+            Object value = mbs.getAttribute(objectName, attributeName);
+
+            if (value instanceof CompositeData) {
+                type = ((CompositeData) value).getCompositeType().getTypeName();
+                value = convertCompositeData(((CompositeData) value));
+            } else if (value instanceof TabularData) {
+                type = ((TabularData) value).getTabularType().getTypeName();
+                value = convertTabularData(((TabularData) value));
+                if (value instanceof List) {
+                    type = type + "[]";
+                }
+            }
+
+            return new AttributeValue(type, value == null ? null : new ObjectMapper().writeValueAsString(value));
+        } catch (Exception e) {
+            return new AttributeValue(null, "[Unreadable]");
+        }
+    }
+
+    private Map<String, Object> convertCompositeData(CompositeData data) {
+        Map<String, Object> map = new TreeMap<>();
+        {
+            Set<String> keys = data.getCompositeType().keySet();
+            for (String key : keys) {
+                map.put(key, data.get(key));
+            }
+        }
+        return map;
+    }
+
+    private Object convertTabularData(TabularData data) {
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (Object value : data.values()) {
+            list.add(convertCompositeData((CompositeData) value));
+        }
+        return data.getTabularType().isArray() ? list : list.get(0);
+    }
+
+    private Map<String, String> toDescriptor(Descriptor descriptor) {
+        if (descriptor != null) {
+            Map<String, String> map = new TreeMap<>();
+            for (String field : descriptor.getFieldNames()) {
+                map.put(field, descriptor.getFieldValue(field).toString());
+            }
+            return map;
+        }
+        return Collections.emptyMap();
     }
 
     private static ThreadInfo toThreadInfo(ThreadMXBean threadMxBean,

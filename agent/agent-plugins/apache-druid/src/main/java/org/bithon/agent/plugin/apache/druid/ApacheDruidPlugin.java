@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.apache.druid;
 
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
+import org.bithon.shaded.net.bytebuddy.description.modifier.Visibility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,14 +34,22 @@ public class ApacheDruidPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
-            forClass("org.apache.druid.sql.SqlLifecycle")
-                .onMethod("initialize")
-                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlLifecycle$Initialize")
+            forClass("org.apache.druid.sql.http.SqlResource")
+                .onMethod("doPost")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.SqlResource$DoPost")
                 .build(),
 
             forClass("org.apache.druid.server.QueryLifecycle")
                 .onMethod("initialize")
                 .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.QueryLifecycle$Initialize")
+                .build(),
+
+            // Since Druid 24
+            forClass("org.apache.druid.rpc.ServiceClientImpl")
+                .onMethod("asyncRequest")
+                .andVisibility(Visibility.PUBLIC)
+                .andArgs(0, "org.apache.druid.rpc.RequestBuilder")
+                .interceptedBy("org.bithon.agent.plugin.apache.druid.interceptor.ServiceClientImpl$AsyncRequest")
                 .build()
         );
     }

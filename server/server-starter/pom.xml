@@ -89,6 +89,30 @@
       <groupId>org.bithon.server</groupId>
       <artifactId>server-storage-jdbc-mysql</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>server-storage-jdbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-clickhouse</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-h2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-mysql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-jdbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.server</groupId>
+      <artifactId>datasource-reader-vm</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.bithon.server</groupId>
@@ -143,6 +167,12 @@
     <dependency>
       <groupId>com.alibaba.cloud</groupId>
       <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

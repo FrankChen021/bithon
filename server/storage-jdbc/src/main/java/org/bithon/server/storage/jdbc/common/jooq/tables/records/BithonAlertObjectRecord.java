@@ -14,9 +14,9 @@ import org.jooq.impl.TableRecordImpl;
 
 
 /**
- * Alert
+ * Alert Rules
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRecord> implements Record10<String, String, String, String, Integer, Integer, String, LocalDateTime, LocalDateTime, String> {
 
     private static final long serialVersionUID = 1L;
@@ -36,14 +36,14 @@ public class BithonAlertObjectRecord extends TableRecordImpl<BithonAlertObjectRe
     }
 
     /**
-     * Setter for <code>bithon_alert_object.alert_name</code>.
+     * Setter for <code>bithon_alert_object.alert_name</code>. Rule name
      */
     public void setAlertName(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_alert_object.alert_name</code>.
+     * Getter for <code>bithon_alert_object.alert_name</code>. Rule name
      */
     public String getAlertName() {
         return (String) get(1);

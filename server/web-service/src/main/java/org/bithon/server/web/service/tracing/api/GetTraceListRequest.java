@@ -20,7 +20,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.bithon.server.storage.datasource.query.Order;
+import org.bithon.server.datasource.query.Order;
 
 /**
  * @author frank.chen021@outlook.com

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.discovery.declaration.controller.IAgentControllerApi;
-import org.bithon.server.web.service.common.sql.SqlExecutionContext;
+import org.bithon.server.web.service.common.calcite.SqlExecutionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -45,8 +45,8 @@ public class AssemblyTable extends AbstractBaseTable implements IPushdownPredica
 
     @Override
     protected List<Object[]> getData(SqlExecutionContext executionContext) {
-        IJvmCommand jvmCommand = proxyFactory.create(executionContext.getParameters(),
-                                                     IJvmCommand.class);
+        IJvmCommand jvmCommand = proxyFactory.createBroadcastProxy(executionContext.getParameters(),
+                                                                   IJvmCommand.class);
 
         String className = (String) executionContext.get("class");
         Preconditions.checkNotNull(className, "'class' filter is not given.");
@@ -59,7 +59,8 @@ public class AssemblyTable extends AbstractBaseTable implements IPushdownPredica
 
     @Override
     public Map<String, Boolean> getPredicates() {
-        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_INSTANCE, true,
+        return ImmutableMap.of(IAgentControllerApi.PARAMETER_NAME_APP_NAME, true,
+                               IAgentControllerApi.PARAMETER_NAME_INSTANCE, true,
                                "class", true);
     }
 

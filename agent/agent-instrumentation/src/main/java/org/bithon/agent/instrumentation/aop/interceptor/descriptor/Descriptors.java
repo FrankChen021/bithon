@@ -43,7 +43,8 @@ public class Descriptors {
     /**
      * merge class instrumentation
      */
-    public void merge(BithonClassDescriptor bithonClassDescriptor) {
+    public void merge(BithonClassDescriptor bithonClassDescriptor,
+                      IInterceptorPrecondition pluginLevelPrecondition) {
         if (bithonClassDescriptor == null) {
             return;
         }
@@ -52,13 +53,23 @@ public class Descriptors {
             if (bithonClassDescriptor.isDebug()) {
                 descriptor.isDebuggingOn = bithonClassDescriptor.isDebug();
             }
+
+            if (pluginLevelPrecondition != null) {
+                if (descriptor.getPrecondition() != null) {
+                    descriptor.precondition = IInterceptorPrecondition.or(descriptor.getPrecondition(), pluginLevelPrecondition);
+                } else {
+                    descriptor.precondition = pluginLevelPrecondition;
+                }
+            }
         }
     }
 
     /**
      * merge method instrumentation
      */
-    public void merge(String plugin, IInterceptorPrecondition preconditions, List<InterceptorDescriptor> interceptors) {
+    public void merge(String plugin,
+                      IInterceptorPrecondition pluginLevelPrecondition,
+                      List<InterceptorDescriptor> interceptors) {
         for (InterceptorDescriptor interceptor : interceptors) {
             String targetClass = interceptor.getTargetClass();
 
@@ -67,7 +78,24 @@ public class Descriptors {
                 descriptor.isDebuggingOn = interceptor.isDebug();
             }
 
-            MethodPointCuts mp = new MethodPointCuts(plugin, preconditions, interceptor.getMethodPointCutDescriptors());
+            // Merge plugin level precondition and interceptor level precondition
+            // For the SAME target class declared in two plugins, if the preconditions are different,
+            // we don't merge the interceptors but keep them separately. In order to correctly handle the precondition,
+            // we need to save the plugin level precondition to each interceptor
+            IInterceptorPrecondition precondition;
+            if (pluginLevelPrecondition == null) {
+                precondition = interceptor.getPrecondition();
+            } else {
+                if (interceptor.getPrecondition() == null) {
+                    precondition = pluginLevelPrecondition;
+                } else {
+                    precondition = IInterceptorPrecondition.and(pluginLevelPrecondition, interceptor.getPrecondition());
+                }
+            }
+
+            MethodPointCuts mp = new MethodPointCuts(plugin,
+                                                     precondition,
+                                                     interceptor.getMethodPointCutDescriptors());
             descriptor.getMethodPointCuts().add(mp);
         }
     }
@@ -85,6 +113,9 @@ public class Descriptors {
         private final List<MethodPointCuts> methodPointCuts = new ArrayList<>();
         private boolean isDebuggingOn;
 
+        // The precondition for class transformation(BithonClassDescriptor), not on the method level
+        private IInterceptorPrecondition precondition;
+
         Descriptor(String targetClass) {
             this.targetClass = targetClass;
         }
@@ -99,6 +130,10 @@ public class Descriptors {
 
         public boolean isDebuggingOn() {
             return isDebuggingOn;
+        }
+
+        public IInterceptorPrecondition getPrecondition() {
+            return precondition;
         }
     }
 

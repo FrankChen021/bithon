@@ -36,7 +36,10 @@ Content-Type: application/json
 
 ### Get all notification channel
 POST http://localhost:9897/api/alerting/channel/get
+Content-Type: application/json
 
+{
+}
 
 ### DELETE an HTTP notification channel
 POST http://localhost:9897/api/alerting/channel/delete
