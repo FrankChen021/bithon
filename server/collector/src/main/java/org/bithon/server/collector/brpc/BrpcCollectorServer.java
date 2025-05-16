@@ -48,7 +48,7 @@ public class BrpcCollectorServer {
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-    public synchronized ServiceGroup addService(String group, Object implementation, int port) {
+    public synchronized ServiceGroup addService(String group, Object implementation, int port, BrpcCollectorConfig.ChannelConfig channelConfig) {
         ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());
         serviceGroup.getServices().put(group, implementation);
 
@@ -56,6 +56,8 @@ public class BrpcCollectorServer {
             // Create a server with the first service name as the server id
             serviceGroup.brpcServer = BrpcServerBuilder.builder()
                                                        .serverId(group)
+                                                       .lowWaterMark(channelConfig == null ? 128 * 1024 : channelConfig.getLowWaterMark().intValue())
+                                                       .highWaterMark(channelConfig == null ? 256 * 1024 : channelConfig.getHighWaterMark().intValue())
                                                        .executor(new ThreadPoolExecutor(1,
                                                                                         Runtime.getRuntime().availableProcessors(),
                                                                                         3,

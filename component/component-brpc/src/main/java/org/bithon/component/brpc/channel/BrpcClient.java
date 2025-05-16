@@ -112,7 +112,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
                                                 pipeline.addLast("decoder", new ServiceMessageInDecoder());
                                                 pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                                                 pipeline.addLast(new ClientChannelManager());
-                                                pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, Runnable::run, invocationManager));
+                                                pipeline.addLast(new ServiceMessageChannelHandler(builder.clientId, serviceRegistry, Runnable::run, invocationManager));
                                             }
                                         });
 

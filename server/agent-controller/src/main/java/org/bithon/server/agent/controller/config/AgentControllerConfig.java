@@ -17,6 +17,7 @@
 package org.bithon.server.agent.controller.config;
 
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +31,17 @@ import org.springframework.context.annotation.Configuration;
 public class AgentControllerConfig {
     private boolean enabled;
     private int port;
+
+    @Data
+    public static class ChannelConfig {
+        /**
+         * Watermark configuration for underlying communication channel.
+         */
+        private HumanReadableNumber lowWaterMark;
+        private HumanReadableNumber highWaterMark;
+    }
+
+    private ChannelConfig channel;
 
     private PermissionConfig permission;
 }

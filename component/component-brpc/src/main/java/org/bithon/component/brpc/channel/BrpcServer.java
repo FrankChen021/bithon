@@ -103,12 +103,12 @@ public class BrpcServer implements Closeable {
                     pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
                     pipeline.addLast(new IdleStateHandler(builder.idleSeconds, 0, 0));
                     pipeline.addLast(sessionManager);
-                    pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, executor, invocationManager));
+                    pipeline.addLast(new ServiceMessageChannelHandler(builder.serverId, serviceRegistry, executor, invocationManager));
                 }
             });
 
-        if (builder.lowMaterMark > 0 && builder.highMaterMark > 0) {
-            this.serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowMaterMark, builder.highMaterMark));
+        if (builder.lowWaterMark > 0 && builder.highWaterMark > 0) {
+            this.serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowWaterMark, builder.highWaterMark));
         }
     }
 

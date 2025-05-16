@@ -2,6 +2,9 @@ bithon:
   agent-controller:
     enabled: true
     port: 9899
+    channel:
+      low-water-mark:  128KiB
+      high-water-mark: 256KiB
     permission:
       # The following define a global rule to ALLOW any operation from any user.
       # Refer to the PermissionConfig to know more about the configuration

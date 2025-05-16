@@ -56,6 +56,8 @@ public class AgentControllerServer implements SmartLifecycle {
         this.loader = loader;
         this.brpcServer = BrpcServerBuilder.builder()
                                            .serverId("ctrl")
+                                           .lowWaterMark(config.getChannel() == null ? 128 * 1024 : config.getChannel().getLowWaterMark().intValue())
+                                           .highWaterMark(config.getChannel() == null ? 256 * 1024 : config.getChannel().getHighWaterMark().intValue())
                                            .build()
                                            .bindService(new AgentSettingFetcher(loader));
     }

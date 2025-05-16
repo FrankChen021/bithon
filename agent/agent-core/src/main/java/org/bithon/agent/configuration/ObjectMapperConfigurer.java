@@ -17,6 +17,7 @@
 package org.bithon.agent.configuration;
 
 import org.bithon.component.commons.utils.HumanReadableDuration;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonGenerator;
 import org.bithon.shaded.com.fasterxml.jackson.core.JsonParser;
@@ -42,7 +43,9 @@ public class ObjectMapperConfigurer {
         MODULE.addDeserializer(HumanReadablePercentage.class, new HumanReadablePercentageDeserializer())
               .addSerializer(HumanReadablePercentage.class, new HumanReadablePercentageSerializer())
               .addDeserializer(HumanReadableDuration.class, new HumanReadableDurationDeserializer())
-              .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer());
+              .addSerializer(HumanReadableDuration.class, new HumanReadableDurationSerializer())
+              .addDeserializer(HumanReadableNumber.class, new HumanReadableNumberDeserializer())
+              .addSerializer(HumanReadableNumber.class, new HumanReadableNumberSerializer());
     }
 
     public static ObjectMapper configure(ObjectMapper objectMapper) {
@@ -96,6 +99,32 @@ public class ObjectMapperConfigurer {
         @Override
         public Class<HumanReadableDuration> handledType() {
             return HumanReadableDuration.class;
+        }
+    }
+
+    public static class HumanReadableNumberSerializer extends JsonSerializer<HumanReadableNumber> {
+        @Override
+        public void serialize(HumanReadableNumber value,
+                              JsonGenerator gen,
+                              SerializerProvider serializers) throws IOException {
+            gen.writeString(value.toString());
+        }
+
+        @Override
+        public Class<HumanReadableNumber> handledType() {
+            return HumanReadableNumber.class;
+        }
+    }
+
+    public static class HumanReadableNumberDeserializer extends JsonDeserializer<HumanReadableNumber> {
+        @Override
+        public HumanReadableNumber deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+            return HumanReadableNumber.of(p.getText());
+        }
+
+        @Override
+        public Class<?> handledType() {
+            return HumanReadableNumber.class;
         }
     }
 }

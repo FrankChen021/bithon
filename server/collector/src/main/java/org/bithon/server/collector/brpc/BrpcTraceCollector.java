@@ -25,6 +25,7 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -32,7 +33,6 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
 
     private final ApplicationContext applicationContext;
-    private final int port;
+    private final BrpcCollectorConfig collectorConfig;
     private ITraceProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
@@ -60,14 +60,14 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
         Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
 
-        this.port = config.getPort();
+        this.collectorConfig = config;
         this.applicationContext = applicationContext;
     }
 
     @Override
     public void start() {
         serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("trace", this, port);
+                                              .addService("trace", this, collectorConfig.getPort(), collectorConfig.getChannel());
     }
 
     @Override
@@ -104,9 +104,7 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
         traceSpan.setName(spanBody.getName());
         traceSpan.setTraceId(spanBody.getTraceId());
         traceSpan.setSpanId(spanBody.getSpanId());
-        traceSpan.setParentSpanId(StringUtils.isEmpty(spanBody.getParentSpanId())
-                                      ? ""
-                                      : spanBody.getParentSpanId());
+        traceSpan.setParentSpanId(StringUtils.getOrEmpty(spanBody.getParentSpanId()));
         traceSpan.setParentApplication(spanBody.getParentAppName());
         traceSpan.setStartTime(spanBody.getStartTime());
         traceSpan.setEndTime(spanBody.getEndTime());

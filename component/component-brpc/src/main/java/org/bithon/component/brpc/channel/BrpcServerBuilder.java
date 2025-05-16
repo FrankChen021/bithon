@@ -27,8 +27,8 @@ public class BrpcServerBuilder {
     int idleSeconds = 180;
     int backlog = 1024;
     int ioThreads = Runtime.getRuntime().availableProcessors();
-    int lowMaterMark = 0;
-    int highMaterMark = 0;
+    int lowWaterMark = 0;
+    int highWaterMark = 0;
     Executor executor = null;
 
     public static BrpcServerBuilder builder() {
@@ -52,6 +52,16 @@ public class BrpcServerBuilder {
 
     public BrpcServerBuilder backlog(int backlog) {
         this.backlog = backlog;
+        return this;
+    }
+
+    public BrpcServerBuilder lowWaterMark(int lowWaterMark) {
+        this.lowWaterMark = lowWaterMark;
+        return this;
+    }
+
+    public BrpcServerBuilder highWaterMark(int highWaterMark) {
+        this.highWaterMark = highWaterMark;
         return this;
     }
 

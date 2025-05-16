@@ -99,6 +99,8 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
                                            .maxRetry(3)
                                            .retryBackOff(Duration.ofMillis(100))
                                            .connectionTimeout(Duration.ofMillis(exporterConfig.getClient().getConnectionTimeout()))
+                                           .lowMaterMark(exporterConfig.getClient().getLowWaterMark().intValue())
+                                           .highMaterMark(exporterConfig.getClient().getHighWaterMark().intValue())
                                            .build();
         this.exporterConfig = exporterConfig;
 

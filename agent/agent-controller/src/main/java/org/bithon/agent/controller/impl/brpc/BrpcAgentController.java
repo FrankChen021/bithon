@@ -71,6 +71,8 @@ public class BrpcAgentController implements IAgentController {
                                       .connectionTimeout(Duration.ofMillis(config.getClient().getConnectionTimeout()))
                                       .header(Headers.HEADER_VERSION, AgentBuildVersion.getString())
                                       .header(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                                      .lowMaterMark(config.getClient().getLowWaterMark().intValue())
+                                      .highMaterMark(config.getClient().getHighWaterMark().intValue())
                                       .build();
 
         if (appInstance.getPort() > 0) {

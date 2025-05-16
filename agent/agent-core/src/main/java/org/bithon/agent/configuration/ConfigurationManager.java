@@ -62,7 +62,7 @@ import static java.io.File.separator;
  * 1. When getting configuration properties,
  * the manager will collect properties with the same key prefixes from all sources and merge them in the above list order.
  *
- * Let's us p1 has the following configuration defined(Note it's just example, not reflected real configuration):
+ * Let p1 has the following configuration defined(Note it's just example, not reflected real configuration):
  * <pre>
  * -- p1
  *   tracing:

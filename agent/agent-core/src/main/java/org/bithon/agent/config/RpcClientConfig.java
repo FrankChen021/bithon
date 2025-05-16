@@ -18,6 +18,7 @@ package org.bithon.agent.config;
 
 import org.bithon.agent.configuration.validation.GreaterThan;
 import org.bithon.agent.configuration.validation.NotBlank;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 
 /**
  * @author frankchen
@@ -44,6 +45,18 @@ public class RpcClientConfig {
     @GreaterThan(value = 0)
     private int connectionTimeout = 2000;
 
+    /**
+     * The default value inside Netty is 32KiB, See WriteBufferWaterMark
+     */
+    @GreaterThan(value = 16 * 1024)
+    private HumanReadableNumber lowWaterMark = HumanReadableNumber.of("32KiB");
+
+    /**
+     * The default value inside Netty is 64KiB, See WriteBufferWaterMark
+     */
+    @GreaterThan(value = 16 * 1024)
+    private HumanReadableNumber highWaterMark = HumanReadableNumber.of("64KiB");
+
     public int getConnectionLifeTime() {
         return connectionLifeTime;
     }
@@ -66,5 +79,21 @@ public class RpcClientConfig {
 
     public void setConnectionTimeout(int connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
+    }
+
+    public HumanReadableNumber getLowWaterMark() {
+        return lowWaterMark;
+    }
+
+    public void setLowWaterMark(HumanReadableNumber lowWaterMark) {
+        this.lowWaterMark = lowWaterMark;
+    }
+
+    public HumanReadableNumber getHighWaterMark() {
+        return highWaterMark;
+    }
+
+    public void setHighWaterMark(HumanReadableNumber highWaterMark) {
+        this.highWaterMark = highWaterMark;
     }
 }

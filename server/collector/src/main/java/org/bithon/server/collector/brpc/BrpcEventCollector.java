@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 public class BrpcEventCollector implements IEventCollector, IEventReceiver {
 
     private final BrpcCollectorServer server;
-    private final int port;
+    private final BrpcCollectorConfig collectorConfig;
 
     private IEventProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
@@ -59,12 +59,12 @@ public class BrpcEventCollector implements IEventCollector, IEventReceiver {
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");
 
         this.server = server;
-        this.port = config.getPort();
+        this.collectorConfig = config;
     }
 
     @Override
     public void start() {
-        serviceGroup = this.server.addService("event", this, port);
+        serviceGroup = this.server.addService("event", this, collectorConfig.getPort(), collectorConfig.getChannel());
     }
 
     @Override

@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 @JsonTypeName("brpc")
 public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
-    private final int port;
+    private final BrpcCollectorConfig collectorConfig;
     private final ApplicationContext applicationContext;
     private IMetricProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
@@ -77,14 +77,14 @@ public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535,
                                   "The port for the event collector must be in the range of (1000, 65535).");
 
-        this.port = config.getPort();
+        this.collectorConfig = config;
         this.applicationContext = applicationContext;
     }
 
     @Override
     public void start() {
         serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("metrics", this, port);
+                                              .addService("metrics", this, collectorConfig.getPort(), collectorConfig.getChannel());
     }
 
     @Override

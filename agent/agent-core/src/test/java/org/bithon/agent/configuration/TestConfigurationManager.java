@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.bithon.agent.configuration.source.Helper;
 import org.bithon.agent.configuration.source.PropertySource;
 import org.bithon.agent.configuration.source.PropertySourceType;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,8 @@ public class TestConfigurationManager {
         private int b;
 
         private HumanReadablePercentage percentage;
+
+        private HumanReadableNumber number;
 
         public TestConfig() {
         }
@@ -78,6 +81,14 @@ public class TestConfigurationManager {
         public void setPercentage(HumanReadablePercentage percentage) {
             this.percentage = percentage;
         }
+
+        public HumanReadableNumber getNumber() {
+            return number;
+        }
+
+        public void setNumber(HumanReadableNumber number) {
+            this.number = number;
+        }
     }
 
     @Test
@@ -87,12 +98,14 @@ public class TestConfigurationManager {
                                                       "1",
                                                       "test.a=1\n" +
                                                       "test.b=7\n" +
-                                                      "test.percentage=8%"));
+                                                      "test.percentage=8%\n"
+                                                      + "test.number=8KiB"));
 
         TestConfig testConfig = manager.getConfig(TestConfig.class);
         Assertions.assertEquals(1, testConfig.getA());
         Assertions.assertEquals(7, testConfig.getB());
         Assertions.assertEquals("8%", testConfig.getPercentage().toString());
+        Assertions.assertEquals("8KiB", testConfig.getNumber().toString());
 
         //
         // Use new value to refresh the old one
@@ -414,10 +427,12 @@ public class TestConfigurationManager {
             ConfigurationManager manager = ConfigurationManager.createForTesting(defaultConfigLocation);
 
             Assertions.assertArrayEquals(new int[]{1, 2, 3}, manager.getConfig("test.b", int[].class, true));
-            Assertions.assertArrayEquals(new HumanReadablePercentage[]{HumanReadablePercentage.of("8%"),
-                                         HumanReadablePercentage.of("9%"),
-                                         HumanReadablePercentage.of("10%")},
-                                     manager.getConfig("test.p", HumanReadablePercentage[].class, true));
+            Assertions.assertArrayEquals(new HumanReadablePercentage[]{
+                                             HumanReadablePercentage.of("8%"),
+                                             HumanReadablePercentage.of("9%"),
+                                             HumanReadablePercentage.of("10%")
+                                         },
+                                         manager.getConfig("test.p", HumanReadablePercentage[].class, true));
         }
     }
 
