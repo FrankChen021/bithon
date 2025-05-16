@@ -80,11 +80,21 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 IExpression inputArgs = expression.getArgs().get(0);
                 if (inputArgs instanceof IdentifierExpression identifier) {
                     IColumn column = schema.getColumnByName(identifier.getIdentifier());
-                    if (column instanceof AggregateFunctionColumn) {
-                        return new FunctionExpression(
-                            AggregateFunctionColumn.SumMergeFunction.INSTANCE,
-                            identifier
-                        );
+                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                        if (aggregateFunctionColumn.getAggregateFunction() instanceof AggregateFunctionColumn.SumMergeFunction) {
+                            // Perform sum on sumMerge column
+                            return new FunctionExpression(
+                                AggregateFunctionColumn.SumMergeFunction.INSTANCE,
+                                identifier
+                            );
+                        } else {
+                            // Perform sum on countMerge column, optimize to sum(countMerge(column))
+                            return new FunctionExpression(AggregateFunction.Sum.INSTANCE,
+                                                          new FunctionExpression(
+                                                              AggregateFunctionColumn.CountMergeFunction.INSTANCE,
+                                                              identifier
+                                                          ));
+                        }
                     }
                 }
             } else if (expression.getFunction() instanceof AggregateFunction.Count
@@ -93,11 +103,17 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 IExpression inputArgs = expression.getArgs().get(0);
                 if (inputArgs instanceof IdentifierExpression identifier) {
                     IColumn column = schema.getColumnByName(identifier.getIdentifier());
-                    if (column instanceof AggregateFunctionColumn) {
-                        return new FunctionExpression(
-                            AggregateFunctionColumn.CountMergeFunction.INSTANCE,
-                            identifier
-                        );
+                    if (column instanceof AggregateFunctionColumn aggregateFunctionColumn) {
+                        if (aggregateFunctionColumn.getAggregateFunction() instanceof AggregateFunctionColumn.CountMergeFunction) {
+                            // Perform count on countMerge column
+                            return new FunctionExpression(
+                                AggregateFunctionColumn.CountMergeFunction.INSTANCE,
+                                identifier
+                            );
+                        } else {
+                            // Perform count on sumMerge column, no need to optimize
+                            return expression;
+                        }
                     }
                 }
             }
