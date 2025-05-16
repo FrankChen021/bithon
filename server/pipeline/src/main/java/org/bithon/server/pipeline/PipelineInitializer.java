@@ -19,6 +19,7 @@ package org.bithon.server.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.EventPipelineConfig;
@@ -28,9 +29,7 @@ import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.InvalidConfigurationException;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -55,9 +54,8 @@ public class PipelineInitializer implements SmartLifecycle {
 
     private final List<AbstractPipeline<?, ?>> pipelines = new ArrayList<>();
 
-    public PipelineInitializer(IMetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, Environment env) {
-        Binder binder = Binder.get(env);
-        AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class).orElse(new AllPipelineConfig());
+    public PipelineInitializer(IMetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, EnvironmentBinder binder) {
+        AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class, AllPipelineConfig::new);
 
         for (Map.Entry<String, Map<String, Object>> entry : allPipelineConfig.entrySet()) {
             String type = entry.getKey();
@@ -73,11 +71,11 @@ public class PipelineInitializer implements SmartLifecycle {
                     String realType = (String) props.get("type");
                     Preconditions.checkNotNull(type, "The 'type' property is missed under the pipeline property [%s]", prefix);
                     if ("metrics".equals(realType)) {
-                        pipelines.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class).get(), metricInputSourceManager, objectMapper));
+                        pipelines.add(new MetricPipeline(binder.bind(prefix, MetricPipelineConfig.class), metricInputSourceManager, objectMapper));
                     } else if ("traces".equals(realType)) {
-                        pipelines.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class).get(), metricInputSourceManager, objectMapper));
+                        pipelines.add(new TracePipeline(binder.bind(prefix, TracePipelineConfig.class), metricInputSourceManager, objectMapper));
                     } else if ("events".equals(realType)) {
-                        pipelines.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class).get(), metricInputSourceManager, objectMapper));
+                        pipelines.add(new EventPipeline(binder.bind(prefix, EventPipelineConfig.class), metricInputSourceManager, objectMapper));
                     } else {
                         throw new InvalidConfigurationException(StringUtils.format("Unknown value [%s] of property [%s]", realType, prefix));
                     }

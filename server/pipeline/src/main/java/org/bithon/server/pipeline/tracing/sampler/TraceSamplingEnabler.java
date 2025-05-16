@@ -16,12 +16,12 @@
 
 package org.bithon.server.pipeline.tracing.sampler;
 
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.BindResult;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
@@ -35,11 +35,11 @@ public class TraceSamplingEnabler implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
-        BindResult<TracePipelineConfig> result = Binder.get(context.getEnvironment())
-                                                       .bind(properties.prefix(), TracePipelineConfig.class);
+        TracePipelineConfig config = EnvironmentBinder.from((ConfigurableEnvironment) context.getEnvironment())
+                                                      .bind(properties.prefix(), TracePipelineConfig.class);
 
-        return result.isBound()
-               && result.get().isEnabled()
-               && result.get().isMetricOverSpanEnabled();
+        return config != null
+               && config.isEnabled()
+               && config.isMetricOverSpanEnabled();
     }
 }

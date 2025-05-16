@@ -21,10 +21,9 @@ import org.bithon.component.brpc.channel.BrpcServer;
 import org.bithon.component.brpc.channel.BrpcServerBuilder;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.agent.controller.config.AgentControllerConfig;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,8 +47,8 @@ public class AgentControllerServer implements SmartLifecycle {
     private final AgentSettingLoader loader;
 
     public AgentControllerServer(AgentSettingLoader loader,
-                                 Environment env) {
-        AgentControllerConfig config = Binder.get(env).bind("bithon.agent-controller", AgentControllerConfig.class).get();
+                                 EnvironmentBinder env) {
+        AgentControllerConfig config = env.bind("bithon.agent-controller", AgentControllerConfig.class);
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port of bithon.agent-controller property must be in the range of [1000, 65535)");
 
         this.port = config.getPort();

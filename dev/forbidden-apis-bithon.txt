@@ -23,3 +23,7 @@ org.jooq.DSLContext#fetchExists(org.jooq.Table, org.jooq.Condition)
 
 @defaultMessage The fetchCount generates wrong SQL, use other fetchCount overrides instead
 org.jooq.DSLContext#fetchCount(org.jooq.Select)
+
+@defaultMessage Use EnvironmentBinder.from(org.springframework.core.env.Environment) instead
+org.springframework.boot.context.properties.bind.Binder#get(org.springframework.core.env.Environment)
+org.springframework.boot.context.properties.bind.Binder#get(org.springframework.core.env.Environment, org.springframework.boot.context.properties.bind.BindHandler)

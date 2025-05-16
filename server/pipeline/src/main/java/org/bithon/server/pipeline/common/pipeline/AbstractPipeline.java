@@ -21,17 +21,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.common.transformer.ExceptionSafeTransformer;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -233,9 +234,8 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
             return;
         }
 
-        PipelineConfig pipelineConfig = Binder.get(this.applicationContext.getEnvironment())
-                                              .bind(this.pipelineConfigPrefix, PipelineConfig.class)
-                                              .orElse(null);
+        PipelineConfig pipelineConfig = EnvironmentBinder.from((ConfigurableEnvironment) this.applicationContext.getEnvironment())
+                                                         .bind(this.pipelineConfigPrefix, PipelineConfig.class);
         if (pipelineConfig == null) {
             return;
         }

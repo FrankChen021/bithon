@@ -26,12 +26,11 @@ import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
 import java.util.LinkedList;
@@ -53,9 +52,9 @@ public class BrpcTraceCollector implements ITraceCollector, ITraceReceiver {
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
     @JsonCreator
-    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
+    public BrpcTraceCollector(@JacksonInject(useInput = OptBoolean.FALSE) EnvironmentBinder binder,
                               @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        BrpcCollectorConfig config = Binder.get(environment).bind("bithon.receivers.traces.brpc", BrpcCollectorConfig.class).get();
+        BrpcCollectorConfig config = binder.bind("bithon.receivers.traces.brpc", BrpcCollectorConfig.class);
         Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
         Preconditions.checkNotNull(config.getPort(), "The port for the event collector is not configured.");
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535, "The port for the event collector must be in the range of (1000, 65535).");

@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -114,9 +114,8 @@ public class TraceIdMappingBatchExtractor {
                 return;
             }
 
-            TracePipelineConfig pipelineConfig = Binder.get(applicationContext.getEnvironment())
-                                                       .bind(pipelineConfigPrefix, TracePipelineConfig.class)
-                                                       .orElse(null);
+            TracePipelineConfig pipelineConfig = EnvironmentBinder.from(applicationContext.getEnvironment())
+                                                                  .bind(pipelineConfigPrefix, TracePipelineConfig.class);
             if (pipelineConfig == null) {
                 log.warn("Trace mapping configuration changed. But failed to reload configurations.");
                 return;

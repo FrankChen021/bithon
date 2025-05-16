@@ -18,14 +18,15 @@ package org.bithon.server.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.web.security.filter.JwtAuthenticationFilter;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -45,9 +46,8 @@ public class SecurityAutoConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity,
                                            ApplicationContext applicationContext) throws Exception {
-        boolean isSecurityEnabled = Binder.get(applicationContext.getEnvironment())
-                                          .bind("bithon.web.security.enabled", Boolean.class)
-                                          .orElse(false);
+        boolean isSecurityEnabled = EnvironmentBinder.from((ConfigurableEnvironment) applicationContext.getEnvironment())
+                                                     .bind("bithon.web.security.enabled", Boolean.class, () -> false);
 
         ServerProperties serverProperties = applicationContext.getBean(ServerProperties.class);
         String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
