@@ -153,7 +153,7 @@ public class HttpNotificationChannel implements INotificationChannel {
                                                                            output.getCurrent(),
                                                                            output.getThreshold(),
                                                                            output.getDelta()))
-                                       .collect(Collectors.joining("\n"))
+                                       .collect(Collectors.joining("\n\n"))
                                 + "\n";
         } else { // RESOLVED
             evaluationMessage = message.getEvaluationOutputs()
@@ -161,8 +161,8 @@ public class HttpNotificationChannel implements INotificationChannel {
                                        .stream()
                                        .flatMap(Collection::stream)
                                        .filter((output) -> !output.getLabel().isEmpty())
-                                       .map((output) -> output.getLabel().toString())
-                                       .collect(Collectors.joining("\n"));
+                                       .map((output) -> output.getLabel().formatIfNotEmpty("{%s}"))
+                                       .collect(Collectors.joining("\n\n"));
             if (!evaluationMessage.isEmpty()) {
                 evaluationMessage = "\n" + evaluationMessage + "\n";
             }
