@@ -1390,6 +1390,66 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
+    public void testCountOverCountMergeColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "count(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT "appName",
+                                           count("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+    }
+
+    @Test
+    public void testSumOverCountMergeColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedCnt)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT "appName",
+                                           sum(countMerge("clickedCnt")) AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+    }
+
+    @Test
     public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
