@@ -23,8 +23,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.web.service.common.bucket.TimeBucket;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 /**
  * @author Frank Chen
@@ -70,4 +72,21 @@ public class IntervalRequest {
      */
     @Nullable
     private HumanReadableDuration window;
+
+    public Duration calculateStep() {
+        if (this.step != null) {
+            // Use given step
+            return Duration.ofSeconds(this.step);
+        }
+
+        if (this.bucketCount == null) {
+            // Calculate the adaptive step based on the range
+            return Duration.ofSeconds(TimeBucket.calculate(TimeSpan.fromISO8601(this.startISO8601),
+                                                           TimeSpan.fromISO8601(this.endISO8601)));
+        } else {
+            return Duration.ofSeconds(TimeBucket.calculate(TimeSpan.fromISO8601(startISO8601).getMilliseconds(),
+                                                           TimeSpan.fromISO8601(this.endISO8601).getMilliseconds(),
+                                                           this.bucketCount).getLength());
+        }
+    }
 }

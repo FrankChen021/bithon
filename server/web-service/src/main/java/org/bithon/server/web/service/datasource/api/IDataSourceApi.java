@@ -19,6 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +44,7 @@ public interface IDataSourceApi {
      * Internal API that returns row based records for internal API use
      */
     @PostMapping("/api/internal/datasource/timeseries")
-    QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
+    ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException;
 
     @PostMapping("/api/datasource/groupBy/v3")
     QueryResponse groupByV3(@Validated @RequestBody QueryRequest request) throws IOException;
