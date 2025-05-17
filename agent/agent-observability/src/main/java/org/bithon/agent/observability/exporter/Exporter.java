@@ -21,7 +21,7 @@ import org.bithon.agent.observability.context.AppInstance;
 import org.bithon.agent.observability.exporter.config.ExporterConfig;
 import org.bithon.agent.observability.exporter.task.BlockingQueue;
 import org.bithon.agent.observability.exporter.task.ExportTask;
-import org.bithon.agent.observability.exporter.task.IMessageQueue;
+import org.bithon.agent.observability.exporter.task.IThreadSafeQueue;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -110,7 +110,7 @@ public class Exporter {
                               messageExporter::export);
     }
 
-    private IMessageQueue createQueue(ExporterConfig config) {
+    private IThreadSafeQueue createQueue(ExporterConfig config) {
         return new BlockingQueue(config.getQueueSize());
     }
 

@@ -60,8 +60,10 @@ public class BrpcEventMessageExporter implements IMessageExporter {
                                            .clientId("event")
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
-                                           .retryInterval(Duration.ofMillis(200))
-                                           .connectionTimeout(exporterConfig.getClient().getConnectionTimeout())
+                                           .retryBackOff(Duration.ofMillis(200))
+                                           .connectionTimeout(Duration.ofMillis(exporterConfig.getClient().getConnectionTimeout()))
+                                           .lowMaterMark(exporterConfig.getClient().getLowWaterMark().intValue())
+                                           .highMaterMark(exporterConfig.getClient().getHighWaterMark().intValue())
                                            .build();
 
         this.exporterConfig = exporterConfig;

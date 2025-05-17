@@ -131,12 +131,15 @@ public class Validator {
         @Override
         public String validate(Annotation annotation, Class<?> objectType, String property, Object value) {
             if (value instanceof Number) {
-                long input = ((Number) value).longValue();
-                long constraint = ((GreaterThan) annotation).value();
-                if (input > constraint) {
+                long actual = ((Number) value).longValue();
+                long expected = ((GreaterThan) annotation).value();
+                if (actual > expected) {
                     return null;
                 }
-                return "[%s] " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %d", input, constraint);
+                return "[%s] " + String.format(Locale.ENGLISH, "should be greater than [%d], but is %s",
+                                               expected,
+                                               // Use value.toString() below because the value might be type of HumanReadableNumber
+                                               value);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }

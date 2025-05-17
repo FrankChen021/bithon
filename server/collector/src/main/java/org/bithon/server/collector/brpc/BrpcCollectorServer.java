@@ -19,11 +19,15 @@ package org.bithon.server.collector.brpc;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.component.brpc.channel.BrpcServerBuilder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,14 +48,24 @@ public class BrpcCollectorServer {
         System.setProperty("org.bithon.shaded.io.netty.maxDirectMemory", "0");
     }
 
-
-    public synchronized ServiceGroup addService(String name, Object implementation, int port) {
+    public synchronized ServiceGroup addService(String group, Object implementation, int port, BrpcCollectorConfig.ChannelConfig channelConfig) {
         ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, k -> new ServiceGroup());
-        serviceGroup.getServices().put(name, implementation);
+        serviceGroup.getServices().put(group, implementation);
 
         if (serviceGroup.brpcServer == null) {
             // Create a server with the first service name as the server id
-            serviceGroup.brpcServer = new BrpcServer(name);
+            serviceGroup.brpcServer = BrpcServerBuilder.builder()
+                                                       .serverId(group)
+                                                       .lowWaterMark(channelConfig == null ? 128 * 1024 : channelConfig.getLowWaterMark().intValue())
+                                                       .highWaterMark(channelConfig == null ? 256 * 1024 : channelConfig.getHighWaterMark().intValue())
+                                                       .executor(new ThreadPoolExecutor(1,
+                                                                                        Runtime.getRuntime().availableProcessors(),
+                                                                                        3,
+                                                                                        TimeUnit.MINUTES,
+                                                                                        new LinkedBlockingQueue<>(1024),
+                                                                                        NamedThreadFactory.daemonThreadFactory("brpc-executor-" + group),
+                                                                                        new ThreadPoolExecutor.CallerRunsPolicy()))
+                                                       .build();
             serviceGroup.start(port);
             log.info("Started Brpc services [{}] at port {}",
                      String.join(",", serviceGroup.services.keySet()),
@@ -60,14 +74,6 @@ public class BrpcCollectorServer {
             serviceGroup.brpcServer.bindService(implementation);
         }
         return serviceGroup;
-    }
-
-    public BrpcServer findServer(String serviceName) {
-        Optional<ServiceGroup> serviceGroup = this.serviceGroups.values()
-                                                                .stream()
-                                                                .filter((sg -> sg.getServices().containsKey(serviceName)))
-                                                                .findFirst();
-        return serviceGroup.map(ServiceGroup::getBrpcServer).orElse(null);
     }
 
     @Getter

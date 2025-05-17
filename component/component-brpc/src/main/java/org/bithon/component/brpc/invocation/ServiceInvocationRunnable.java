@@ -28,25 +28,82 @@ import org.bithon.shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Executor;
 
 /**
  * @author frankchen
  */
 public class ServiceInvocationRunnable implements Runnable {
-    private final ServiceRegistry serviceRegistry;
     private final Channel channel;
-    private final ServiceRequestMessageIn serviceRequest;
 
-    public ServiceInvocationRunnable(ServiceRegistry serviceRegistry,
-                                     Channel channel,
-                                     ServiceRequestMessageIn serviceRequest) {
-        this.serviceRegistry = serviceRegistry;
-        this.serviceRequest = serviceRequest;
+    private final long txId;
+    private final ServiceRegistry.ServiceInvoker serviceInvoker;
+    private final Object[] args;
+
+    public ServiceInvocationRunnable(Channel channel,
+                                     long txId,
+                                     ServiceRegistry.ServiceInvoker serviceInvoker,
+                                     Object[] args) {
         this.channel = channel;
+        this.txId = txId;
+        this.serviceInvoker = serviceInvoker;
+        this.args = args;
     }
+
 
     @Override
     public void run() {
+        try {
+            Object ret;
+            try {
+                ret = serviceInvoker.invoke(this.args);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
+                                              channel.remoteAddress().toString(),
+                                              serviceInvoker.getMetadata().getServiceName(),
+                                              serviceInvoker.getMetadata().getMethodName());
+            } catch (IllegalAccessException e) {
+                throw new ServiceInvocationException("[Client=%s] Service[%s#%s] exception: %s",
+                                                     channel.remoteAddress().toString(),
+                                                     serviceInvoker.getMetadata().getServiceName(),
+                                                     serviceInvoker.getMetadata().getMethodName(),
+                                                     e.getMessage());
+            } catch (InvocationTargetException e) {
+                throw new ServiceInvocationException(e.getTargetException(),
+                                                     "[Client=%s] Service[%s#%s] invocation exception",
+                                                     channel.remoteAddress().toString(),
+                                                     serviceInvoker.getMetadata().getServiceName(),
+                                                     serviceInvoker.getMetadata().getMethodName());
+            }
+
+            if (!serviceInvoker.getMetadata().isOneway()) {
+                ServiceResponseMessageOut.builder()
+                                         .serverResponseAt(System.currentTimeMillis())
+                                         .txId(this.txId)
+                                         .serializer(serviceInvoker.getMetadata().getSerializer())
+                                         .returning(ret)
+                                         .send(channel);
+            }
+        } catch (ServiceInvocationException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).error(StringUtils.format("[Client=%s] Service Invocation on %s#%s",
+                                                                                              channel.remoteAddress().toString(),
+                                                                                              serviceInvoker.getMetadata().getServiceName(),
+                                                                                              serviceInvoker.getMetadata().getMethodName()),
+                                                                           cause);
+            ServiceResponseMessageOut.builder()
+                                     .serverResponseAt(System.currentTimeMillis())
+                                     .txId(this.txId)
+                                     .serializer(serviceInvoker.getMetadata().getSerializer())
+                                     .exception(cause)
+                                     .send(channel);
+        }
+    }
+
+    public static void execute(ServiceRegistry serviceRegistry,
+                               Channel channel,
+                               ServiceRequestMessageIn serviceRequest,
+                               Executor executor) {
         try {
             if (serviceRequest.getServiceName() == null) {
                 throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
@@ -66,41 +123,21 @@ public class ServiceInvocationRunnable implements Runnable {
                 throw new ServiceNotFoundException(serviceRequest.getServiceName() + "#" + serviceRequest.getMethodName());
             }
 
-            Object ret;
             try {
-                ret = serviceInvoker.invoke(serviceRequest.readArgs(serviceInvoker.getParameterTypes()));
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
-                                              channel.remoteAddress().toString(),
-                                              serviceRequest.getServiceName(),
-                                              serviceRequest.getMethodName());
-            } catch (IllegalAccessException e) {
-                throw new ServiceInvocationException("[Client=%s] Service[%s#%s] exception: %s",
-                                                     channel.remoteAddress().toString(),
-                                                     serviceRequest.getServiceName(),
-                                                     serviceRequest.getMethodName(),
-                                                     e.getMessage());
-            } catch (InvocationTargetException e) {
-                throw new ServiceInvocationException(e.getTargetException(),
-                                                     "[Client=%s] Service[%s#%s] invocation exception",
-                                                     channel.remoteAddress().toString(),
-                                                     serviceRequest.getServiceName(),
-                                                     serviceRequest.getMethodName());
+                // read args outside the thread pool
+                // so that the messages in the netty buffer are consumed in the netty's IO thread
+                Object[] args = serviceRequest.readArgs(serviceInvoker.getParameterTypes());
+
+                executor.execute(new ServiceInvocationRunnable(channel,
+                                                               serviceRequest.getTransactionId(),
+                                                               serviceInvoker,
+                                                               args));
             } catch (IOException e) {
                 throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s]: %s",
                                               channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName(),
                                               e.getMessage());
-            }
-
-            if (!serviceInvoker.isOneway()) {
-                ServiceResponseMessageOut.builder()
-                                         .serverResponseAt(System.currentTimeMillis())
-                                         .txId(serviceRequest.getTransactionId())
-                                         .serializer(serviceRequest.getSerializer())
-                                         .returning(ret)
-                                         .send(channel);
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.bithon.component.brpc.channel.BrpcClient;
 import org.bithon.component.brpc.channel.BrpcClientBuilder;
 import org.bithon.component.brpc.channel.BrpcServer;
+import org.bithon.component.brpc.channel.BrpcServerBuilder;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.example.ExampleServiceImpl;
 import org.bithon.component.brpc.example.IExampleService;
@@ -47,9 +48,12 @@ public class BrpcRpcTest {
 
     @BeforeEach
     public void setup() {
-        brpcServer = new BrpcServer("test")
-            .bindService(new ExampleServiceImpl())
-            .start(8070, idleSeconds);
+        brpcServer = BrpcServerBuilder.builder()
+                                      .serverId("test")
+                                      .idleSeconds(idleSeconds)
+                                      .build()
+                                      .bindService(new ExampleServiceImpl())
+                                      .start(8070);
     }
 
     @AfterEach
@@ -416,7 +420,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testCallNotRegisteredService() {
-        try (BrpcServer brpcServer = new BrpcServer("test").start(18070)) {
+        try (BrpcServer brpcServer = BrpcServerBuilder.builder().serverId("test").build().start(18070)) {
             try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 18070).build()) {
                 try {
                     // IExampleService is not registered at remote, ServiceNotFoundException should be thrown

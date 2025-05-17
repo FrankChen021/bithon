@@ -97,8 +97,10 @@ public class BrpcMetricMessageExporter implements IMessageExporter {
                                            .clientId("metrics")
                                            .server(new RoundRobinEndPointProvider(endpoints))
                                            .maxRetry(3)
-                                           .retryInterval(Duration.ofMillis(100))
-                                           .connectionTimeout(exporterConfig.getClient().getConnectionTimeout())
+                                           .retryBackOff(Duration.ofMillis(100))
+                                           .connectionTimeout(Duration.ofMillis(exporterConfig.getClient().getConnectionTimeout()))
+                                           .lowMaterMark(exporterConfig.getClient().getLowWaterMark().intValue())
+                                           .highMaterMark(exporterConfig.getClient().getHighWaterMark().intValue())
                                            .build();
         this.exporterConfig = exporterConfig;
 

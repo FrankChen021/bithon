@@ -17,6 +17,7 @@
 package org.bithon.server.collector.brpc;
 
 import lombok.Data;
+import org.bithon.component.commons.utils.HumanReadableNumber;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,4 +27,14 @@ import lombok.Data;
 public class BrpcCollectorConfig {
     private boolean enabled;
     private int port;
+
+    @Data
+    public static class ChannelConfig {
+        /**
+         * Watermark configuration for underlying communication channel.
+         */
+        private HumanReadableNumber lowWaterMark;
+        private HumanReadableNumber highWaterMark;
+    }
+    private ChannelConfig channel;
 }

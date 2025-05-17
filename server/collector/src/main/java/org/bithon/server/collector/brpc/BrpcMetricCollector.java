@@ -30,6 +30,7 @@ import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.collector.http.MetricHttpCollector;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.IColumn;
@@ -44,9 +45,7 @@ import org.bithon.server.pipeline.metrics.MetricMessage;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
 import org.bithon.server.pipeline.metrics.receiver.IMetricReceiver;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -62,29 +61,27 @@ import java.util.stream.Collectors;
 @JsonTypeName("brpc")
 public class BrpcMetricCollector implements IMetricCollector, IMetricReceiver {
 
-    private final int port;
+    private final BrpcCollectorConfig collectorConfig;
     private final ApplicationContext applicationContext;
     private IMetricProcessor processor;
     private BrpcCollectorServer.ServiceGroup serviceGroup;
 
-    public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) Environment environment,
+    public BrpcMetricCollector(@JacksonInject(useInput = OptBoolean.FALSE) EnvironmentBinder binder,
                                @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        BrpcCollectorConfig config = Binder.get(environment)
-                                           .bind("bithon.receivers.metrics.brpc", BrpcCollectorConfig.class)
-                                           .get();
+        BrpcCollectorConfig config = binder.bind("bithon.receivers.metrics.brpc", BrpcCollectorConfig.class);
         Preconditions.checkIfTrue(config.isEnabled(), "The brpc collector is configured as DISABLED.");
         Preconditions.checkNotNull(config.getPort(), "The port for the metrics collector is not configured.");
         Preconditions.checkIfTrue(config.getPort() > 1000 && config.getPort() < 65535,
                                   "The port for the event collector must be in the range of (1000, 65535).");
 
-        this.port = config.getPort();
+        this.collectorConfig = config;
         this.applicationContext = applicationContext;
     }
 
     @Override
     public void start() {
         serviceGroup = this.applicationContext.getBean(BrpcCollectorServer.class)
-                                              .addService("metrics", this, port);
+                                              .addService("metrics", this, collectorConfig.getPort(), collectorConfig.getChannel());
     }
 
     @Override

@@ -20,17 +20,16 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.web.security.IHttpSecurityCustomizer;
 import org.bithon.server.web.security.jwt.JwtConfig;
 import org.bithon.server.web.security.jwt.JwtTokenComponent;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -54,15 +53,13 @@ public class OAuth2AutoConfiguration {
     }
 
     @Bean
-    public IHttpSecurityCustomizer oauth2(Environment env,
+    public IHttpSecurityCustomizer oauth2(EnvironmentBinder binder,
                                           ApplicationContext applicationContext) {
 
         return httpSecurity -> {
             log.info("Configuring OAuth2 security for webapp");
 
-            OAuth2Config oauth2Config = Binder.get(env)
-                                              .bind("bithon.web.security.oauth2", OAuth2Config.class)
-                                              .get();
+            OAuth2Config oauth2Config = binder.bind("bithon.web.security.oauth2", OAuth2Config.class);
 
             ServerProperties serverProperties = applicationContext.getBean(ServerProperties.class);
             String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";

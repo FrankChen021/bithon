@@ -30,6 +30,7 @@ import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.shaded.io.netty.bootstrap.ServerBootstrap;
 import org.bithon.shaded.io.netty.buffer.PooledByteBufAllocator;
 import org.bithon.shaded.io.netty.channel.Channel;
@@ -39,6 +40,7 @@ import org.bithon.shaded.io.netty.channel.ChannelInboundHandlerAdapter;
 import org.bithon.shaded.io.netty.channel.ChannelInitializer;
 import org.bithon.shaded.io.netty.channel.ChannelOption;
 import org.bithon.shaded.io.netty.channel.ChannelPipeline;
+import org.bithon.shaded.io.netty.channel.WriteBufferWaterMark;
 import org.bithon.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.bithon.shaded.io.netty.channel.socket.nio.NioSocketChannel;
@@ -56,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -63,24 +66,50 @@ import java.util.stream.Collectors;
  */
 public class BrpcServer implements Closeable {
 
-    private final NioEventLoopGroup bossGroup;
-    private final NioEventLoopGroup workerGroup;
+    private final ServerBootstrap serverBootstrap;
+    private final NioEventLoopGroup acceptorGroup;
+    private final NioEventLoopGroup ioGroup;
+
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
-
     private final SessionManager sessionManager;
-
     private final InvocationManager invocationManager;
 
-    public BrpcServer(String serverId) {
-        this(serverId, Runtime.getRuntime().availableProcessors());
-    }
+    BrpcServer(BrpcServerBuilder builder) {
+        Preconditions.checkNotNull(builder.serverId, "serverId must be set");
 
-    public BrpcServer(String serverId, int nWorkerThreads) {
-        this.bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.nonDaemonThreadFactory("brpc-server-" + serverId));
-        this.workerGroup = new NioEventLoopGroup(nWorkerThreads, NamedThreadFactory.nonDaemonThreadFactory("brpc-s-work-" + serverId));
+        this.acceptorGroup = new NioEventLoopGroup(1, NamedThreadFactory.nonDaemonThreadFactory("brpc-server-" + builder.serverId));
+        this.ioGroup = new NioEventLoopGroup(builder.ioThreads, NamedThreadFactory.nonDaemonThreadFactory("brpc-s-work-" + builder.serverId));
 
         this.invocationManager = new InvocationManager();
         this.sessionManager = new SessionManager(this.invocationManager);
+
+        final Executor executor = builder.executor;
+        this.serverBootstrap = new ServerBootstrap()
+            .group(acceptorGroup, ioGroup)
+            .channel(NioServerSocketChannel.class)
+            .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+            .option(ChannelOption.SO_BACKLOG, builder.backlog)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .childOption(ChannelOption.SO_KEEPALIVE, false)
+            .childOption(ChannelOption.TCP_NODELAY, true)
+            .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+            .childHandler(new ChannelInitializer<NioSocketChannel>() {
+                @Override
+                protected void initChannel(NioSocketChannel ch) {
+                    ChannelPipeline pipeline = ch.pipeline();
+                    pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                    pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+                    pipeline.addLast("decoder", new ServiceMessageInDecoder());
+                    pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
+                    pipeline.addLast(new IdleStateHandler(builder.idleSeconds, 0, 0));
+                    pipeline.addLast(sessionManager);
+                    pipeline.addLast(new ServiceMessageChannelHandler(builder.serverId, serviceRegistry, executor, invocationManager));
+                }
+            });
+
+        if (builder.lowWaterMark > 0 && builder.highWaterMark > 0) {
+            this.serverBootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(builder.lowWaterMark, builder.highWaterMark));
+        }
     }
 
     /**
@@ -95,33 +124,6 @@ public class BrpcServer implements Closeable {
     }
 
     public BrpcServer start(int port) {
-        return start(port, 180);
-    }
-
-    public BrpcServer start(int port, int idleTimeout) {
-
-        ServerBootstrap serverBootstrap = new ServerBootstrap();
-        serverBootstrap
-                .group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .option(ChannelOption.SO_BACKLOG, 1024)
-                .childOption(ChannelOption.SO_KEEPALIVE, false)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childHandler(new ChannelInitializer<NioSocketChannel>() {
-                    @Override
-                    protected void initChannel(NioSocketChannel ch) {
-                        ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                        pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                        pipeline.addLast("decoder", new ServiceMessageInDecoder());
-                        pipeline.addLast("encoder", new ServiceMessageOutEncoder(invocationManager));
-                        pipeline.addLast(new IdleStateHandler(idleTimeout, 0, 0));
-                        pipeline.addLast(sessionManager);
-                        pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry, invocationManager));
-                    }
-                });
         try {
             serverBootstrap.bind(port).sync();
         } catch (InterruptedException e) {
@@ -134,11 +136,11 @@ public class BrpcServer implements Closeable {
     @Override
     public void close() {
         try {
-            bossGroup.shutdownGracefully().sync();
+            acceptorGroup.shutdownGracefully().sync();
         } catch (InterruptedException ignored) {
         }
         try {
-            workerGroup.shutdownGracefully().sync();
+            ioGroup.shutdownGracefully().sync();
         } catch (InterruptedException ignored) {
         }
     }

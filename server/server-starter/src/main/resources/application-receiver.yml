@@ -4,16 +4,25 @@ bithon:
       brpc:
         enabled: true
         port: 9898
+        channel:
+          low-water-mark: 128KiB
+          high-water-mark: 256KiB
       http:
         enabled: true
     events:
       brpc:
         enabled: true
         port: 9896
+        channel:
+          low-water-mark: 128KiB
+          high-water-mark: 256KiB
     traces:
       brpc:
         enabled: true
         port: 9895
+        channel:
+          low-water-mark: 128KiB
+          high-water-mark: 256KiB
       http:
         enabled: true
       otlp-http:

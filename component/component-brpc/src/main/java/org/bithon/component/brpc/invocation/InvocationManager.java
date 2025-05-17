@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>
  * Note: the concept 'client' here is a relative concept.
  * It could be a network client, which connects to an RPC server,
- * it could also be an RPC server which calls service provided by a network client.
+ * it could also be an RPC server that calls service provided by a network client.
  *
  * @author frankchen
  */
@@ -81,10 +81,14 @@ public class InvocationManager {
                       timeoutMillisecond);
     }
 
-    public byte[] invoke(IBrpcChannel channelWriter,
+    /**
+     * Invoke a remote service method and returns the raw byte-stream response.
+     * This is used for proxy.
+     */
+    public byte[] invoke(IBrpcChannel channel,
                          ServiceRequestMessageOut serviceRequest,
                          long timeoutMillisecond) throws Throwable {
-        return (byte[]) invoke(channelWriter, serviceRequest, null, timeoutMillisecond);
+        return (byte[]) invoke(channel, serviceRequest, null, timeoutMillisecond);
     }
 
     private Object invoke(IBrpcChannel channel,
@@ -123,8 +127,7 @@ public class InvocationManager {
         if (!serviceRequest.isOneway()) {
             inflightRequest = new InflightRequest(serviceRequest.getServiceName(),
                                                   serviceRequest.getMethodName(),
-                                                  returnObjectType,
-                                                  System.currentTimeMillis());
+                                                  returnObjectType);
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
         }
 
@@ -153,26 +156,28 @@ public class InvocationManager {
                                               remoteEndpoint);
             }
 
-            //make sure it has been cleared when timeout
+            // Make sure it has been cleared when timeout
             inflightRequests.remove(serviceRequest.getTransactionId());
 
             if (inflightRequest.exception != null) {
                 throw inflightRequest.exception;
             }
 
-            if (!inflightRequest.responseReceived) {
-                throw new TimeoutException(remoteEndpoint.toString(),
-                                           serviceRequest.getServiceName(),
-                                           serviceRequest.getMethodName(),
-                                           timeoutMillisecond);
+            if (inflightRequest.responseAt > 0) {
+                // Response has been collected, then return the object.
+                // NOTE: The return object might be NULL
+                return inflightRequest.returnObject;
             }
 
-            return inflightRequest.returnObject;
+            throw new TimeoutException(remoteEndpoint.toString(),
+                                       serviceRequest.getServiceName(),
+                                       serviceRequest.getMethodName(),
+                                       timeoutMillisecond);
         }
         return null;
     }
 
-    public void onResponse(ServiceResponseMessageIn response) {
+    public void handleResponse(ServiceResponseMessageIn response) {
         long txId = response.getTransactionId();
         InflightRequest inflightRequest = inflightRequests.remove(txId);
         if (inflightRequest == null) {
@@ -192,21 +197,22 @@ public class InvocationManager {
         }
 
         synchronized (inflightRequest) {
-            inflightRequest.responseReceived = true;
+            inflightRequest.responseAt = System.currentTimeMillis();
             inflightRequest.notify();
         }
     }
 
-    public void onClientException(long txId, Throwable e) {
+    /**
+     * Handle exception raised at caller side before the RPC call request is issued to server side
+     */
+    public void handleException(long txId, Throwable e) {
         InflightRequest inflightRequest = inflightRequests.remove(txId);
         if (inflightRequest == null) {
             return;
         }
 
-        inflightRequest.exception = e;
-
         synchronized (inflightRequest) {
-            inflightRequest.responseReceived = true;
+            inflightRequest.exception = e;
             inflightRequest.notify();
         }
     }
@@ -226,25 +232,19 @@ public class InvocationManager {
 
         private InflightRequest(String serviceName,
                                 String methodName,
-                                Type returnObjectType,
-                                long requestAt) {
+                                Type returnObjectType) {
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.returnObjectType = returnObjectType;
-            this.requestAt = requestAt;
+            this.requestAt = System.currentTimeMillis();
         }
 
         /**
          * The deserialized response object.
          * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
          */
-        Object returnObject;
-
-        /**
-         * Indicate whether this request has a response.
-         * This is required so that {@link #returnObject} might be null
-         */
-        boolean responseReceived;
-        Throwable exception;
+        volatile long responseAt;
+        volatile Object returnObject;
+        volatile Throwable exception;
     }
 }

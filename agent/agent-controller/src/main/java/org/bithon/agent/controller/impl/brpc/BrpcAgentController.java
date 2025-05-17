@@ -65,12 +65,14 @@ public class BrpcAgentController implements IAgentController {
                                       .applicationName(appInstance.getQualifiedName())
                                       .clientId("ctrl")
                                       .server(new RoundRobinEndPointProvider(endpoints))
-                                      .workerThreads(2)
+                                      .ioThreads(2)
                                       .maxRetry(3)
-                                      .retryInterval(Duration.ofSeconds(2))
-                                      .connectionTimeout(config.getClient().getConnectionTimeout())
+                                      .retryBackOff(Duration.ofSeconds(2))
+                                      .connectionTimeout(Duration.ofMillis(config.getClient().getConnectionTimeout()))
                                       .header(Headers.HEADER_VERSION, AgentBuildVersion.getString())
                                       .header(Headers.HEADER_START_TIME, String.valueOf(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                                      .lowMaterMark(config.getClient().getLowWaterMark().intValue())
+                                      .highMaterMark(config.getClient().getHighWaterMark().intValue())
                                       .build();
 
         if (appInstance.getPort() > 0) {

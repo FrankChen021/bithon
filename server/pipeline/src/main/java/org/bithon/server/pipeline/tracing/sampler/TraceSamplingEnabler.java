@@ -16,12 +16,12 @@
 
 package org.bithon.server.pipeline.tracing.sampler;
 
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.BindResult;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
@@ -29,17 +29,21 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @date 16/7/24 10:17 am
  */
 public class TraceSamplingEnabler implements Condition {
+
     /**
      * Use {@link TracePipelineConfig} to check because it defines default value for some properties
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
-        BindResult<TracePipelineConfig> result = Binder.get(context.getEnvironment())
-                                                       .bind(properties.prefix(), TracePipelineConfig.class);
+        String propertyPath = properties.prefix();
 
-        return result.isBound()
-               && result.get().isEnabled()
-               && result.get().isMetricOverSpanEnabled();
+        // Since TraceSamplingEnable is initialized before EnvironmentBinder is injected, we have to construct a new EnvironmentBinder
+        TracePipelineConfig config = EnvironmentBinder.from((ConfigurableEnvironment) context.getEnvironment())
+                                                      .bind(propertyPath, TracePipelineConfig.class);
+
+        return config != null
+               && config.isEnabled()
+               && config.isMetricOverSpanEnabled();
     }
 }
