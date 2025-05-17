@@ -201,7 +201,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
                                   .startTimestamp(left.getStartTimestamp())
                                   .endTimestamp(left.getEndTimestamp())
                                   .interval(left.getInterval())
-                                  .table(ColumnarTable.of(this.resultColumnName, result))
+                                  .table(ColumnarTable.of(result))
                                   .rows(result.size())
                                   .keyColumns(left.getKeyColumns())
                                   .valColumns(List.of(this.resultColumnName))

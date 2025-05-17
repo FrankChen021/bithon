@@ -31,9 +31,11 @@ import java.util.Set;
  */
 public class ColumnarTable {
 
-    public static ColumnarTable of(String name, Column column) {
+    public static ColumnarTable of(Column... columns) {
         ColumnarTable table = new ColumnarTable();
-        table.addColumn(column);
+        for (Column column : columns) {
+            table.addColumn(column);
+        }
         return table;
     }
 
