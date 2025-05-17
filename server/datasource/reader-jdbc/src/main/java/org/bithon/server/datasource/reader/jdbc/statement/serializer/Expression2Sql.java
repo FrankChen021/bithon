@@ -27,6 +27,7 @@ import org.bithon.component.commons.expression.serialization.ExpressionSerialize
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunctions;
@@ -53,7 +54,7 @@ public class Expression2Sql extends ExpressionSerializer {
         }
 
         // Apply DB-related transformation on general AST
-        IExpression transformed = sqlDialect.transform(null, expression, null);
+        IExpression transformed = sqlDialect.transform(null, expression, QuerySettings.DEFAULT);
 
         return sqlDialect.createSqlSerializer(qualifier).serialize(transformed);
     }

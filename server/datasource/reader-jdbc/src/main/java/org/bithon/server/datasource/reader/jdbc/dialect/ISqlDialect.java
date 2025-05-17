@@ -77,7 +77,7 @@ public interface ISqlDialect {
      * Transform expressions for the target dialect
      */
     default IExpression transform(IExpression expression) {
-        return transform(null, expression, null);
+        return transform(null, expression, QuerySettings.DEFAULT);
     }
 
     default IExpression transform(ISchema schema, IExpression expression, QuerySettings settings) {
