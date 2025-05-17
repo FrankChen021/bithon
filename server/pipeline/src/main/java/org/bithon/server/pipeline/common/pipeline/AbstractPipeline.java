@@ -226,6 +226,9 @@ public abstract class AbstractPipeline<RECEIVER extends IReceiver, EXPORTER exte
         this.applicationContext = applicationContext;
     }
 
+    /**
+     * If PipelineConfig is changed, update processors on the fly
+     */
     @Override
     public void onApplicationEvent(EnvironmentChangeEvent event) {
         if (event.getKeys()

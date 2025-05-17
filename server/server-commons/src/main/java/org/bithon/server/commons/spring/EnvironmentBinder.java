@@ -21,6 +21,7 @@ import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.bind.PropertySourcesPlaceholdersResolver;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,15 @@ public class EnvironmentBinder {
 
     public EnvironmentBinder(ConfigurableEnvironment environment) {
         ConfigurableConversionService conversionService = environment.getConversionService();
-        if (!conversionService.canConvert(String.class, HumanReadableNumber.class)) {
+
+        try {
+            // The ConversionService does not provide an API to check if a converter has been added
+            // Although there's a canConvert method, since HumanReadableNumber an extended Number class, there's a built-in Strong to Number converter,
+            // This will always return true.
+            // So we have to convert to detect if the convert has been added
+            //
+            conversionService.convert("1KiB", HumanReadableNumber.class);
+        } catch (ConversionFailedException ignored) {
             conversionService.addConverter(String.class, HumanReadableNumber.class, HumanReadableNumber::of);
         }
 

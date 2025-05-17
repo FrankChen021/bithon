@@ -114,8 +114,8 @@ public class TraceIdMappingBatchExtractor {
                 return;
             }
 
-            TracePipelineConfig pipelineConfig = EnvironmentBinder.from(applicationContext.getEnvironment())
-                                                                  .bind(pipelineConfigPrefix, TracePipelineConfig.class);
+            TracePipelineConfig pipelineConfig = applicationContext.getBean(EnvironmentBinder.class)
+                                                                   .bind(pipelineConfigPrefix, TracePipelineConfig.class);
             if (pipelineConfig == null) {
                 log.warn("Trace mapping configuration changed. But failed to reload configurations.");
                 return;

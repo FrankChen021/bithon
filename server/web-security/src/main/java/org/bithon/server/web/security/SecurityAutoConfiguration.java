@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -46,8 +45,8 @@ public class SecurityAutoConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity,
                                            ApplicationContext applicationContext) throws Exception {
-        boolean isSecurityEnabled = EnvironmentBinder.from((ConfigurableEnvironment) applicationContext.getEnvironment())
-                                                     .bind("bithon.web.security.enabled", Boolean.class, () -> false);
+        boolean isSecurityEnabled = applicationContext.getBean(EnvironmentBinder.class)
+                                                      .bind("bithon.web.security.enabled", Boolean.class, () -> false);
 
         ServerProperties serverProperties = applicationContext.getBean(ServerProperties.class);
         String contextPath = StringUtils.hasText(serverProperties.getServlet().getContextPath()) ? serverProperties.getServlet().getContextPath() : "";
