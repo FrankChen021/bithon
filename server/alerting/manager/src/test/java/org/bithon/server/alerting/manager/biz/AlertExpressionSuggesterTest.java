@@ -58,11 +58,11 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
         Assertions.assertEquals(Stream.of("(", // Start of expression
-                                      // Aggregators
-                                      "sum", "avg", "count", "max", "min")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, ""));
+                                          // Aggregators
+                                          "sum", "avg", "count", "max", "min")
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, ""));
     }
 
     @Test
@@ -79,10 +79,10 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
         // TODO: BUGGY, should not suggest )
-        Assertions.assertEquals(Stream.of("!=", ")", "<", "<=", "<>", "=", ">", ">=", "and", "by", "is", "or")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) "));
+        Assertions.assertEquals(Stream.of("!=", ")", "*", "+", "-", "/", "<", "<=", "<>", "=", ">", ">=", "and", "by", "is", "or")
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) "));
     }
 
     @Test
@@ -90,8 +90,8 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
 
         Assertions.assertEquals(Stream.of("(")
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY"));
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY"));
     }
 
     @Test
@@ -103,29 +103,29 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
 
         Assertions.assertEquals(Stream.of("appName", "instanceName")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY ("));
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY ("));
 
         Assertions.assertEquals(Stream.of("appName", "instanceName")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY (appName,"));
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY (appName,"));
 
         Assertions.assertEquals(Stream.of("appName", "instanceName")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY (appName, appName,"));
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY (appName, appName,"));
 
         Assertions.assertEquals(Stream.of("appName", "instanceName")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY (appName, appName, appName, "));
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY (appName, appName, appName, "));
 
         Assertions.assertEquals(Stream.of(",", ")")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggest(suggester, "sum (event.count) BY (appName, appName, appName"));
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggest(suggester, "sum (event.count) BY (appName, appName, appName"));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
 
         Assertions.assertEquals(Arrays.asList("d1", "d2"),
-                            suggest(suggester, "sum (\t"));
+                                suggest(suggester, "sum (\t"));
     }
 
     @Test
@@ -151,7 +151,7 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(dataSourceApi);
 
         Assertions.assertEquals(Collections.singletonList("eventCount"),
-                            suggest(suggester, "sum (event. "));
+                                suggest(suggester, "sum (event. "));
     }
 
     @Test
@@ -227,10 +227,10 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'})");
         // TODO: buggy, SHOULD not suggest )
-        Assertions.assertEquals(Stream.of("!=", ")", "<>", "=", ">", "<", ">=", "<=", "and", "by", "is", "or")
-                                  .sorted()
-                                  .collect(Collectors.toList()),
-                            suggestions);
+        Assertions.assertEquals(Stream.of("!=", ")", "*", "+", "-", "/", "<", "<=", "<>", "=", ">", ">=", "and", "by", "is", "or")
+                                      .sorted()
+                                      .collect(Collectors.toList()),
+                                suggestions);
     }
 
     @Test
@@ -238,7 +238,7 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) > ");
         Assertions.assertEquals(Collections.emptyList(),
-                            suggestions);
+                                suggestions);
     }
 
     @Test
@@ -256,8 +256,8 @@ public class AlertExpressionSuggesterTest {
         AlertExpressionSuggester suggester = new AlertExpressionSuggester(null);
         Collection<String> suggestions = suggest(suggester, "sum(event.count{appName='a'}) > 5 ");
         // TODO: buggy, should suggest 'and', 'or' only
-        Assertions.assertEquals(Arrays.asList(")", "and", "or"),
-                            suggestions);
+        Assertions.assertEquals(Arrays.asList("!=", ")", "*", "+", "-", "/", "<", "<=", "<>", "=", ">", ">=", "and", "is", "or"),
+                                suggestions);
     }
 
     @Test
