@@ -59,7 +59,7 @@ public class RegularExpressionMatchOptimizer {
 
     // Add a method for not match expressions
     IExpression optimize(ConditionalExpression.RegularExpressionNotMatchExpression expression) {
-        if (querySettings == null || !querySettings.isEnabledRegularExpressionOptimization()) {
+        if (querySettings == null || !querySettings.isEnableRegularExpressionOptimization()) {
             return expression;
         }
 
@@ -100,7 +100,7 @@ public class RegularExpressionMatchOptimizer {
     }
 
     IExpression optimize(ConditionalExpression.RegularExpressionMatchExpression expression) {
-        if (querySettings == null || !querySettings.isEnabledRegularExpressionOptimization()) {
+        if (querySettings == null || !querySettings.isEnableRegularExpressionOptimization()) {
             return expression;
         }
 
@@ -134,9 +134,11 @@ public class RegularExpressionMatchOptimizer {
                     // Exact match if anchored on both sides
                     return new ComparisonExpression.EQ(lhs, new LiteralExpression.StringLiteral(unanchoredPattern));
                 } else if (startsWithCaret) {
-                    return new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern));
+                    return querySettings.isEnableRegularExpressionToStartsWith() ? new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
+                                                                                 : expression;
                 } else if (endsWithDollar) {
-                    return new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern));
+                    return querySettings.isEnableRegularExpressionToEndsWith() ? new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
+                                                                               : expression;
                 } else {
                     // Contains if no anchors
                     // Contains expression will be turned into LIKE if using Expression2Sql
@@ -145,8 +147,8 @@ public class RegularExpressionMatchOptimizer {
             }
 
             // Check for number range patterns: ^[0-9]+$, ^\d+$
-            if (startsWithCaret && endsWithDollar && 
-                (unanchoredPattern.equals("[0-9]+") || unanchoredPattern.equals("\\d+") || 
+            if (startsWithCaret && endsWithDollar &&
+                (unanchoredPattern.equals("[0-9]+") || unanchoredPattern.equals("\\d+") ||
                  unanchoredPattern.equals("[0-9]*") || unanchoredPattern.equals("\\d*"))) {
                 // Can't do exact optimization but we can use > 0 or >= 0 based on + or *
                 boolean isZeroAllowed = unanchoredPattern.contains("*");
@@ -159,17 +161,25 @@ public class RegularExpressionMatchOptimizer {
 
             // startsWith: "^prefix.*" or "^prefix"
             if (startsWithCaret && unanchoredPattern.endsWith(".*")) {
-                String prefix = unanchoredPattern.substring(0, unanchoredPattern.length() - 2);
-                if (!containsUnescapedMetachars(prefix)) {
-                    return new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(prefix));
+                if (querySettings.isEnableRegularExpressionToStartsWith()) {
+                    String prefix = unanchoredPattern.substring(0, unanchoredPattern.length() - 2);
+                    if (!containsUnescapedMetachars(prefix)) {
+                        return new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(prefix));
+                    }
+                } else {
+                    return expression;
                 }
             }
 
             // endsWith: ".*suffix$" or "suffix$"
             if (endsWithDollar && unanchoredPattern.startsWith(".*")) {
-                String suffix = unanchoredPattern.substring(2);
-                if (!containsUnescapedMetachars(suffix)) {
-                    return new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(suffix));
+                if (querySettings.isEnableRegularExpressionToEndsWith()) {
+                    String suffix = unanchoredPattern.substring(2);
+                    if (!containsUnescapedMetachars(suffix)) {
+                        return new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(suffix));
+                    }
+                } else {
+                    return expression;
                 }
             }
 
@@ -206,7 +216,7 @@ public class RegularExpressionMatchOptimizer {
             // Pattern with single dots should be converted to LIKE with underscore
             if (containsOnlySingleDotWildcards(pattern)) {
                 String likePattern = pattern;
-                
+
                 // First handle escaped . in pattern so they don't get converted to LIKE wildcards
                 StringBuilder sb = new StringBuilder();
                 boolean escaped = false;
@@ -228,13 +238,13 @@ public class RegularExpressionMatchOptimizer {
                     }
                 }
                 likePattern = sb.toString();
-                
+
                 // Now replace all unescaped dots with underscores
                 likePattern = likePattern.replace(".", "_");
-                
+
                 // Put back the escaped dots
                 likePattern = likePattern.replace("\u0000", ".");
-                
+
                 if (startsWithCaret) {
                     likePattern = likePattern.substring(1);
                 }
@@ -282,22 +292,22 @@ public class RegularExpressionMatchOptimizer {
     /**
      * Prepares a LIKE pattern by ensuring that the wildcards are properly maintained
      * while escaping any literal wildcard characters that should be matched exactly.
-     * 
+     * <p>
      * This method handles two types of special LIKE characters:
      * - % (percent): Matches any sequence of characters
      * - _ (underscore): Matches exactly one character
-     * 
+     * <p>
      * The key rules are:
      * 1. Don't escape % at the beginning or end of pattern (these are intentional wildcards)
      * 2. Don't escape _ characters (these were converted from . in regex)
      * 3. Escape any other '%' or '_' characters that should be matched literally
-     * 
+     * <p>
      * Examples:
      * - Input: "%a_b%" → Output: "%a_b%" (maintains wildcards)
      * - Input: "a%b" → Output: "a\\%b" (escapes the % in the middle)
      * - Input: "a_b" → Output: "a_b" (keeps underscore from regex dot conversion)
      * - Input: "%100\\_percent%" → Output: "%100\\_percent%" (keeps existing escapes)
-     * 
+     *
      * @param pattern The LIKE pattern with potential wildcards
      * @return A properly escaped LIKE pattern
      */
@@ -312,13 +322,13 @@ public class RegularExpressionMatchOptimizer {
                     sb.append(c);
                     continue;
                 }
-                
+
                 // Don't escape the _ that were converted from dots in the regex pattern
                 if (c == '_') {
                     sb.append(c);
                     continue;
                 }
-                
+
                 // Otherwise escape the character
                 sb.append('\\');
             }
@@ -400,7 +410,7 @@ public class RegularExpressionMatchOptimizer {
         // Track escaping to properly identify unescaped dots
         boolean escaped = false;
         boolean hasUnescapedDot = false;
-        
+
         for (int i = 0; i < processedPattern.length(); i++) {
             char c = processedPattern.charAt(i);
             if (escaped) {

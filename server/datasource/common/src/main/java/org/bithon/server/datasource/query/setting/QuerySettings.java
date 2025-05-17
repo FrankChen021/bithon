@@ -37,5 +37,17 @@ import org.springframework.context.annotation.Configuration;
 public class QuerySettings {
     public static final QuerySettings DEFAULT = new QuerySettings();
 
-    private boolean enabledRegularExpressionOptimization = true;
+    private boolean enableRegularExpressionOptimization = true;
+    
+    /**
+     * When true, allows optimization of regex patterns like "^prefix.*" to startsWith expressions.
+     * When false, these patterns will remain as regular expression matches.
+     */
+    private boolean enableRegularExpressionToStartsWith = false;
+    
+    /**
+     * When true, allows optimization of regex patterns like ".*suffix$" to endsWith expressions.
+     * When false, these patterns will remain as regular expression matches.
+     */
+    private boolean enableRegularExpressionToEndsWith = false;
 }

@@ -38,7 +38,9 @@ public class RegularExpressionMatchOptimizerTest {
 
     private final IExpression testColumn = new IdentifierExpression("column");
     private final RegularExpressionMatchOptimizer optimizer = RegularExpressionMatchOptimizer.of(QuerySettings.builder()
-                                                                                                              .enabledRegularExpressionOptimization(true)
+                                                                                                              .enableRegularExpressionOptimization(true)
+                                                                                                              .enableRegularExpressionToStartsWith(true)
+                                                                                                              .enableRegularExpressionToEndsWith(true)
                                                                                                               .build());
 
     @Test
@@ -70,11 +72,37 @@ public class RegularExpressionMatchOptimizerTest {
 
     @Test
     public void testStartsWithStar() {
-        IExpression expr = createMatchExpression("^bithon.*");
+        IExpression expr = createMatchExpression("^abc.*");
         IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.StartsWith.class, optimized);
-        assertEquals("column startsWith 'bithon'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+        assertEquals("column startsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testDisabledStartsWithOptimization() {
+        // Create an optimizer with startsWith optimization disabled
+        RegularExpressionMatchOptimizer disabledStartsWithOptimizer = RegularExpressionMatchOptimizer.of(
+            QuerySettings.builder()
+                         .enableRegularExpressionOptimization(true)
+                         .enableRegularExpressionToStartsWith(false)
+                         .build()
+        );
+        
+        IExpression expr = createMatchExpression("^abc");
+        IExpression optimized = disabledStartsWithOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        
+        // Should not be optimized to startsWith
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+        
+        // Also test with "^prefix.*" pattern
+        expr = createMatchExpression("^bithon.*");
+        optimized = disabledStartsWithOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        
+        // Should not be optimized to startsWith
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^bithon.*'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
@@ -93,6 +121,56 @@ public class RegularExpressionMatchOptimizerTest {
 
         assertInstanceOf(ConditionalExpression.EndsWith.class, optimized);
         assertEquals("column endsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testDisabledEndsWithOptimization() {
+        // Create an optimizer with endsWith optimization disabled
+        RegularExpressionMatchOptimizer disabledEndsWithOptimizer = RegularExpressionMatchOptimizer.of(
+            QuerySettings.builder()
+                         .enableRegularExpressionOptimization(true)
+                         .enableRegularExpressionToEndsWith(false)
+                         .build()
+        );
+        
+        IExpression expr = createMatchExpression("abc$");
+        IExpression optimized = disabledEndsWithOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        
+        // Should not be optimized to endsWith
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ 'abc$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+        
+        // Also test with ".*suffix$" pattern
+        expr = createMatchExpression(".*org$");
+        optimized = disabledEndsWithOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        
+        // Should not be optimized to endsWith
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '.*org$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+    
+    @Test
+    public void testBithonPattern() {
+        // Test the specific pattern mentioned by the user
+        IExpression expr = createMatchExpression("^bithon.*");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        assertInstanceOf(ConditionalExpression.StartsWith.class, optimized);
+        assertEquals("column startsWith 'bithon'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+        
+        // Now test with startsWith optimization disabled
+        RegularExpressionMatchOptimizer disabledStartsWithOptimizer = RegularExpressionMatchOptimizer.of(
+            QuerySettings.builder()
+                         .enableRegularExpressionOptimization(true)
+                         .enableRegularExpressionToStartsWith(false)
+                         .build()
+        );
+        
+        optimized = disabledStartsWithOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        
+        // Should not be optimized to startsWith
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^bithon.*'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
