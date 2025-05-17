@@ -31,29 +31,19 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class TraceSamplingEnabler implements Condition {
 
     /**
-     * This condition will be evaluated for multiple times(have no time to find why)
-     * So we have to cache the result
-     */
-    private static Boolean enabled = null;
-
-    /**
      * Use {@link TracePipelineConfig} to check because it defines default value for some properties
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        if (enabled == null) {
-            ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
-            String propertyPath = properties.prefix();
+        ConfigurationProperties properties = TracePipelineConfig.class.getAnnotation(ConfigurationProperties.class);
+        String propertyPath = properties.prefix();
 
-            // Since TraceSamplingEnable is initialized before EnvironmentBinder is injected, we have to construct a new EnvironmentBinder
-            TracePipelineConfig config = EnvironmentBinder.from((ConfigurableEnvironment) context.getEnvironment())
-                                                          .bind(propertyPath, TracePipelineConfig.class);
+        // Since TraceSamplingEnable is initialized before EnvironmentBinder is injected, we have to construct a new EnvironmentBinder
+        TracePipelineConfig config = EnvironmentBinder.from((ConfigurableEnvironment) context.getEnvironment())
+                                                      .bind(propertyPath, TracePipelineConfig.class);
 
-            enabled = config != null
-                      && config.isEnabled()
-                      && config.isMetricOverSpanEnabled();
-        }
-
-        return enabled;
+        return config != null
+               && config.isEnabled()
+               && config.isMetricOverSpanEnabled();
     }
 }
