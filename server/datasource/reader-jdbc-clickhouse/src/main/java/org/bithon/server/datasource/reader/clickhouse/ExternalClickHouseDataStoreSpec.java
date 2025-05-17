@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.datasource.store.ExternalDataStoreSpec;
 import org.bithon.server.datasource.store.IDataStoreSpec;
@@ -33,21 +34,24 @@ import java.util.Map;
 public class ExternalClickHouseDataStoreSpec extends ExternalDataStoreSpec {
 
     private final SqlDialectManager sqlDialectManager;
+    private final QuerySettings querySettings;
 
     public ExternalClickHouseDataStoreSpec(@JsonProperty("properties") Map<String, Object> properties,
                                            @JsonProperty("store") String store,
-                                           @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+                                           @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                                           @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
         super(properties, store);
         this.sqlDialectManager = sqlDialectManager;
+        this.querySettings = querySettings;
     }
 
     @Override
     public IDataStoreSpec hideSensitiveInformation() {
-        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager);
+        return new ExternalClickHouseDataStoreSpec(this.getSensitiveHiddenProps(), this.store, this.sqlDialectManager, this.querySettings);
     }
 
     @Override
     public IDataSourceReader createReader() {
-        return new ClickHouseDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"));
+        return new ClickHouseDataSourceReader(store, this.properties, sqlDialectManager.getSqlDialect("clickhouse"), this.querySettings);
     }
 }

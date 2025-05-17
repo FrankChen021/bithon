@@ -16,47 +16,22 @@
 
 package org.bithon.server.datasource.reader.clickhouse;
 
-import org.bithon.component.commons.expression.BinaryExpression;
-import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
-import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.setting.QuerySettings;
+import org.bithon.server.datasource.reader.clickhouse.expression.ClickHouseExpressionOptimizer;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
 public class ClickHouseSqlDialect implements ISqlDialect {
-
-    @Override
-    public Expression2Sql createSqlSerializer(String qualifier) {
-        return new Expression2Sql(qualifier, this) {
-            private IExpression toRegularExpression(BinaryExpression expr) {
-                return new FunctionExpression("match",
-                                              expr.getLhs(),
-                                              expr.getRhs());
-            }
-
-            @Override
-            public void serialize(BinaryExpression binaryExpression) {
-                if (binaryExpression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
-                    // TODO: optimize to startsWith/endsWith/like/eq which has better performance
-                    this.serialize(toRegularExpression(binaryExpression));
-                } else if (binaryExpression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
-                    this.serialize(new LogicalExpression.NOT(toRegularExpression(binaryExpression)));
-                } else {
-                    super.serialize(binaryExpression);
-                }
-            }
-        };
-    }
 
     @Override
     public String quoteIdentifier(String identifier) {
@@ -126,7 +101,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression transform(ISchema schema, IExpression expression) {
-        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer(schema));
+    public IExpression transform(ISchema schema, IExpression expression, QuerySettings querySettings) {
+        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer(schema, querySettings));
     }
 }

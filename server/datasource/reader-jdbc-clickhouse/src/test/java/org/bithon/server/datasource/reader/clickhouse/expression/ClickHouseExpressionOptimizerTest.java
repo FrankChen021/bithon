@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.clickhouse;
+package org.bithon.server.datasource.reader.clickhouse.expression;
 
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.function.Functions;
@@ -111,7 +111,7 @@ public class ClickHouseExpressionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("count()")
-                                               .accept(new ClickHouseExpressionOptimizer(schema));
+                                               .accept(new ClickHouseExpressionOptimizer(schema, null));
 
         Assertions.assertEquals(
             "count()",

@@ -33,6 +33,7 @@ import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
@@ -68,11 +69,13 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     protected final DSLContext dslContext;
     protected final ISqlDialect sqlDialect;
+    protected final QuerySettings querySettings;
     private final boolean shouldCloseContext;
 
     public JdbcDataSourceReader(String name,
                                 Map<String, Object> props,
-                                ISqlDialect sqlDialect) {
+                                ISqlDialect sqlDialect,
+                                QuerySettings querySettings) {
         DruidDataSource jdbcDataSource = new DruidDataSource();
         jdbcDataSource.setDriverClassName((String) Preconditions.checkNotNull(props.get("driverClassName"), "Missing driverClassName property for %s", name));
         jdbcDataSource.setUrl((String) Preconditions.checkNotNull(props.get("url"), "Missing url property for %s", name));
@@ -100,12 +103,14 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                         .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider(ExceptionTranslatorExecuteListener.DEFAULT)));
 
         this.sqlDialect = sqlDialect;
+        this.querySettings = querySettings;
         this.shouldCloseContext = true;
     }
 
-    public JdbcDataSourceReader(DSLContext dslContext, ISqlDialect sqlDialect) {
+    public JdbcDataSourceReader(DSLContext dslContext, ISqlDialect sqlDialect, QuerySettings querySettings) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
+        this.querySettings = querySettings;
         this.shouldCloseContext = false;
     }
 
@@ -174,7 +179,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         }
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), this.querySettings));
         selectStatement.setLimit(toLimitClause(query.getLimit()));
         selectStatement.setOrderBy(toOrderByClause(query.getOrderBy()));
 
@@ -190,7 +195,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getSelectorList().add(new TextNode("count(1)"), IDataType.LONG);
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), querySettings));
 
         String sql = selectStatement.toSQL(this.sqlDialect);
 
@@ -228,7 +233,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         selectStatement.getSelectorList().add(new TextNode(StringUtils.format("DISTINCT(%s)", sqlDialect.quoteIdentifier(dimension))), dimension, IDataType.STRING);
         selectStatement.getWhere().and(new ComparisonExpression.GTE(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getStartTime())));
         selectStatement.getWhere().and(new ComparisonExpression.LT(timestampCol, sqlDialect.toISO8601TimestampExpression(query.getInterval().getEndTime())));
-        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter()));
+        selectStatement.getWhere().and(sqlDialect.transform(query.getSchema(), query.getFilter(), querySettings));
         selectStatement.getWhere().and(new ComparisonExpression.NE(IdentifierExpression.of(dimension), new LiteralExpression.StringLiteral("")));
         selectStatement.setOrderBy(new OrderByClause(dimension, Order.asc));
 

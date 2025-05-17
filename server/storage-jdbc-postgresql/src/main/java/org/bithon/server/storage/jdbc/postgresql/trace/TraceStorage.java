@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.jdbc.JdbcStorageProviderConfiguration;
 import org.bithon.server.storage.jdbc.common.jooq.Tables;
@@ -39,8 +40,9 @@ public class TraceStorage extends TraceJdbcStorage {
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        super(providerConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager, applicationContext);
+                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext,
+                        @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
+        super(providerConfiguration.getDslContext(), objectMapper, storageConfig, sqlDialectManager, applicationContext, querySettings);
     }
 
     @Override

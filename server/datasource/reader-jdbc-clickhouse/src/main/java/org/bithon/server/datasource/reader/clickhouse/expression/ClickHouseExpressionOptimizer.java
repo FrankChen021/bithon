@@ -14,23 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.clickhouse;
+package org.bithon.server.datasource.reader.clickhouse.expression;
 
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
-import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
-import org.bithon.server.commons.utils.SqlLikeExpression;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
-import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
+import org.bithon.server.datasource.query.setting.QuerySettings;
+import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
+import org.bithon.server.datasource.reader.jdbc.dialect.RegularExpressionMatchOptimizer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,13 +38,16 @@ import java.util.List;
  */
 public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
     private final ISchema schema;
+    private final QuerySettings querySettings;
 
     public ClickHouseExpressionOptimizer() {
         this.schema = null;
+        this.querySettings = null;
     }
 
-    public ClickHouseExpressionOptimizer(ISchema schema) {
+    public ClickHouseExpressionOptimizer(ISchema schema, QuerySettings querySettings) {
         this.schema = schema;
+        this.querySettings = querySettings;
     }
 
     @Override
@@ -65,9 +67,34 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
                 expression.getRhs()
             );
         }
+
+        if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression regularExpressionMatchExpression) {
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                // Not optimized
+                return toNativeRegularExpression((ConditionalExpression) transformed);
+            } else {
+                return transformed.accept(this);
+            }
+        }
+
+        if (expression instanceof ConditionalExpression.RegularExpressionNotMatchExpression regularExpressionNotMatchExpression) {
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionNotMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                // Not optimized
+                return new LogicalExpression.NOT(toNativeRegularExpression(regularExpressionNotMatchExpression));
+            } else {
+                // Apply transformation on the transformed expression again
+                return transformed.accept(this);
+            }
+        }
+
         if (expression instanceof ConditionalExpression.HasToken) {
             return this.visit(new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs()));
         }
+
         return super.visit(expression);
     }
 
@@ -168,74 +195,9 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
         }
     }
 
-    static class HasTokenFunctionOptimizer {
-        static IExpression optimize(FunctionExpression expression) {
-            // The hasToken already checks the parameter is a type of Literal
-            IExpression input = expression.getArgs().get(0);
-
-            String pattern = ((LiteralExpression<?>) expression.getArgs().get(1)).asString();
-
-            // Skip leading non-token characters
-            int leadingTokenIndex = 0;
-            int pattenLength = pattern.length();
-            while (leadingTokenIndex < pattenLength && isTokenSeparator(pattern.charAt(leadingTokenIndex))) {
-                leadingTokenIndex++;
-            }
-
-            // Skip trailing non-token characters
-            int trailingTokenIndex = pattenLength - 1;
-            while (trailingTokenIndex >= 0 && isTokenSeparator(pattern.charAt(trailingTokenIndex))) {
-                trailingTokenIndex--;
-            }
-            if (leadingTokenIndex > 0 && trailingTokenIndex < pattenLength - 1) {
-                // This is the case that the pattern is surrounded by token separators,
-                // CK can use index for such LIKE expression.
-                return new LikeOperator(input,
-                                        LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern)));
-            }
-
-            // Otherwise, we try to extract tokens from the pattern to turn this function as
-            // hasToken() AND xxx LIKE '%needle%'
-            List<IExpression> subExpressions = new ArrayList<>();
-            int tokenStart = 0;
-            for (int i = 0; i < pattenLength; i++) {
-                char chr = pattern.charAt(i);
-                if (isTokenSeparator(chr)) {
-                    if (i > tokenStart) {
-                        IExpression literal = LiteralExpression.ofString(pattern.substring(tokenStart, i));
-                        subExpressions.add(new FunctionExpression(expression.getFunction(), input, literal));
-                    }
-
-                    // Since the current character is a token separator,
-                    // let's start with the next character
-                    tokenStart = i + 1;
-                }
-            }
-            if (tokenStart > 0 && tokenStart < pattenLength) {
-                IExpression literal = LiteralExpression.ofString(pattern.substring(tokenStart));
-                subExpressions.add(new FunctionExpression(expression.getFunction(), input, literal));
-            }
-            if (subExpressions.isEmpty()) {
-                // No token separator in the pattern, no need to optimize
-                return expression;
-            }
-
-            subExpressions.add(new LikeOperator(input,
-                                                LiteralExpression.ofString(SqlLikeExpression.toLikePattern(pattern))));
-
-            return new LogicalExpression.AND(subExpressions);
-        }
-
-        /**
-         * <code><pre>
-         * ALWAYS_INLINE static bool isTokenSeparator(const uint8_t c)
-         * {
-         *      return !(isAlphaNumericASCII(c) || !isASCII(c));
-         * }
-         * </pre></code>
-         */
-        private static boolean isTokenSeparator(char chr) {
-            return !(Character.isLetterOrDigit(chr) || (chr > 127));
-        }
+    private IExpression toNativeRegularExpression(ConditionalExpression expr) {
+        return new FunctionExpression("match",
+                                      expr.getLhs(),
+                                      expr.getRhs());
     }
 }

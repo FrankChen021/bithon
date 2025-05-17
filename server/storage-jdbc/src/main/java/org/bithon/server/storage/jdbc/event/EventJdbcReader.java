@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.event;
 
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.storage.event.IEventReader;
@@ -27,8 +28,8 @@ import org.jooq.DSLContext;
  */
 public class EventJdbcReader extends JdbcDataSourceReader implements IEventReader {
 
-    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        super(dslContext, sqlDialect);
+    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, QuerySettings querySettings) {
+        super(dslContext, sqlDialect, querySettings);
 
     }
 }
