@@ -25,19 +25,14 @@ gpg --full-generate-key
 
 Upload your key to [opengpg](https://keys.openpgp.org/upload/)
 
-# Step 3. Build and deploy to sonatype
+# Step 3. Build and deploy agent to sonatype
 
 ```bash
 export GPG_TTY=$(tty)
-mvn clean deploy -DskipTests -Pdist
-```
-
-To deploy agent only, use following command:
-```bash
-export GPG_TTY=$(tty)
-mvn clean deploy -pl agent -amd
+mvn clean deploy -DskipTests -Pdist -P-server
 ```
 
 # Step 4.
 
-close the project at [staging repository](https://s01.oss.sonatype.org), and then release it if it passes all the check.
+1. CLOSE the project at [staging repository](https://s01.oss.sonatype.org). The repository will perform some checks. Once all checks are passed, we can go to next step.
+2. RELEASE the closed project. After release, the artifacts will be available Sonatype public repository, but it may take up to hours to be available at the central maven repository.
