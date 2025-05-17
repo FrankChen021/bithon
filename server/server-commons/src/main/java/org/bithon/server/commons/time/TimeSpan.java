@@ -17,6 +17,7 @@
 package org.bithon.server.commons.time;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 
 import java.sql.Timestamp;
@@ -54,6 +55,11 @@ public class TimeSpan {
         return new TimeSpan(l);
     }
 
+    public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
+        df.setTimeZone(timeZone);
+        return new TimeSpan(df.parse(dateTime).getTime());
+    }
 
     public TimeSpan(long milliseconds) {
         this.milliseconds = milliseconds;
@@ -113,10 +119,12 @@ public class TimeSpan {
         return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", tz);
     }
 
-    public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
-        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
-        df.setTimeZone(timeZone);
-        return new TimeSpan(df.parse(dateTime).getTime());
+    /**
+     * ALWAYS Serialize the timestamp in UTC+0 timezone which makes it consistent for programms running on any timezone
+     */
+    @JsonValue
+    public String toISO8601UTC0ffset() {
+        return toISO8601(TimeZone.getTimeZone("UTC-0"));
     }
 
     /**
@@ -162,4 +170,6 @@ public class TimeSpan {
     public TimeSpan minus(long millis) {
         return new TimeSpan(this.milliseconds - millis);
     }
+
+
 }

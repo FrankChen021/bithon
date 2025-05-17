@@ -16,7 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,11 +38,11 @@ import java.time.Duration;
 @AllArgsConstructor
 @IntervalRequestValidator
 public class IntervalRequest {
-    @NotBlank
-    private String startISO8601;
+    @NotNull
+    private TimeSpan startISO8601;
 
-    @NotBlank
-    private String endISO8601;
+    @NotNull
+    private TimeSpan endISO8601;
 
     /**
      * An expression that allows the client to change the default timestamp column,
@@ -81,12 +81,10 @@ public class IntervalRequest {
 
         if (this.bucketCount == null) {
             // Calculate the adaptive step based on the range
-            return Duration.ofSeconds(TimeBucket.calculate(TimeSpan.fromISO8601(this.startISO8601),
-                                                           TimeSpan.fromISO8601(this.endISO8601)));
+            return Duration.ofSeconds(TimeBucket.calculate(this.startISO8601, this.endISO8601));
         } else {
-            return Duration.ofSeconds(TimeBucket.calculate(TimeSpan.fromISO8601(startISO8601).getMilliseconds(),
-                                                           TimeSpan.fromISO8601(this.endISO8601).getMilliseconds(),
-                                                           this.bucketCount).getLength());
+            return Duration.ofSeconds(TimeBucket.calculate(startISO8601.getMilliseconds(), this.endISO8601.getMilliseconds(), this.bucketCount)
+                                                .getLength());
         }
     }
 }

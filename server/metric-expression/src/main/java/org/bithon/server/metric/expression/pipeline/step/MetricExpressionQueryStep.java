@@ -63,8 +63,8 @@ public class MetricExpressionQueryStep implements IQueryStep {
             return true;
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
+        TimeSpan start = queryRequest.getInterval().getStartISO8601();
+        TimeSpan end = queryRequest.getInterval().getEndISO8601();
         long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
         return queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength;
     }
@@ -94,8 +94,8 @@ public class MetricExpressionQueryStep implements IQueryStep {
 
                             Duration step = queryRequest.getInterval().calculateStep();
 
-                            TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
-                            TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
+                            TimeSpan start = queryRequest.getInterval().getStartISO8601();
+                            TimeSpan end = queryRequest.getInterval().getEndISO8601();
 
                             return PipelineQueryResult.builder()
                                                       .rows(columnTable.rowCount())

@@ -118,8 +118,8 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(interval.getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(interval.getEndISO8601());
+        TimeSpan start = interval.getStartISO8601();
+        TimeSpan end = interval.getEndISO8601();
 
         Duration step = groupByTimestamp ? interval.calculateStep() : null;
 
@@ -205,8 +205,8 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
+        TimeSpan start = query.getInterval().getStartISO8601();
+        TimeSpan end = query.getInterval().getEndISO8601();
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {
