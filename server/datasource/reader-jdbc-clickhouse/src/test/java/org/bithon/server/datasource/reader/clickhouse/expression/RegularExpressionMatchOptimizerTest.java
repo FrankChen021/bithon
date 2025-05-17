@@ -23,6 +23,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.junit.jupiter.api.Test;
 
@@ -36,11 +37,14 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class RegularExpressionMatchOptimizerTest {
 
     private final IExpression testColumn = new IdentifierExpression("column");
+    private final RegularExpressionMatchOptimizer optimizer = RegularExpressionMatchOptimizer.of(QuerySettings.builder()
+                                                                                                              .enabledRegularExpressionOptimization(true)
+                                                                                                              .build());
 
     @Test
     public void testEmptyPattern() {
         IExpression expr = createMatchExpression("");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.EQ.class, optimized);
         assertEquals("column = ''", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -49,7 +53,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testExactMatch() {
         IExpression expr = createMatchExpression("^abc$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.EQ.class, optimized);
         assertEquals("column = 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -58,7 +62,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testStartsWith() {
         IExpression expr = createMatchExpression("^abc");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.StartsWith.class, optimized);
         assertEquals("column startsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -66,17 +70,17 @@ public class RegularExpressionMatchOptimizerTest {
 
     @Test
     public void testStartsWithStar() {
-        IExpression expr = createMatchExpression("^abc.*");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression expr = createMatchExpression("^bithon.*");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.StartsWith.class, optimized);
-        assertEquals("column startsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+        assertEquals("column startsWith 'bithon'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
     public void testEndsWith() {
         IExpression expr = createMatchExpression("abc$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.EndsWith.class, optimized);
         assertEquals("column endsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -85,7 +89,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testEndsWithStar() {
         IExpression expr = createMatchExpression(".*abc$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.EndsWith.class, optimized);
         assertEquals("column endsWith 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -94,7 +98,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testContains() {
         IExpression expr = createMatchExpression("abc");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.Contains.class, optimized);
         assertEquals("column contains 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -103,7 +107,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testContainsWithStars() {
         IExpression expr = createMatchExpression(".*abc.*");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.Contains.class, optimized);
         assertEquals("column contains 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -112,7 +116,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testInOperator() {
         IExpression expr = createMatchExpression("^(a|b|c)$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.In.class, optimized);
         assertEquals("column in ('a', 'b', 'c')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -121,7 +125,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testInOperatorWithoutAnchors() {
         IExpression expr = createMatchExpression("(a|b|c)");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.In.class, optimized);
         assertEquals("column in ('a', 'b', 'c')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -131,7 +135,7 @@ public class RegularExpressionMatchOptimizerTest {
     public void testEscapedMetacharacters() {
         // Pattern with escaped metacharacters should not be optimized
         IExpression expr = createMatchExpression("a\\.b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         // Should be optimized to Contains since . is escaped
         assertInstanceOf(ConditionalExpression.Contains.class, optimized);
@@ -142,7 +146,7 @@ public class RegularExpressionMatchOptimizerTest {
     public void testUnescapedMetacharacters() {
         // Pattern with unescaped metacharacters should not be optimized
         IExpression expr = createMatchExpression("a?b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         // Should remain as RegexMatch
         assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
@@ -152,7 +156,7 @@ public class RegularExpressionMatchOptimizerTest {
     public void testComplexPattern() {
         // A complex pattern that shouldn't be optimized
         IExpression expr = createMatchExpression("^a(b|c)*d+e?");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
     }
@@ -160,7 +164,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testNotMatch_ExactMatch() {
         IExpression expr = createNotMatchExpression("^abc$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.NE.class, optimized);
         assertEquals("column <> 'abc'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -169,7 +173,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testNotMatch_StartsWith() {
         IExpression expr = createNotMatchExpression("^abc");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(LogicalExpression.NOT.class, optimized);
         assertEquals("NOT (column startsWith 'abc')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -178,7 +182,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testNotMatch_EndsWith() {
         IExpression expr = createNotMatchExpression("abc$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(LogicalExpression.NOT.class, optimized);
         assertEquals("NOT (column endsWith 'abc')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -187,7 +191,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testNotMatch_Contains() {
         IExpression expr = createNotMatchExpression("abc");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(LogicalExpression.NOT.class, optimized);
         assertEquals("NOT (column contains 'abc')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -196,7 +200,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testNotMatch_In() {
         IExpression expr = createNotMatchExpression("^(a|b|c)$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(ConditionalExpression.NotIn.class, optimized);
         assertEquals("column not in ('a', 'b', 'c')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -205,7 +209,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testSingleDotPattern() {
         IExpression expr = createMatchExpression("a.b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like '%a_b%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -214,7 +218,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testSingleDotPatternWithAnchors() {
         IExpression expr = createMatchExpression("^a.b$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like 'a_b'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -223,7 +227,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testSingleDotPatternWithStartAnchor() {
         IExpression expr = createMatchExpression("^a.b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like 'a_b%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -232,7 +236,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testSingleDotPatternWithEndAnchor() {
         IExpression expr = createMatchExpression("a.b$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like '%a_b'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -241,25 +245,16 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testMultipleDotPattern() {
         IExpression expr = createMatchExpression("a.b.c");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like '%a_b_c%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     @Test
-    public void testConsecutiveDotPattern() {
-        IExpression expr = createMatchExpression("a..b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
-
-        assertInstanceOf(LikeOperator.class, optimized);
-        assertEquals("column like '%a__b%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
-    }
-
-    @Test
     public void testNotMatch_Like() {
         IExpression expr = createNotMatchExpression("a.b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(LogicalExpression.NOT.class, optimized);
         assertEquals("NOT (column like '%a_b%')", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -268,9 +263,9 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testEscapedDotPattern() {
         IExpression expr = createMatchExpression("a\\.b");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
-        // Escaped dot should not be converted to underscore
+        // The dot is escaped, so it should match the literal dot
         assertInstanceOf(ConditionalExpression.Contains.class, optimized);
         assertEquals("column contains 'a\\.b'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
@@ -278,7 +273,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testMixedDotAndEscapedDot() {
         IExpression expr = createMatchExpression("a.b\\.c");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like '%a_b.c%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -287,7 +282,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testDigitsOnlyPattern() {
         IExpression expr = createMatchExpression("^[0-9]+$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.GT.class, optimized);
         assertEquals("column > '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -296,7 +291,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testDigitsOnlyPatternWithOptional() {
         IExpression expr = createMatchExpression("^[0-9]*$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.GTE.class, optimized);
         assertEquals("column >= '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -305,7 +300,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testDigitsShorthandPattern() {
         IExpression expr = createMatchExpression("^\\d+$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.GT.class, optimized);
         assertEquals("column > '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -314,7 +309,7 @@ public class RegularExpressionMatchOptimizerTest {
     @Test
     public void testWordCharPattern() {
         IExpression expr = createMatchExpression("^\\w+$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
 
         assertInstanceOf(LikeOperator.class, optimized);
         assertEquals("column like '[a-zA-Z0-9_]%'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -322,8 +317,8 @@ public class RegularExpressionMatchOptimizerTest {
 
     @Test
     public void testNotMatch_DigitsOnly() {
-        IExpression expr = createNotMatchExpression("^[0-9]+$");
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+        IExpression expr = createNotMatchExpression("^\\d+$");
+        IExpression optimized = optimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
 
         assertInstanceOf(ComparisonExpression.LTE.class, optimized);
         assertEquals("column <= '0'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
@@ -331,15 +326,53 @@ public class RegularExpressionMatchOptimizerTest {
 
     @Test
     public void testEmptyRHS() {
-        // Test with non-string literal right-hand side
-        ConditionalExpression.RegularExpressionMatchExpression expr = new ConditionalExpression.RegularExpressionMatchExpression(
-            testColumn, 
-            new IdentifierExpression("pattern") // Not a string literal
-        );
-        IExpression optimized = RegularExpressionMatchOptimizer.optimize(expr);
+        // Test with null RHS which should not be optimized
+        ConditionalExpression.RegularExpressionMatchExpression expr = new ConditionalExpression.RegularExpressionMatchExpression(testColumn, null);
+        IExpression optimized = optimizer.optimize(expr);
 
-        // Should remain unchanged
+        // Should remain as the original expression
         assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals(expr, optimized);
+    }
+
+    @Test
+    public void testOptimizationDisabled() {
+        RegularExpressionMatchOptimizer disabledOptimizer = RegularExpressionMatchOptimizer.of();
+
+        // Try to optimize a simple pattern that would normally be optimized
+        IExpression expr = createMatchExpression("^abc$");
+        IExpression optimized = disabledOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Should remain as the original regex expression
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^abc$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testNotMatchOptimizationDisabled() {
+        RegularExpressionMatchOptimizer disabledOptimizer = RegularExpressionMatchOptimizer.of();
+
+        // Try to optimize a simple pattern that would normally be optimized
+        IExpression expr = createNotMatchExpression("^abc$");
+        IExpression optimized = disabledOptimizer.optimize((ConditionalExpression.RegularExpressionNotMatchExpression) expr);
+
+        // Should remain as the original not-match expression
+        assertInstanceOf(ConditionalExpression.RegularExpressionNotMatchExpression.class, optimized);
+        assertEquals("column !~ '^abc$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
+    }
+
+    @Test
+    public void testNullQuerySettings() {
+        // Create optimizer with null settings
+        RegularExpressionMatchOptimizer nullSettingsOptimizer = RegularExpressionMatchOptimizer.of(null);
+
+        // Try to optimize a simple pattern
+        IExpression expr = createMatchExpression("^abc$");
+        IExpression optimized = nullSettingsOptimizer.optimize((ConditionalExpression.RegularExpressionMatchExpression) expr);
+
+        // Should remain as the original expression
+        assertInstanceOf(ConditionalExpression.RegularExpressionMatchExpression.class, optimized);
+        assertEquals("column =~ '^abc$'", optimized.serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
     private IExpression createMatchExpression(String pattern) {

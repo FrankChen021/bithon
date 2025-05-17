@@ -111,7 +111,7 @@ public class ClickHouseExpressionOptimizerTest {
         IExpression expr = ExpressionASTBuilder.builder()
                                                .functions(Functions.getInstance())
                                                .build("count()")
-                                               .accept(new ClickHouseExpressionOptimizer(schema));
+                                               .accept(new ClickHouseExpressionOptimizer(schema, null));
 
         Assertions.assertEquals(
             "count()",

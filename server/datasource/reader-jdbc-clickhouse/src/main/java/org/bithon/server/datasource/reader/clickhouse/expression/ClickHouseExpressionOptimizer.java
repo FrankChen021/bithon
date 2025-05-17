@@ -20,6 +20,7 @@ import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
+import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.function.builtin.AggregateFunction;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
@@ -36,16 +37,16 @@ import java.util.List;
  */
 public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
     private final ISchema schema;
-    private final QuerySettings settings;
+    private final QuerySettings querySettings;
 
     public ClickHouseExpressionOptimizer() {
         this.schema = null;
-        this.settings = null;
+        this.querySettings = null;
     }
 
-    public ClickHouseExpressionOptimizer(ISchema schema, QuerySettings settings) {
+    public ClickHouseExpressionOptimizer(ISchema schema, QuerySettings querySettings) {
         this.schema = schema;
-        this.settings = settings;
+        this.querySettings = querySettings;
     }
 
     @Override
@@ -67,11 +68,26 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
         }
 
         if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression regularExpressionMatchExpression) {
-            if (settings != null && settings.isEnabledRegularExpressionOptimization()) {
-                // Try to optimize the regular expression match expression
-                return RegularExpressionMatchOptimizer.optimize(regularExpressionMatchExpression);
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                // Not optimized
+                return toNativeRegularExpression((ConditionalExpression) transformed);
+            } else {
+                return transformed.accept(this);
             }
-            return super.visit(expression);
+        }
+
+        if (expression instanceof ConditionalExpression.RegularExpressionNotMatchExpression regularExpressionNotMatchExpression) {
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionNotMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                // Not optimized
+                return new LogicalExpression.NOT(toNativeRegularExpression(regularExpressionNotMatchExpression));
+            } else {
+                // Apply transformation on the transformed expression again
+                return transformed.accept(this);
+            }
         }
 
         if (expression instanceof ConditionalExpression.HasToken) {
@@ -161,4 +177,9 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
         }
     }
 
+    private IExpression toNativeRegularExpression(ConditionalExpression expr) {
+        return new FunctionExpression("match",
+                                      expr.getLhs(),
+                                      expr.getRhs());
+    }
 }

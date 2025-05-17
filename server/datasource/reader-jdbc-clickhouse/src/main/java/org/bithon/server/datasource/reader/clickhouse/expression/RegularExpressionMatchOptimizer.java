@@ -23,21 +23,46 @@ import org.bithon.component.commons.expression.ExpressionList;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * Turn regular expression match into startsWith/endsWith which has better performance in CK
+ *
  * @author frank.chen021@outlook.com
  * @date 14/5/25 11:09 am
  */
-class RegularExpressionMatchOptimizer {
+public class RegularExpressionMatchOptimizer {
+    private final QuerySettings querySettings;
+
+    private RegularExpressionMatchOptimizer(QuerySettings querySettings) {
+        this.querySettings = querySettings;
+    }
+
+    /**
+     * Factory method that creates an optimizer with given query settings
+     */
+    public static RegularExpressionMatchOptimizer of(QuerySettings querySettings) {
+        return new RegularExpressionMatchOptimizer(querySettings);
+    }
+
+    /**
+     * Factory method that creates an optimizer with default settings
+     */
+    public static RegularExpressionMatchOptimizer of() {
+        return of(null);
+    }
 
     // Add a method for not match expressions
-    static IExpression optimize(ConditionalExpression.RegularExpressionNotMatchExpression expression) {
+    IExpression optimize(ConditionalExpression.RegularExpressionNotMatchExpression expression) {
+        if (querySettings == null || !querySettings.isEnabledRegularExpressionOptimization()) {
+            return expression;
+        }
+
         if (!(expression.getRhs() instanceof LiteralExpression.StringLiteral)) {
             return expression;
         }
@@ -74,7 +99,11 @@ class RegularExpressionMatchOptimizer {
         return expression;
     }
 
-    static IExpression optimize(ConditionalExpression.RegularExpressionMatchExpression expression) {
+    IExpression optimize(ConditionalExpression.RegularExpressionMatchExpression expression) {
+        if (querySettings == null || !querySettings.isEnabledRegularExpressionOptimization()) {
+            return expression;
+        }
+
         IExpression lhs = expression.getLhs();
         IExpression rhs = expression.getRhs();
         if (!(rhs instanceof LiteralExpression.StringLiteral)) {

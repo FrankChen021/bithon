@@ -49,6 +49,7 @@ import org.bithon.server.datasource.reader.jdbc.statement.ast.QueryStageFunction
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
 import org.bithon.server.datasource.reader.mysql.MySQLSqlDialect;
+import org.bithon.server.datasource.reader.postgresql.PostgreSqlDialect;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -1438,10 +1439,10 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
-    public void test_RegularExpressionMatch() {
+    public void test_RegularExpressionMatch_H2() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
-                                                                .sqlDialect(clickHouseDialect)
-                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .sqlDialect(h2Dialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
                                                                 .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
                                                                                       TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
                                                                                       Duration.ofSeconds(10),
@@ -1452,41 +1453,121 @@ public class SelectStatementBuilderTest {
                                                                 .schema(schema)
                                                                 .build();
 
-        {
-            Assertions.assertEquals("""
-                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
-                                               "appName",
-                                               sumMerge("clickedSum") AS "t1"
-                                        FROM "bithon_jvm_metrics"
-                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((regexp_like("bithon_jvm_metrics"."appName", 'bithon.*', 'nm')) AND (NOT regexp_like("bithon_jvm_metrics"."instanceName", '192.*', 'nm')))
-                                        GROUP BY "appName", "_timestamp"
-                                        """.trim(),
-                                    selectStatement.toSQL(h2Dialect));
-        }
+        Assertions.assertEquals("""
+                                    SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+                                           "appName",
+                                           sum("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (regexp_like("bithon_jvm_metrics"."appName", 'bithon.*', 'nm') AND (NOT regexp_like("bithon_jvm_metrics"."instanceName", '192.*', 'nm')))
+                                    GROUP BY "appName", "_timestamp"
+                                    """.trim(),
+                                selectStatement.toSQL(h2Dialect));
+    }
 
-        {
-            Assertions.assertEquals("""
-                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
-                                               "appName",
-                                               sumMerge("clickedSum") AS "t1"
-                                        FROM "bithon_jvm_metrics"
-                                        WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND ((match("bithon_jvm_metrics"."appName", 'bithon.*')) AND (NOT match("bithon_jvm_metrics"."instanceName", '192.*')))
-                                        GROUP BY "appName", "_timestamp"
-                                        """.trim(),
-                                    selectStatement.toSQL(clickHouseDialect));
-        }
+    @Test
+    public void test_RegularExpressionMatch_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
 
-        {
-            Assertions.assertEquals("""
-                                        SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS `_timestamp`,
-                                               `appName`,
-                                               sumMerge(`clickedSum`) AS `t1`
-                                        FROM `bithon_jvm_metrics`
-                                        WHERE (`timestamp` >= fromUnixTimestamp(1722000120)) AND (`timestamp` < fromUnixTimestamp(1722000720)) AND ((REGEXP_LIKE(`bithon_jvm_metrics`.`appName`, 'bithon.*')) AND (NOT REGEXP_LIKE(`bithon_jvm_metrics`.`instanceName`, '192.*')))
-                                        GROUP BY `appName`, `_timestamp`
-                                        """.trim(),
-                                    selectStatement.toSQL(mysql));
-        }
+        Assertions.assertEquals("""
+                                    SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                           "appName",
+                                           sumMerge("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (match("bithon_jvm_metrics"."appName", 'bithon.*') AND (NOT match("bithon_jvm_metrics"."instanceName", '192.*')))
+                                    GROUP BY "appName", "_timestamp"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+    }
+
+    @Test
+    public void test_RegularExpressionMatch_Optimized_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ '^bithon.*' AND instanceName !~ '^192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) AS "_timestamp",
+                                           "appName",
+                                           sumMerge("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720)) AND (startsWith("bithon_jvm_metrics"."appName", 'bithon') AND (NOT startsWith("bithon_jvm_metrics"."instanceName", '192')))
+                                    GROUP BY "appName", "_timestamp"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+    }
+
+    @Test
+    public void test_RegularExpressionMatch_MySQL() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(mysql)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT UNIX_TIMESTAMP(`timestamp`) div 10 * 10 AS `_timestamp`,
+                                           `appName`,
+                                           sum(`clickedSum`) AS `t1`
+                                    FROM `bithon_jvm_metrics`
+                                    WHERE (`timestamp` >= '2024-07-26T21:22:00.000+08:00') AND (`timestamp` < '2024-07-26T21:32:00.000+08:00') AND (REGEXP_LIKE(`bithon_jvm_metrics`.`appName`, 'bithon.*') AND (NOT REGEXP_LIKE(`bithon_jvm_metrics`.`instanceName`, '192.*')))
+                                    GROUP BY `appName`, `_timestamp`
+                                    """.trim(),
+                                selectStatement.toSQL(mysql));
+    }
+
+
+    @Test
+    public void test_RegularExpressionMatch_PG() {
+        ISqlDialect pg = new PostgreSqlDialect();
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(pg)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800"),
+                                                                                      Duration.ofSeconds(10),
+                                                                                      null,
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                .filter(ExpressionASTBuilder.builder().build("appName =~ 'bithon.*' AND instanceName !~ '192.*'"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT  FLOOR(EXTRACT(EPOCH FROM "timestamp" AT TIME ZONE 'UTC-8') / 10) * 10 AS "_timestamp",
+                                           "appName",
+                                           sum("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= '2024-07-26T21:22:00.000+08:00') AND ("timestamp" < '2024-07-26T21:32:00.000+08:00') AND (("bithon_jvm_metrics"."appName" ~ 'bithon.*') AND (NOT ("bithon_jvm_metrics"."instanceName" ~ '192.*')))
+                                    GROUP BY "appName", "_timestamp"
+                                    """.trim(),
+                                selectStatement.toSQL(pg));
     }
 
     /**

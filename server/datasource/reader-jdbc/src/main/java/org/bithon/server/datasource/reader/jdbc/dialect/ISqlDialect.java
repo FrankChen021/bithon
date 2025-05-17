@@ -36,7 +36,9 @@ import java.sql.Timestamp;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ISqlDialect {
 
-    Expression2Sql createSqlSerializer(String qualifier);
+    default Expression2Sql createSqlSerializer(String qualifier) {
+        return new Expression2Sql(qualifier, this);
+    }
 
     String quoteIdentifier(String identifier);
 

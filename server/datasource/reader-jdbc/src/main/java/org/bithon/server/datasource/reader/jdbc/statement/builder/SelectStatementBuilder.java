@@ -86,7 +86,7 @@ public class SelectStatementBuilder {
     private HumanReadableDuration offset;
 
     private ISqlDialect sqlDialect;
-    private QuerySettings querySettings;
+    private QuerySettings querySettings = QuerySettings.DEFAULT;
 
     public boolean hasSlidingWindowAggregation() {
         return interval.getWindow() != null &&

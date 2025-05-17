@@ -17,7 +17,10 @@
 package org.bithon.server.datasource.query.setting;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,8 +29,13 @@ import org.springframework.context.annotation.Configuration;
  * @date 17/5/25 11:38 am
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Configuration
 @ConfigurationProperties("bithon.datasource.query.settings")
 public class QuerySettings {
+    public static final QuerySettings DEFAULT = new QuerySettings();
+
     private boolean enabledRegularExpressionOptimization = true;
 }
