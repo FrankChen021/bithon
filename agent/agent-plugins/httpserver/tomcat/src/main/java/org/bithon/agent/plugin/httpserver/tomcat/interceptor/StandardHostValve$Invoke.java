@@ -70,7 +70,7 @@ public class StandardHostValve$Invoke extends AroundInterceptor {
         }
 
         traceContext.currentSpan()
-                    .component(Components.HTTP_SERVER)
+                    .name(Components.HTTP_SERVER)
                     .tag(Tags.Http.SERVER, "tomcat")
                     .tag(Tags.Net.PEER, request.getRemoteAddr() + ":" + request.getRemotePort())
                     .tag(Tags.Http.URL, request.getRequestURI())

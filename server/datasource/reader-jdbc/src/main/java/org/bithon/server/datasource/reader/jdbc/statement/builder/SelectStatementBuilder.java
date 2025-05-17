@@ -537,12 +537,26 @@ public class SelectStatementBuilder {
                                     .add(new ExpressionNode(windowFunctionExpression), aggregator.output, aggregator.aggregateFunction.getDataType());
         }
 
+        // Apply a timestamp filter to the sliding window aggregation step
+        // This is because we extend the sliding window to make sure the first record is correct
+        //
         // The sliding window aggregation is performed on aggregated step which already on floored timestamp,
         // So we need to floor the start timestamp to make sure time range is correct.
         // Since the end timestamp is EXCLUSIVE, there's no need to floor it.
+        TimeSpan startWindow = interval.getStartTime().floor(interval.getStep());
+        TimeSpan endWindow = interval.getEndTime();
+
+        // The inner query of thiw sliding window aggregation step already offset the timestamp,
+        // So we need to add the offset to the start and end timestamp to make sure we're filtering the correct time range
+        if (this.offset != null) {
+            // The offset is negative, so we need to add the offset
+            startWindow = startWindow.after(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+            endWindow = endWindow.after(-this.offset.getDuration().getSeconds(), TimeUnit.SECONDS);
+        }
+
         slidingWindowAggregation.getWhere().and(toTimestampFilter(new IdentifierExpression(TimestampSpec.COLUMN_ALIAS),
-                                                                  interval.getStartTime().floor(interval.getStep()),
-                                                                  interval.getEndTime(),
+                                                                  startWindow,
+                                                                  endWindow,
                                                                   false));
 
         pipeline.slidingWindowAggregation = slidingWindowAggregation;
@@ -566,8 +580,8 @@ public class SelectStatementBuilder {
     }
 
     private void buildWhere(SelectStatementChain pipeline) {
-        // Extend the time range for sliding window
-        // so that the sliding window calculation of first record is correct
+        // Extend the time range for the sliding window
+        // so that the sliding window calculation of the first record is correct
         TimeSpan start = hasSlidingWindowAggregation() ? interval.getStartTime().before(interval.getWindow().getDuration()) : interval.getStartTime();
         pipeline.innermost.getWhere()
                           .and(toTimestampFilter(this.interval.getTimestampColumn(), start, interval.getEndTime(), true));

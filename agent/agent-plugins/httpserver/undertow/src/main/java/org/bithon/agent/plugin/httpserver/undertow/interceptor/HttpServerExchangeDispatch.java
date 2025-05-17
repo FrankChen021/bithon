@@ -60,7 +60,7 @@ public class HttpServerExchangeDispatch extends BeforeInterceptor {
 
         if (traceContext != null) {
             traceContext.currentSpan()
-                        .component(Components.HTTP_SERVER)
+                        .name(Components.HTTP_SERVER)
                         .tag(Tags.Http.SERVER, "undertow")
                         .tag(Tags.Net.PEER, exchange.getConnection().getPeerAddress())
                         .tag(Tags.Http.URL, exchange.getRequestURI())

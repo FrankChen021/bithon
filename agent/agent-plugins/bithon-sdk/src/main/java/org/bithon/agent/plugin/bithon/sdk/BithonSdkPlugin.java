@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.bithon.sdk;
 import org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptor;
 import org.bithon.agent.instrumentation.aop.interceptor.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.instrumentation.aop.interceptor.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -32,15 +32,29 @@ public class BithonSdkPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
             //
-            // metrics
+            // metrics SDK
             //
             forClass("org.bithon.agent.sdk.metric.MetricRegistryFactory")
                 .onMethod("create")
                 .replacedBy("org.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
-                .build()
+                .build(),
 
+            //
+            // tracing SDK
+            //
+            forClass("org.bithon.agent.sdk.tracing.TraceContext")
+                .onMethod("currentTraceId")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceContext$CurrentTraceId")
+
+                .onMethod("currentSpanId")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceContext$CurrentSpanId")
+
+                .onMethod("newScopedSpan")
+                .replacedBy("org.bithon.agent.plugin.bithon.sdk.tracing.interceptor.TraceContext$NewSpan")
+
+                .build()
         );
     }
 }

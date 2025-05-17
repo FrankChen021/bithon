@@ -91,7 +91,7 @@
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-sdk</artifactId>
-                <version>${project.version}</version>
+                <version>1.2.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

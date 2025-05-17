@@ -75,6 +75,16 @@ public class AggregateFunctionColumn implements IColumn {
         return new Selector(new ExpressionNode(functionExpression), getName());
     }
 
+    public IFunction getAggregateFunction() {
+        if ("sum".equals(this.aggregator)) {
+            return SumMergeFunction.INSTANCE;
+        } else if ("count".equals(this.aggregator)) {
+            return CountMergeFunction.INSTANCE;
+        } else {
+            throw new IllegalStateException("Invalid aggregator [" + this.aggregator + "] on column [AggregateFunction(" + this.name + "," + this.dataType + ")]");
+        }
+    }
+
     /**
      * Create an aggregated function call expression on this AggregateColumn
      *

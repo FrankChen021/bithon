@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
 import org.bithon.component.commons.utils.HumanReadablePercentage;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.ISchema;
@@ -1390,6 +1391,66 @@ public class SelectStatementBuilderTest {
     }
 
     @Test
+    public void testCountOverCountMergeColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "count(clickedSum)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT "appName",
+                                           count("clickedSum") AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+    }
+
+    @Test
+    public void testSumOverCountMergeColumn_CK() {
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(List.of(new Selector(new ExpressionNode(schema, "sum(clickedCnt)"), new Alias("t1"))))
+                                                                .interval(Interval.of(TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800"),
+                                                                                      TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800")))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        Assertions.assertEquals("""
+                                    SELECT "appName",
+                                           sum(countMerge("clickedCnt")) AS "t1"
+                                    FROM "bithon_jvm_metrics"
+                                    WHERE ("timestamp" >= fromUnixTimestamp(1722000120)) AND ("timestamp" < fromUnixTimestamp(1722000720))
+                                    GROUP BY "appName"
+                                    """.trim(),
+                                selectStatement.toSQL(clickHouseDialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(2, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(1).getDataType());
+    }
+
+    @Test
     public void test_SlidingWindowOverAggregateFunctionColumn_CK() {
         SelectStatement selectStatement = SelectStatementBuilder.builder()
                                                                 .sqlDialect(clickHouseDialect)
@@ -1420,7 +1481,78 @@ public class SelectStatementBuilderTest {
                                     )
                                     WHERE ("_timestamp" >= 1722000120) AND ("_timestamp" < 1722000720)
                                     """.trim(),
-                                selectStatement.toSQL(h2Dialect));
+                                selectStatement.toSQL(clickHouseDialect));
+
+        // Assert the SelectStatement object
+        Assertions.assertEquals(4, selectStatement.getSelectorList().size());
+
+        Assertions.assertEquals("_timestamp", selectStatement.getSelectorList().get(0).getOutputName());
+        Assertions.assertEquals(IDataType.DATETIME_MILLI, selectStatement.getSelectorList().get(0).getDataType());
+
+        Assertions.assertEquals("appName", selectStatement.getSelectorList().get(1).getOutputName());
+        Assertions.assertEquals(IDataType.STRING, selectStatement.getSelectorList().get(1).getDataType());
+
+        Assertions.assertEquals("t1", selectStatement.getSelectorList().get(2).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(2).getDataType());
+
+        Assertions.assertEquals("t2", selectStatement.getSelectorList().get(3).getOutputName());
+        Assertions.assertEquals(IDataType.LONG, selectStatement.getSelectorList().get(3).getDataType());
+    }
+
+    @Test
+    public void test_SlidingWindowAndOffset_CK() {
+        // 1722000120
+        TimeSpan currentStart = TimeSpan.fromISO8601("2024-07-26T21:22:00.000+0800");
+
+        // 1722000720
+        TimeSpan currentEnd = TimeSpan.fromISO8601("2024-07-26T21:32:00.000+0800");
+
+        SelectStatement selectStatement = SelectStatementBuilder.builder()
+                                                                .sqlDialect(clickHouseDialect)
+                                                                .fields(Arrays.asList(new Selector(new ExpressionNode(schema, "sum(clickedSum)"), new Alias("t1")),
+                                                                                      new Selector(new ExpressionNode(schema, "count(clickedCnt)"), new Alias("t2"))))
+                                                                .interval(Interval.of(currentStart,
+                                                                                      currentEnd,
+                                                                                      Duration.ofSeconds(10),
+                                                                                      HumanReadableDuration.parse("1m"),
+                                                                                      new IdentifierExpression("timestamp")))
+                                                                // -1d offset
+                                                                .offset(HumanReadableDuration.parse("-1d"))
+                                                                .groupBy(List.of("appName"))
+                                                                .schema(schema)
+                                                                .build();
+
+        // The timestamp in INNER sub query which extends the query range by one duration which is 1m in this case
+        TimeSpan innerStart = currentStart.before(Duration.ofDays(1)).before(Duration.ofMinutes(1));
+        TimeSpan innerEnd = currentEnd.before(Duration.ofDays(1));
+
+        // The inner query also offset the timestamp by 1d,
+        // so for outter sub query, we need to remove records that fall in the extended range by applying a filter on the timestamp
+        TimeSpan windowStart = innerStart.after(Duration.ofDays(1)).after(Duration.ofMinutes(1));
+        TimeSpan windowEnd = innerEnd.after(Duration.ofDays(1));
+        Assertions.assertEquals(StringUtils.format("""
+                                                       SELECT "_timestamp",
+                                                              "appName",
+                                                              sum("t1") OVER (PARTITION BY "appName" ORDER BY "_timestamp" ASC RANGE BETWEEN 60 PRECEDING AND 0 FOLLOWING) AS "t1",
+                                                              count("t2") OVER (PARTITION BY "appName" ORDER BY "_timestamp" ASC RANGE BETWEEN 60 PRECEDING AND 0 FOLLOWING) AS "t2"
+                                                       FROM
+                                                       (
+                                                         SELECT toUnixTimestamp(toStartOfInterval("timestamp", INTERVAL 10 SECOND)) + 86400 AS "_timestamp",
+                                                                "appName",
+                                                                sumMerge("clickedSum") AS "t1",
+                                                                countMerge("clickedCnt") AS "t2"
+                                                         FROM "bithon_jvm_metrics"
+                                                         WHERE ("timestamp" >= fromUnixTimestamp(%d)) AND ("timestamp" < fromUnixTimestamp(%d))
+                                                         GROUP BY "appName", "_timestamp"
+                                                       )
+                                                       WHERE ("_timestamp" >= %d) AND ("_timestamp" < %d)
+                                                       """.trim(),
+                                                   innerStart.getSeconds(),
+                                                   innerEnd.getSeconds(),
+                                                   windowStart.getSeconds(),
+                                                   windowEnd.getSeconds()
+                                ),
+                                selectStatement.toSQL(clickHouseDialect));
 
         // Assert the SelectStatement object
         Assertions.assertEquals(4, selectStatement.getSelectorList().size());

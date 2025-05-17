@@ -79,7 +79,7 @@ public class ServerCallInterceptor implements ServerInterceptor {
 
         ITraceSpan rootSpan = context.reporter(Tracer.get().reporter())
                                      .currentSpan()
-                                     .component("grpc-server")
+                                     .name("grpc-server")
                                      .kind(SpanKind.SERVER)
                                      .method(serviceName, methodName)
                                      .tag(Tags.Rpc.SYSTEM, "grpc")
