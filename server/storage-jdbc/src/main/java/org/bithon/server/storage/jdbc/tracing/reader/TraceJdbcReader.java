@@ -41,6 +41,7 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
@@ -80,19 +81,22 @@ public class TraceJdbcReader implements ITraceReader {
     protected final ISchema traceSpanSchema;
     protected final ISchema traceTagIndexSchema;
     protected final ISqlDialect sqlDialect;
+    protected final QuerySettings querySettings;
 
     public TraceJdbcReader(DSLContext dslContext,
                            ObjectMapper objectMapper,
                            ISchema traceSpanSchema,
                            ISchema traceTagIndexSchema,
                            TraceStorageConfig traceStorageConfig,
-                           ISqlDialect sqlDialect) {
+                           ISqlDialect sqlDialect,
+                           QuerySettings querySettings) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceStorageConfig = traceStorageConfig;
         this.traceSpanSchema = traceSpanSchema;
         this.traceTagIndexSchema = traceTagIndexSchema;
         this.sqlDialect = sqlDialect;
+        this.querySettings = querySettings;
     }
 
     @Override
@@ -396,7 +400,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     protected IDataSourceReader getDataSourceReader() {
-        return new JdbcDataSourceReader(this.dslContext, sqlDialect);
+        return new JdbcDataSourceReader(this.dslContext, this.sqlDialect, this.querySettings);
     }
 
     @Override

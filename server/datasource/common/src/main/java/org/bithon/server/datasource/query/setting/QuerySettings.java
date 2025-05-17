@@ -14,22 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.event;
+package org.bithon.server.datasource.query.setting;
 
-import org.bithon.server.datasource.query.setting.QuerySettings;
-import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
-import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.storage.event.IEventReader;
-import org.jooq.DSLContext;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/11/29 21:08
+ * @date 17/5/25 11:38 am
  */
-public class EventJdbcReader extends JdbcDataSourceReader implements IEventReader {
-
-    EventJdbcReader(DSLContext dslContext, ISqlDialect sqlDialect, QuerySettings querySettings) {
-        super(dslContext, sqlDialect, querySettings);
-
-    }
+@Data
+@Configuration
+@ConfigurationProperties("bithon.datasource.query.settings")
+public class QuerySettings {
+    private boolean enabledRegularExpressionOptimization = true;
 }

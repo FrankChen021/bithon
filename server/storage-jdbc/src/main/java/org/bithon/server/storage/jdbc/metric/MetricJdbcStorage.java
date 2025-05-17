@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.JdbcDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
@@ -58,24 +59,28 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected final MetricStorageConfig storageConfig;
     protected final SchemaManager schemaManager;
     protected final ISqlDialect sqlDialect;
+    protected final QuerySettings querySettings;
     private final Map<String, Boolean> schemaInitialized = new HashMap<>();
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                              @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager,
                              @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
-                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        this(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+                             @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                             @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
+        this(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager, querySettings);
     }
 
     public MetricJdbcStorage(DSLContext dslContext,
                              SchemaManager schemaManager,
                              MetricStorageConfig storageConfig,
-                             SqlDialectManager sqlDialectManager) {
+                             SqlDialectManager sqlDialectManager,
+                             QuerySettings querySettings) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
         this.schemaManager = schemaManager;
         this.storageConfig = storageConfig;
+        this.querySettings = querySettings;
     }
 
     @Override
@@ -91,7 +96,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     public final IDataSourceReader createMetricReader(ISchema schema) {
         initializeMetricTableIfNecessary(schema, toMetricTable(schema));
 
-        return this.createReader(this.dslContext, sqlDialect);
+        return this.createReader(this.dslContext, this.sqlDialect, this.querySettings);
     }
 
     private void initializeMetricTableIfNecessary(ISchema schema, MetricTable table) {
@@ -164,8 +169,8 @@ public class MetricJdbcStorage implements IMetricStorage {
         return new MetricJdbcWriter(dslContext, table, true, null);
     }
 
-    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new JdbcDataSourceReader(dslContext, sqlDialect);
+    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect, QuerySettings querySettings) {
+        return new JdbcDataSourceReader(dslContext, sqlDialect, querySettings);
     }
 
     protected void initialize(ISchema dataSource, MetricTable table) {

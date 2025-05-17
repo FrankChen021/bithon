@@ -42,6 +42,7 @@ import org.bithon.server.datasource.query.ast.Column;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.IASTNode;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.HavingClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
@@ -85,6 +86,7 @@ public class SelectStatementBuilder {
     private HumanReadableDuration offset;
 
     private ISqlDialect sqlDialect;
+    private QuerySettings querySettings;
 
     public boolean hasSlidingWindowAggregation() {
         return interval.getWindow() != null &&
@@ -143,6 +145,11 @@ public class SelectStatementBuilder {
 
     public SelectStatementBuilder sqlDialect(ISqlDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
+        return this;
+    }
+
+    public SelectStatementBuilder querySettings(QuerySettings querySettings) {
+        this.querySettings = querySettings;
         return this;
     }
 
@@ -272,7 +279,7 @@ public class SelectStatementBuilder {
 
         if (this.filter != null) {
             // Apply dialect's transformation on general AST
-            this.filter = sqlDialect.transform(this.schema, this.filter);
+            this.filter = sqlDialect.transform(this.schema, this.filter, this.querySettings);
 
             // If filter contains expressions, these expressions should be added to the selector list
             this.filter.accept(new IExpressionInDepthVisitor() {
@@ -483,7 +490,7 @@ public class SelectStatementBuilder {
             for (Selector selector : selectStatement.getSelectorList().getSelectors()) {
                 if (selector.getSelectExpression() instanceof ExpressionNode expression) {
                     IExpression parsedExpression = expression.getParsedExpression();
-                    parsedExpression = sqlDialect.transform(this.schema, parsedExpression);
+                    parsedExpression = sqlDialect.transform(this.schema, parsedExpression, querySettings);
                     expression.setParsedExpression(parsedExpression);
                 }
             }

@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.ClickHouseDataSourceReader;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
@@ -64,8 +65,9 @@ public class MetricStorage extends MetricJdbcStorage {
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseStorageProviderConfiguration providerConfiguration,
                          @JacksonInject(useInput = OptBoolean.FALSE) SchemaManager schemaManager,
                          @JacksonInject(useInput = OptBoolean.FALSE) MetricStorageConfig storageConfig,
-                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
-        super(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager);
+                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                         @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
+        super(providerConfiguration.getDslContext(), schemaManager, storageConfig, sqlDialectManager, querySettings);
         this.config = providerConfiguration.getClickHouseConfig();
     }
 
@@ -124,8 +126,8 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect) {
-        return new ClickHouseDataSourceReader(dslContext, sqlDialect);
+    protected IDataSourceReader createReader(DSLContext dslContext, ISqlDialect sqlDialect, QuerySettings querySettings) {
+        return new ClickHouseDataSourceReader(dslContext, sqlDialect, querySettings);
     }
 
     @Override

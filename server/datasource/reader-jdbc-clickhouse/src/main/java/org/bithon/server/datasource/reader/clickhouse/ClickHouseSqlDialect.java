@@ -26,6 +26,7 @@ import org.bithon.component.commons.expression.function.builtin.TimeFunction;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.expression.ClickHouseExpressionOptimizer;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
@@ -127,7 +128,7 @@ public class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression transform(ISchema schema, IExpression expression) {
-        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer(schema));
+    public IExpression transform(ISchema schema, IExpression expression, QuerySettings querySettings) {
+        return expression == null ? null : expression.accept(new ClickHouseExpressionOptimizer(schema, querySettings));
     }
 }

@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.common.expiration.IExpirationRunnable;
@@ -63,12 +64,14 @@ public class TraceStorage extends TraceJdbcStorage {
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext,
+                        @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
         super(configuration.getDslContext(),
               objectMapper,
               storageConfig,
               sqlDialectManager,
-              applicationContext);
+              applicationContext,
+              querySettings);
         this.clickHouseConfig = configuration.getClickHouseConfig();
     }
 
@@ -168,7 +171,8 @@ public class TraceStorage extends TraceJdbcStorage {
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_SUMMARY_SCHEMA_NAME),
                                    this.applicationContext.getBean(SchemaManager.class).getSchema(TraceTableSchema.TRACE_SPAN_TAG_INDEX_SCHEMA_NAME),
                                    this.storageConfig,
-                                   this.sqlDialectManager.getSqlDialect(this.dslContext)) {
+                                   this.sqlDialectManager.getSqlDialect(this.dslContext),
+                                   this.querySettings) {
 
             @Override
             protected Map<String, String> toTagMap(Object attributes) {

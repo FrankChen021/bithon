@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.SqlDialectManager;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -45,26 +46,31 @@ public class EventJdbcStorage implements IEventStorage {
     protected final ObjectMapper objectMapper;
     protected final EventStorageConfig storageConfig;
     private final ISqlDialect sqlDialect;
+    protected final QuerySettings querySettings;
 
     @JsonCreator
     public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcStorageProviderConfiguration providerConfiguration,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) EventStorageConfig storageConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) SqlDialectManager sqlDialectManager,
+                            @JacksonInject(useInput = OptBoolean.FALSE) QuerySettings querySettings) {
         this(providerConfiguration.getDslContext(),
              objectMapper,
              storageConfig,
-             sqlDialectManager);
+             sqlDialectManager,
+             querySettings);
     }
 
     protected EventJdbcStorage(DSLContext dslContext,
                                ObjectMapper objectMapper,
                                EventStorageConfig storageConfig,
-                               SqlDialectManager sqlDialectManager) {
+                               SqlDialectManager sqlDialectManager,
+                               QuerySettings querySettings) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.storageConfig = storageConfig;
         this.sqlDialect = sqlDialectManager.getSqlDialect(dslContext);
+        this.querySettings = querySettings;
     }
 
     @Override
@@ -86,7 +92,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventReader createReader() {
-        return new EventJdbcReader(dslContext, sqlDialect);
+        return new EventJdbcReader(this.dslContext, this.sqlDialect, this.querySettings);
     }
 
     @Override

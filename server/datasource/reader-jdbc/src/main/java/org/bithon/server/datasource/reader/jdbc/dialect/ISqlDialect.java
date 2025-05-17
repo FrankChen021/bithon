@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.WindowFunctionExpression;
 import org.bithon.server.datasource.reader.jdbc.statement.serializer.Expression2Sql;
 
@@ -74,10 +75,10 @@ public interface ISqlDialect {
      * Transform expressions for the target dialect
      */
     default IExpression transform(IExpression expression) {
-        return transform(null, expression);
+        return transform(null, expression, null);
     }
 
-    default IExpression transform(ISchema schema, IExpression expression) {
+    default IExpression transform(ISchema schema, IExpression expression, QuerySettings settings) {
         return expression;
     }
 

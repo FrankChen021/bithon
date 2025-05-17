@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
 
 import java.util.List;
@@ -35,13 +36,16 @@ import java.util.List;
  */
 public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
     private final ISchema schema;
+    private final QuerySettings settings;
 
     public ClickHouseExpressionOptimizer() {
         this.schema = null;
+        this.settings = null;
     }
 
-    public ClickHouseExpressionOptimizer(ISchema schema) {
+    public ClickHouseExpressionOptimizer(ISchema schema, QuerySettings settings) {
         this.schema = schema;
+        this.settings = settings;
     }
 
     @Override
@@ -63,7 +67,11 @@ public class ClickHouseExpressionOptimizer extends AbstractOptimizer {
         }
 
         if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression regularExpressionMatchExpression) {
-            return RegularExpressionMatchOptimizer.optimize(regularExpressionMatchExpression);
+            if (settings != null && settings.isEnabledRegularExpressionOptimization()) {
+                // Try to optimize the regular expression match expression
+                return RegularExpressionMatchOptimizer.optimize(regularExpressionMatchExpression);
+            }
+            return super.visit(expression);
         }
 
         if (expression instanceof ConditionalExpression.HasToken) {

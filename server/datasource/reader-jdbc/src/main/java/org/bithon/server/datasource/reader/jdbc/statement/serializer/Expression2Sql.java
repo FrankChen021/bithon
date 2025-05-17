@@ -53,7 +53,7 @@ public class Expression2Sql extends ExpressionSerializer {
         }
 
         // Apply DB-related transformation on general AST
-        IExpression transformed = sqlDialect.transform(null, expression);
+        IExpression transformed = sqlDialect.transform(null, expression, null);
 
         return sqlDialect.createSqlSerializer(qualifier).serialize(transformed);
     }

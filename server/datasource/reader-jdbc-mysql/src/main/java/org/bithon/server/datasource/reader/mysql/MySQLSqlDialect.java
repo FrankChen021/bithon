@@ -39,6 +39,7 @@ import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
@@ -173,7 +174,7 @@ public class MySQLSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public IExpression transform(ISchema schema, IExpression expression) {
+    public IExpression transform(ISchema schema, IExpression expression, QuerySettings settings) {
         return expression == null ? null : expression.accept(new AbstractOptimizer() {
             /**
              * MYSQL does not support Map, the JSON formatted string is stored in the column.
