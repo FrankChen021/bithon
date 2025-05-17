@@ -1542,7 +1542,6 @@ public class SelectStatementBuilderTest {
                                 selectStatement.toSQL(mysql));
     }
 
-
     @Test
     public void test_RegularExpressionMatch_PG() {
         ISqlDialect pg = new PostgreSqlDialect();

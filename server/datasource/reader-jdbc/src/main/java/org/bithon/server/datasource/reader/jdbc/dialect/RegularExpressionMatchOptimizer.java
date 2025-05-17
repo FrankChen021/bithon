@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.clickhouse.expression;
+package org.bithon.server.datasource.reader.jdbc.dialect;
 
 
 import org.bithon.component.commons.expression.ComparisonExpression;
@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.server.datasource.query.setting.QuerySettings;
-import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +57,7 @@ public class RegularExpressionMatchOptimizer {
     }
 
     // Add a method for not match expressions
-    IExpression optimize(ConditionalExpression.RegularExpressionNotMatchExpression expression) {
+    public IExpression optimize(ConditionalExpression.RegularExpressionNotMatchExpression expression) {
         if (querySettings == null || !querySettings.isEnableRegularExpressionOptimization()) {
             return expression;
         }
@@ -99,7 +98,7 @@ public class RegularExpressionMatchOptimizer {
         return expression;
     }
 
-    IExpression optimize(ConditionalExpression.RegularExpressionMatchExpression expression) {
+    public IExpression optimize(ConditionalExpression.RegularExpressionMatchExpression expression) {
         if (querySettings == null || !querySettings.isEnableRegularExpressionOptimization()) {
             return expression;
         }
@@ -134,11 +133,11 @@ public class RegularExpressionMatchOptimizer {
                     // Exact match if anchored on both sides
                     return new ComparisonExpression.EQ(lhs, new LiteralExpression.StringLiteral(unanchoredPattern));
                 } else if (startsWithCaret) {
-                    return querySettings.isEnableRegularExpressionToStartsWith() ? new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
-                                                                                 : expression;
+                    return querySettings.isEnableRegularExpressionOptimizationToStartsWith() ? new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
+                                                                                             : expression;
                 } else if (endsWithDollar) {
-                    return querySettings.isEnableRegularExpressionToEndsWith() ? new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
-                                                                               : expression;
+                    return querySettings.isEnableRegularExpressionOptimizationToEndsWith() ? new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(unanchoredPattern))
+                                                                                           : expression;
                 } else {
                     // Contains if no anchors
                     // Contains expression will be turned into LIKE if using Expression2Sql
@@ -148,8 +147,8 @@ public class RegularExpressionMatchOptimizer {
 
             // Check for number range patterns: ^[0-9]+$, ^\d+$
             if (startsWithCaret && endsWithDollar &&
-                (unanchoredPattern.equals("[0-9]+") || unanchoredPattern.equals("\\d+") ||
-                 unanchoredPattern.equals("[0-9]*") || unanchoredPattern.equals("\\d*"))) {
+                ("[0-9]+".equals(unanchoredPattern) || "\\d+".equals(unanchoredPattern) ||
+                 "[0-9]*".equals(unanchoredPattern) || "\\d*".equals(unanchoredPattern))) {
                 // Can't do exact optimization but we can use > 0 or >= 0 based on + or *
                 boolean isZeroAllowed = unanchoredPattern.contains("*");
                 if (isZeroAllowed) {
@@ -161,7 +160,7 @@ public class RegularExpressionMatchOptimizer {
 
             // startsWith: "^prefix.*" or "^prefix"
             if (startsWithCaret && unanchoredPattern.endsWith(".*")) {
-                if (querySettings.isEnableRegularExpressionToStartsWith()) {
+                if (querySettings.isEnableRegularExpressionOptimizationToStartsWith()) {
                     String prefix = unanchoredPattern.substring(0, unanchoredPattern.length() - 2);
                     if (!containsUnescapedMetachars(prefix)) {
                         return new ConditionalExpression.StartsWith(lhs, new LiteralExpression.StringLiteral(prefix));
@@ -173,7 +172,7 @@ public class RegularExpressionMatchOptimizer {
 
             // endsWith: ".*suffix$" or "suffix$"
             if (endsWithDollar && unanchoredPattern.startsWith(".*")) {
-                if (querySettings.isEnableRegularExpressionToEndsWith()) {
+                if (querySettings.isEnableRegularExpressionOptimizationToEndsWith()) {
                     String suffix = unanchoredPattern.substring(2);
                     if (!containsUnescapedMetachars(suffix)) {
                         return new ConditionalExpression.EndsWith(lhs, new LiteralExpression.StringLiteral(suffix));
@@ -271,10 +270,10 @@ public class RegularExpressionMatchOptimizer {
             if (pattern.contains("\\d") || pattern.contains("\\w") || pattern.contains("\\s")) {
                 // Only optimize simple patterns like "^\d+$" or "^\w+$"
                 if (startsWithCaret && endsWithDollar) {
-                    if (unanchoredPattern.equals("\\d+")) {
+                    if ("\\d+".equals(unanchoredPattern)) {
                         // Pattern is exactly "^\d+$" - digits only
                         return new LikeOperator(lhs, new LiteralExpression.StringLiteral("[0-9]%"));
-                    } else if (unanchoredPattern.equals("\\w+")) {
+                    } else if ("\\w+".equals(unanchoredPattern)) {
                         // Pattern is exactly "^\w+$" - word chars only
                         return new LikeOperator(lhs, new LiteralExpression.StringLiteral("[a-zA-Z0-9_]%"));
                     }

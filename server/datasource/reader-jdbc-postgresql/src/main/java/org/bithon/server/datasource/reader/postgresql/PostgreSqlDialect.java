@@ -94,7 +94,7 @@ public class PostgreSqlDialect implements ISqlDialect {
 
     @Override
     public IExpression transform(ISchema schema, IExpression expression, QuerySettings querySettings) {
-        return expression == null ? null : expression.accept(new PostgreSqlExpressionTransformer());
+        return expression == null ? null : expression.accept(new PostgreSqlExpressionTransformer(querySettings));
     }
 
     @Override

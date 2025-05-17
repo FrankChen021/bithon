@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.reader.clickhouse.expression;
+package org.bithon.server.datasource.reader.jdbc.dialect;
 
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.expression.serialization.IdentifierQuotaStrategy;
 import org.bithon.server.datasource.query.setting.QuerySettings;
-import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,8 +38,8 @@ public class RegularExpressionMatchOptimizerTest {
     private final IExpression testColumn = new IdentifierExpression("column");
     private final RegularExpressionMatchOptimizer optimizer = RegularExpressionMatchOptimizer.of(QuerySettings.builder()
                                                                                                               .enableRegularExpressionOptimization(true)
-                                                                                                              .enableRegularExpressionToStartsWith(true)
-                                                                                                              .enableRegularExpressionToEndsWith(true)
+                                                                                                              .enableRegularExpressionOptimizationToStartsWith(true)
+                                                                                                              .enableRegularExpressionOptimizationToEndsWith(true)
                                                                                                               .build());
 
     @Test
@@ -85,7 +84,7 @@ public class RegularExpressionMatchOptimizerTest {
         RegularExpressionMatchOptimizer disabledStartsWithOptimizer = RegularExpressionMatchOptimizer.of(
             QuerySettings.builder()
                          .enableRegularExpressionOptimization(true)
-                         .enableRegularExpressionToStartsWith(false)
+                         .enableRegularExpressionOptimizationToStartsWith(false)
                          .build()
         );
         
@@ -129,7 +128,7 @@ public class RegularExpressionMatchOptimizerTest {
         RegularExpressionMatchOptimizer disabledEndsWithOptimizer = RegularExpressionMatchOptimizer.of(
             QuerySettings.builder()
                          .enableRegularExpressionOptimization(true)
-                         .enableRegularExpressionToEndsWith(false)
+                         .enableRegularExpressionOptimizationToEndsWith(false)
                          .build()
         );
         
@@ -162,7 +161,7 @@ public class RegularExpressionMatchOptimizerTest {
         RegularExpressionMatchOptimizer disabledStartsWithOptimizer = RegularExpressionMatchOptimizer.of(
             QuerySettings.builder()
                          .enableRegularExpressionOptimization(true)
-                         .enableRegularExpressionToStartsWith(false)
+                         .enableRegularExpressionOptimizationToStartsWith(false)
                          .build()
         );
         

@@ -28,6 +28,7 @@ import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.clickhouse.AggregateFunctionColumn;
+import org.bithon.server.datasource.reader.jdbc.dialect.RegularExpressionMatchOptimizer;
 
 import java.util.List;
 

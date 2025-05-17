@@ -43,11 +43,25 @@ public class QuerySettings {
      * When true, allows optimization of regex patterns like "^prefix.*" to startsWith expressions.
      * When false, these patterns will remain as regular expression matches.
      */
-    private boolean enableRegularExpressionToStartsWith = false;
+    private boolean enableRegularExpressionOptimizationToStartsWith = true;
     
     /**
      * When true, allows optimization of regex patterns like ".*suffix$" to endsWith expressions.
      * When false, these patterns will remain as regular expression matches.
      */
-    private boolean enableRegularExpressionToEndsWith = false;
+    private boolean enableRegularExpressionOptimizationToEndsWith = true;
+    
+    /**
+     * Creates a new instance with the same settings as this one.
+     * This allows creating a modified copy without affecting the original instance.
+     *
+     * @return A new QuerySettings instance with the same properties as this one
+     */
+    public QuerySettings copy() {
+        return QuerySettings.builder()
+                .enableRegularExpressionOptimization(this.enableRegularExpressionOptimization)
+                .enableRegularExpressionOptimizationToStartsWith(this.enableRegularExpressionOptimizationToStartsWith)
+                .enableRegularExpressionOptimizationToEndsWith(this.enableRegularExpressionOptimizationToEndsWith)
+                .build();
+    }
 }

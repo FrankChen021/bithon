@@ -28,8 +28,10 @@ import org.bithon.component.commons.expression.MapAccessExpression;
 import org.bithon.component.commons.expression.function.Functions;
 import org.bithon.component.commons.expression.function.builtin.StringFunction;
 import org.bithon.component.commons.expression.optimzer.AbstractOptimizer;
+import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.LikeOperator;
 import org.bithon.server.datasource.reader.jdbc.dialect.MapAccessExpressionTransformer;
+import org.bithon.server.datasource.reader.jdbc.dialect.RegularExpressionMatchOptimizer;
 
 import java.util.Arrays;
 
@@ -38,6 +40,19 @@ import java.util.Arrays;
  * @date 17/5/25 12:14 pm
  */
 class H2ExpressionTransformer extends AbstractOptimizer {
+
+    private final QuerySettings querySettings;
+
+    H2ExpressionTransformer(QuerySettings querySettings) {
+        // For H2, we disable the optimization for regular expression to startsWith and endsWith
+        if (querySettings != null) {
+            this.querySettings = querySettings.copy();
+            this.querySettings.setEnableRegularExpressionOptimizationToStartsWith(false);
+            this.querySettings.setEnableRegularExpressionOptimizationToEndsWith(false);
+        } else {
+            this.querySettings = null;
+        }
+    }
 
     /**
      * H2 does not support Map, the JSON formatted string is stored in the column.
@@ -61,12 +76,27 @@ class H2ExpressionTransformer extends AbstractOptimizer {
             return new FunctionExpression(StringFunction.HasToken.INSTANCE, expression.getLhs(), expression.getRhs());
         }
 
-        if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression) {
-            return toRegexpLikeExpression(expression);
+        if (expression instanceof ConditionalExpression.RegularExpressionMatchExpression regularExpressionMatchExpression) {
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionMatchExpression) {
+                // Not optimized
+                return toNativeRegularExpression((ConditionalExpression) transformed);
+            } else {
+                return transformed.accept(this);
+            }
         }
 
-        if (expression instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
-            return new LogicalExpression.NOT(toRegexpLikeExpression(expression));
+        if (expression instanceof ConditionalExpression.RegularExpressionNotMatchExpression regularExpressionNotMatchExpression) {
+            IExpression transformed = RegularExpressionMatchOptimizer.of(this.querySettings)
+                                                                     .optimize(regularExpressionNotMatchExpression);
+            if (transformed instanceof ConditionalExpression.RegularExpressionNotMatchExpression) {
+                // Not optimized
+                return new LogicalExpression.NOT(toNativeRegularExpression(regularExpressionNotMatchExpression));
+            } else {
+                // Apply transformation on the transformed expression again
+                return transformed.accept(this);
+            }
         }
 
         return super.visit(expression);
@@ -118,7 +148,7 @@ class H2ExpressionTransformer extends AbstractOptimizer {
         return SafeDivisionTransformer.transform(expression);
     }
 
-    private IExpression toRegexpLikeExpression(BinaryExpression expr) {
+    private IExpression toNativeRegularExpression(BinaryExpression expr) {
         return new FunctionExpression("regexp_like",
                                       expr.getLhs(),
                                       expr.getRhs(),
