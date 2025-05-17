@@ -94,10 +94,6 @@ public class MetricExpressionASTBuilder {
         return metricExpression.accept(new BuilderImpl());
     }
 
-    public static IExpression build(MetricExpressionParser.MetricAggregationExpressionContext metricExpression) {
-        return metricExpression.accept(new BuilderImpl());
-    }
-
     private static class BuilderImpl extends MetricExpressionBaseVisitor<IExpression> {
         private final LiteralExpressionBuilder literalExpressionBuilder = new LiteralExpressionBuilder();
 
