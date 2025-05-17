@@ -60,7 +60,7 @@ public interface ISqlDialect {
     IExpression toISO8601TimestampExpression(TimeSpan timeSpan);
 
     default IExpression toISO8601TimestampExpression(Timestamp timestamp) {
-        return toISO8601TimestampExpression(TimeSpan.of(timestamp.getTime()));
+        return toISO8601TimestampExpression(TimeSpan.fromMilliseconds(timestamp.getTime()));
     }
 
     String stringAggregator(String field);

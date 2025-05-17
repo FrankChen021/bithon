@@ -18,6 +18,7 @@ package org.bithon.server.commons.time;
 
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -109,5 +110,24 @@ public class TimeSpanTest {
             Assertions.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
             Assertions.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
+    }
+
+    @Test
+    public void testJacksonDeserialization() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Test ISO8601 string deserialization
+        String isoJson = "\"2022-05-15T12:38:43.000Z\"";
+        TimeSpan isoTimeSpan = mapper.readValue(isoJson, TimeSpan.class);
+        Assertions.assertEquals("2022-05-15 12:38:43", isoTimeSpan.format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone("UTC")));
+
+        // Test milliseconds deserialization
+        long millis = TimeSpan.fromISO8601("2022-05-15T12:38:43.000Z").getMilliseconds();
+        String millisJson = String.valueOf(millis);
+        TimeSpan millisTimeSpan = mapper.readValue(millisJson, TimeSpan.class);
+        Assertions.assertEquals("2022-05-15 12:38:43", millisTimeSpan.format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone("UTC")));
+
+        // Test that both methods produce equal TimeSpan objects
+        Assertions.assertEquals(isoTimeSpan, millisTimeSpan);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.bithon.server.commons.time;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 
 import java.sql.Timestamp;
@@ -32,6 +33,28 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-08-24 14:55:46
  */
 public class TimeSpan {
+
+    public static TimeSpan now() {
+        return new TimeSpan(System.currentTimeMillis());
+    }
+
+    /**
+     * @param time e.g. 2020-08-24T14:55:46.000+08:00
+     */
+    @JsonCreator
+    public static TimeSpan fromISO8601(String time) {
+        return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
+    }
+
+    /**
+     * @param l milliseconds
+     */
+    @JsonCreator
+    public static TimeSpan fromMilliseconds(long l) {
+        return new TimeSpan(l);
+    }
+
+
     public TimeSpan(long milliseconds) {
         this.milliseconds = milliseconds;
     }
@@ -45,24 +68,6 @@ public class TimeSpan {
     }
 
     private final long milliseconds;
-
-    public static TimeSpan now() {
-        return new TimeSpan(System.currentTimeMillis());
-    }
-
-    /**
-     * @param time e.g. 2020-08-24T14:55:46.000+08:00
-     */
-    public static TimeSpan fromISO8601(String time) {
-        return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
-    }
-
-    /**
-     * @param l milliseconds
-     */
-    public static TimeSpan of(long l) {
-        return new TimeSpan(l);
-    }
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
         return new TimeSpan(milliseconds - timeUnit.toMillis(value));
