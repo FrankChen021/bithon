@@ -28,6 +28,6 @@ import org.springframework.context.annotation.ComponentScan;
 public class StarterApplication {
 
     public static void main(String[] args) {
-        new SpringApplication(StarterApplication.class);
+        SpringApplication.run(StarterApplication.class, args);
     }
 }
