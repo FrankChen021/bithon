@@ -30,9 +30,19 @@ public class StringColumn implements Column {
     private int size;
     private final String name;
 
+    public static StringColumn of(String name, String... data) {
+        return new StringColumn(name, data);
+    }
+
     public StringColumn(String name, int capacity) {
         this.data = new String[capacity];
         this.size = 0;
+        this.name = name;
+    }
+
+    public StringColumn(String name, String[] data) {
+        this.data = data;
+        this.size = data.length;
         this.name = name;
     }
 

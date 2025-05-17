@@ -39,6 +39,19 @@ import java.util.concurrent.TimeUnit;
 public class MetricExpressionASTBuilderTest {
 
     @Test
+    public void test_ColonCharacter() {
+        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu:usage{appName = 'a'}) > 1");
+        Assertions.assertNotNull(expression);
+        Assertions.assertEquals("jvm-metrics", expression.getFrom());
+        Assertions.assertEquals("avg", expression.getMetric().getAggregator());
+        Assertions.assertEquals("cpu:usage", expression.getMetric().getField());
+        Assertions.assertEquals("avg(jvm-metrics.cpu:usage{appName = \"a\"}) > 1", expression.serializeToText());
+
+        // colon is not allowed in label
+        Assertions.assertThrows(InvalidExpressionException.class, () -> MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{app:name = 'a'})[5m] > 1"));
+    }
+
+    @Test
     public void test_Expression() {
         MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'}) > 1");
         Assertions.assertNotNull(expression);

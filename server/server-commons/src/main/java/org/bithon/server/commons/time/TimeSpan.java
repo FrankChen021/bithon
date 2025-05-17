@@ -16,6 +16,8 @@
 
 package org.bithon.server.commons.time;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.bithon.component.commons.utils.HumanReadableDuration;
 
 import java.sql.Timestamp;
@@ -32,6 +34,33 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-08-24 14:55:46
  */
 public class TimeSpan {
+
+    public static TimeSpan now() {
+        return new TimeSpan(System.currentTimeMillis());
+    }
+
+    /**
+     * @param time e.g. 2020-08-24T14:55:46.000+08:00
+     */
+    @JsonCreator
+    public static TimeSpan fromISO8601(String time) {
+        return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
+    }
+
+    /**
+     * @param l milliseconds
+     */
+    @JsonCreator
+    public static TimeSpan fromMilliseconds(long l) {
+        return new TimeSpan(l);
+    }
+
+    public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
+        df.setTimeZone(timeZone);
+        return new TimeSpan(df.parse(dateTime).getTime());
+    }
+
     public TimeSpan(long milliseconds) {
         this.milliseconds = milliseconds;
     }
@@ -45,24 +74,6 @@ public class TimeSpan {
     }
 
     private final long milliseconds;
-
-    public static TimeSpan now() {
-        return new TimeSpan(System.currentTimeMillis());
-    }
-
-    /**
-     * @param time e.g. 2020-08-24T14:55:46.000+08:00
-     */
-    public static TimeSpan fromISO8601(String time) {
-        return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
-    }
-
-    /**
-     * @param l milliseconds
-     */
-    public static TimeSpan of(long l) {
-        return new TimeSpan(l);
-    }
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
         return new TimeSpan(milliseconds - timeUnit.toMillis(value));
@@ -108,10 +119,12 @@ public class TimeSpan {
         return format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", tz);
     }
 
-    public static TimeSpan fromString(String dateTime, String format, TimeZone timeZone) throws ParseException {
-        SimpleDateFormat df = new SimpleDateFormat(format, Locale.ENGLISH);
-        df.setTimeZone(timeZone);
-        return new TimeSpan(df.parse(dateTime).getTime());
+    /**
+     * ALWAYS Serialize the timestamp in UTC+0 timezone which makes it consistent for programms running on any timezone
+     */
+    @JsonValue
+    public String toISO8601UTC0ffset() {
+        return toISO8601(TimeZone.getTimeZone("UTC-0"));
     }
 
     /**
@@ -157,4 +170,6 @@ public class TimeSpan {
     public TimeSpan minus(long millis) {
         return new TimeSpan(this.milliseconds - millis);
     }
+
+
 }

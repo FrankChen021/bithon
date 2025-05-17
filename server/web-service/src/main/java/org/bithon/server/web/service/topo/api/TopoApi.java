@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,8 @@ public class TopoApi {
 
         // since the min granularity is minute, round down the timestamp to minute
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
-        TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
-        TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).floor(Duration.ofMinutes(1));
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).floor(Duration.ofMinutes(1));
         long durationSeconds = end.diff(start) / 1000;
 
         Query calleeQuery = Query.builder()

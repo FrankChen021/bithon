@@ -125,7 +125,7 @@ public class MetricJdbcStorage implements IMetricStorage {
                                    .map((record) -> {
                                        try {
                                            String date = record.get(Tables.BITHON_METRICS_BASELINE.DATE);
-                                           TimeSpan startTimestamp = TimeSpan.of(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
+                                           TimeSpan startTimestamp = TimeSpan.fromMilliseconds(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(date + " 00:00:00").getTime());
 
                                            int keepDays = record.get(Tables.BITHON_METRICS_BASELINE.KEEP_DAYS);
                                            if (keepDays > 0) {

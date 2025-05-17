@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
-import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.datasource.ISchema;
@@ -31,6 +30,7 @@ import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
@@ -120,33 +120,12 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public QueryResponse timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException {
+    public ColumnarTable timeseriesV5(@Validated @RequestBody QueryRequest request) throws IOException {
         ISchema schema = schemaManager.getSchema(request.getDataSource());
 
         Query query = QueryConverter.toQuery(schema, request, true);
 
-        List<QueryResponse.QueryResponseColumn> columns = new ArrayList<>();
-        columns.add(new QueryResponse.QueryResponseColumn("_timestamp", IDataType.LONG.name()));
-        columns.addAll(query.getGroupBy()
-                            .stream()
-                            .map((s) -> {
-                                IColumn column = schema.getColumnByName(s);
-                                Preconditions.checkNotNull(column, "Field [%s] given in the GROUP-BY expression does not exist in the schema.", s);
-                                return new QueryResponse.QueryResponseColumn(column.getName(), column.getDataType().name());
-                            }).toList());
-        columns.addAll(query.getSelectors()
-                            .stream()
-                            .map((selector) -> new QueryResponse.QueryResponseColumn(selector.getOutputName(), selector.getDataType().name()))
-                            .toList());
-
-        TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery2(query);
-        return QueryResponse.builder()
-                            .meta(columns)
-                            .data(result.getMetrics())
-                            .startTimestamp(result.getStartTimestamp())
-                            .endTimestamp(result.getEndTimestamp())
-                            .interval(result.getInterval())
-                            .build();
+        return this.dataSourceService.timeseriesQuery2(query);
     }
 
     @Override

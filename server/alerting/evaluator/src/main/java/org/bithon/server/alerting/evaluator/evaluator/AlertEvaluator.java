@@ -148,8 +148,8 @@ public class AlertEvaluator implements DisposableBean {
                     return;
                 }
 
-                TimeSpan lastEvaluationTimestamp = TimeSpan.of(context.getStateManager()
-                                                                      .getLastEvaluationTimestamp())
+                TimeSpan lastEvaluationTimestamp = TimeSpan.fromMilliseconds(context.getStateManager()
+                                                                                    .getLastEvaluationTimestamp())
                                                            .floor(Duration.ofMinutes(1));
                 long pastSeconds = now.diff(lastEvaluationTimestamp) / 1000;
                 if (pastSeconds < interval.toSeconds()) {

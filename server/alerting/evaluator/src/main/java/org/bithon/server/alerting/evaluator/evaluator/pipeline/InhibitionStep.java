@@ -53,7 +53,7 @@ public class InhibitionStep implements IPipelineStep {
         String lastAlertingAt = "N/A";
         LocalDateTime timestamp = context.getStateManager().getLastAlertAt();
         if (timestamp != null) {
-            lastAlertingAt = TimeSpan.of(Timestamp.valueOf(timestamp).getTime()).format("HH:mm:ss");
+            lastAlertingAt = TimeSpan.fromMilliseconds(Timestamp.valueOf(timestamp).getTime()).format("HH:mm:ss");
         }
 
         HumanReadableDuration silenceDuration = context.getAlertRule().getNotificationProps().getSilence();
@@ -73,7 +73,7 @@ public class InhibitionStep implements IPipelineStep {
                         label.formatIfNotEmpty(" for series {%s}"),
                         silenceDuration,
                         lastAlertingAt,
-                        TimeSpan.of(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
+                        TimeSpan.fromMilliseconds(System.currentTimeMillis() + silenceRemainTime.toMillis()).format("HH:mm:ss"));
             return AlertStatus.SUPPRESSING;
         } else {
             context.log(InhibitionStep.class, "Alerting%s，silence period(%s) is over. Last alert at: %s",

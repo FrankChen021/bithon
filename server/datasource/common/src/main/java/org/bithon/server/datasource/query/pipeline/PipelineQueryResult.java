@@ -37,8 +37,19 @@ public class PipelineQueryResult {
     private List<String> valColumns;
     private ColumnarTable table;
 
+    /**
+     * in milliseconds
+     */
     private long startTimestamp;
+
+    /**
+     * in milliseconds
+     */
     private long endTimestamp;
+
+    /**
+     * in milliseconds
+     */
     private long interval;
 }
 

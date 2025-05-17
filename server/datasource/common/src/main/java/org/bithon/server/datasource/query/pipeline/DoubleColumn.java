@@ -30,6 +30,10 @@ public class DoubleColumn implements Column {
     private int size;
     private final String name;
 
+    public static DoubleColumn of(String name, double... data) {
+        return new DoubleColumn(name, data);
+    }
+
     public DoubleColumn(String name, int capacity) {
         this.data = new double[capacity];
         this.size = 0;

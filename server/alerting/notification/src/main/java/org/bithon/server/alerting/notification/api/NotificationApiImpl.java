@@ -114,7 +114,7 @@ public class NotificationApiImpl implements INotificationApi {
                        .filter(Objects::nonNull)
                        .toList();
 
-            TimeSpan endSpan = TimeSpan.of(message.getEndTimestamp());
+            TimeSpan endSpan = TimeSpan.fromMilliseconds(message.getEndTimestamp());
 
             Map<String, String> images = this.imageService.render(ImageMode.BASE64,
                                                                   message.getAlertRule(),

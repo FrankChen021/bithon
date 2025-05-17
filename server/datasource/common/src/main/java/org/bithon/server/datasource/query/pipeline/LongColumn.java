@@ -33,6 +33,10 @@ public class LongColumn implements Column {
     private int size;
     private final String name;
 
+    public static LongColumn of(String name, long... data) {
+        return new LongColumn(name, data);
+    }
+
     public LongColumn(String name, int capacity) {
         this.data = new long[capacity];
         this.size = 0;
