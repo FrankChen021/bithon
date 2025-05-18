@@ -19,20 +19,19 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
-import org.bithon.server.web.service.datasource.api.QueryResponse;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -64,8 +63,8 @@ public class MetricExpressionQueryStep implements IQueryStep {
             return true;
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(queryRequest.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(queryRequest.getInterval().getEndISO8601());
+        TimeSpan start = queryRequest.getInterval().getStartISO8601();
+        TimeSpan end = queryRequest.getInterval().getEndISO8601();
         long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
         return queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength;
     }
@@ -82,9 +81,10 @@ public class MetricExpressionQueryStep implements IQueryStep {
                 if (cachedResponse == null) {
                     cachedResponse = CompletableFuture.supplyAsync(() -> {
                         try {
-                            QueryResponse<?> response = dataSourceApi.timeseriesV5(queryRequest);
+                            ColumnarTable columnTable = dataSourceApi.timeseriesV5(queryRequest);
+
                             List<String> keys = new ArrayList<>();
-                            keys.add("_timestamp");
+                            keys.add(TimestampSpec.COLUMN_ALIAS);
                             keys.addAll(queryRequest.getGroupBy() != null ? queryRequest.getGroupBy() : Collections.emptySet());
 
                             List<String> valNames = queryRequest.getFields()
@@ -92,7 +92,20 @@ public class MetricExpressionQueryStep implements IQueryStep {
                                                                 .map(QueryField::getName)
                                                                 .toList();
 
-                            return toEvaluationResult(keys, valNames, response);
+                            Duration step = queryRequest.getInterval().calculateStep();
+
+                            TimeSpan start = queryRequest.getInterval().getStartISO8601();
+                            TimeSpan end = queryRequest.getInterval().getEndISO8601();
+
+                            return PipelineQueryResult.builder()
+                                                      .rows(columnTable.rowCount())
+                                                      .keyColumns(keys)
+                                                      .valColumns(valNames)
+                                                      .table(columnTable)
+                                                      .startTimestamp(start.floor(step).getMilliseconds())
+                                                      .endTimestamp(end.floor(step).getMilliseconds())
+                                                      .interval(step.toMillis())
+                                                      .build();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -101,62 +114,5 @@ public class MetricExpressionQueryStep implements IQueryStep {
             }
         }
         return cachedResponse;
-    }
-
-    private PipelineQueryResult toEvaluationResult(List<String> keyNames,
-                                                   List<String> valNames,
-                                                   QueryResponse response) {
-        List<QueryResponse.QueryResponseColumn> keyColumns = keyNames.stream()
-                                                                     .map((key) -> {
-                                                                         List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
-                                                                         return cols.stream()
-                                                                                    .filter((QueryResponse.QueryResponseColumn col) -> col.getName().equals(key))
-                                                                                    .findFirst()
-                                                                                    .orElseThrow(() -> new IllegalArgumentException("Key column not found: " + key));
-
-                                                                     }).toList();
-        List<QueryResponse.QueryResponseColumn> valColumns = valNames.stream()
-                                                                     .map((val) -> {
-                                                                         List<QueryResponse.QueryResponseColumn> cols = response.getMeta();
-                                                                         return cols.stream()
-                                                                                    .filter((QueryResponse.QueryResponseColumn col) -> col.getName().equals(val))
-                                                                                    .findFirst()
-                                                                                    .orElseThrow(() -> new IllegalArgumentException("Key column not found: " + val));
-
-                                                                     }).toList();
-        List<Map<String, Object>> rows = (List<Map<String, Object>>) response.getData();
-
-        // Create a ColumnarTable to hold the data
-        ColumnarTable table = new ColumnarTable();
-
-        // Add key columns
-        for (QueryResponse.QueryResponseColumn keyColumn : keyColumns) {
-            Column column = Column.create(keyColumn.getName(), keyColumn.getDataType(), rows.size());
-            for (Map<String, Object> row : rows) {
-                Object cell = row.get(keyColumn.getName());
-                column.addObject(cell);
-            }
-            table.addColumn(column);
-        }
-
-        // Add value columns
-        for (QueryResponse.QueryResponseColumn valColumn : valColumns) {
-            Column column = Column.create(valColumn.getName(), valColumn.getDataType(), rows.size());
-            for (Map<String, Object> value : rows) {
-                column.addObject(value.get(valColumn.getName()));
-            }
-            table.addColumn(column);
-        }
-
-        // Create and return the EvaluationResult
-        return PipelineQueryResult.builder()
-                                  .rows(rows.size())
-                                  .keyColumns(keyColumns.stream().map(QueryResponse.QueryResponseColumn::getName).toList())
-                                  .valColumns(valColumns.stream().map((QueryResponse.QueryResponseColumn::getName)).toList())
-                                  .table(table)
-                                  .startTimestamp(response.getStartTimestamp())
-                                  .endTimestamp(response.getEndTimestamp())
-                                  .interval(response.getInterval())
-                                  .build();
     }
 }

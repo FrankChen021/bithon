@@ -35,7 +35,6 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.web.service.common.bucket.TimeBucket;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
@@ -119,24 +118,10 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(interval.getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(interval.getEndISO8601());
+        TimeSpan start = interval.getStartISO8601();
+        TimeSpan end = interval.getEndISO8601();
 
-        Duration step = null;
-        if (groupByTimestamp) {
-            if (interval.getBucketCount() == null) {
-                step = Duration.ofSeconds(TimeBucket.calculate(start, end));
-            } else {
-                step = Duration.ofSeconds(TimeBucket.calculate(start.getMilliseconds(),
-                                                               end.getMilliseconds(),
-                                                               interval.getBucketCount()).getLength());
-            }
-
-            if (interval.getStep() != null) {
-                Preconditions.checkIfTrue(interval.getStep() > 0, "step must be greater than 0");
-                step = Duration.ofSeconds(interval.getStep());
-            }
-        }
+        Duration step = groupByTimestamp ? interval.calculateStep() : null;
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(interval.getTimestampColumn())) {
@@ -220,8 +205,8 @@ public class QueryConverter {
             }
         }
 
-        TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
+        TimeSpan start = query.getInterval().getStartISO8601();
+        TimeSpan end = query.getInterval().getEndISO8601();
 
         String timestampColumn = schema.getTimestampSpec().getColumnName();
         if (StringUtils.hasText(query.getInterval().getTimestampColumn())) {

@@ -18,6 +18,7 @@ package org.bithon.server.commons.time;
 
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -109,5 +110,45 @@ public class TimeSpanTest {
             Assertions.assertEquals("2022-05-15 00:00:00", span.floor(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
             Assertions.assertEquals("2022-05-16 00:00:00", span.ceil(Duration.ofDays(1)).format("yyyy-MM-dd HH:mm:ss", tz));
         }
+    }
+
+    @Test
+    public void testJacksonDeserialization() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Test ISO8601 string deserialization
+        String isoJson = "\"2022-05-15T12:38:43.000Z\"";
+        TimeSpan isoTimeSpan = mapper.readValue(isoJson, TimeSpan.class);
+        Assertions.assertEquals("2022-05-15 12:38:43", isoTimeSpan.format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone("UTC")));
+
+        // Test milliseconds deserialization
+        long millis = TimeSpan.fromISO8601("2022-05-15T12:38:43.000Z").getMilliseconds();
+        String millisJson = String.valueOf(millis);
+        TimeSpan millisTimeSpan = mapper.readValue(millisJson, TimeSpan.class);
+        Assertions.assertEquals("2022-05-15 12:38:43", millisTimeSpan.format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone("UTC")));
+
+        // Test that both methods produce equal TimeSpan objects
+        Assertions.assertEquals(isoTimeSpan, millisTimeSpan);
+    }
+
+    @Test
+    public void testJacksonSerialization() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Create a TimeSpan with a known time
+        TimeSpan timeSpan = TimeSpan.fromISO8601("2022-05-15T12:38:43.000Z");
+
+        // Serialize to JSON
+        String json = mapper.writeValueAsString(timeSpan);
+
+        // Verify serialized to expected ISO8601 format
+        Assertions.assertEquals("\"2022-05-15T12:38:43.000Z\"", json);
+
+        // Verify round-trip serialization/deserialization
+        TimeSpan deserializedTimeSpan = mapper.readValue(json, TimeSpan.class);
+        Assertions.assertEquals(timeSpan, deserializedTimeSpan);
+
+        // Verify milliseconds remain unchanged after round-trip
+        Assertions.assertEquals(timeSpan.getMilliseconds(), deserializedTimeSpan.getMilliseconds());
     }
 }

@@ -195,14 +195,14 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         String rightColName = right.getValColumns().get(0);
         Column rightColumn = right.getTable().getColumn(rightColName);
 
-        Column result = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
+        Column resultColumn = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
         return PipelineQueryResult.builder()
                                   .startTimestamp(left.getStartTimestamp())
                                   .endTimestamp(left.getEndTimestamp())
                                   .interval(left.getInterval())
-                                  .table(ColumnarTable.of(this.resultColumnName, result))
-                                  .rows(result.size())
+                                  .table(ColumnarTable.of(resultColumn))
+                                  .rows(resultColumn.size())
                                   .keyColumns(left.getKeyColumns())
                                   .valColumns(List.of(this.resultColumnName))
                                   .build();

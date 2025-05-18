@@ -79,10 +79,10 @@ public class TraceService {
 
                 // Set the time range to narrow down the search range
                 if (start == null) {
-                    start = TimeSpan.of(mapping.getTimestamp() - 2 * 3600 * 1000L);
+                    start = TimeSpan.fromMilliseconds(mapping.getTimestamp() - 2 * 3600 * 1000L);
                 }
                 if (end == null) {
-                    end = TimeSpan.of(mapping.getTimestamp() + 2 * 3600 * 1000L);
+                    end = TimeSpan.fromMilliseconds(mapping.getTimestamp() + 2 * 3600 * 1000L);
                 }
             }
             // if there's no mapping, try to search this id as trace id

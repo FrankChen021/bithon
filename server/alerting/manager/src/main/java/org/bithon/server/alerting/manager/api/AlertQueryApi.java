@@ -37,7 +37,6 @@ import org.bithon.server.alerting.manager.api.model.GetEvaluationLogsResponse;
 import org.bithon.server.alerting.manager.biz.AlertExpressionSuggester;
 import org.bithon.server.alerting.manager.biz.EvaluationLogService;
 import org.bithon.server.commons.autocomplete.Suggestion;
-import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -164,7 +163,7 @@ public class AlertQueryApi {
     @PostMapping("/api/alerting/alert/evaluation-log/get")
     public GetEvaluationLogsResponse getEvaluationLogs(@Valid @RequestBody GetEvaluationLogsRequest request) {
         return this.evaluationLogService.getEvaluationLogs(request.getAlertId(),
-                                                           TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
-                                                           TimeSpan.fromISO8601(request.getInterval().getEndISO8601()));
+                                                           request.getInterval().getStartISO8601(),
+                                                           request.getInterval().getEndISO8601());
     }
 }

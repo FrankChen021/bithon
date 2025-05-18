@@ -24,13 +24,13 @@ import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,25 +89,11 @@ public class DataSourceService {
         }
     }
 
-    public TimeSeriesQueryResult timeseriesQuery2(Query query) throws IOException {
+    public ColumnarTable timeseriesQuery2(Query query) throws IOException {
         try (IDataSourceReader reader = query.getSchema()
                                              .getDataStoreSpec()
                                              .createReader()) {
-            List<Map<String, Object>> result = reader.timeseries(query)
-                                                     .toRowFormat();
-
-            TimeSeriesQueryResult ts = TimeSeriesQueryResult.build(query.getInterval().getStartTime(),
-                                                                   query.getInterval().getEndTime(),
-                                                                   query.getInterval().getStep().getSeconds(),
-                                                                   Collections.emptyList(),
-                                                                   TimestampSpec.COLUMN_ALIAS,
-                                                                   Collections.emptyList(),
-                                                                   Collections.emptyList());
-            return new TimeSeriesQueryResult(result.size(),
-                                             ts.getStartTimestamp(),
-                                             ts.getEndTimestamp(),
-                                             ts.getInterval(),
-                                             result);
+            return reader.timeseries(query);
         }
     }
 
