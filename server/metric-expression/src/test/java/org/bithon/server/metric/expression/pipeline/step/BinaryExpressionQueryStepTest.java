@@ -19,6 +19,7 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.component.commons.utils.HumanReadableNumber;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.DoubleColumn;
@@ -58,8 +59,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -78,8 +79,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
@@ -98,8 +99,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -118,8 +119,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
@@ -138,8 +139,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
@@ -158,8 +159,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
@@ -178,8 +179,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
@@ -198,8 +199,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -218,8 +219,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
@@ -238,8 +239,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -258,8 +259,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -278,8 +279,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -298,8 +299,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
@@ -318,8 +319,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -338,8 +339,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
@@ -358,8 +359,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
@@ -378,8 +379,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
@@ -415,8 +416,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -464,8 +465,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -513,8 +514,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -562,8 +563,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -610,8 +611,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -651,8 +652,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -690,8 +691,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -729,8 +730,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -770,8 +771,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -821,8 +822,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -872,8 +873,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -923,8 +924,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -974,8 +975,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -1025,8 +1026,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
@@ -1074,8 +1075,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1123,8 +1124,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1172,8 +1173,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1221,8 +1222,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1270,8 +1271,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1319,8 +1320,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1368,8 +1369,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1417,8 +1418,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1466,8 +1467,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1516,8 +1517,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1566,8 +1567,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1616,8 +1617,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1668,8 +1669,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1719,8 +1720,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1771,8 +1772,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1822,8 +1823,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1873,8 +1874,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1924,8 +1925,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -1975,8 +1976,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2026,8 +2027,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2077,8 +2078,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2128,8 +2129,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2180,8 +2181,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2231,8 +2232,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2282,8 +2283,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2333,8 +2334,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2384,8 +2385,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2435,8 +2436,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2494,8 +2495,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2555,8 +2556,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
@@ -2611,8 +2612,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
@@ -2660,8 +2661,8 @@ public class BinaryExpressionQueryStepTest {
                                                    .dataSourceApi(dataSourceApi)
                                                    .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
-                                                                                   .startISO8601("2023-01-01T00:00:00+08:00")
-                                                                                   .endISO8601("2023-01-01T00:01:00+08:00")
+                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
