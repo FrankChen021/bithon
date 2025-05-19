@@ -23,6 +23,7 @@ import feign.codec.Encoder;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluationLogger;
+import org.bithon.server.alerting.evaluator.EvaluatorModuleEnabler;
 import org.bithon.server.alerting.notification.api.INotificationApi;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
@@ -32,6 +33,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
@@ -49,6 +51,7 @@ public interface INotificationApiInvoker extends INotificationApi {
     /**
      * Always inject the notification api invoker 'because it does not strongly rely on the notification service but just a RPC stub
      */
+    @Conditional(EvaluatorModuleEnabler.class)
     @Configuration
     @EnableFeignClients
     @Import(FeignClientsConfiguration.class)
