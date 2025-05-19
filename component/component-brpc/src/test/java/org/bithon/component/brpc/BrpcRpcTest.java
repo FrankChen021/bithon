@@ -524,4 +524,24 @@ public class BrpcRpcTest {
             }
         }
     }
+
+    @Test
+    public void test_SendHeadersToServer() {
+        try (BrpcClient ch = BrpcClientBuilder.builder()
+                                              .header("h1", "v1")
+                                              .header("h2", "v2")
+                                              .header(Headers.HEADER_APP_ID, "1")
+                                              .server("127.0.0.1", 8070)
+                                              .build()) {
+            IExampleService exampleService = ch.getRemoteService(IExampleService.class);
+
+            // test primitive array
+            Assertions.assertEquals(5, exampleService.div(10, 2));
+
+            BrpcServer.Session session = brpcServer.getSession("1");
+            Assertions.assertNotNull(session);
+            Assertions.assertEquals("v1", session.getRemoteAttribute("h1"));
+            Assertions.assertEquals("v2", session.getRemoteAttribute("h2"));
+        }
+    }
 }
