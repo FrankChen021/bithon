@@ -123,7 +123,7 @@ public class BrpcClient implements IBrpcChannel, Closeable {
         this.connectionTimeout = builder.connectionTimeout;
 
         if (builder.headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
+            for (Map.Entry<String, String> entry : builder.headers.entrySet()) {
                 String k = entry.getKey();
                 String v = entry.getValue();
                 this.setHeader(k, v);
