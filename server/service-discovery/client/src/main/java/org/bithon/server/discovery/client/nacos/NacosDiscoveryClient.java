@@ -19,6 +19,9 @@ package org.bithon.server.discovery.client.nacos;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
 import com.alibaba.nacos.api.exception.NacosException;
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.IDiscoveryClient;
@@ -33,9 +36,40 @@ public class NacosDiscoveryClient implements IDiscoveryClient {
     private final NacosServiceDiscovery discovery;
     private final NacosDiscoveryProperties props;
 
-    public NacosDiscoveryClient(NacosServiceDiscovery discovery, NacosDiscoveryProperties props) {
+    @JsonCreator
+    public NacosDiscoveryClient(@JacksonInject(useInput = OptBoolean.FALSE) NacosServiceDiscovery discovery,
+                                @JacksonInject(useInput = OptBoolean.FALSE) NacosDiscoveryProperties props) {
         this.discovery = discovery;
         this.props = props;
+    }
+
+    @Override
+    public List<DiscoveredServiceInstance> getInstanceList() {
+        try {
+            List<DiscoveredServiceInstance> instanceList = discovery.getInstances(props.getService())
+                                                                    .stream()
+                                                                    .filter(serviceInstance -> serviceInstance.getMetadata()
+                                                                                                              .keySet()
+                                                                                                              .stream()
+                                                                                                              .anyMatch((key) -> key.startsWith("bithon.service.")))
+                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(
+                                                                        serviceInstance.getMetadata()
+                                                                                       .keySet()
+                                                                                       .stream()
+                                                                                       .filter((key) -> key.startsWith("bithon.service."))
+                                                                                       .findFirst()
+                                                                                       .get(),
+                                                                        serviceInstance.getHost(),
+                                                                        serviceInstance.getPort(),
+                                                                        serviceInstance.getMetadata().get("bithon.service.context-path")))
+                                                                    .toList();
+
+            return instanceList;
+        } catch (NacosException e) {
+            throw new HttpMappableException(e,
+                                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            "Failed to found any instances: [%s]", e.getMessage());
+        }
     }
 
     @Override
@@ -44,7 +78,8 @@ public class NacosDiscoveryClient implements IDiscoveryClient {
             List<DiscoveredServiceInstance> instanceList = discovery.getInstances(props.getService())
                                                                     .stream()
                                                                     .filter(serviceInstance -> serviceInstance.getMetadata().containsKey("bithon.service." + serviceName))
-                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(serviceInstance.getHost(),
+                                                                    .map(serviceInstance -> new DiscoveredServiceInstance(serviceName,
+                                                                                                                          serviceInstance.getHost(),
                                                                                                                           serviceInstance.getPort(),
                                                                                                                           serviceInstance.getMetadata().get("bithon.service.context-path")))
                                                                     .toList();

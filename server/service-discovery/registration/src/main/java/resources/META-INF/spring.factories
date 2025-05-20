@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.bithon.server.discovery.registration.DiscoveryRegistration
+org.bithon.server.discovery.registration.nacos.DiscoveryRegistration

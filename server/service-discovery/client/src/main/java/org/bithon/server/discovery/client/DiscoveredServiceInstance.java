@@ -26,13 +26,18 @@ import lombok.Data;
 @Data
 public
 class DiscoveredServiceInstance {
+    private String serviceName;
     private String host;
     private int port;
 
     @Nullable
     private String contextPath;
 
-    public DiscoveredServiceInstance(String host, int port, @Nullable String contextPath) {
+    public DiscoveredServiceInstance(String serviceName,
+                                     String host,
+                                     int port,
+                                     @Nullable String contextPath) {
+        this.serviceName = serviceName;
         this.host = host;
         this.port = port;
         this.contextPath = contextPath;

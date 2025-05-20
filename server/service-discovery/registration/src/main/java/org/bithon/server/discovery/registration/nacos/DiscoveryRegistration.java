@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.discovery.registration;
+package org.bithon.server.discovery.registration.nacos;
 
 import com.alibaba.cloud.nacos.registry.NacosRegistrationCustomizer;
 import org.bithon.server.discovery.declaration.DiscoverableService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +34,8 @@ import java.util.stream.Stream;
 @Configuration
 public class DiscoveryRegistration {
 
-    //    @ConditionalOnBean(NacosServiceRegistry.class)
     @Bean
+    @ConditionalOnProperty(prefix = "bithon.discovery.type", name = "nacos")
     public NacosRegistrationCustomizer nacosRegistrationCustomizer(ApplicationContext applicationContext) {
         // Register these services as metadata of bithon-service,
         // So that discovery clients can find these registered services

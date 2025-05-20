@@ -16,12 +16,26 @@
 
 package org.bithon.server.discovery.client;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
+import org.bithon.server.discovery.client.k8s.K8sDiscoveryClient;
+import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
+
 import java.util.List;
 
 /**
  * @author frank.chen
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "inprocess", value = InProcessDiscoveryClient.class),
+    @JsonSubTypes.Type(name = "nacos", value = NacosDiscoveryClient.class),
+    @JsonSubTypes.Type(name = "k8s", value = K8sDiscoveryClient.class)
+})
 public interface IDiscoveryClient {
+
+    List<DiscoveredServiceInstance> getInstanceList();
 
     List<DiscoveredServiceInstance> getInstanceList(String serviceName);
 }

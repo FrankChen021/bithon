@@ -16,20 +16,19 @@
 
 package org.bithon.server.discovery.client;
 
-import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
-import com.alibaba.cloud.nacos.discovery.NacosServiceDiscovery;
-import com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration;
-import org.bithon.server.discovery.client.inprocess.InProcessDiscoveryClient;
-import org.bithon.server.discovery.client.nacos.NacosDiscoveryClient;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.component.commons.utils.SupplierUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author Frank Chen
@@ -49,43 +48,36 @@ public class DiscoveryClientAutoConfiguration {
     }
 
     @Bean
-    IDiscoveryClient discoveryClient(ApplicationContext applicationContext) {
-        // Create delegate lazily to avoid circular dependency
-        // See: https://github.com/FrankChen021/bithon/issues/838
-        return new IDiscoveryClient() {
-            private volatile IDiscoveryClient delegate;
-
-            @Override
-            public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
-                if (delegate == null) {
-                    synchronized (this) {
-                        if (delegate == null) {
-                            delegate = createDelegate();
-                        }
-                    }
-                    this.delegate = createDelegate();
-                }
-
-                return this.delegate.getInstanceList(serviceName);
-            }
-
-            private IDiscoveryClient createDelegate() {
-                try {
-                    // Try to create a Nacos client first
-                    applicationContext.getBean(NacosAutoServiceRegistration.class);
-                    return new NacosDiscoveryClient(applicationContext.getBean(NacosServiceDiscovery.class),
-                                                    applicationContext.getBean(NacosDiscoveryProperties.class));
-                } catch (NoSuchBeanDefinitionException ignored) {
-                }
-
-                // Service Discovery is not enabled, use Local
-                return new InProcessDiscoveryClient(applicationContext);
-            }
-        };
+    DiscoveredServiceInvoker serviceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
+        return new DiscoveredServiceInvoker(discoveryClient, executor);
     }
 
     @Bean
-    DiscoveredServiceInvoker serviceInvoker(IDiscoveryClient discoveryClient, ServiceInvocationExecutor executor) {
-        return new DiscoveredServiceInvoker(discoveryClient, executor);
+    IDiscoveryClient discoveryClient(@Value("${bithon.discovery.type:inprocess}") String discoveryType,
+                                     ObjectMapper objectMapper) {
+        // Create delegate lazily to avoid circular dependency
+        // See: https://github.com/FrankChen021/bithon/issues/838
+        return new IDiscoveryClient() {
+            private final Supplier<IDiscoveryClient> delegate = SupplierUtils.cachedWithLock(() -> {
+                String json = StringUtils.format("{\"type\":\"%s\"}", discoveryType);
+                try {
+                    return objectMapper.readValue(json, IDiscoveryClient.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Failed to create discovery client for " + discoveryType, e);
+                }
+            });
+
+            @Override
+            public List<DiscoveredServiceInstance> getInstanceList() {
+                return delegate.get()
+                               .getInstanceList();
+            }
+
+            @Override
+            public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
+                return delegate.get()
+                               .getInstanceList(serviceName);
+            }
+        };
     }
 }

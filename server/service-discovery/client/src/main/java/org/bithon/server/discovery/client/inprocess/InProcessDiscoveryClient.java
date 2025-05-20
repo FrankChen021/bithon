@@ -16,6 +16,9 @@
 
 package org.bithon.server.discovery.client.inprocess;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.IDiscoveryClient;
@@ -23,6 +26,7 @@ import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +42,46 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
 
     private final ApplicationContext applicationContext;
 
-    public InProcessDiscoveryClient(ApplicationContext applicationContext) {
+    @JsonCreator
+    public InProcessDiscoveryClient(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public List<DiscoveredServiceInstance> getInstanceList() {
+        // Find the service implementations in the current running process
+        Map<String, Object> serviceProviders = applicationContext.getBeansWithAnnotation(DiscoverableService.class);
+        if (serviceProviders.isEmpty()) {
+            // The ServiceProvider is not deployed with the web-server module
+            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                            "Can't find the service provider: The Bithon web-server is neither deployed with collector nor deployed under any service discovery service such as Alibaba Nacos.");
+        }
+
+        List<DiscoveredServiceInstance> instances = new ArrayList<>();
+
+        // Find given service by name
+        for (Map.Entry<String, Object> serviceProviderEntry : serviceProviders.entrySet()) {
+            Class<?> serviceProviderClazz = serviceProviderEntry.getValue().getClass();
+
+            // Find the 'DiscoverableService' annotation declaration on the class and its superclasses
+            while (serviceProviderClazz != null) {
+
+                for (Class<?> serviceInterface : serviceProviderClazz.getInterfaces()) {
+                    DiscoverableService annotation = serviceInterface.getAnnotation(DiscoverableService.class);
+                    if (annotation != null) {
+                        // Found. Return current application instance
+                        instances.add(new DiscoveredServiceInstance(annotation.name(),
+                                                                    "localhost",
+                                                                    applicationContext.getEnvironment().getProperty("server.port", Integer.class),
+                                                                    applicationContext.getEnvironment().getProperty("server.servlet.context-path", String.class)));
+                    }
+                }
+
+                serviceProviderClazz = serviceProviderClazz.getSuperclass();
+            }
+        }
+
+        return instances;
     }
 
     @Override
@@ -63,7 +105,8 @@ public class InProcessDiscoveryClient implements IDiscoveryClient {
                     DiscoverableService annotation = serviceInterface.getAnnotation(DiscoverableService.class);
                     if (annotation != null && serviceName.equals(annotation.name())) {
                         // Found. Return current application instance
-                        return Collections.singletonList(new DiscoveredServiceInstance("localhost",
+                        return Collections.singletonList(new DiscoveredServiceInstance(serviceName,
+                                                                                       "localhost",
                                                                                        applicationContext.getEnvironment().getProperty("server.port", Integer.class),
                                                                                        applicationContext.getEnvironment().getProperty("server.servlet.context-path", String.class)));
                     }

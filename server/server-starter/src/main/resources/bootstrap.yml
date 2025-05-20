@@ -36,3 +36,7 @@ management:
         include:
           - info
           - health
+
+bithon:
+  discovery:
+    type: nacos

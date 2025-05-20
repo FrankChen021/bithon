@@ -26,6 +26,14 @@
       <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
     </dependency>
 
+    <!-- Kubernetes client for K8s service discovery -->
+    <dependency>
+      <groupId>io.kubernetes</groupId>
+      <artifactId>client-java</artifactId>
+      <version>17.0.2</version>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Feign, use feign to call remote service -->
     <dependency>
       <groupId>org.springframework.cloud</groupId>

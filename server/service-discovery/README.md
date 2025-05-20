@@ -19,10 +19,41 @@ for any of the `web-service` module, it's not able to know which controller the 
 To solve that problem, the `web-service` module has to know ALL the deployed controller instances.
 
 # How does it work
-1. Firstly, the `agent-controller` module registers itself in a service registry (Currently Nacos is only the option).
+1. Firstly, the `agent-controller` module registers itself in a service registry (currently Nacos or Kubernetes).
 2. Secondly, when the query, that is going to get data from one specific client application,
    comes to the `web-service` module,
 it gets all instances of `agent-controller` from the service registry, and then broadcast the query to ALL of these `controller` instances.
 3. Thirdly, each `agent-controller` instance check if it has connection to the target client application instance, if it has, the controller will forward the command to the agent.
 4. Lastly, when the invocation to all instances complete, the `web-service` module merges the returning results together and then writes response to the client.
+
+# Available Service Discovery Implementations
+
+## Nacos
+
+The default service discovery mechanism uses Alibaba Nacos.
+
+## Kubernetes
+
+Starting from this version, we also support Kubernetes-based service discovery. This allows Bithon services to discover and communicate with each other in a Kubernetes environment without requiring an external service registry.
+
+### Configuration for Kubernetes Discovery
+
+To enable Kubernetes-based service discovery, add the following configuration to your `application.properties` or `application.yml`:
+
+```yaml
+bithon:
+  discovery:
+    type: k8s
+    kubernetes:
+      namespace: default  # The namespace where your services are deployed
+      serviceName: your-k8s-service-name  # The name of your Kubernetes service (for registration)
+```
+
+### How it works
+
+1. **Service Registration**: When a Bithon service with `@DiscoverableService` annotations starts up in a Kubernetes environment with the above configuration, it adds special labels to the associated Kubernetes service object. These labels follow the pattern `bithon.service.<service-name>=true`.
+
+2. **Service Discovery**: The Kubernetes discovery client queries the Kubernetes API to find services with the appropriate labels matching the requested service name, then retrieves the endpoints to establish direct connections.
+
+3. **Service Communication**: Once discovered, communication happens the same way as with Nacos discovery - through RESTful API calls.
 
