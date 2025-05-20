@@ -32,10 +32,10 @@ import java.util.stream.Stream;
  * @date 22/2/23 11:22 pm
  */
 @Configuration
-public class DiscoveryRegistration {
+public class NacosDiscoveryRegistration {
 
     @Bean
-    @ConditionalOnProperty(prefix = "bithon.discovery.type", name = "nacos")
+    @ConditionalOnProperty(value = "bithon.discovery.type", havingValue = "nacos")
     public NacosRegistrationCustomizer nacosRegistrationCustomizer(ApplicationContext applicationContext) {
         // Register these services as metadata of bithon-service,
         // So that discovery clients can find these registered services

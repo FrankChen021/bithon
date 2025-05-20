@@ -19,8 +19,6 @@ package org.bithon.server.discovery.client.k8s;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Getter
 @Setter
-@Configuration
-@ConditionalOnProperty(prefix = "bithon.discovery.kubernetes", name = "enabled", havingValue = "true")
 public class K8sDiscoveryProperties {
     /**
      * The Kubernetes namespace to look for services in.

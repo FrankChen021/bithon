@@ -23,15 +23,12 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointSubset;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.exception.HttpMappableException;
+import org.bithon.server.commons.spring.EnvironmentBinder;
 import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.IDiscoveryClient;
 import org.springframework.http.HttpStatus;
@@ -54,7 +51,8 @@ public class K8sDiscoveryClient implements IDiscoveryClient {
     private final String namespace;
 
     @JsonCreator
-    public K8sDiscoveryClient(@JacksonInject(useInput = OptBoolean.FALSE) K8sDiscoveryProperties k8sDiscoveryProperties) {
+    public K8sDiscoveryClient(@JacksonInject(useInput = OptBoolean.FALSE) EnvironmentBinder environmentBinder) {
+        K8sDiscoveryProperties k8sDiscoveryProperties = environmentBinder.bind("bithon.discovery.kubernetes", K8sDiscoveryProperties.class);
         this.namespace = k8sDiscoveryProperties.getNamespace();
 
         try {
@@ -75,67 +73,48 @@ public class K8sDiscoveryClient implements IDiscoveryClient {
     @Override
     public List<DiscoveredServiceInstance> getInstanceList(String serviceName) {
         try {
-            // First, find all services with the bithon service label
-            V1ServiceList serviceList = api.listNamespacedService(
-                namespace,
-                null,
-                null,
-                null,
-                null,
-                "bithon.service." + serviceName + "=true",
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+            // Find all pods with the bithon service label
+            String labelSelector = "bithon.service." + serviceName + "=true";
 
-            if (serviceList.getItems().isEmpty()) {
+            V1PodList podList = api.listNamespacedPod(namespace).labelSelector(labelSelector).execute();
+            if (podList.getItems().isEmpty()) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
                                                 "Not found any instance of service [%s]", serviceName);
             }
 
             List<DiscoveredServiceInstance> instances = new ArrayList<>();
 
-            // For each service, get the endpoints to find IPs and ports
-            for (V1Service service : serviceList.getItems()) {
-                String serviceLabelName = service.getMetadata().getName();
-                Map<String, String> annotations = service.getMetadata().getAnnotations();
-                String contextPath = annotations != null ? annotations.get("bithon.service.context-path") : null;
-
-                V1EndpointsList endpointsList = api.listNamespacedEndpoints(
-                    namespace,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "metadata.name=" + serviceLabelName,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                );
-
-                for (V1Endpoints endpoints : endpointsList.getItems()) {
-                    for (V1EndpointSubset subset : endpoints.getSubsets()) {
-                        int port = subset.getPorts().get(0).getPort();
-
-                        for (V1EndpointAddress address : subset.getAddresses()) {
-                            instances.add(new DiscoveredServiceInstance(
-                                serviceName,
-                                address.getIp(),
-                                port,
-                                contextPath
-                            ));
-                        }
-                    }
+            // For each pod, get the IP and metadata
+            for (V1Pod pod : podList.getItems()) {
+                if (pod.getStatus() == null || pod.getStatus().getPodIP() == null) {
+                    log.warn("Pod [{}] has no IP address assigned", pod.getMetadata().getName());
+                    continue;
                 }
+
+                String podIp = pod.getStatus().getPodIP();
+
+                Map<String, String> labels = pod.getMetadata().getLabels();
+                String contextPath = labels != null ? labels.get("bithon.service.context-path") : null;
+                String port = labels != null ? labels.get("bithon.service.port") : null;
+
+                if (port == null) {
+                    log.warn("Pod [{}] has no port assigned", pod.getMetadata().getName());
+                    continue;
+                }
+                instances.add(new DiscoveredServiceInstance(
+                    serviceName,
+                    podIp,
+                    Integer.parseInt(port),
+                    contextPath
+                ));
+
+                log.debug("Discovered service instance: {} at {}:{} with context path: {}",
+                          serviceName, podIp, port, contextPath);
             }
 
             if (instances.isEmpty()) {
                 throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                                                "Found service [%s] but no active endpoints", serviceName);
+                                                "Found pods for service [%s] but none have IP addresses", serviceName);
             }
 
             return instances;

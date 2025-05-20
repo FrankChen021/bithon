@@ -49,11 +49,52 @@ bithon:
       serviceName: your-k8s-service-name  # The name of your Kubernetes service (for registration)
 ```
 
-### How it works
 
-1. **Service Registration**: When a Bithon service with `@DiscoverableService` annotations starts up in a Kubernetes environment with the above configuration, it adds special labels to the associated Kubernetes service object. These labels follow the pattern `bithon.service.<service-name>=true`.
+### K8S Permission
 
-2. **Service Discovery**: The Kubernetes discovery client queries the Kubernetes API to find services with the appropriate labels matching the requested service name, then retrieves the endpoints to establish direct connections.
+```md
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bithon-service-account
+  namespace: your-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: bithon-pod-manager
+  namespace: your-namespace
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bithon-pod-manager-binding
+  namespace: your-namespace
+subjects:
+- kind: ServiceAccount
+  name: bithon-service-account
+  namespace: your-namespace
+roleRef:
+  kind: Role
+  name: bithon-pod-manager
+  apiGroup: rbac.authorization.k8s.io
+```
 
-3. **Service Communication**: Once discovered, communication happens the same way as with Nacos discovery - through RESTful API calls.
-
+```md
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bithon-server
+spec:
+  template:
+    spec:
+      serviceAccountName: bithon-service-account
+      containers:
+      - name: bithon-server
+        # your container spec
+```
