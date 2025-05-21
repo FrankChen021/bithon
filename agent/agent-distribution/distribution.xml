@@ -86,12 +86,21 @@
   </dependencySets>
 
   <fileSets>
+    <!-- configuration files -->
     <fileSet>
       <directory>resources</directory>
       <outputDirectory>conf</outputDirectory>
       <includes>
         <include>*.yml</include>
-        <include>*.xml</include>
+      </includes>
+    </fileSet>
+
+    <!-- tools -->
+    <fileSet>
+      <directory>tools</directory>
+      <outputDirectory>tools</outputDirectory>
+      <includes>
+        <include>**/*</include>
       </includes>
     </fileSet>
   </fileSets>
