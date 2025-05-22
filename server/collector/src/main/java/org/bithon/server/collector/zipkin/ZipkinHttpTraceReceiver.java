@@ -105,8 +105,7 @@ public class ZipkinHttpTraceReceiver {
                 while (parser.nextToken() == JsonToken.START_OBJECT) {
                     ZipkinSpan zipkinSpan = objectReader.readValue(parser);
 
-                    TraceSpan traceSpan = ZipkinSpanConverter.convertToTraceSpan(zipkinSpan);
-                    traceSpans.add(traceSpan);
+                    traceSpans.add(zipkinSpan.toTraceSpan());
 
                     // Process in batches to control memory usage
                     if (traceSpans.size() >= MAX_BATCH_SIZE) {
