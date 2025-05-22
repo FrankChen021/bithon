@@ -21,6 +21,7 @@ bithon:
         - type: bithon-trace-http
         - type: otlp-trace-grpc
         - type: otlp-trace-http
+        - type: zipkin-trace-http
       processors:
           # drop spans
         - type: drop

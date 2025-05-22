@@ -147,4 +147,4 @@ public class ZipkinHttpTraceReceiver {
         
         this.processor.process("trace", traceSpans);
     }
-} 
+}

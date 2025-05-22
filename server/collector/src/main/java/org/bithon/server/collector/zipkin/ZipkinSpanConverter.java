@@ -17,12 +17,12 @@
 package org.bithon.server.collector.zipkin;
 
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Converts Zipkin spans to Bithon trace spans
@@ -35,12 +35,14 @@ public class ZipkinSpanConverter {
         // Set basic span attributes
         bithonSpan.traceId = zipkinSpan.getTraceId();
         bithonSpan.spanId = zipkinSpan.getId();
-        bithonSpan.parentSpanId = zipkinSpan.getParentId();
+        bithonSpan.parentSpanId = StringUtils.getOrEmpty(zipkinSpan.getParentId());
         bithonSpan.name = zipkinSpan.getName();
+        bithonSpan.clazz = "";
+        bithonSpan.method = "";
 
         // Map Zipkin kind to Bithon kind
         if (zipkinSpan.getKind() != null) {
-            switch (zipkinSpan.getKind().toUpperCase()) {
+            switch (zipkinSpan.getKind().toUpperCase(Locale.ENGLISH)) {
                 case "CLIENT":
                     bithonSpan.kind = SpanKind.CLIENT.name();
                     break;
@@ -58,22 +60,15 @@ public class ZipkinSpanConverter {
                     break;
             }
         } else {
-            bithonSpan.kind = SpanKind.INTERNAL.name();
+            bithonSpan.kind = bithonSpan.parentSpanId.isEmpty() ? SpanKind.SERVER.name() : SpanKind.INTERNAL.name();
         }
 
-        // Set timestamp and duration
-        if (zipkinSpan.getTimestamp() != null) {
-            bithonSpan.startTime = zipkinSpan.getTimestamp();
-            
-            // Set duration and calculate endTime
-            if (zipkinSpan.getDuration() != null) {
-                bithonSpan.costTime = zipkinSpan.getDuration();
-                bithonSpan.endTime = bithonSpan.startTime + zipkinSpan.getDuration();
-            }
-        }
+        bithonSpan.startTime = zipkinSpan.getTimestamp();
+        bithonSpan.costTime = zipkinSpan.getDuration();
+        bithonSpan.endTime = bithonSpan.startTime + zipkinSpan.getDuration();
 
         // Copy tags
-        Map<String, String> tags = new HashMap<>();
+        Map<String, String> tags = new TreeMap<>();
         if (zipkinSpan.getTags() != null) {
             tags.putAll(zipkinSpan.getTags());
         }
@@ -82,26 +77,15 @@ public class ZipkinSpanConverter {
         if (zipkinSpan.getLocalEndpoint() != null) {
             if (zipkinSpan.getLocalEndpoint().getServiceName() != null) {
                 bithonSpan.appName = zipkinSpan.getLocalEndpoint().getServiceName();
-                tags.put("local.service.name", zipkinSpan.getLocalEndpoint().getServiceName());
             }
-            if (zipkinSpan.getLocalEndpoint().getIpv4() != null) {
-                tags.put("local.ipv4", zipkinSpan.getLocalEndpoint().getIpv4());
-            }
-            if (zipkinSpan.getLocalEndpoint().getPort() != null) {
-                tags.put("local.port", zipkinSpan.getLocalEndpoint().getPort().toString());
-            }
+            bithonSpan.instanceName = zipkinSpan.getLocalEndpoint().getAddress();
         }
 
         if (zipkinSpan.getRemoteEndpoint() != null) {
             if (zipkinSpan.getRemoteEndpoint().getServiceName() != null) {
-                tags.put("remote.service.name", zipkinSpan.getRemoteEndpoint().getServiceName());
+                tags.put("net.peer.name", zipkinSpan.getRemoteEndpoint().getServiceName());
             }
-            if (zipkinSpan.getRemoteEndpoint().getIpv4() != null) {
-                tags.put("remote.ipv4", zipkinSpan.getRemoteEndpoint().getIpv4());
-            }
-            if (zipkinSpan.getRemoteEndpoint().getPort() != null) {
-                tags.put("remote.port", zipkinSpan.getRemoteEndpoint().getPort().toString());
-            }
+            tags.put("net.peer", zipkinSpan.getRemoteEndpoint().getAddress());
         }
 
         // Add annotations as tags
@@ -122,7 +106,7 @@ public class ZipkinSpanConverter {
         }
 
         bithonSpan.tags = tags;
-        
+
         return bithonSpan;
     }
-} 
+}

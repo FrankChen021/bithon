@@ -34,7 +34,11 @@ public class ZipkinSpan {
     private String parentId;
     private String name;
     private String kind;
-    private Long timestamp;
+
+    /**
+     * timestamp in microseconds
+     */
+    private long timestamp;
     private Long duration;
     private Boolean debug;
     private Boolean shared;
@@ -57,5 +61,16 @@ public class ZipkinSpan {
         private String ipv4;
         private String ipv6;
         private Integer port;
+
+        public String getAddress() {
+            if (ipv4 != null) {
+                return ipv4 + ":" + port;
+            } else if (ipv6 != null) {
+                return "[" + ipv6 + "]:" + port;
+            }
+
+            // SHOULD never happen
+            return null;
+        }
     }
-} 
+}

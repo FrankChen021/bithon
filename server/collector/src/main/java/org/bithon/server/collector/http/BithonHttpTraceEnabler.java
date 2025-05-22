@@ -45,12 +45,12 @@ public class BithonHttpTraceEnabler implements ITraceReceiver {
 
     @Override
     public void start() {
-        log.info("Starting trace over HTTP at {}", this.serverPort);
+        log.info("Starting bithon-trace-receiver over HTTP at {}", this.serverPort);
     }
 
     @Override
     public void stop() {
-        log.info("Stopping trace over HTTP at {}", this.serverPort);
+        log.info("Stopping bithon-trace-receiver over HTTP at {}", this.serverPort);
         this.collector.setProcessor(null);
     }
 

@@ -49,11 +49,13 @@ public class ZipkinHttpTraceReceiverEnabler implements ITraceReceiver {
 
     @Override
     public void start() {
-        log.info("Starting zip-trace-receiver over HTTP at port {}", this.serverPort);
+        log.info("Starting zipkin-trace-receiver receiver over HTTP at port {}", this.serverPort);
     }
 
     @Override
     public void stop() {
-        // No-op
+        log.info("Stopping zipkin-trace-receiver over HTTP at port {}", this.serverPort);
+
+        this.receiver.setProcessor(null);
     }
-} 
+}

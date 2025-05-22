@@ -55,8 +55,10 @@ public class CollectorAutoConfiguration {
                                          BrpcEventCollector.class,
 
                                          BithonHttpTraceEnabler.class,
+
                                          OtlpHttpTraceReceiverEnabler.class,
                                          OtlpGrpcTraceReceiver.class,
+
                                          ZipkinHttpTraceReceiverEnabler.class);
             }
         };
