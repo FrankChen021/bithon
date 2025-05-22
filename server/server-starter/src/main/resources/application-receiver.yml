@@ -25,6 +25,8 @@ bithon:
           high-water-mark: 256KiB
       http:
         enabled: true
+      zipkin:
+        enabled: true
       otlp-http:
         enabled: true
       otlp-grpc:
