@@ -45,12 +45,12 @@ public class OtlpHttpTraceReceiverEnabler implements ITraceReceiver {
 
     @Override
     public void start() {
-        log.info("Starting otlp-trace over HTTP at port {}", this.serverPort);
+        log.info("Starting otlp-trace-receiver over HTTP at port {}", this.serverPort);
     }
 
     @Override
     public void stop() {
-        log.info("Stopping otlp-trace over HTTP at port {}", this.serverPort);
+        log.info("Stopping otlp-trace-receiver over HTTP at port {}", this.serverPort);
 
         this.receiver.setProcessor(null);
     }

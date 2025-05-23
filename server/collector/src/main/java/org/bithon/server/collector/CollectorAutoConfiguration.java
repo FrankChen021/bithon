@@ -24,6 +24,7 @@ import org.bithon.server.collector.brpc.BrpcTraceCollector;
 import org.bithon.server.collector.http.BithonHttpTraceEnabler;
 import org.bithon.server.collector.otlp.grpc.OtlpGrpcTraceReceiver;
 import org.bithon.server.collector.otlp.http.OtlpHttpTraceReceiverEnabler;
+import org.bithon.server.collector.zipkin.ZipkinHttpTraceReceiverEnabler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -54,8 +55,11 @@ public class CollectorAutoConfiguration {
                                          BrpcEventCollector.class,
 
                                          BithonHttpTraceEnabler.class,
+
                                          OtlpHttpTraceReceiverEnabler.class,
-                                         OtlpGrpcTraceReceiver.class);
+                                         OtlpGrpcTraceReceiver.class,
+
+                                         ZipkinHttpTraceReceiverEnabler.class);
             }
         };
     }

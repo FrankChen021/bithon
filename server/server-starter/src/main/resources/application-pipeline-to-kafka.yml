@@ -45,6 +45,7 @@ bithon:
         - type: bithon-trace-http
         - type: otlp-trace-grpc
         - type: otlp-trace-http
+        - type: zipkin-trace-http
       exporters:
         - type: kafka
           props:

@@ -87,7 +87,7 @@ services:
     restart: always
     environment:
       # Points to the backend server, which MUST be accessible from user's browser
-      NEXT_PUBLIC_BITHON_API_SERVER_URL: http://localhost:9897
+      BITHON_API_SERVER_URL: http://localhost:9897
 
 volumes:
   bithon-clickhouse-data-volume:

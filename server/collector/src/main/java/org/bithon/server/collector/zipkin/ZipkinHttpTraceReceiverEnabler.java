@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.http;
+package org.bithon.server.collector.zipkin;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -26,36 +26,36 @@ import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 /**
- * @author Frank Chen
- * @date 30/1/24 9:09 pm
+ * @author frank.chen021@outlook.com
  */
 @Slf4j
-@JsonTypeName("bithon-trace-http")
-public class BithonHttpTraceEnabler implements ITraceReceiver {
+@JsonTypeName("zipkin-trace-http")
+public class ZipkinHttpTraceReceiverEnabler implements ITraceReceiver {
 
-    private final TraceHttpCollector collector;
+    private final ZipkinHttpTraceReceiver receiver;
     private final int serverPort;
 
     @JsonCreator
-    public BithonHttpTraceEnabler(@JacksonInject(useInput = OptBoolean.FALSE) TraceHttpCollector collector,
-                                  @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
-        this.collector = collector;
+    public ZipkinHttpTraceReceiverEnabler(@JacksonInject(useInput = OptBoolean.FALSE) ZipkinHttpTraceReceiver receiver,
+                                          @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
+        this.receiver = receiver;
         this.serverPort = serverProperties.getPort();
     }
 
     @Override
+    public void registerProcessor(ITraceProcessor processor) {
+        receiver.setProcessor(processor);
+    }
+
+    @Override
     public void start() {
-        log.info("Starting bithon-trace-receiver over HTTP at {}", this.serverPort);
+        log.info("Starting zipkin-trace-receiver receiver over HTTP at port {}", this.serverPort);
     }
 
     @Override
     public void stop() {
-        log.info("Stopping bithon-trace-receiver over HTTP at {}", this.serverPort);
-        this.collector.setProcessor(null);
-    }
+        log.info("Stopping zipkin-trace-receiver over HTTP at port {}", this.serverPort);
 
-    @Override
-    public void registerProcessor(ITraceProcessor processor) {
-        this.collector.setProcessor(processor);
+        this.receiver.setProcessor(null);
     }
 }
