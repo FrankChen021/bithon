@@ -184,14 +184,33 @@ public class BrpcClient implements IBrpcChannel, Closeable {
 
     @Override
     public void close() {
+        close(2, 15, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Close the client with custom shutdown timeouts.
+     * This is useful for tests that need faster shutdown.
+     * 
+     * @param quietPeriod the quiet period for graceful shutdown
+     * @param timeout the maximum time to wait for shutdown
+     * @param unit the time unit
+     */
+    public void close(long quietPeriod, long timeout, TimeUnit unit) {
         if (this.bossGroup != null) {
             try {
-                this.bossGroup.shutdownGracefully().sync();
+                this.bossGroup.shutdownGracefully(quietPeriod, timeout, unit).sync();
             } catch (InterruptedException ignored) {
             }
         }
         this.bossGroup = null;
         this.channelRef.getAndSet(null);
+    }
+    
+    /**
+     * Fast shutdown for tests - uses minimal timeouts
+     */
+    public void fastClose() {
+        close(100, 500, TimeUnit.MILLISECONDS);
     }
 
     private void doConnect(int maxRetry) {

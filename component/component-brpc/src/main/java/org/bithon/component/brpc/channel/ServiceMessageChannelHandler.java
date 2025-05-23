@@ -19,10 +19,13 @@ package org.bithon.component.brpc.channel;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.invocation.InvocationManager;
 import org.bithon.component.brpc.invocation.ServiceInvocationRunnable;
+import org.bithon.component.brpc.invocation.ServiceStreamingInvocationRunnable;
 import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import org.bithon.component.commons.utils.Preconditions;
@@ -46,6 +49,9 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
     private final ServiceRegistry serviceRegistry;
     private final InvocationManager invocationManager;
 
+    /**
+     * client or server id for logging purpose
+     */
     private final String id;
 
     /**
@@ -73,8 +79,21 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                 }
 
                 ServiceInvocationRunnable.execute(serviceRegistry,
-                                                  ctx.channel(), (ServiceRequestMessageIn) msg,
+                                                  ctx.channel(),
+                                                  (ServiceRequestMessageIn) msg,
                                                   this.executor);
+                break;
+
+            case ServiceMessageType.CLIENT_STREAMING_REQUEST:
+                ServiceRequestMessageIn streamingRequest = (ServiceRequestMessageIn) msg;
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving streaming request, txId={}, service={}#{}", streamingRequest.getTransactionId(), streamingRequest.getServiceName(), streamingRequest.getMethodName());
+                }
+
+                ServiceStreamingInvocationRunnable.execute(serviceRegistry,
+                                                           ctx.channel(),
+                                                           streamingRequest,
+                                                           this.executor);
                 break;
 
             case ServiceMessageType.SERVER_RESPONSE:
@@ -83,6 +102,30 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
                 }
 
                 invocationManager.handleResponse((ServiceResponseMessageIn) msg);
+                break;
+
+            case ServiceMessageType.SERVER_STREAMING_DATA:
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving streaming data, txId={}", msg.getTransactionId());
+                }
+
+                invocationManager.handleStreamingData((ServiceStreamingDataMessageIn) msg);
+                break;
+
+            case ServiceMessageType.SERVER_STREAMING_END:
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving streaming end, txId={}", msg.getTransactionId());
+                }
+
+                invocationManager.handleStreamingEnd((ServiceStreamingEndMessageIn) msg);
+                break;
+
+            case ServiceMessageType.CLIENT_STREAMING_CANCEL:
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Receiving streaming cancel, txId={}", msg.getTransactionId());
+                }
+
+                ServiceStreamingInvocationRunnable.cancelStreaming(msg.getTransactionId());
                 break;
 
             default:
@@ -128,5 +171,59 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
             ctx.channel().config().setAutoRead(false);
         }
         ctx.fireChannelWritabilityChanged();
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        try {
+            LOG.info("[{}] Channel became inactive: {}", id, ctx.channel().remoteAddress());
+
+            // Clean up streaming contexts on server side
+            ServiceStreamingInvocationRunnable.cleanupForChannel(ctx.channel());
+
+            // Clean up streaming requests on client side
+            if (invocationManager != null) {
+                // Create a simple wrapper to match the IBrpcChannel interface
+                IBrpcChannel brpcChannel = new IBrpcChannel() {
+                    @Override
+                    public long getConnectionLifeTime() {
+                        return 0; // Not relevant for cleanup
+                    }
+
+                    @Override
+                    public boolean isActive() {
+                        return ctx.channel().isActive();
+                    }
+
+                    @Override
+                    public boolean isWritable() {
+                        return ctx.channel().isWritable();
+                    }
+
+                    @Override
+                    public org.bithon.component.brpc.endpoint.EndPoint getRemoteAddress() {
+                        return null; // Not needed for cleanup
+                    }
+
+                    @Override
+                    public void writeAsync(org.bithon.component.brpc.message.out.ServiceRequestMessageOut serviceRequest) {
+                        // Not needed for cleanup
+                    }
+
+                    @Override
+                    public void connect() {
+                        // Not needed for cleanup
+                    }
+                };
+
+                invocationManager.handleChannelClosure();
+            }
+
+        } catch (Exception e) {
+            LOG.error("[{}] Error during channel cleanup", id, e);
+        } finally {
+            // Always call the next handler
+            super.channelInactive(ctx);
+        }
     }
 }
