@@ -203,7 +203,7 @@ public class BrpcStreamingRpcTest {
     }
 
     @Test
-    public void testStreamingCancellation_After3Items() throws InterruptedException {
+    public void testStreamingCancellationAtClientSide_After3Items() throws InterruptedException {
         try (FastShutdownBrpcClient client = new FastShutdownBrpcClient("127.0.0.1", serverPort)) {
 
             IStreamingService service = client.getRemoteService(IStreamingService.class);

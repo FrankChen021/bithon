@@ -21,8 +21,8 @@ import org.bithon.component.brpc.StreamResponse;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 23/5/25 8:41 pm
- */ // Test service implementation
+ * @date 23/5/25 8:41 pm
+ */
 public class StreamingServiceImpl implements IStreamingService {
 
     @Override
