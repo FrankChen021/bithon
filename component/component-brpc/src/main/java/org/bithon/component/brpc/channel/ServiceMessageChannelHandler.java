@@ -183,46 +183,12 @@ class ServiceMessageChannelHandler extends SimpleChannelInboundHandler<ServiceMe
 
             // Clean up streaming requests on client side
             if (invocationManager != null) {
-                // Create a simple wrapper to match the IBrpcChannel interface
-                IBrpcChannel brpcChannel = new IBrpcChannel() {
-                    @Override
-                    public long getConnectionLifeTime() {
-                        return 0; // Not relevant for cleanup
-                    }
-
-                    @Override
-                    public boolean isActive() {
-                        return ctx.channel().isActive();
-                    }
-
-                    @Override
-                    public boolean isWritable() {
-                        return ctx.channel().isWritable();
-                    }
-
-                    @Override
-                    public org.bithon.component.brpc.endpoint.EndPoint getRemoteAddress() {
-                        return null; // Not needed for cleanup
-                    }
-
-                    @Override
-                    public void writeAsync(org.bithon.component.brpc.message.out.ServiceRequestMessageOut serviceRequest) {
-                        // Not needed for cleanup
-                    }
-
-                    @Override
-                    public void connect() {
-                        // Not needed for cleanup
-                    }
-                };
-
                 invocationManager.handleChannelClosure();
             }
 
         } catch (Exception e) {
             LOG.error("[{}] Error during channel cleanup", id, e);
         } finally {
-            // Always call the next handler
             super.channelInactive(ctx);
         }
     }
