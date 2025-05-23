@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -135,14 +136,33 @@ public class BrpcServer implements Closeable {
 
     @Override
     public void close() {
+        close(2, 15, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Close the server with custom shutdown timeouts.
+     * This is useful for tests that need faster shutdown.
+     * 
+     * @param quietPeriod the quiet period for graceful shutdown
+     * @param timeout the maximum time to wait for shutdown
+     * @param unit the time unit
+     */
+    public void close(long quietPeriod, long timeout, TimeUnit unit) {
         try {
-            acceptorGroup.shutdownGracefully().sync();
+            acceptorGroup.shutdownGracefully(quietPeriod, timeout, unit).sync();
         } catch (InterruptedException ignored) {
         }
         try {
-            ioGroup.shutdownGracefully().sync();
+            ioGroup.shutdownGracefully(quietPeriod, timeout, unit).sync();
         } catch (InterruptedException ignored) {
         }
+    }
+    
+    /**
+     * Fast shutdown for tests - uses minimal timeouts
+     */
+    public void fastClose() {
+        close(100, 500, TimeUnit.MILLISECONDS);
     }
 
     public List<Session> getSessions() {

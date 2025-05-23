@@ -21,6 +21,8 @@ import org.bithon.component.brpc.message.serializer.Serializer;
 import org.bithon.shaded.io.netty.util.internal.StringUtil;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * metadata of a method in remote service
@@ -32,20 +34,26 @@ public class ServiceRegistryItem {
     private final String serviceName;
     private final String methodName;
     private final boolean isOneway;
+    private final boolean isStreaming;
     private final Serializer serializer;
+    private final Type streamingDataType;
 
     private final int messageType;
 
     public ServiceRegistryItem(String serviceName,
                                String methodName,
                                boolean isOneway,
+                               boolean isStreaming,
                                int messageType,
-                               Serializer serializer) {
+                               Serializer serializer,
+                               Type streamingDataType) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.isOneway = isOneway;
+        this.isStreaming = isStreaming;
         this.messageType = messageType;
         this.serializer = serializer;
+        this.streamingDataType = streamingDataType;
     }
 
     public static ServiceRegistryItem create(Method method) {
@@ -55,6 +63,26 @@ public class ServiceRegistryItem {
         String methodName;
         boolean isOneway;
         Serializer serializer;
+        boolean isStreaming = false;
+        Type streamingDataType = null;
+        int messageType;
+
+        // Check if this is a streaming method
+        if (method.getReturnType() == void.class && method.getParameterCount() > 0) {
+            Class<?> lastParamType = method.getParameterTypes()[method.getParameterCount() - 1];
+            if (lastParamType == StreamResponse.class) {
+                isStreaming = true;
+                // Get the generic type of StreamResponse<T>
+                Type lastParamGenericType = method.getGenericParameterTypes()[method.getParameterCount() - 1];
+                if (lastParamGenericType instanceof ParameterizedType) {
+                    ParameterizedType parameterizedType = (ParameterizedType) lastParamGenericType;
+                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                    if (actualTypeArguments.length > 0) {
+                        streamingDataType = actualTypeArguments[0];
+                    }
+                }
+            }
+        }
 
         if (methodConfig != null && !StringUtil.isNullOrEmpty(methodConfig.name())) {
             methodName = methodConfig.name();
@@ -74,11 +102,20 @@ public class ServiceRegistryItem {
             serializer = serviceConfig == null ? Serializer.PROTOBUF : serviceConfig.serializer();
         }
 
+        // Determine message type
+        if (isStreaming) {
+            messageType = ServiceMessageType.CLIENT_STREAMING_REQUEST;
+        } else {
+            messageType = methodConfig == null ? ServiceMessageType.CLIENT_REQUEST_V2 : methodConfig.messageType();
+        }
+
         return new ServiceRegistryItem(getServiceName(method.getDeclaringClass()),
                                        methodName,
                                        isOneway,
-                                       methodConfig == null ? ServiceMessageType.CLIENT_REQUEST_V2 : methodConfig.messageType(),
-                                       serializer);
+                                       isStreaming,
+                                       messageType,
+                                       serializer,
+                                       streamingDataType);
     }
 
     public Serializer getSerializer() {
@@ -87,6 +124,14 @@ public class ServiceRegistryItem {
 
     public boolean isOneway() {
         return isOneway;
+    }
+
+    public boolean isStreaming() {
+        return isStreaming;
+    }
+
+    public Type getStreamingDataType() {
+        return streamingDataType;
     }
 
     public String getMethodName() {

@@ -59,8 +59,24 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
                 out.add(new ServiceRequestMessageIn(messageType).decode(is));
                 break;
 
+            case ServiceMessageType.CLIENT_STREAMING_REQUEST:
+                out.add(new ServiceStreamingRequestMessageIn(messageType).decode(is));
+                break;
+
             case ServiceMessageType.SERVER_RESPONSE:
                 out.add(new ServiceResponseMessageIn().decode(is));
+                break;
+
+            case ServiceMessageType.SERVER_STREAMING_DATA:
+                out.add(new ServiceStreamingDataMessageIn().decode(is));
+                break;
+
+            case ServiceMessageType.SERVER_STREAMING_END:
+                out.add(new ServiceStreamingEndMessageIn().decode(is));
+                break;
+
+            case ServiceMessageType.CLIENT_STREAMING_CANCEL:
+                out.add(new ServiceStreamingCancelMessageIn().decode(is));
                 break;
 
             default:

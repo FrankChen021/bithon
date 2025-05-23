@@ -33,4 +33,10 @@ public class ServiceMessageType {
     public static final int CLIENT_REQUEST_V2 = 0x23;
 
     public static final int SERVER_RESPONSE = 0x515;
+
+    // Streaming message types
+    public static final int CLIENT_STREAMING_REQUEST = 0x525;
+    public static final int SERVER_STREAMING_DATA = 0x526;
+    public static final int SERVER_STREAMING_END = 0x527;
+    public static final int CLIENT_STREAMING_CANCEL = 0x528;
 }

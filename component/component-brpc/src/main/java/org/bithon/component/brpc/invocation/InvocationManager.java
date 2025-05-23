@@ -17,6 +17,7 @@
 package org.bithon.component.brpc.invocation;
 
 import org.bithon.component.brpc.ServiceRegistryItem;
+import org.bithon.component.brpc.StreamResponse;
 import org.bithon.component.brpc.channel.IBrpcChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -25,7 +26,10 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.Headers;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingDataMessageIn;
+import org.bithon.component.brpc.message.in.ServiceStreamingEndMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
+import org.bithon.component.brpc.message.out.ServiceStreamingRequestMessageOut;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -52,6 +56,11 @@ public class InvocationManager {
      */
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
 
+    /**
+     * key is transaction id of streaming requests
+     */
+    private final Map<Long, StreamingRequest> streamingRequests = new ConcurrentHashMap<>();
+
     private final Map<Method, ServiceRegistryItem> serviceRegistryItems = new ConcurrentHashMap<>();
 
     public Object invoke(String invokerName,
@@ -62,6 +71,11 @@ public class InvocationManager {
                          Object[] args) throws Throwable {
 
         ServiceRegistryItem serviceRegistryItem = serviceRegistryItems.computeIfAbsent(method, ServiceRegistryItem::create);
+
+        // Handle streaming methods
+        if (serviceRegistryItem.isStreaming()) {
+            return invokeStreaming(invokerName, headers, channel, serviceRegistryItem, args);
+        }
 
         ServiceRequestMessageOut serviceRequest = ServiceRequestMessageOut.builder()
                                                                           .serviceName(serviceRegistryItem.getServiceName())
@@ -79,6 +93,82 @@ public class InvocationManager {
                       serviceRequest,
                       method.getGenericReturnType(),
                       timeoutMillisecond);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object invokeStreaming(String invokerName,
+                                   Headers headers,
+                                   IBrpcChannel channel,
+                                   ServiceRegistryItem serviceRegistryItem,
+                                   Object[] args) throws Throwable {
+        // Extract StreamResponse from the last argument
+        StreamResponse<Object> streamResponse = (StreamResponse<Object>) args[args.length - 1];
+
+        // Create args array without the StreamResponse
+        Object[] requestArgs = new Object[args.length - 1];
+        System.arraycopy(args, 0, requestArgs, 0, args.length - 1);
+
+        long txId = transactionId.incrementAndGet();
+        // Send streaming request
+        channel.connect();
+        checkChannelStatus(channel, serviceRegistryItem.getServiceName(), serviceRegistryItem.getMethodName());
+
+        // Store streaming request
+        StreamingRequest streamingRequest = new StreamingRequest(
+            serviceRegistryItem.getServiceName(),
+            serviceRegistryItem.getMethodName(),
+            serviceRegistryItem.getStreamingDataType(),
+            streamResponse
+        );
+        streamingRequests.put(txId, streamingRequest);
+
+        ServiceRequestMessageOut serviceMessage = ServiceStreamingRequestMessageOut.builder()
+                                                                                   .serviceName(serviceRegistryItem.getServiceName())
+                                                                                   .methodName(serviceRegistryItem.getMethodName())
+                                                                                   .transactionId(txId)
+                                                                                   .serializer(serviceRegistryItem.getSerializer())
+                                                                                   .applicationName(invokerName)
+                                                                                   .headers(headers)
+                                                                                   .args(requestArgs)
+                                                                                   .build();
+
+        Exception exception = null;
+        for (int i = 0; i < 3; i++) {
+            try {
+                channel.writeAsync(serviceMessage);
+
+                // Streaming methods return void
+                return null;
+            } catch (ChannelException e) {
+                exception = e;
+                if (i < 2) {
+                    try {
+                        channel.connect();
+                    } catch (Exception ex) {
+                        exception = ex;
+                    }
+                }
+            }
+        }
+
+        streamingRequests.remove(txId);
+
+        // If we reach here, it means all attempts to send the streaming request failed
+        return exception;
+    }
+
+    private void checkChannelStatus(IBrpcChannel channel, String serviceName, String methodName) throws CallerSideException {
+        EndPoint remoteEndpoint = channel.getRemoteAddress();
+        if (remoteEndpoint == null) {
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty", serviceName, methodName);
+        }
+
+        if (!channel.isActive()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active", serviceName, methodName, remoteEndpoint);
+        }
+        if (!channel.isWritable()) {
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable", serviceName, methodName, remoteEndpoint);
+        }
     }
 
     /**
@@ -103,25 +193,7 @@ public class InvocationManager {
         //
         // Check channel status
         //
-        EndPoint remoteEndpoint = channel.getRemoteAddress();
-        if (remoteEndpoint == null) {
-            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
-                                          serviceRequest.getServiceName(),
-                                          serviceRequest.getMethodName());
-        }
-
-        if (!channel.isActive()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
-                                          serviceRequest.getServiceName(),
-                                          serviceRequest.getMethodName(),
-                                          remoteEndpoint);
-        }
-        if (!channel.isWritable()) {
-            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
-                                          serviceRequest.getServiceName(),
-                                          serviceRequest.getMethodName(),
-                                          remoteEndpoint);
-        }
+        checkChannelStatus(channel, serviceRequest.getServiceName(), serviceRequest.getMethodName());
 
         InflightRequest inflightRequest = null;
         if (!serviceRequest.isOneway()) {
@@ -131,15 +203,25 @@ public class InvocationManager {
             this.inflightRequests.put(serviceRequest.getTransactionId(), inflightRequest);
         }
 
+        Exception exception = null;
         for (int i = 0; i < 3; i++) {
             try {
                 channel.writeAsync(serviceRequest);
                 break;
             } catch (ChannelException e) {
+                exception = e;
                 if (i < 2) {
-                    channel.connect();
+                    try {
+                        channel.connect();
+                    } catch (Exception ex) {
+                        exception = ex;
+                    }
                 }
             }
+        }
+        if (exception != null) {
+            inflightRequests.remove(serviceRequest.getTransactionId());
+            throw exception;
         }
 
         if (inflightRequest != null) {
@@ -153,7 +235,7 @@ public class InvocationManager {
                 throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName(),
-                                              remoteEndpoint);
+                                              channel.getRemoteAddress());
             }
 
             // Make sure it has been cleared when timeout
@@ -169,7 +251,7 @@ public class InvocationManager {
                 return inflightRequest.returnObject;
             }
 
-            throw new TimeoutException(remoteEndpoint.toString(),
+            throw new TimeoutException(channel.getRemoteAddress().toString(),
                                        serviceRequest.getServiceName(),
                                        serviceRequest.getMethodName(),
                                        timeoutMillisecond);
@@ -189,8 +271,8 @@ public class InvocationManager {
         } else {
             try {
                 inflightRequest.returnObject = inflightRequest.returnObjectType == null ?
-                    response.getReturnAsRaw() :
-                    response.getReturningAsObject(inflightRequest.returnObjectType);
+                                               response.getReturnAsRaw() :
+                                               response.getReturningAsObject(inflightRequest.returnObjectType);
             } catch (IOException e) {
                 inflightRequest.exception = new ServiceInvocationException(e, "Failed to deserialize the received response: %s", e.getMessage());
             }
@@ -198,23 +280,134 @@ public class InvocationManager {
 
         synchronized (inflightRequest) {
             inflightRequest.responseAt = System.currentTimeMillis();
-            inflightRequest.notify();
+            inflightRequest.notifyAll();
         }
     }
 
     /**
-     * Handle exception raised at caller side before the RPC call request is issued to server side
+     * Handle streaming data message
      */
-    public void handleException(long txId, Throwable e) {
-        InflightRequest inflightRequest = inflightRequests.remove(txId);
-        if (inflightRequest == null) {
+    public void handleStreamingData(ServiceStreamingDataMessageIn dataMessage) {
+        long txId = dataMessage.getTransactionId();
+        StreamingRequest streamingRequest = streamingRequests.get(txId);
+        if (streamingRequest == null) {
             return;
         }
 
-        synchronized (inflightRequest) {
-            inflightRequest.exception = e;
-            inflightRequest.notify();
+        try {
+            Object data = dataMessage.getData(streamingRequest.dataType);
+            streamingRequest.streamResponse.onNext(data);
+
+            // Check if client wants to cancel
+            if (streamingRequest.streamResponse.isCancelled()) {
+                cancelStreaming(txId);
+            }
+        } catch (Exception e) {
+            streamingRequest.streamResponse.onException(e);
+            streamingRequests.remove(txId);
         }
+    }
+
+    /**
+     * Handle streaming end message
+     */
+    public void handleStreamingEnd(ServiceStreamingEndMessageIn endMessage) {
+        long txId = endMessage.getTransactionId();
+        StreamingRequest streamingRequest = streamingRequests.remove(txId);
+        if (streamingRequest == null) {
+            return;
+        }
+
+        if (endMessage.hasException()) {
+            streamingRequest.streamResponse.onException(endMessage.getException());
+        } else {
+            streamingRequest.streamResponse.onComplete();
+        }
+    }
+
+    /**
+     * Cancel a streaming request
+     */
+    public void cancelStreaming(long txId) {
+        StreamingRequest streamingRequest = streamingRequests.remove(txId);
+        if (streamingRequest != null) {
+            // Send cancel message to server
+            // This would need access to the channel, which we'd need to store in StreamingRequest
+            // For now, just remove from local tracking
+        }
+    }
+
+    public void handleException(long txId, Throwable e) {
+        InflightRequest inflightRequest = inflightRequests.remove(txId);
+        if (inflightRequest != null) {
+            inflightRequest.exception = e;
+            synchronized (inflightRequest) {
+                inflightRequest.responseAt = System.currentTimeMillis();
+                inflightRequest.notifyAll();
+            }
+        }
+
+        // Also handle streaming requests
+        StreamingRequest streamingRequest = streamingRequests.remove(txId);
+        if (streamingRequest != null) {
+            streamingRequest.streamResponse.onException(e);
+        }
+    }
+
+    /**
+     * Handle channel closure - clean up all active requests and streams
+     */
+    public void handleChannelClosure() {
+        ServiceInvocationException e = new ServiceInvocationException("Channel closed during streaming");
+
+        // Clean up regular requests
+        inflightRequests.values().removeIf(request -> {
+            request.exception = e;
+            synchronized (request) {
+                request.responseAt = System.currentTimeMillis();
+                request.notifyAll();
+            }
+            return true;
+        });
+
+        // Clean up streaming requests
+        streamingRequests.values().removeIf(streamingRequest -> {
+            try {
+                streamingRequest.streamResponse.onException(e);
+            } catch (Exception ignored) {
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Check if a streaming request is still active (channel is open)
+     */
+    public boolean isStreamingActive(long txId) {
+        StreamingRequest streamingRequest = streamingRequests.get(txId);
+        return streamingRequest != null;
+    }
+
+    /**
+     * Clean up inactive streaming requests
+     */
+    public void cleanupInactiveStreams() {
+        streamingRequests.entrySet().removeIf(entry -> {
+            StreamingRequest streamingRequest = entry.getValue();
+            // Check if the stream should be cleaned up due to timeout or other conditions
+            long timeoutMs = 300000; // 5 minutes default timeout
+            if (System.currentTimeMillis() - streamingRequest.requestAt > timeoutMs) {
+                try {
+                    streamingRequest.streamResponse.onException(
+                        new ServiceInvocationException("Streaming request timed out")
+                    );
+                } catch (Exception e) {
+                    // Ignore callback exceptions
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     static class InflightRequest {
@@ -223,8 +416,7 @@ public class InvocationManager {
         final String methodName;
 
         /**
-         * Can be NULL.
-         * If NULL, byte-stream is returned.
+         * The type of the return object
          */
         final Type returnObjectType;
 
@@ -239,12 +431,27 @@ public class InvocationManager {
             this.requestAt = System.currentTimeMillis();
         }
 
-        /**
-         * The deserialized response object.
-         * If {@link #returnObjectType} is NULL, then this object holds raw byte-stream of the response.
-         */
         volatile long responseAt;
         volatile Object returnObject;
         volatile Throwable exception;
+    }
+
+    static class StreamingRequest {
+        final String serviceName;
+        final String methodName;
+        final Type dataType;
+        final StreamResponse<Object> streamResponse;
+        final long requestAt;
+
+        private StreamingRequest(String serviceName,
+                                 String methodName,
+                                 Type dataType,
+                                 StreamResponse<Object> streamResponse) {
+            this.serviceName = serviceName;
+            this.methodName = methodName;
+            this.dataType = dataType;
+            this.streamResponse = streamResponse;
+            this.requestAt = System.currentTimeMillis();
+        }
     }
 }

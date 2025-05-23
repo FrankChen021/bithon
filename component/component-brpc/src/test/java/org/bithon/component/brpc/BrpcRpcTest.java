@@ -58,12 +58,12 @@ public class BrpcRpcTest {
 
     @AfterEach
     public void teardown() {
-        brpcServer.close();
+        brpcServer.fastClose();
     }
 
     @Test
     public void testBasicCases() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             IServiceController serviceController = (IServiceController) exampleService;
@@ -92,7 +92,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testNullArgument() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.0.1", 8070)) {
             IExampleService service = ch.getRemoteService(IExampleService.class);
 
             // test the 2nd argument is null
@@ -114,7 +114,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testSendProtobufMessage() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assertions.assertEquals("/1",
@@ -126,7 +126,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testMultipleSendMessageLite() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             Assertions.assertEquals("/1-/2", exampleService.sendWebMetrics1(
@@ -148,7 +148,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testInvocationExceptionRaisedFromRemote() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             try {
@@ -164,7 +164,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testClientSideTimeout() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             exampleService.block(2);
@@ -194,7 +194,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testConcurrency() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             AtomicInteger v = new AtomicInteger();
@@ -226,7 +226,7 @@ public class BrpcRpcTest {
      */
     @Test
     public void testServerCallsClient() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.1", 8070).build()) {
             ch.setHeader(Headers.HEADER_APP_ID, "app1");
 
             // bind a service at client side
@@ -277,6 +277,8 @@ public class BrpcRpcTest {
                 Thread.sleep(5000);
             } catch (InterruptedException ignored) {
             }
+
+            ch.fastClose();
         }
     }
 
@@ -389,7 +391,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testJsonSerializer() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -404,7 +406,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testServiceWithZeroArgument() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -421,7 +423,7 @@ public class BrpcRpcTest {
     @Test
     public void testCallNotRegisteredService() {
         try (BrpcServer brpcServer = BrpcServerBuilder.builder().serverId("test").build().start(18070)) {
-            try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 18070).build()) {
+            try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 18070)) {
                 try {
                     // IExampleService is not registered at remote, ServiceNotFoundException should be thrown
                     ch.getRemoteService(IExampleService.class);
@@ -430,12 +432,13 @@ public class BrpcRpcTest {
                 } catch (ServiceNotFoundException ignored) {
                 }
             }
+            brpcServer.fastClose();
         }
     }
 
     @Test
     public void testV1Compatibility() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             // test map
@@ -445,7 +448,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testLargeResponse() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
             ((IServiceController) exampleService).setTimeout(1000_000);
@@ -457,7 +460,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testServerSideIdle() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
 
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
@@ -484,7 +487,7 @@ public class BrpcRpcTest {
 
     @Test
     public void testServiceNotFoundException() {
-        try (BrpcClient ch = BrpcClientBuilder.builder().server("127.0.0.1", 8070).build()) {
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             Assertions.assertThrows(ServiceNotFoundException.class, () -> ch.getRemoteService(INotRegisteredService.class));
         }
     }
@@ -508,10 +511,7 @@ public class BrpcRpcTest {
             }
         });
 
-        try (BrpcClient ch = BrpcClientBuilder.builder()
-                                              .server("127.0.0.1", 8070)
-                                              .build()) {
-
+        try (FastShutdownBrpcClient ch = new FastShutdownBrpcClient("127.0.1", 8070)) {
             // Use IServiceNotFoundTest2,
             // since the method name is 'empty2' does not exist in the IServiceNotFoundTest1,
             // calling on 'empty2' result in ServiceNotFoundException
@@ -542,6 +542,8 @@ public class BrpcRpcTest {
             Assertions.assertNotNull(session);
             Assertions.assertEquals("v1", session.getRemoteAttribute("h1"));
             Assertions.assertEquals("v2", session.getRemoteAttribute("h2"));
+
+            ch.fastClose();
         }
     }
 }
