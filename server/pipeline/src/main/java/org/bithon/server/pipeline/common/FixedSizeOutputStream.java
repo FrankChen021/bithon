@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
  * @author Frank Chen
  * @date 3/1/23 11:41 am
  */
-public class FixedSizeBuffer extends OutputStream {
+public class FixedSizeOutputStream extends OutputStream {
 
     public static class OverflowException extends IOException {
         public OverflowException(int requiredSize, int capacity) {
@@ -39,7 +39,7 @@ public class FixedSizeBuffer extends OutputStream {
     private int position;
     private int marker = -1;
 
-    public FixedSizeBuffer(int limit) {
+    public FixedSizeOutputStream(int limit) {
         this.buf = new byte[limit];
         this.position = 0;
     }

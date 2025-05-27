@@ -31,7 +31,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.pipeline.common.FixedSizeBuffer;
+import org.bithon.server.pipeline.common.FixedSizeOutputStream;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -41,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -54,7 +55,7 @@ public class ToKafkaExporter implements ITraceExporter {
     private final String topic;
     private final int maxRowsPerMessage;
 
-    private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
+    private final ThreadLocal<FixedSizeOutputStream> bufferThreadLocal;
 
     @JsonCreator
     public ToKafkaExporter(@JsonProperty("props") Map<String, Object> props,
@@ -70,7 +71,7 @@ public class ToKafkaExporter implements ITraceExporter {
 
         // Kafka Producer requires some extra size for management fields of one batch, so we keep aside 128 bytes
         // See: DefaultRecordBatch.RECORD_BATCH_OVERHEAD
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage - 128));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeOutputStream(maxSizePerMessage - 128));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props, new ByteArraySerializer(), new ByteArraySerializer()),
                                             ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
@@ -111,70 +112,100 @@ public class ToKafkaExporter implements ITraceExporter {
         //
         // To reduce memory copy, objects are directly serialized into the underlying buffer.
         // There might be a waste of serialization once current span serialization causes overflow.
-        FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
-        messageBuffer.clear();
+        FixedSizeOutputStream messageBuffer = this.bufferThreadLocal.get();
 
-        // Create a generator for this batch of message
-        JsonGenerator generator = objectMapper.createGenerator(messageBuffer);
-
-        int rows = 0;
-
-        for (TraceSpan span : spans) {
-            // Save the position in case of overflow
-            messageBuffer.mark();
-
-            boolean overflow;
-            do {
-                try {
-                    // Write the span object into the buffer
-                    objectMapper.writeValue(generator, span);
-
-                    // Write a new line to separate each span
-                    messageBuffer.writeAsciiChar('\n');
-
-                    overflow = false;
-                } catch (IOException e) {
-                    if (e instanceof FixedSizeBuffer.OverflowException
-                        || e.getCause() instanceof FixedSizeBuffer.OverflowException) {
-                        // Reset to previous marked position
-                        messageBuffer.reset();
-
-                        overflow = true;
-                    } else {
-                        throw e;
-                    }
-                }
-
-                if (overflow) {
-                    if (messageBuffer.size() == 0) {
-                        // The first span is too large
-                        log.error("The size of span is too large that exceeds the buffer size [{}].", messageBuffer.capacity());
-                        break;
-                    }
-
-                    // Send the message in buffer first
-                    send(messageBuffer);
-                    rows = 0;
-
-                    // Create a new generator
-                    // because the generator holds some internal states that can't be restored
-                    generator = objectMapper.createGenerator(messageBuffer);
-                }
-            } while (overflow);
-
-            // Impose a max rows limit to avoid a single message too large.
-            // If the messages are from Clickhouse, the single message might be too large to be sent to Kafka.
-            // This avoids the consumer side to handle a single message too large and memory exhausted.
-            if (++rows >= this.maxRowsPerMessage) {
-                send(messageBuffer);
-                rows = 0;
-            }
-        }
-
-        send(messageBuffer);
+        TraceSpanListSerializer serializer = new TraceSpanListSerializer(messageBuffer, objectMapper, maxRowsPerMessage);
+        serializer.serialize(spans, this::send);
     }
 
-    private void send(FixedSizeBuffer messageBuffer) {
+    /**
+     * A dedicated class for serializing trace spans to a buffer with overflow and batch size management
+     */
+    static class TraceSpanListSerializer {
+        private final FixedSizeOutputStream outputStream;
+        private final ObjectMapper objectMapper;
+        private final int maxRowsPerMessage;
+
+        public TraceSpanListSerializer(FixedSizeOutputStream outputStream, ObjectMapper objectMapper, int maxRowsPerMessage) {
+            this.outputStream = outputStream;
+            this.objectMapper = objectMapper;
+            this.maxRowsPerMessage = maxRowsPerMessage;
+        }
+
+        public void serialize(List<TraceSpan> spans, Consumer<FixedSizeOutputStream> onReady) throws IOException {
+            outputStream.clear();
+
+            int rows = 0;
+
+            for (TraceSpan span : spans) {
+                // Save the position in case of overflow
+                outputStream.mark();
+
+                boolean outputStreamOverflowed;
+                do {
+                    try {
+                        // Create a new generator for each span to avoid state corruption
+                        try (JsonGenerator generator = objectMapper.createGenerator(outputStream)) {
+                            objectMapper.writeValue(generator, span);
+                        }
+
+                        // Write a new line to separate each span
+                        outputStream.writeAsciiChar('\n');
+
+                        outputStreamOverflowed = false;
+                    } catch (IOException e) {
+                        if (e instanceof FixedSizeOutputStream.OverflowException
+                            || e.getCause() instanceof FixedSizeOutputStream.OverflowException) {
+                            outputStreamOverflowed = true;
+                        } else {
+                            throw e;
+                        }
+                    }
+
+                    if (outputStreamOverflowed) {
+                        // Reset to the marked position to discard any content of this span
+                        outputStream.reset();
+
+                        if (outputStream.size() == 0) {
+                            // The first span is too large
+                            log.error("The size of span is too large that exceeds the buffer size [{}].", outputStream.capacity());
+                            break;
+                        }
+
+                        // Send the message in buffer and clear it
+                        notifyRead(onReady);
+                        rows = 0;
+                    }
+                } while (outputStreamOverflowed);
+
+                // Impose a max rows limit to avoid a single message too large.
+                // If the messages are from Clickhouse, the single message might be too large to be sent to Kafka.
+                // This avoids the consumer side to handle a single message too large and memory exhausted.
+                if (++rows >= maxRowsPerMessage) {
+                    // Send the message in buffer and clear it
+                    notifyRead(onReady);
+                    rows = 0;
+                }
+            }
+
+            // Send the final batch
+            notifyRead(onReady);
+        }
+
+        private void notifyRead(Consumer<FixedSizeOutputStream> onBatch) {
+            if (outputStream.size() <= 1) {
+                return;
+            }
+
+            // Send the batch
+            onBatch.accept(outputStream);
+            
+            // Clear the buffer for the next batch
+            outputStream.clear();
+        }
+    }
+
+    private void send(FixedSizeOutputStream messageBuffer) {
         if (messageBuffer.size() <= 1) {
             return;
         }
@@ -185,7 +216,6 @@ public class ToKafkaExporter implements ITraceExporter {
         } catch (Exception e) {
             log.error("Error to send trace", e);
         }
-        messageBuffer.clear();
     }
 
     @Override
