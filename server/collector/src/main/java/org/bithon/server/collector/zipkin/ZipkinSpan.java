@@ -65,9 +65,9 @@ public class ZipkinSpan {
 
         public String getAddress() {
             if (ipv4 != null) {
-                return ipv4 + ":" + port;
+                return port == null ? ipv4 : ipv4 + ":" + port;
             } else if (ipv6 != null) {
-                return "[" + ipv6 + "]:" + port;
+                return port == null ? ipv6 : "[" + ipv6 + "]:" + port;
             }
 
             // SHOULD never happen

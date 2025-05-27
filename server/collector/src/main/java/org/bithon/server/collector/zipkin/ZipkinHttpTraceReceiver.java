@@ -63,7 +63,7 @@ public class ZipkinHttpTraceReceiver {
     }
 
     @PostMapping({"/api/collector/zipkin/v2/spans"})
-    public void receiveSpans(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void receiveZipkinSpans(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (processor == null) {
             return;
         }
