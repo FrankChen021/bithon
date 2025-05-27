@@ -51,9 +51,50 @@
       <version>1.26.2</version>
     </dependency>
 
+    <!-- Jaeger Thrift Dependencies -->
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>0.19.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>thrift-maven-plugin</artifactId>
+        <version>0.10.0</version>
+        <configuration>
+          <thriftExecutable>thrift</thriftExecutable>
+          <thriftSourceRoot>${project.basedir}/src/main/thrift</thriftSourceRoot>
+          <outputDirectory>${project.build.directory}/generated-sources/thrift</outputDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>thrift-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+          <fork>true</fork>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

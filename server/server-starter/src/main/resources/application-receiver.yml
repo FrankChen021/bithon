@@ -27,6 +27,9 @@ bithon:
         enabled: true
       zipkin:
         enabled: true
+      jaeger:
+        enabled: true
+        port: 6831
       otlp-http:
         enabled: true
       otlp-grpc:
