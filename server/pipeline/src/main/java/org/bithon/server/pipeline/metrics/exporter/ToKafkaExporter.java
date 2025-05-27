@@ -35,7 +35,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.datasource.input.IInputRow;
-import org.bithon.server.pipeline.common.FixedSizeBuffer;
+import org.bithon.server.pipeline.common.FixedSizeOutputStream;
 import org.bithon.server.pipeline.metrics.SchemaMetricMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -59,7 +59,7 @@ public class ToKafkaExporter implements IMetricExporter {
     private final KafkaTemplate<byte[], byte[]> producer;
     private final ObjectMapper objectMapper;
     private final String topic;
-    private final ThreadLocal<FixedSizeBuffer> bufferThreadLocal;
+    private final ThreadLocal<FixedSizeOutputStream> bufferThreadLocal;
     private final CompressionType compressionType;
 
     @JsonCreator
@@ -74,7 +74,7 @@ public class ToKafkaExporter implements IMetricExporter {
         Preconditions.checkIfTrue(maxSizePerMessage >= 1024, ProducerConfig.MAX_REQUEST_SIZE_CONFIG, "max request size must be >= 1024");
 
         this.compressionType = CompressionType.forName((String) props.getOrDefault(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none"));
-        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeBuffer(maxSizePerMessage));
+        this.bufferThreadLocal = ThreadLocal.withInitial(() -> new FixedSizeOutputStream(maxSizePerMessage));
 
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new ByteArraySerializer(),
@@ -111,7 +111,7 @@ public class ToKafkaExporter implements IMetricExporter {
         ByteBuffer messageKey = ByteBuffer.wrap((messageType + "/" + appName + "/" + instanceName).getBytes(StandardCharsets.UTF_8));
         RecordHeader header = new RecordHeader("type", messageType.getBytes(StandardCharsets.UTF_8));
 
-        FixedSizeBuffer messageBuffer = this.bufferThreadLocal.get();
+        FixedSizeOutputStream messageBuffer = this.bufferThreadLocal.get();
         messageBuffer.clear();
 
         try {
@@ -159,7 +159,7 @@ public class ToKafkaExporter implements IMetricExporter {
         }
     }
 
-    private void send(RecordHeader header, ByteBuffer messageKey, FixedSizeBuffer messageBuffer) throws IOException {
+    private void send(RecordHeader header, ByteBuffer messageKey, FixedSizeOutputStream messageBuffer) throws IOException {
         if (messageBuffer.size() <= 1) {
             return;
         }
