@@ -132,85 +132,67 @@ public class ToKafkaExporter implements ITraceExporter {
             this.maxRowsPerMessage = maxRowsPerMessage;
         }
 
-        public void serialize(List<TraceSpan> spans, Consumer<FixedSizeOutputStream> onBatch) throws IOException {
+        public void serialize(List<TraceSpan> spans, Consumer<FixedSizeOutputStream> onReady) throws IOException {
             outputStream.clear();
 
-            // Create a generator for this batch of message
-            JsonGenerator generator = objectMapper.createGenerator(outputStream);
+            int rows = 0;
 
-            try {
-                int rows = 0;
+            for (TraceSpan span : spans) {
+                // Save the position in case of overflow
+                outputStream.mark();
 
-                for (TraceSpan span : spans) {
-                    // Save the position in case of overflow
-                    outputStream.mark();
-
-                    boolean bufferOverflowed;
-                    do {
-                        try {
-                            // Write the span object into the buffer
+                boolean outputStreamOverflowed;
+                do {
+                    try {
+                        // Create a new generator for each span to avoid state corruption
+                        try (JsonGenerator generator = objectMapper.createGenerator(outputStream)) {
                             objectMapper.writeValue(generator, span);
-
-                            // Write a new line to separate each span
-                            outputStream.writeAsciiChar('\n');
-
-                            bufferOverflowed = false;
-                        } catch (IOException e) {
-                            if (e instanceof FixedSizeOutputStream.OverflowException
-                                || e.getCause() instanceof FixedSizeOutputStream.OverflowException) {
-                                bufferOverflowed = true;
-                            } else {
-                                throw e;
-                            }
                         }
 
-                        if (bufferOverflowed) {
-                            // Close current generator before sending
-                            generator.close();
+                        // Write a new line to separate each span
+                        outputStream.writeAsciiChar('\n');
 
-                            // Reset to the marked position to discard any content of this span
-                            outputStream.reset();
-
-                            if (outputStream.size() == 0) {
-                                // The first span is too large
-                                log.error("The size of span is too large that exceeds the buffer size [{}].", outputStream.capacity());
-                                break;
-                            }
-
-                            // Send the message in buffer and clear it
-                            sendBatch(onBatch);
-                            rows = 0;
-
-                            // Create a new generator for the remaining spans on the clean buffer
-                            generator = objectMapper.createGenerator(outputStream);
+                        outputStreamOverflowed = false;
+                    } catch (IOException e) {
+                        if (e instanceof FixedSizeOutputStream.OverflowException
+                            || e.getCause() instanceof FixedSizeOutputStream.OverflowException) {
+                            outputStreamOverflowed = true;
+                        } else {
+                            throw e;
                         }
-                    } while (bufferOverflowed);
+                    }
 
-                    // Impose a max rows limit to avoid a single message too large.
-                    // If the messages are from Clickhouse, the single message might be too large to be sent to Kafka.
-                    // This avoids the consumer side to handle a single message too large and memory exhausted.
-                    if (++rows >= maxRowsPerMessage) {
-                        // Close current generator before sending
-                        generator.close();
+                    if (outputStreamOverflowed) {
+                        // Reset to the marked position to discard any content of this span
+                        outputStream.reset();
+
+                        if (outputStream.size() == 0) {
+                            // The first span is too large
+                            log.error("The size of span is too large that exceeds the buffer size [{}].", outputStream.capacity());
+                            break;
+                        }
 
                         // Send the message in buffer and clear it
-                        sendBatch(onBatch);
+                        notifyRead(onReady);
                         rows = 0;
-
-                        // Create a new generator for the remaining spans on the clean buffer
-                        generator = objectMapper.createGenerator(outputStream);
                     }
+                } while (outputStreamOverflowed);
+
+                // Impose a max rows limit to avoid a single message too large.
+                // If the messages are from Clickhouse, the single message might be too large to be sent to Kafka.
+                // This avoids the consumer side to handle a single message too large and memory exhausted.
+                if (++rows >= maxRowsPerMessage) {
+                    // Send the message in buffer and clear it
+                    notifyRead(onReady);
+                    rows = 0;
                 }
-            } finally {
-                // Always close the generator
-                generator.close();
             }
 
             // Send the final batch
-            sendBatch(onBatch);
+            notifyRead(onReady);
         }
 
-        private void sendBatch(Consumer<FixedSizeOutputStream> onBatch) {
+        private void notifyRead(Consumer<FixedSizeOutputStream> onBatch) {
             if (outputStream.size() <= 1) {
                 return;
             }
