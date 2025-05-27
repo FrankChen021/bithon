@@ -51,7 +51,7 @@ public class ServiceStreamingDataMessageIn extends ServiceMessageIn {
         
         return this;
     }
-    
+
     /**
      * Deserialize the streaming data to the specified type
      */

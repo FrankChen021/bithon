@@ -17,6 +17,9 @@
 package org.bithon.server.web.service.diagnosis;
 
 
+import jdk.jfr.ValueDescriptor;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.uuid.UUIDv7Generator;
@@ -41,11 +44,26 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * @author frank.chen021@outlook.com
@@ -57,8 +75,28 @@ import java.util.Map;
 public class JfrApi {
 
     public static void main(String[] args) throws IOException {
-        JfrApi jfrApi = new JfrApi();
-        jfrApi.analyzeJfrFile(new File("/Users/frank.chenling/Downloads/async-profiler-4.0-macos/bin/app.jfr"));
+
+        //Path file = Paths.get("/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler-4.0/macos/bin/output.jfr");
+        Path file = Paths.get("/tmp/01970d60a3d4fa3dd68ceebf8bc0c88e/20250527-001552.jfr");
+        try (RecordingFile rf = new RecordingFile(file)) {
+
+            while (rf.hasMoreEvents()) {
+                RecordedEvent event = rf.readEvent();
+                /*
+                if (!event.getEventType().getName().equals("jdk.CPULoad")) {
+                    continue;
+                }*/
+                // dump the event type of event
+                System.out.print(event.getEventType().getName());
+                System.out.print(" Start Time: " + event.getStartTime());
+                System.out.print(" End Time: " + event.getEndTime());
+                // dump the event fields
+                for (ValueDescriptor fieldName : event.getEventType().getFields()) {
+                    System.out.print(" field(" + fieldName.getTypeName() + ")=" + fieldName.getName());
+                }
+                System.out.println(event.getStackTrace() == null ? " EMPTY" : " HAS STACK TRACE");
+            }
+        }
     }
 
     public JfrApi() {
@@ -108,19 +146,52 @@ public class JfrApi {
         }
         String profilerHome = "/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler-4.0/" + profilerDir + "/bin/asprof";
 
+        return analyzeJfrFile(file.getInputStream());
+    }
+
+    @PostMapping("/api/diagnosis/profiling")
+    public void profiling() throws IOException {
+        String uuid = UUIDv7Generator.create(UUIDv7Generator.INCREMENT_TYPE_DEFAULT)
+                                     .generate()
+                                     .toCompactFormat();
+
+        // Determine OS and arch
+        String os = System.getProperty("os.name").toLowerCase();
+        String arch = System.getProperty("os.arch").toLowerCase();
+        String profilerDir;
+        if (os.contains("mac")) {
+            profilerDir = "macos";
+        } else if (os.contains("linux")) {
+            if (arch.contains("aarch64") || arch.contains("arm64")) {
+                profilerDir = "linux-arm64";
+            } else {
+                profilerDir = "linux-amd64";
+            }
+        } else {
+            throw new RuntimeException("Unsupported OS: " + os);
+        }
+        String profilerHome = "/Users/frank.chenling/source/open/bithon/agent/agent-distribution/tools/async-profiler-4.0/" + profilerDir + "/bin/asprof";
+
         // Example: run asprof to profile current JVM for 30s and output HTML flamegraph
         String pid = String.valueOf(ProcessHandle.current().pid());
-        String uuidFile = "/tmp/" + uuid + ".html";
+        // Create a directory for the UUID if it doesn't exist
+        File dir = new File("/tmp/" + uuid);
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new RuntimeException("Failed to create directory: " + dir.getAbsolutePath());
+        }
+        File uuidFile = new File(dir, "/%t.jfr");
         ProcessBuilder pb = new ProcessBuilder(
             profilerHome,
             "-d", "30",
-            "-f", uuidFile,
+            "--loop", "3s",
+            "-f", uuidFile.getAbsolutePath(),
             "-e", "cpu",
             pid
         );
         pb.inheritIO(); // or redirect output as needed
         Process process = pb.start();
         log.info("Started async-profiler asprof for PID {}: {}", pid, profilerHome);
+        
         // Optionally, you can wait for the process to finish in a background thread
         new Thread(() -> {
             try {
@@ -130,12 +201,168 @@ public class JfrApi {
             }
         }).start();
 
-        try (InputStream in = file.getInputStream()) {
-            return analyzeJfrFile(in);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        dir.toPath().register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+        
+        Queue<String> fileQueue = new LinkedList<>();
+        Set<String> processedFiles = new HashSet<>();
+        long startTime = System.currentTimeMillis();
+        
+        // First, add any existing JFR files to the queue (in case some were created before we started watching)
+        File[] existingFiles = dir.listFiles((file, name) -> name.endsWith(".jfr"));
+        if (existingFiles != null) {
+            Arrays.sort(existingFiles, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+            for (File file : existingFiles) {
+                fileQueue.offer(file.getName());
+                log.debug("Added existing JFR file to queue: {}", file.getName());
+            }
         }
+        
+        while (System.currentTimeMillis() < startTime + 35_000) { // Wait a bit longer than profiling duration
+            try {
+                // Wait for file system events (with timeout)
+                WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
+                
+                if (key != null) {
+                    // Process file system events
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                        String fileName = ev.context().toString();
+                        
+                        if (fileName.endsWith(".jfr")) {
+                            // Add new JFR file to queue if not already present
+                            if (!processedFiles.contains(fileName) && !fileQueue.contains(fileName)) {
+                                fileQueue.offer(fileName);
+                                log.info("New JFR file detected and added to queue: {}", fileName);
+                            }
+                        }
+                    }
+                    
+                    if (!key.reset()) {
+                        break;
+                    }
+                }
+                
+                // Process files from queue (regardless of whether we got events or not)
+                processQueuedFiles(dir, fileQueue, processedFiles);
+                
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        
+        try {
+            watchService.close();
+        } catch (IOException e) {
+            log.warn("Failed to close watch service", e);
+        }
+    }
 
+    /**
+     * Process files from the queue in chronological order
+     */
+    private void processQueuedFiles(File dir, Queue<String> fileQueue, Set<String> processedFiles) {
+        // Process files from the front of the queue (oldest first)
+        while (!fileQueue.isEmpty()) {
+            String fileName = fileQueue.peek(); // Look at first file without removing it
+            File jfrFile = new File(dir, fileName);
+            
+            // Skip if file doesn't exist anymore
+            if (!jfrFile.exists()) {
+                fileQueue.poll(); // Remove non-existent file from queue
+                log.debug("Removed non-existent file from queue: {}", fileName);
+                continue;
+            }
+            
+            // Check if file is complete and ready for processing
+            if (isFileComplete(jfrFile.toPath())) {
+                // File is ready - process it and remove from queue
+                log.info("Processing JFR file from queue: {}", fileName);
+                processJfrFile(jfrFile.toPath());
+                
+                // Mark as processed and remove from queue
+                processedFiles.add(fileName);
+                fileQueue.poll(); // Now remove the processed file
+                log.debug("Successfully processed and removed file from queue: {}", fileName);
+            } else {
+                // File is not ready yet - keep it in queue and stop processing
+                // This maintains chronological order since we can't skip ahead
+                log.debug("JFR file {} is not ready yet, keeping in queue and waiting...", fileName);
+                break; // Important: do NOT call poll() here - keep file in queue
+            }
+        }
+    }
+
+    /**
+     * Check if a file is complete by checking if its size is stable
+     * This is a simple and reliable approach that works across all platforms
+     */
+    private boolean isFileComplete(Path filePath) {
+        File file = filePath.toFile();
+        
+        // First check if file exists and has content
+        if (!file.exists() || file.length() == 0) {
+            return false;
+        }
+        
+        // Check if file size is stable (hasn't changed in the last 500ms)
+        long size1 = file.length();
+        long lastModified1 = file.lastModified();
+        
+        try {
+            Thread.sleep(500); // Wait 500ms
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        
+        long size2 = file.length();
+        long lastModified2 = file.lastModified();
+        
+        // File is complete if size and last modified time haven't changed
+        boolean isStable = (size1 == size2) && (lastModified1 == lastModified2) && (size1 > 0);
+        
+        if (!isStable) {
+            log.debug("File {} is still changing: size {} -> {}, lastModified {} -> {}", 
+                     filePath, size1, size2, lastModified1, lastModified2);
+        }
+        
+        return isStable;
+    }
+
+    /**
+     * Process a complete JFR file
+     */
+    private void processJfrFile(Path filePath) {
+        readJFR(filePath,
+                (jfrEvent) -> {
+                    // Filter events if needed, e.g., only CPU load events
+                    String eventType = jfrEvent.getEventType().getName();
+                    return JdkTypeIDs.CPU_LOAD.equals(eventType)
+                           || JdkTypeIDs.EXECUTION_SAMPLE.equals(eventType)
+                           || JdkTypeIDs.SYSTEM_PROPERTIES.equals(eventType);
+                },
+                (jfrEvent) -> {
+                    // Process each event as needed
+                    System.out.println("Event: " + jfrEvent.getEventType().getName() + " at " + jfrEvent.getStartTime());
+                });
+    }
+
+    private void readJFR(Path file,
+                         Predicate<RecordedEvent> filter,
+                         Consumer<RecordedEvent> eventConsumer) {
+        try (RecordingFile rf = new RecordingFile(file)) {
+            while (rf.hasMoreEvents()) {
+                RecordedEvent event = rf.readEvent();
+                if (filter != null && !filter.test(event)) {
+                    continue; // Skip events that do not match the filter
+                }
+                eventConsumer.accept(event);
+            }
+        } catch (IOException e) {
+            log.error("Failed to read JFR file: {}", file, e);
+        }
     }
 
     private Map<String, Object> createMetadata(IItemCollection events) {
