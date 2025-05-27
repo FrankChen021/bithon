@@ -32,7 +32,6 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.event.Level;
 import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,11 +100,16 @@ public class KafkaTraceReceiver extends AbstractKafkaConsumer implements ITraceR
                     Iterator<TraceSpan> iterator = this.objectReader.readValues(jsonParser);
                     iterator.forEachRemaining(spans::add);
                 }
-            } catch (IOException e) {
-                LOG.error("Failed to process tracing message", e);
+            } catch (Exception e) {
+                // The iterator for the JSONEachRow format will throw a runtime exception if the JSON is not well formatted.
+                // So, instead of catching IOException, we catch all exceptions here.
+                LOG.error("Failed to read tracing spans, corrupted spans will be discarded", e);
             }
         }
 
+        if (spans.isEmpty()) {
+            return;
+        }
         processor.process(getTopic(), spans);
     }
 }
