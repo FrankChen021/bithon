@@ -93,8 +93,8 @@ public class JaegerThriftUDPTraceReceiver implements ITraceReceiver {
 
     @JsonCreator
     public JaegerThriftUDPTraceReceiver(@JacksonInject(useInput = OptBoolean.FALSE) Environment env) {
-        this.port = env.getProperty("bithon.receivers.traces.jaeger.port", int.class, DEFAULT_PORT);
-        this.threads = env.getProperty("bithon.receivers.traces.jaeger.threads", int.class, DEFAULT_THREADS);
+        this.port = env.getProperty("bithon.receivers.traces.jaeger-udp.port", int.class, DEFAULT_PORT);
+        this.threads = env.getProperty("bithon.receivers.traces.jaeger-udp.threads", int.class, DEFAULT_THREADS);
     }
 
     @VisibleForTesting
