@@ -45,7 +45,7 @@ public class JaegerSpanConverter {
         // Set default values for required fields
         span.clazz = "";
         span.method = "";
-        span.appName = getTagValue(jaegerSpan, "service.name", "unknown");
+        span.appName = "";
         span.instanceName = "";
 
         // Logs in the span are ignored
