@@ -58,42 +58,49 @@
       <version>0.19.0</version>
     </dependency>
 
+    <!-- Netty for UDP receiver -->
+    <dependency>
+      <groupId>org.bithon.shaded</groupId>
+      <artifactId>shaded-netty</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    
     <plugins>
+      <!-- Add thrift-generated directory as source directory -->
       <plugin>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>thrift-maven-plugin</artifactId>
-        <version>0.10.0</version>
-        <configuration>
-          <thriftExecutable>thrift</thriftExecutable>
-          <thriftSourceRoot>${project.basedir}/src/main/thrift</thriftSourceRoot>
-          <outputDirectory>${project.build.directory}/generated-sources/thrift</outputDirectory>
-        </configuration>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>thrift-sources</id>
+            <id>add-thrift-source</id>
             <phase>generate-sources</phase>
             <goals>
-              <goal>compile</goal>
+              <goal>add-source</goal>
             </goals>
+            <configuration>
+              <sources>
+                <source>src/main/thrift-generated</source>
+              </sources>
+            </configuration>
           </execution>
         </executions>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-          <fork>true</fork>
-        </configuration>
       </plugin>
     </plugins>
   </build>

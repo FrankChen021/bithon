@@ -30,6 +30,8 @@ bithon:
       jaeger:
         enabled: true
         port: 6831
+        # threads is optional, See JaegerThriftUDPTraceReceiver to know the default value
+        # threads: 8
       otlp-http:
         enabled: true
       otlp-grpc:
