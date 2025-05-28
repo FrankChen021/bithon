@@ -231,6 +231,7 @@
                 <exclude>**/jOOQ/**</exclude>
                 <exclude>**/jooq/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
+                <exclude>**/*-generated/**</exclude>
                 <exclude>**/src/main/resources/static/**</exclude>
                 <exclude>**/*.properties</exclude>
                 <exclude>**/*.sh</exclude>
