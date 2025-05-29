@@ -18,6 +18,7 @@ package org.bithon.server.collector.zipkin;
 
 import lombok.Data;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -76,42 +77,42 @@ public class ZipkinSpan {
     }
 
     public TraceSpan toTraceSpan() {
-        TraceSpan bithonSpan = new TraceSpan();
+        TraceSpan span = new TraceSpan();
 
         // Set basic span attributes
-        bithonSpan.traceId = this.getTraceId();
-        bithonSpan.spanId = this.getId();
-        bithonSpan.parentSpanId = StringUtils.getOrEmpty(this.getParentId());
-        bithonSpan.name = this.getName();
-        bithonSpan.clazz = "";
-        bithonSpan.method = "";
+        span.traceId = this.getTraceId();
+        span.spanId = this.getId();
+        span.parentSpanId = StringUtils.getOrEmpty(this.getParentId());
+        span.name = this.getName();
+        span.clazz = "";
+        span.method = "";
 
         // Map Zipkin kind to Bithon kind
         if (this.getKind() != null) {
             switch (this.getKind().toUpperCase(Locale.ENGLISH)) {
                 case "CLIENT":
-                    bithonSpan.kind = SpanKind.CLIENT.name();
+                    span.kind = SpanKind.CLIENT.name();
                     break;
                 case "SERVER":
-                    bithonSpan.kind = SpanKind.SERVER.name();
+                    span.kind = SpanKind.SERVER.name();
                     break;
                 case "PRODUCER":
-                    bithonSpan.kind = SpanKind.PRODUCER.name();
+                    span.kind = SpanKind.PRODUCER.name();
                     break;
                 case "CONSUMER":
-                    bithonSpan.kind = SpanKind.CONSUMER.name();
+                    span.kind = SpanKind.CONSUMER.name();
                     break;
                 default:
-                    bithonSpan.kind = SpanKind.INTERNAL.name();
+                    span.kind = SpanKind.INTERNAL.name();
                     break;
             }
         } else {
-            bithonSpan.kind = bithonSpan.parentSpanId.isEmpty() ? SpanKind.SERVER.name() : SpanKind.INTERNAL.name();
+            span.kind = span.parentSpanId.isEmpty() ? SpanKind.SERVER.name() : SpanKind.INTERNAL.name();
         }
 
-        bithonSpan.startTime = this.getTimestamp();
-        bithonSpan.costTime = this.getDuration();
-        bithonSpan.endTime = bithonSpan.startTime + this.getDuration();
+        span.startTime = this.getTimestamp();
+        span.costTime = this.getDuration();
+        span.endTime = span.startTime + this.getDuration();
 
         // Copy tags
         Map<String, String> tags = new TreeMap<>();
@@ -122,9 +123,9 @@ public class ZipkinSpan {
         // Add endpoint information to tags
         if (this.getLocalEndpoint() != null) {
             if (this.getLocalEndpoint().getServiceName() != null) {
-                bithonSpan.appName = this.getLocalEndpoint().getServiceName();
+                span.appName = this.getLocalEndpoint().getServiceName();
             }
-            bithonSpan.instanceName = this.getLocalEndpoint().getAddress();
+            span.instanceName = this.getLocalEndpoint().getAddress();
         }
 
         if (this.getRemoteEndpoint() != null) {
@@ -143,15 +144,18 @@ public class ZipkinSpan {
             }
         }
 
-        // Set debug and shared flags
-        if (this.getDebug() != null && this.getDebug()) {
-            tags.put("debug", "true");
+        if ("SERVER".equals(span.kind)) {
+            String statusCode = span.removeTag("http.status_code");
+            if (statusCode == null || statusCode.isEmpty()) {
+                // If no status code is provided, assume 200 OK
+                tags.put(Tags.Http.STATUS, "200");
+            } else {
+                tags.put(Tags.Http.STATUS, statusCode);
+            }
         }
-        if (this.getShared() != null && this.getShared()) {
-            tags.put("shared", "true");
-        }
-        bithonSpan.tags = tags;
 
-        return bithonSpan;
+        span.tags = tags;
+
+        return span;
     }
 }
