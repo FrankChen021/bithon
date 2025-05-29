@@ -487,7 +487,7 @@ public class TraceJdbcReader implements ITraceReader {
                 if (((IdentifierExpression) left).getIdentifier().equals(kindFieldName)) {
                     isTrue = ((ExpressionList) right).getExpressions()
                                                      .stream()
-                                                     .allMatch((s) -> (s instanceof LiteralExpression) && SpanKind.isRootSpan(((LiteralExpression) s).getValue()));
+                                                     .allMatch((s) -> (s instanceof LiteralExpression) && SpanKind.isRootSpan(((LiteralExpression<?>) s).getValue()));
 
                     // TODO: Apply more optimization here is the collection size equals to the size of all root spans
                     // We can remove such filter
