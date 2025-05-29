@@ -96,8 +96,6 @@ The endpoint receives tracing span logs in the JSON format, each object represen
 **Important Notes:**
 
 - `costTime` and `startTime` are in **microseconds**, not milliseconds
-- For backward compatibility, the API also accepts `duration` (in milliseconds) which will be converted to `costTime`
-- For backward compatibility, the API also accepts `timestamp` (in milliseconds) which will be converted to `startTime`
 - The `tags` field should be a flat key-value object where both keys and values are strings
 
 ##### Request Format
@@ -106,13 +104,13 @@ This endpoint support two different data formats:
 
 - JSON Array Format
   The format contain an array of trace span objects with above structure.
-- JSONEachRow Format
-  In JSONEachRow format, each line contains a separate JSON object representing a single span. This format is more memory-efficient for large batches for client to send tracing logs in high-throughput way.
+- List of JSON Object Format
+  In this format, the text contains one or more JSON objects each of which represents a single span. This format is more memory-efficient for large batches for client to send tracing logs in high-throughput way.
 
-This endpoint automatically detects the format based on the request content:
+This endpoint automatically detects the format with any performance loss based on the request content:
 
 - If the first character is `[`, it's treated as JSON Array format
-- If the first character is `{`, it's treated as JSONEachRow format
+- If the first character is `{`, it's treated as List of JSON Object format
 
 There's no performance difference between these two during deserialization. But JSONEachRow format is very suitable for large requests, the client can send tracing logs in streaming way.
 
