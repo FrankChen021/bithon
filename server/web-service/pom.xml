@@ -82,6 +82,11 @@
       <artifactId>common</artifactId>
       <version>8.3.1</version>
     </dependency>
+    <dependency>
+      <groupId>tools.profiler</groupId>
+      <artifactId>jfr-converter</artifactId>
+      <version>4.0</version>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
