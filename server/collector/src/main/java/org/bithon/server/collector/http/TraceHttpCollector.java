@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +86,7 @@ public class TraceHttpCollector {
                                                NamedThreadFactory.nonDaemonThreadFactory("trace-http-processor"),
                                                new ThreadPoolExecutor.CallerRunsPolicy());
 
-        this.objectReader = objectMapper.readerFor(TraceSpan.class);
+        this.objectReader = objectMapper.readerFor(TraceSpan.class).with(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION);
         this.objectMapper = objectMapper;
     }
 
@@ -125,7 +127,7 @@ public class TraceHttpCollector {
         ParseResult result = new BatchParser(this.objectReader,
                                              this.config.getMaxRowsPerBatch()).parse(is, batchConsumer);
 
-        response.setStatus(result.getThrowable() != null ? HttpStatus.INTERNAL_SERVER_ERROR.value() : HttpStatus.OK.value());
+        response.setStatus(result.getException() != null ? HttpStatus.INTERNAL_SERVER_ERROR.value() : HttpStatus.OK.value());
         response.setContentType("application/json");
         response.getOutputStream().write(this.objectMapper.writeValueAsBytes(result));
     }
@@ -166,38 +168,48 @@ public class TraceHttpCollector {
     public static class ParseResult {
         @Getter(AccessLevel.NONE)
         private final boolean errors;
-        private final int successfulSpans;
-        private final String exception;
+
         @JsonIgnore
-        private final Exception throwable;
+        private final Exception exception;
+
+        private final int successfulSpans;
+        private final int errorSpans;
+        private final String message;
         private final Map<String, ErrorInfo> parseErrors;
 
         public boolean hasErrors() {
             return errors;
         }
-        
-        private ParseResult(boolean errors, int successfulSpans, String exception, Exception throwable, Map<String, ErrorInfo> parseErrors) {
+
+        private ParseResult(boolean errors, int successfulSpans, String message, Exception exception, Map<String, ErrorInfo> parseErrors) {
             this.errors = errors;
-            this.successfulSpans = successfulSpans;
+            this.message = message;
             this.exception = exception;
-            this.throwable = throwable;
-            this.parseErrors = parseErrors != null ? parseErrors : new HashMap<>();
+            this.parseErrors = parseErrors != null ? parseErrors : Collections.emptyMap();
+            this.successfulSpans = successfulSpans;
+            this.errorSpans = this.parseErrors.values().stream()
+                                              .mapToInt(ErrorInfo::getErrorCount)
+                                              .sum();
         }
-        
+
         public static ParseResult success(int processedSpans, Map<String, ErrorInfo> errors) {
             return new ParseResult(CollectionUtils.isNotEmpty(errors), processedSpans, null, null, errors);
         }
-        
+
         public static ParseResult failure(int processedSpans, String errorMessage, Exception exception, Map<String, ErrorInfo> errors) {
-            return new ParseResult(true, processedSpans, errorMessage, exception, errors);
+            return new ParseResult(true,
+                                   processedSpans,
+                                   errorMessage,
+                                   exception,
+                                   errors);
         }
     }
 
     @Getter
     public static class ErrorInfo {
         private final String errorType;
-        private TraceSpan lastErrorSpan;
         private int errorCount;
+        private TraceSpan lastErrorSpan;
 
         public ErrorInfo(String errorType) {
             this.errorType = errorType;
@@ -251,7 +263,8 @@ public class TraceHttpCollector {
                     //
                     // for parse exception, dump the buffer that fails to parse
                     //
-                    if (e.getCause() instanceof JsonParseException && parser instanceof UTF8StreamJsonParser) {
+                    if (((e instanceof JsonParseException) || (e.getCause() instanceof JsonParseException))
+                        && parser instanceof UTF8StreamJsonParser) {
                         Object buffer = ReflectionUtils.getFieldValue(parser, "_inputBuffer");
                         Object end = ReflectionUtils.getFieldValue(parser, "_inputEnd");
                         if (buffer != null && end != null) {

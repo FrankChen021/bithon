@@ -261,8 +261,8 @@ public class BatchParserTest {
         // Then
         Assertions.assertTrue(result.hasErrors(), "Parsing should fail due to malformed JSON");
         assertEquals(0, result.getSuccessfulSpans(), "Should not have processed any spans");
-        assertTrue(result.getException() != null && !result.getException().isEmpty(),
-                   "Error message should be present. Actual: " + result.getException());
+        assertTrue(result.getMessage() != null && !result.getMessage().isEmpty(),
+                   "Error message should be present. Actual: " + result.getMessage());
         assertEquals(0, batchConsumer.getAllReceivedSpans().size(), "Should not process malformed JSON");
     }
 
