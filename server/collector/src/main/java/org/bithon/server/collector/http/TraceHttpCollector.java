@@ -240,21 +240,12 @@ public class TraceHttpCollector {
                         }
                     } else if (token == JsonToken.START_OBJECT) {
                         // List of JSON objects
-                        // Reset the parser to process from the beginning since we already consumed the first token
-                        parser.clearCurrentToken();
-
-                        TraceSpan traceSpan = normalizeTraceSpan(objectReader.readValue(parser));
-                        if (traceSpan != null) {
-                            spanConsumer.accept(traceSpan);
-                        }
-
-                        // Continue reading remaining objects
-                        while (parser.nextToken() == JsonToken.START_OBJECT) {
-                            traceSpan = normalizeTraceSpan(objectReader.readValue(parser));
+                        do {
+                            TraceSpan traceSpan = normalizeTraceSpan(objectReader.readValue(parser));
                             if (traceSpan != null) {
                                 spanConsumer.accept(traceSpan);
                             }
-                        }
+                        } while (parser.nextToken() == JsonToken.START_OBJECT);
                     }
                 } catch (IOException e) {
                     //
