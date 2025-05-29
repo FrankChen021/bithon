@@ -22,6 +22,7 @@ import org.bithon.server.collector.brpc.BrpcEventCollector;
 import org.bithon.server.collector.brpc.BrpcMetricCollector;
 import org.bithon.server.collector.brpc.BrpcTraceCollector;
 import org.bithon.server.collector.http.BithonHttpTraceEnabler;
+import org.bithon.server.collector.jaeger.JaegerHttpTraceReceiverEnabler;
 import org.bithon.server.collector.jaeger.JaegerThriftUDPTraceReceiver;
 import org.bithon.server.collector.otlp.grpc.OtlpGrpcTraceReceiver;
 import org.bithon.server.collector.otlp.http.OtlpHttpTraceReceiverEnabler;
@@ -61,7 +62,10 @@ public class CollectorAutoConfiguration {
                                          OtlpGrpcTraceReceiver.class,
 
                                          ZipkinHttpTraceReceiverEnabler.class,
-                                         JaegerThriftUDPTraceReceiver.class);
+
+                                         JaegerThriftUDPTraceReceiver.class,
+                                         JaegerHttpTraceReceiverEnabler.class
+                                         );
             }
         };
     }
