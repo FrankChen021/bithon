@@ -18,7 +18,9 @@ package org.bithon.server.collector.jaeger;
 
 import io.jaegertracing.thriftjava.Span;
 import io.jaegertracing.thriftjava.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -27,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+@Slf4j
 public class JaegerSpanConverter {
 
     public static TraceSpan convert(Span jaegerSpan) {
@@ -39,8 +42,8 @@ public class JaegerSpanConverter {
         span.startTime = jaegerSpan.getStartTime();
         span.endTime = jaegerSpan.getStartTime() + jaegerSpan.getDuration();
         span.costTime = jaegerSpan.getDuration();
-        span.kind = convertSpanKind(jaegerSpan).name();
         span.tags = convertTags(jaegerSpan);
+        span.kind = convertSpanKind(span.tags.remove("span.kind")).name();
 
         // Set default values for required fields
         span.clazz = "";
@@ -48,13 +51,16 @@ public class JaegerSpanConverter {
         span.appName = "";
         span.instanceName = "";
 
-        // Logs in the span are ignored
+        String status = span.tags.remove("http.status_code");
+        if (status != null) {
+            span.tags.put(Tags.Http.STATUS, status);
+        }
 
         return span;
     }
 
-    private static SpanKind convertSpanKind(Span span) {
-        String spanKind = getTagValue(span, "span.kind", "internal");
+    private static SpanKind convertSpanKind(String kind) {
+        String spanKind = kind == null ? "" : kind.trim();
         return switch (spanKind.toLowerCase(Locale.ENGLISH)) {
             case "server" -> SpanKind.SERVER;
             case "client" -> SpanKind.CLIENT;
@@ -72,17 +78,6 @@ public class JaegerSpanConverter {
             }
         }
         return tags;
-    }
-
-    private static String getTagValue(Span span, String key, String defaultValue) {
-        if (span.getTags() != null) {
-            for (Tag tag : span.getTags()) {
-                if (tag.getKey().equals(key)) {
-                    return getTagValue(tag);
-                }
-            }
-        }
-        return defaultValue;
     }
 
     private static String getTagValue(Tag tag) {
