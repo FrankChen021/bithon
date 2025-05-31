@@ -50,18 +50,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
             super(left, right, null);
         }
 
-        public Add(IQueryStep left,
-                   IQueryStep right,
-                   String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l + r;
-        }
-
         @Override
         int getOperatorIndex() {
             return 0;
@@ -81,11 +69,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
 
         @Override
-        double apply(double l, double r) {
-            return l - r;
-        }
-
-        @Override
         int getOperatorIndex() {
             return 1;
         }
@@ -94,18 +77,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
     public static class Mul extends BinaryExpressionQueryStep {
         public Mul(IQueryStep left, IQueryStep right) {
             super(left, right, null);
-        }
-
-        public Mul(IQueryStep left,
-                   IQueryStep right,
-                   String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l * r;
         }
 
         @Override
@@ -124,11 +95,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
                    String resultColumn,
                    String... sourceColumns) {
             super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l / r;
         }
 
         @Override
@@ -183,8 +149,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         return this.lhs.isScalar() && this.rhs.isScalar();
     }
 
-    abstract double apply(double l, double r);
-
     abstract int getOperatorIndex();
 
     private PipelineQueryResult applyScalarOverScalar(PipelineQueryResult left,
@@ -198,9 +162,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         Column resultColumn = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
         return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
                                   .table(ColumnarTable.of(resultColumn))
                                   .rows(resultColumn.size())
                                   .keyColumns(left.getKeyColumns())
@@ -230,9 +191,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
 
         return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
                                   .table(table)
                                   .rows(table.rowCount())
                                   .keyColumns(right.getKeyColumns())
@@ -262,9 +220,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
 
         return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
                                   .table(table)
                                   .rows(table.rowCount())
                                   .keyColumns(left.getKeyColumns())
@@ -356,9 +311,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
 
         return PipelineQueryResult.builder()
-                                  .interval(left.getInterval())
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
                                   .table(table)
                                   .rows(result.size())
                                   .keyColumns(left.getKeyColumns())

@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -84,20 +86,29 @@ public class MetricQueryApi {
 
     @Experimental
     @PostMapping("/api/metric/timeseries")
-    public QueryResponse timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
+    public QueryResponse<?> timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         IQueryStep pipeline = QueryPipelineBuilder.builder()
                                                   .dataSourceApi(dataSourceApi)
                                                   .intervalRequest(request.getInterval())
                                                   .condition(request.getCondition())
                                                   .build(request.getExpression());
 
-        return toTimeSeriesResultSet(pipeline.execute()
-                                             .get());
+        Duration step = request.getInterval().calculateStep();
+        TimeSpan start = request.getInterval().getStartISO8601();
+        TimeSpan end = request.getInterval().getEndISO8601();
+
+        return toTimeSeriesResultSet(start.floor(step).getMilliseconds(),
+                                     end.floor(step).getMilliseconds(),
+                                     step.toMillis(),
+                                     pipeline.execute().get());
     }
 
-    private QueryResponse<?> toTimeSeriesResultSet(PipelineQueryResult queryResult) {
+    private QueryResponse<?> toTimeSeriesResultSet(long startTimestamp,
+                                                   long endTimestamp,
+                                                   long interval,
+                                                   PipelineQueryResult queryResult) {
         // Because the end timestamp is inclusive, we need to add 1
-        int count = 1 + (int) ((queryResult.getEndTimestamp() - queryResult.getStartTimestamp()) / queryResult.getInterval());
+        int count = 1 + (int) ((endTimestamp - startTimestamp) / interval);
 
         List<String> keys = new ArrayList<>(queryResult.getKeyColumns());
         if (keys.get(0).equals("_timestamp")) {
@@ -114,7 +125,7 @@ public class MetricQueryApi {
 
             // the timestamp is seconds
             long timestamp = timestampCol.getLong(i) * 1000;
-            long index = (timestamp - queryResult.getStartTimestamp()) / queryResult.getInterval();
+            long index = (timestamp - startTimestamp) / endTimestamp;
 
             for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
                 Column valCol = valCols.get(j);
@@ -138,9 +149,9 @@ public class MetricQueryApi {
         }
 
         return QueryResponse.builder()
-                            .interval(queryResult.getInterval())
-                            .startTimestamp(queryResult.getStartTimestamp())
-                            .endTimestamp(queryResult.getEndTimestamp())
+                            .interval(interval)
+                            .startTimestamp(startTimestamp)
+                            .endTimestamp(endTimestamp)
                             .data(map.values())
                             .meta(responseColumns)
                             .build();

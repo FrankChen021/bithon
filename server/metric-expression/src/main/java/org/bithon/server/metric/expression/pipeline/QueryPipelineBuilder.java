@@ -21,6 +21,7 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricExpression;
@@ -34,6 +35,7 @@ import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -147,7 +149,10 @@ public class QueryPipelineBuilder {
 
         @Override
         public IQueryStep visit(LiteralExpression<?> expression) {
-            return new LiteralQueryStep(expression);
+            return new LiteralQueryStep(expression, Interval.of(intervalRequest.getStartISO8601(),
+                                                                intervalRequest.getEndISO8601(),
+                                                                intervalRequest.calculateStep(),
+                                                                null));
         }
 
         @Override

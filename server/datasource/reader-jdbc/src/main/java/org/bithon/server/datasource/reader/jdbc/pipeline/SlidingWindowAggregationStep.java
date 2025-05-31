@@ -113,8 +113,6 @@ public class SlidingWindowAggregationStep implements IQueryStep {
                          return PipelineQueryResult.builder()
                                                    .table(resultTable)
                                                    .rows(resultTable.rowCount())
-                                                   .startTimestamp(result.getStartTimestamp())
-                                                   .endTimestamp(result.getEndTimestamp())
                                                    .keyColumns(result.getKeyColumns())
                                                    .valColumns(result.getValColumns())
                                                    .build();
