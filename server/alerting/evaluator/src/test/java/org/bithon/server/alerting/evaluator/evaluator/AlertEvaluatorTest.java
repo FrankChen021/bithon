@@ -35,6 +35,7 @@ import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.common.serializer.AlertExpressionDeserializer;
 import org.bithon.server.alerting.common.serializer.AlertExpressionSerializer;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
+import org.bithon.server.alerting.notification.api.INotificationApiStub;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.commons.serializer.HumanReadableDurationDeserializer;
 import org.bithon.server.commons.serializer.HumanReadableDurationSerializer;
@@ -102,11 +103,11 @@ public class AlertEvaluatorTest {
     private static ISchema schema2;
     private static ISchema schema3;
     private static IEvaluationLogWriter evaluationLogWriterStub;
-    private static INotificationApiInvoker notificationApiStub;
+    private static INotificationApiStub notificationApiStub;
     private static IAlertRecordStorage alertRecordStorageStub;
     private static IAlertStateStorage alertStateStorageStub;
     private static IAlertObjectStorage alertObjectStorageStub;
-    private static INotificationApiInvoker notificationImpl;
+    private static INotificationApiStub notificationImpl;
     private AlertEvaluator evaluator;
 
     @BeforeAll
@@ -185,7 +186,7 @@ public class AlertEvaluatorTest {
 
     @BeforeEach
     public void setUp() {
-        notificationApiStub = Mockito.mock(INotificationApiInvoker.class);
+        notificationApiStub = Mockito.mock(INotificationApiStub.class);
 
         schema1 = new DefaultSchema("test-metrics",
                                     "test-metrics",

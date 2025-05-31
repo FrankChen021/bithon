@@ -24,7 +24,7 @@ import org.bithon.server.alerting.common.evaluator.result.EvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.EvaluationOutputs;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertRecordPayload;
-import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
+import org.bithon.server.alerting.notification.api.INotificationApiStub;
 import org.bithon.server.alerting.notification.message.NotificationMessage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.Label;
@@ -45,11 +45,11 @@ import java.util.UUID;
  */
 public class NotificationStep implements IPipelineStep {
     private final IAlertRecordStorage alertRecordStorage;
-    private final INotificationApiInvoker notificationApiInvoker;
+    private final INotificationApiStub notificationApiInvoker;
     private final ObjectMapper objectMapper;
 
     public NotificationStep(IAlertRecordStorage alertRecordStorage,
-                            INotificationApiInvoker notificationApiInvoker,
+                            INotificationApiStub notificationApiInvoker,
                             ObjectMapper objectMapper) {
         this.alertRecordStorage = alertRecordStorage;
         this.notificationApiInvoker = notificationApiInvoker;
