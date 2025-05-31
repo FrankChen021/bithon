@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
- * @author frank.chen021@outlook.co
+ * @author frank.chen021@outlook.com
  * @date 2024/12/19
  */
 @Configuration
