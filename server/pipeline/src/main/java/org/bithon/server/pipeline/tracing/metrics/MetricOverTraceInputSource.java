@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +37,12 @@ import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.exporter.MetricOverTraceExporter;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -127,7 +129,7 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
     }
 
     @Override
-    public SamplingResult sample(ISchema schema, Duration timeout) {
+    public StreamingResponseBody sample(ISchema schema, Duration timeout) {
         if (!this.pipeline.getPipelineConfig().isEnabled()) {
             throw new RuntimeException("The trace processing pipeline is not enabled in this module.");
         }
@@ -136,43 +138,43 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
             throw new RuntimeException("The metric over span is not enabled for this pipeline");
         }
 
-        try (MetricSampler sampler = new MetricSampler()) {
-            try (MetricOverTraceExporter exporter = new MetricOverTraceExporter(transformSpec,
-                                                                                (DefaultSchema) schema,
-                                                                                sampler)) {
-                try {
+        final ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
+        return output -> {
+            try (MetricSampler sampler = new MetricSampler()) {
+                try (MetricOverTraceExporter exporter = new MetricOverTraceExporter(transformSpec,
+                                                                                    (DefaultSchema) schema,
+                                                                                    sampler)) {
                     try {
-                        this.pipeline.link(exporter);
-                    } catch (Exception e) {
-
-                        throw new RuntimeException(e);
-                    }
-
-                    long elapsed = 0;
-                    while (sampler.sampled.isEmpty() && elapsed < timeout.toMillis()) {
                         try {
-                            //noinspection BusyWait
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            break;
-                        }
-                        elapsed += 100;
-                    }
+                            this.pipeline.link(exporter);
+                        } catch (Exception e) {
 
-                    return new SamplingResult(sampler.sampled
-                                                  .stream()
-                                                  .map(IInputRow::toMap)
-                                                  .toList());
-                } finally {
-                    exporter.close();
-                    this.pipeline.unlink(exporter);
+                            throw new RuntimeException(e);
+                        }
+
+                        long endTimestamp = System.currentTimeMillis() + timeout.toMillis();
+                        while (System.currentTimeMillis() < endTimestamp) {
+                            IInputRow row = sampler.poll(Duration.ofMillis(200));
+
+                            // streaming response to caller
+                            objectMapper.writeValue(output, row);
+
+                            // Use a new line to separate each row
+                            output.write('\n');
+                        }
+
+                    } catch (InterruptedException ignored) {
+                    } finally {
+                        exporter.close();
+                        this.pipeline.unlink(exporter);
+                    }
                 }
             }
-        }
+        };
     }
 
     static class MetricSampler implements IMetricMessageHandler {
-        private final List<IInputRow> sampled = Collections.synchronizedList(new ArrayList<>());
+        private final LinkedBlockingQueue<IInputRow> sampled = new LinkedBlockingQueue<>();
 
         @Override
         public void process(List<IInputRow> metricMessages) {
@@ -181,6 +183,10 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
 
         @Override
         public void close() {
+        }
+
+        public IInputRow poll(Duration timeout) throws InterruptedException {
+            return sampled.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
     }
 }

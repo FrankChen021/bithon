@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.time.Duration;
 import java.util.List;
@@ -57,5 +58,5 @@ public interface IMetricInputSource {
      * Sample ingestion
      * @return the sample data
      */
-    SamplingResult sample(ISchema schema, Duration timeout);
+    StreamingResponseBody sample(ISchema schema, Duration timeout);
 }

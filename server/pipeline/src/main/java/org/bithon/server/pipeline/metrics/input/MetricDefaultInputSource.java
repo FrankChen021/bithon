@@ -32,6 +32,7 @@ import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -87,7 +88,7 @@ public class MetricDefaultInputSource implements IMetricInputSource {
     }
 
     @Override
-    public SamplingResult sample(ISchema schema, Duration timeout) {
+    public StreamingResponseBody sample(ISchema schema, Duration timeout) {
         throw new UnsupportedOperationException("Not implemented");
     }
 

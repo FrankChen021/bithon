@@ -18,7 +18,7 @@ package org.bithon.server.pipeline.tracing.sampler;
 
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.discovery.declaration.DiscoverableService;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -37,5 +37,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ITraceSampler {
 
     @PostMapping("/api/pipeline/tracing/sample")
-    IMetricInputSource.SamplingResult sample(@RequestBody ISchema schema);
+    ResponseEntity<?> sample(@RequestBody ISchema schema);
 }
