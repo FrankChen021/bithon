@@ -153,8 +153,7 @@ public class DefaultSchema implements ISchema {
                 aliasColumns.put(metricSpec.getAlias(), metricSpec);
             }
 
-            if (metricSpec instanceof ExpressionColumn) {
-                ExpressionColumn expressionColumn = (ExpressionColumn) metricSpec;
+            if (metricSpec instanceof ExpressionColumn expressionColumn) {
                 expressionColumn.setSchema(this);
             }
         });
