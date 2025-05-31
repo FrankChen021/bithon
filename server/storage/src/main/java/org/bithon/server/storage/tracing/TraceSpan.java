@@ -144,10 +144,6 @@ public class TraceSpan implements IInputRow {
         return tags.get(name);
     }
 
-    public String removeTag(String name) {
-        return tags.remove(name);
-    }
-
     public void setTag(String name, String value) {
         this.tags.put(name, value);
     }

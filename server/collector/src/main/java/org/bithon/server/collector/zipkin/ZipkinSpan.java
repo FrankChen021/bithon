@@ -145,7 +145,7 @@ public class ZipkinSpan {
         }
 
         if ("SERVER".equals(span.kind)) {
-            String statusCode = span.removeTag("http.status_code");
+            String statusCode = tags.remove("http.status_code");
             if (statusCode == null || statusCode.isEmpty()) {
                 // If no status code is provided, assume 200 OK
                 tags.put(Tags.Http.STATUS, "200");
