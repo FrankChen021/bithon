@@ -32,6 +32,7 @@ import org.bithon.server.alerting.evaluator.evaluator.pipeline.Pipeline;
 import org.bithon.server.alerting.evaluator.evaluator.pipeline.RuleEvaluationStep;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.evaluator.repository.IAlertChangeListener;
+import org.bithon.server.alerting.notification.api.INotificationApiStub;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
@@ -58,7 +59,7 @@ public class AlertEvaluator implements DisposableBean {
     private final IDataSourceApi dataSourceApi;
     private final ObjectMapper objectMapper;
     private final IAlertRecordStorage recordStorage;
-    private final INotificationApiInvoker notificationApiInvoker;
+    private final INotificationApiStub notificationStub;
     private final AlertRepository repository;
 
     public AlertEvaluator(AlertRepository repository,
@@ -66,7 +67,7 @@ public class AlertEvaluator implements DisposableBean {
                           IAlertRecordStorage recordStorage,
                           IDataSourceApi dataSourceApi,
                           ServerProperties serverProperties,
-                          INotificationApiInvoker notificationApiInvoker,
+                          INotificationApiStub notificationApiStub,
                           ObjectMapper objectMapper) {
 
         // Use Indent output for better debugging
@@ -75,7 +76,7 @@ public class AlertEvaluator implements DisposableBean {
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.repository = repository;
         this.recordStorage = recordStorage;
-        this.notificationApiInvoker = notificationApiInvoker;
+        this.notificationStub = notificationApiStub;
         this.dataSourceApi = dataSourceApi;
         this.evaluationLogWriter = new EvaluationLogBatchWriter(logStorage.createWriter(), Duration.ofSeconds(5), 10000);
         this.evaluationLogWriter.setInstance(NetworkUtils.getIpAddress().getHostAddress() + ":" + serverProperties.getPort());
@@ -167,7 +168,7 @@ public class AlertEvaluator implements DisposableBean {
             pipeline.addStep(new ExpressionEvaluationStep());
             pipeline.addStep(new RuleEvaluationStep());
             pipeline.addStep(new InhibitionStep());
-            pipeline.addStep(new NotificationStep(recordStorage, notificationApiInvoker, this.objectMapper));
+            pipeline.addStep(new NotificationStep(recordStorage, notificationStub, this.objectMapper));
             pipeline.addStep(new IPipelineStep() {
                 @Override
                 public void evaluate(EvaluationContext context) {

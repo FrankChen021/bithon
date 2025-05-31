@@ -25,10 +25,10 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.model.AlertExpression;
 import org.bithon.server.alerting.common.model.AlertRule;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
-import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
 import org.bithon.server.alerting.manager.ManagerModuleEnabler;
 import org.bithon.server.alerting.manager.security.IUserProvider;
+import org.bithon.server.alerting.notification.api.INotificationApiStub;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.Interval;
@@ -260,7 +260,6 @@ public class AlertCommandService {
 
     public List<EvaluationLogEvent> testRule(AlertRule rule) {
         EvaluationLogLocalStorage logStorage = new EvaluationLogLocalStorage();
-
         IAlertRecordStorage recordStorage4Test = new IAlertRecordStorage() {
             @Override
             public Timestamp getLastAlert(String alertId) {
@@ -305,7 +304,6 @@ public class AlertCommandService {
                 return null;
             }
         };
-
         IAlertStateStorage alertStateStorage = new IAlertStateStorage() {
             @Override
             public void initialize() {
@@ -401,7 +399,7 @@ public class AlertCommandService {
                                                       recordStorage4Test,
                                                       this.dataSourceApi,
                                                       applicationContext.getBean(ServerProperties.class),
-                                                      applicationContext.getBean(INotificationApiInvoker.class),
+                                                      applicationContext.getBean(INotificationApiStub.class),
                                                       this.objectMapper);
         try {
             evaluator.evaluate(TimeSpan.now().floor(Duration.ofMinutes(1)),

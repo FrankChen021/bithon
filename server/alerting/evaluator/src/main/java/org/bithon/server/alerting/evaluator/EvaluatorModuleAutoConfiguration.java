@@ -21,8 +21,9 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.alerting.common.evaluator.state.LocalStateManager;
 import org.bithon.server.alerting.evaluator.evaluator.AlertEvaluator;
-import org.bithon.server.alerting.evaluator.evaluator.INotificationApiInvoker;
+import org.bithon.server.alerting.evaluator.evaluator.NotificationService;
 import org.bithon.server.alerting.evaluator.repository.AlertRepository;
+import org.bithon.server.alerting.notification.api.INotificationApiStub;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IEvaluationLogStorage;
@@ -48,7 +49,7 @@ public class EvaluatorModuleAutoConfiguration {
                                          IAlertRecordStorage recordStorage,
                                          IDataSourceApi dataSourceApi,
                                          ServerProperties serverProperties,
-                                         INotificationApiInvoker notificationApiInvoker,
+                                         INotificationApiStub notificationApiInvoker,
                                          ObjectMapper objectMapper) {
 
         return new AlertEvaluator(repository,
@@ -56,7 +57,7 @@ public class EvaluatorModuleAutoConfiguration {
                                   recordStorage,
                                   dataSourceApi,
                                   serverProperties,
-                                  notificationApiInvoker,
+                                  new NotificationService(notificationApiInvoker, logStorage),
                                   objectMapper);
     }
 
