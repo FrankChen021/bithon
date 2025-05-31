@@ -55,6 +55,7 @@ public class JaegerHttpTraceReceiver {
 
     private static final int MAX_BATCH_SIZE = 1000;
     private static final String THRIFT_BINARY_CONTENT_TYPE = "application/vnd.apache.thrift.binary";
+    private static final String THRIFT_BINARY_CONTENT_TYPE_2 = "application/x-thrift";
     private static final String THRIFT_COMPACT_CONTENT_TYPE = "application/vnd.apache.thrift.compact";
 
     @Setter
@@ -83,14 +84,17 @@ public class JaegerHttpTraceReceiver {
 
         // Determine Thrift protocol based on content type
         boolean useCompactProtocol;
-        if (contentType.startsWith(THRIFT_BINARY_CONTENT_TYPE)) {
+        if (contentType.startsWith(THRIFT_BINARY_CONTENT_TYPE) || contentType.startsWith(THRIFT_BINARY_CONTENT_TYPE_2)) {
             useCompactProtocol = false;
         } else if (contentType.startsWith(THRIFT_COMPACT_CONTENT_TYPE)) {
             useCompactProtocol = true;
         } else {
             String message = StringUtils.format("Unsupported Content-Type [%s] from remote [%s]. Expected [%s] or [%s]",
-                                                contentType, request.getRemoteAddr(),
-                                                THRIFT_BINARY_CONTENT_TYPE, THRIFT_COMPACT_CONTENT_TYPE);
+                                                contentType,
+                                                request.getRemoteAddr(),
+                                                THRIFT_BINARY_CONTENT_TYPE,
+                                                THRIFT_BINARY_CONTENT_TYPE_2,
+                                                THRIFT_COMPACT_CONTENT_TYPE);
             response.getWriter().println(message);
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return;
