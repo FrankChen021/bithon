@@ -22,6 +22,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.collector.otlp.OtlpSpanConverter;
+import org.bithon.server.commons.spring.ThreadNameScope;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -45,9 +46,10 @@ public class OtlpHttpTraceReceiver {
 
     private ITraceProcessor processor;
 
+    @ThreadNameScope(template = "^([a-zA-Z-]+)", value = "http-otlp-")
     @PostMapping("/api/collector/otlp/trace")
-    public void collect(HttpServletRequest request,
-                        HttpServletResponse response) throws IOException {
+    public void receiveOtlpSpans(HttpServletRequest request,
+                                 HttpServletResponse response) throws IOException {
         if (processor == null) {
             return;
         }

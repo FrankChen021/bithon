@@ -28,6 +28,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.ThreadNameScope;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,6 +46,7 @@ import java.util.zip.InflaterInputStream;
 
 /**
  * Zipkin V2 API receiver that handles Zipkin spans in JSON format
+ *
  * @author frank.chen021@outlook.com
  */
 @Slf4j
@@ -62,6 +64,7 @@ public class ZipkinHttpTraceReceiver {
         this.objectReader = objectMapper.readerFor(ZipkinSpan.class);
     }
 
+    @ThreadNameScope(template = "^([a-zA-Z-]+)", value = "http-zipkin-")
     @PostMapping({"/api/collector/zipkin/v2/spans"})
     public void receiveZipkinSpans(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (processor == null) {
@@ -143,7 +146,7 @@ public class ZipkinHttpTraceReceiver {
         if (traceSpans.isEmpty()) {
             return;
         }
-        
+
         this.processor.process("trace", traceSpans);
     }
 }

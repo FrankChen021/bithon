@@ -36,6 +36,7 @@ import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.ThreadNameScope;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -90,8 +91,13 @@ public class TraceHttpCollector {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Because we provide HTTP endpoint for different protocols(jaeger, zipkin, otlp, etc.),
+     * it's better to customize the thread name by {@link ThreadNameScope} for each protocol to improve observability.
+     */
+    @ThreadNameScope(template = "^([a-zA-Z-]+)", value = "http-bithon-")
     @PostMapping("/api/collector/trace")
-    public void span(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void receiveSpans(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (this.processor == null) {
             return;
         }
@@ -129,7 +135,11 @@ public class TraceHttpCollector {
 
         response.setStatus(result.getException() != null ? HttpStatus.INTERNAL_SERVER_ERROR.value() : HttpStatus.OK.value());
         response.setContentType("application/json");
-        response.getOutputStream().write(this.objectMapper.writeValueAsBytes(result));
+        try {
+            response.getOutputStream().write(this.objectMapper.writeValueAsBytes(result));
+        } catch (IOException e) {
+            log.warn("Error to flush result to client: {}", e.getMessage());
+        }
     }
 
     static class BatchParser {

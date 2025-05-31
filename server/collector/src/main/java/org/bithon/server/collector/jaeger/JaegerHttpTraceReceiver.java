@@ -27,6 +27,7 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.transport.TIOStreamTransport;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.commons.spring.ThreadNameScope;
 import org.bithon.server.pipeline.tracing.ITraceProcessor;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -63,6 +64,7 @@ public class JaegerHttpTraceReceiver {
      * Standard Jaeger collector HTTP endpoint for receiving traces.
      * This endpoint is compatible with Jaeger clients configured to send traces over HTTP.
      */
+    @ThreadNameScope(template = "^([a-zA-Z-]+)", value = "http-jaeger-")
     @PostMapping({"/api/collector/jaeger/traces"})
     public void receiveJaegerTraces(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (processor == null) {
