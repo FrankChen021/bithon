@@ -18,7 +18,6 @@ package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -62,7 +61,7 @@ public class TraceSpan implements IInputRow {
         }
 
         @Override
-        public TraceSpan deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        public TraceSpan deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             TraceSpan span = deserializer.deserialize(p, ctxt);
             if (span.tags == null) {
                 // Make sure 'tags' is not null

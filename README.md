@@ -15,7 +15,7 @@ It targets application metrics, logging, distributed tracing, alert and applicat
 The above pic illustrates the main components of this project, including:
 - Agent, which collects metrics/tracing logs automatically from client application without any code modification at the application side
 - Collector, which provides various interfaces (including OpenTelemetry GRPC interface) to receive metrics/tracing logs from clients
-- Pipeline, which provides a flexible and robust way to hande small data scale to a very huge data scale for incoming metrics or tracing logs
+- Pipeline, which provides a flexible and robust way to hande small data scale to an extra huge data scale for incoming metrics or tracing logs
 - Storage, which provides an abstraction to underlying storages like H2, MySQL or Clickhouse
 - Alerting, which allows us to set up alerts by using MetricSQL style expression on existing metrics or tracing logs and data in external storages
 - Web, which provides NextJS-based web page for metrics/tracing/alerting visualization 
@@ -23,7 +23,11 @@ The above pic illustrates the main components of this project, including:
 ## Highlights
 
 - Around 200 built-in metrics for various JDK or various Java middlewares like Apache Http Components
-- Open Telemetry Tracing standard support and integration
+- Compatible with multiple tracing context propagation formats, including OpenTelemetry, Zipkin, Jaeger and Pinpoint
+- Support to receive tracing span logs via multiple channels
+  - Open Telemetry Tracing format via GRPC or HTTP
+  - Zipkin Tracing format via HTTP
+  - Jaeger Tracing Thrift format via HTTP or UDP
 - Built-in debugging diagnosis commands, including JMX bean realtime monitoring for target application
 - Flexible deployment to adapt small data scale and huge data scale use cases
 - Fast queries and very low storage cost benefit from ClickHouse

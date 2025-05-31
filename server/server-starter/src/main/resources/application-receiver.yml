@@ -27,6 +27,13 @@ bithon:
         enabled: true
       zipkin:
         enabled: true
+      jaeger-udp:
+        enabled: true
+        port: 6831
+        # threads is optional, See JaegerThriftUDPTraceReceiver to know the default value
+        # threads: 8
+      jaeger-http:
+        enabled: true
       otlp-http:
         enabled: true
       otlp-grpc:

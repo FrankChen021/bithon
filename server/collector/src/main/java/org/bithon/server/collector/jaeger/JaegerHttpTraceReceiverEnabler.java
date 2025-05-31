@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.zipkin;
+package org.bithon.server.collector.jaeger;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -26,17 +26,20 @@ import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 /**
+ * Enabler for Jaeger HTTP trace receiver.
+ * This class manages the lifecycle of the JaegerHttpTraceReceiver.
+ *
  * @author frank.chen021@outlook.com
  */
 @Slf4j
-@JsonTypeName("zipkin-trace-http")
-public class ZipkinHttpTraceReceiverEnabler implements ITraceReceiver {
+@JsonTypeName("jaeger-trace-http")
+public class JaegerHttpTraceReceiverEnabler implements ITraceReceiver {
 
-    private final ZipkinHttpTraceReceiver receiver;
+    private final JaegerHttpTraceReceiver receiver;
     private final int serverPort;
 
     @JsonCreator
-    public ZipkinHttpTraceReceiverEnabler(@JacksonInject(useInput = OptBoolean.FALSE) ZipkinHttpTraceReceiver receiver,
+    public JaegerHttpTraceReceiverEnabler(@JacksonInject(useInput = OptBoolean.FALSE) JaegerHttpTraceReceiver receiver,
                                           @JacksonInject(useInput = OptBoolean.FALSE) ServerProperties serverProperties) {
         this.receiver = receiver;
         this.serverPort = serverProperties.getPort();
@@ -49,13 +52,12 @@ public class ZipkinHttpTraceReceiverEnabler implements ITraceReceiver {
 
     @Override
     public void start() {
-        log.info("Starting zipkin-trace-http receiver at port {}", this.serverPort);
+        log.info("Starting jaeger-trace-http receiver at port {}", this.serverPort);
     }
 
     @Override
     public void stop() {
-        log.info("Stopping zipkin-trace-http at port {}", this.serverPort);
-
+        log.info("Stopping jaeger-trace-http receiver at port {}", this.serverPort);
         this.receiver.setProcessor(null);
     }
 }
