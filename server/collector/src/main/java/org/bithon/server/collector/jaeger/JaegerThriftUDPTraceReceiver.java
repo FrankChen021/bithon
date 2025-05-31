@@ -199,9 +199,10 @@ public class JaegerThriftUDPTraceReceiver implements ITraceReceiver {
                 Batch batch = new Batch();
                 batch.read(new TCompactProtocol(new TMemoryInputTransport(data, offset, length)));
 
+                ApplicationInstance instance = ApplicationInstance.from(batch);
                 List<TraceSpan> spans = new ArrayList<>();
                 for (Span jaegerSpan : batch.getSpans()) {
-                    TraceSpan span = JaegerSpanConverter.convert(jaegerSpan);
+                    TraceSpan span = JaegerSpanConverter.convert(instance, jaegerSpan);
                     span.appName = batch.getProcess().getServiceName();
                     spans.add(span);
                 }

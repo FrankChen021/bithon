@@ -32,7 +32,7 @@ import java.util.TreeMap;
 @Slf4j
 public class JaegerSpanConverter {
 
-    public static TraceSpan convert(Span jaegerSpan) {
+    public static TraceSpan convert(ApplicationInstance instance, Span jaegerSpan) {
         TraceSpan span = new TraceSpan();
 
         span.traceId = StringUtils.format("%016x%016x", jaegerSpan.getTraceIdHigh(), jaegerSpan.getTraceIdLow());
@@ -48,8 +48,8 @@ public class JaegerSpanConverter {
         // Set default values for required fields
         span.clazz = "";
         span.method = "";
-        span.appName = "";
-        span.instanceName = "";
+        span.appName = instance.getApplicationName();
+        span.instanceName = instance.getInstanceName();
 
         String status = span.tags.remove("http.status_code");
         if (status != null) {

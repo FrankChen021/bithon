@@ -52,8 +52,7 @@ public class JaegerHttpTraceReceiverEnabler implements ITraceReceiver {
 
     @Override
     public void start() {
-        log.info("Starting jaeger-trace-http receiver at port {} (endpoints: /api/traces, /api/collector/jaeger/traces)",
-                 this.serverPort);
+        log.info("Starting jaeger-trace-http receiver at port {}", this.serverPort);
     }
 
     @Override

@@ -152,14 +152,13 @@ public class JaegerHttpTraceReceiver {
                 batch.read(new TBinaryProtocol(new TIOStreamTransport(inputStream)));
             }
 
+            ApplicationInstance instance = ApplicationInstance.from(batch);
+
             // Convert Jaeger spans to TraceSpan objects
             List<TraceSpan> traceSpans = new ArrayList<>();
-            String serviceName = batch.getProcess() != null ? batch.getProcess().getServiceName() : "unknown";
-
             if (batch.getSpans() != null) {
                 for (Span jaegerSpan : batch.getSpans()) {
-                    TraceSpan span = JaegerSpanConverter.convert(jaegerSpan);
-                    span.appName = serviceName;
+                    TraceSpan span = JaegerSpanConverter.convert(instance, jaegerSpan);
                     traceSpans.add(span);
 
                     // Process in batches to control memory usage
@@ -172,10 +171,6 @@ public class JaegerHttpTraceReceiver {
 
             // Process any remaining spans
             processSpans(traceSpans);
-
-            log.debug("Successfully processed {} spans from {} (service: {})",
-                      batch.getSpans() != null ? batch.getSpans().size() : 0, remoteAddr, serviceName);
-
         } catch (TException e) {
             log.error("Failed to deserialize Jaeger batch from {}: {}", remoteAddr, e.getMessage());
             throw e;
