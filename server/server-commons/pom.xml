@@ -107,16 +107,8 @@
 
     <!-- AspectJ dependencies for AOP -->
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-aspects</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjweaver</artifactId>
     </dependency>
 
   </dependencies>
