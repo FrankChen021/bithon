@@ -21,6 +21,7 @@ import org.bithon.server.discovery.declaration.DiscoverableService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * Internal API for the web service module to interact with.
@@ -37,5 +38,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ITraceSampler {
 
     @PostMapping("/api/pipeline/tracing/sample")
-    ResponseEntity<?> sample(@RequestBody ISchema schema);
+    ResponseEntity<StreamingResponseBody> sample(@RequestBody ISchema schema);
 }

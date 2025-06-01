@@ -25,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -62,7 +63,7 @@ public interface IDataSourceApi {
      * Test and sample data by using the input source defined in given schema
      */
     @PostMapping("/api/datasource/schema/test")
-    ResponseEntity<?> testSchema(@RequestBody ISchema schema);
+    ResponseEntity<StreamingResponseBody> testSchema(@RequestBody ISchema schema);
 
     @PostMapping("/api/datasource/schema/create")
     void createSchema(@RequestBody ISchema schema);

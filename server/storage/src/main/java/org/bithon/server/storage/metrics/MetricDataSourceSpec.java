@@ -36,6 +36,7 @@ public class MetricDataSourceSpec implements IDataStoreSpec {
 
     @JsonIgnore
     private final IMetricStorage storage;
+
     @JsonIgnore
     private ISchema schema;
 

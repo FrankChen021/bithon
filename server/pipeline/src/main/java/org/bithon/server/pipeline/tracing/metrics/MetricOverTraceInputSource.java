@@ -19,14 +19,18 @@ package org.bithon.server.pipeline.tracing.metrics;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.input.IInputRow;
@@ -39,8 +43,13 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -138,39 +147,116 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
             throw new RuntimeException("The metric over span is not enabled for this pipeline");
         }
 
-        final ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
+        final ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class)
+                                                            .copy()
+                                                            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         return output -> {
             try (MetricSampler sampler = new MetricSampler()) {
-                try (MetricOverTraceExporter exporter = new MetricOverTraceExporter(transformSpec,
-                                                                                    (DefaultSchema) schema,
-                                                                                    sampler)) {
+                try (MetricOverTraceExporter exporter = new MetricOverTraceExporter(transformSpec, (DefaultSchema) schema, sampler)) {
+                    this.pipeline.link(exporter);
+
+                    long startTime = System.currentTimeMillis();
+                    long endTimestamp = startTime + timeout.toMillis();
+                    int sampledEventCount = 0;
+                    Duration pollTimeout = Duration.ofMillis(200);
                     try {
-                        try {
-                            this.pipeline.link(exporter);
-                        } catch (Exception e) {
-
-                            throw new RuntimeException(e);
+                        if (!sendStreamingEvent(objectMapper, output,
+                                                new StreamingEvent("progress",
+                                                                   TimeSpan.now().toISO8601()))) {
+                            return;
                         }
 
-                        long endTimestamp = System.currentTimeMillis() + timeout.toMillis();
                         while (System.currentTimeMillis() < endTimestamp) {
-                            IInputRow row = sampler.poll(Duration.ofMillis(200));
+                            List<IInputRow> sampledEvents;
+                            try {
+                                sampledEvents = sampler.poll(10, pollTimeout);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
 
-                            // streaming response to caller
-                            objectMapper.writeValue(output, row);
-
-                            // Use a new line to separate each row
-                            output.write('\n');
+                            if (!sampledEvents.isEmpty()) {
+                                // NOTE: don't close the generator here, otherwise it will close the output stream
+                                JsonGenerator generator = objectMapper.createGenerator(output);
+                                for (IInputRow sampledEvent : sampledEvents) {
+                                    sampledEventCount++;
+                                    try {
+                                        objectMapper.writeValue(generator, new StreamingEvent("data",
+                                                                                              TimeSpan.now().toISO8601(),
+                                                                                              sampledEvent.toMap()));
+                                        generator.writeRaw('\n');
+                                    } catch (IOException e) {
+                                        return;
+                                    } catch (Exception e) {
+                                        log.error("[TraceSampler] Error serializing initial marker: {}. Aborting.", e.getMessage(), e);
+                                        return;
+                                    }
+                                }
+                                generator.flush();
+                            } else {
+                                // No data row from poll, sending progress event (nearly every second)
+                                long elapsedTime = System.currentTimeMillis() - startTime;
+                                if (elapsedTime % 1000 < pollTimeout.toMillis()) {
+                                    if (!sendStreamingEvent(objectMapper,
+                                                            output,
+                                                            new StreamingEvent("progress",
+                                                                               TimeSpan.now().toISO8601(),
+                                                                               Map.of("duration", System.currentTimeMillis() - startTime,
+                                                                                      "count", sampledEventCount)))) {
+                                        return;
+                                    }
+                                }
+                            }
                         }
 
-                    } catch (InterruptedException ignored) {
                     } finally {
-                        exporter.close();
-                        this.pipeline.unlink(exporter);
+                        try {
+                            this.pipeline.unlink(exporter);
+                        } catch (Exception ignored) {
+                        }
+                        try {
+                            exporter.close();
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
             }
         };
+    }
+
+    @Data
+    static class StreamingEvent {
+        private String type;
+        private String eventTime;
+        private Object event;
+
+        public StreamingEvent(String type, String eventTime) {
+            this.type = type;
+            this.eventTime = eventTime;
+            this.event = null;
+        }
+
+        public StreamingEvent(String type, String eventTime, Object event) {
+            this.type = type;
+            this.eventTime = eventTime;
+            this.event = event;
+        }
+    }
+
+    private boolean sendStreamingEvent(ObjectMapper objectMapper, OutputStream output, StreamingEvent event) {
+        try {
+            objectMapper.writeValue(objectMapper.createGenerator(output), event);
+            output.write('\n');
+            output.flush();
+            return true;
+        } catch (IOException e) {
+            log.warn("[TraceSampler] IOException writing initial marker (client likely disconnected): {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("[TraceSampler] Error serializing initial marker: {}. Aborting.", e.getMessage(), e);
+            return false;
+        }
     }
 
     static class MetricSampler implements IMetricMessageHandler {
@@ -185,8 +271,25 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
         public void close() {
         }
 
-        public IInputRow poll(Duration timeout) throws InterruptedException {
-            return sampled.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        /**
+         * poll up to n items from the queue for up to the specified timeout.
+         */
+        public List<IInputRow> poll(int n, Duration timeout) throws InterruptedException {
+
+            // Wait for the first item with the specified timeout
+            IInputRow firstRow = sampled.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (firstRow != null) {
+                List<IInputRow> rows = new ArrayList<>();
+
+                rows.add(firstRow);
+                // Try to get up to n-1 more items without further blocking for each item
+                if (n > 1) {
+                    sampled.drainTo(rows, n - 1);
+                }
+                return rows;
+            } else {
+                return Collections.emptyList();
+            }
         }
     }
 }

@@ -17,16 +17,11 @@
 package org.bithon.server.pipeline.metrics.input;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,16 +42,9 @@ public interface IMetricInputSource {
      */
     void stop();
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    class SamplingResult {
-        private List<Map<String, Object>> output;
-    }
-
     /**
      * Sample ingestion
-     * @return the sample data
+     * @return the sample data in streaming way
      */
     StreamingResponseBody sample(ISchema schema, Duration timeout);
 }

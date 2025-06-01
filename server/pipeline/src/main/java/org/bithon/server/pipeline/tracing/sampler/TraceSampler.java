@@ -43,7 +43,7 @@ public class TraceSampler implements ITraceSampler {
     }
 
     @Override
-    public ResponseEntity<?> sample(ISchema schema) {
+    public ResponseEntity<StreamingResponseBody> sample(ISchema schema) {
         if (schema.getInputSourceSpec() == null
             // or the input source is a null JSON node
             || schema.getInputSourceSpec().isNull()) {
@@ -57,7 +57,7 @@ public class TraceSampler implements ITraceSampler {
         StreamingResponseBody body = inputSource.sample(schema, Duration.ofSeconds(10));
 
         return ResponseEntity.ok()
-                             .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                             .contentType(MediaType.APPLICATION_NDJSON)
                              .body(body);
     }
 }
