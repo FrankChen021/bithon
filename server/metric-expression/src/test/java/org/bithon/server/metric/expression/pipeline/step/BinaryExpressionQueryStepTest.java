@@ -2666,7 +2666,8 @@ public class BinaryExpressionQueryStepTest {
                                                                                    .build())
                                                    // BY is given so that it produces a vector
                                                    .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
-        PipelineQueryResult response = evaluator.execute().get();
+        PipelineQueryResult response = evaluator.execute()
+                                                .get();
         Assertions.assertEquals(2, response.getRows());
 
         // Only the overlapped series(app2,app3) will be returned

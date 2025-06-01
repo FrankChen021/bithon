@@ -16,6 +16,10 @@
 
 package org.bithon.server.metric.expression.ast;
 
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.IExpression;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/7/20 17:12
@@ -24,12 +28,22 @@ public enum PredicateEnum {
 
     LT {
         @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.LT(left, right);
+        }
+
+        @Override
         public String toString() {
             return "<";
         }
     },
 
     LTE {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.LTE(left, right);
+        }
+
         @Override
         public String toString() {
             return "<=";
@@ -38,12 +52,23 @@ public enum PredicateEnum {
 
     GT {
         @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.GT(left, right);
+        }
+
+        @Override
         public String toString() {
             return ">";
         }
     },
 
     GTE {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.GTE(left, right);
+        }
+
+
         @Override
         public String toString() {
             return ">=";
@@ -52,11 +77,21 @@ public enum PredicateEnum {
 
     NE {
         @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.NE(left, right);
+        }
+
+        @Override
         public String toString() {
             return "<>";
         }
     },
     EQ {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.EQ(left, right);
+        }
+
         @Override
         public String toString() {
             return "=";
@@ -64,8 +99,15 @@ public enum PredicateEnum {
     },
     IS_NULL {
         @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ConditionalExpression.IsNull(left);
+        }
+
+        @Override
         public String toString() {
             return "IS NULL";
         }
-    }
+    };
+
+    public abstract IExpression createComparisonExpression(IExpression left, IExpression right);
 }

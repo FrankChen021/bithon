@@ -188,45 +188,37 @@ public class MetricExpressionASTBuilder {
 
         @Override
         public IExpression visitMetricFilterExpression(MetricExpressionParser.MetricFilterExpressionContext ctx) {
-            IExpression expression = ctx.metricExpression().accept(this);
-            if (!(expression instanceof MetricExpression metricExpression)) {
-                throw new InvalidExpressionException("The metric filter expression must be a metric expression");
-            }
+            IExpression lhs = ctx.metricExpression().accept(this);
 
             //
             // Metric Predicate
             //
             MetricExpressionParser.MetricPredicateExpressionContext predicateExpression = ctx.metricPredicateExpression();
-            if (predicateExpression != null) {
-                MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
-                LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
+            MetricExpressionParser.MetricExpectedExpressionContext expectedExpression = ctx.metricExpectedExpression();
+            LiteralExpression<?> expected = (LiteralExpression<?>) expectedExpression.literalExpression().accept(new LiteralExpressionBuilder());
 
-                HumanReadableDuration offset = null;
-                MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
-                if (offsetParseContext != null) {
-                    offset = offsetParseContext.accept(new DurationExpressionBuilder());
-                    if (!offset.isNegative()) {
-                        throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
-                    }
-
-                    if (offset.isZero()) {
-                        throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
-                    }
-
-                    if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
-                        throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
-                    }
+            HumanReadableDuration offset = null;
+            MetricExpressionParser.DurationExpressionContext offsetParseContext = expectedExpression.durationExpression();
+            if (offsetParseContext != null) {
+                offset = offsetParseContext.accept(new DurationExpressionBuilder());
+                if (!offset.isNegative()) {
+                    throw new InvalidExpressionException("The value in the offset expression '%s' must be negative.", offsetParseContext.getText());
                 }
 
-                PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
-                                                       expected,
-                                                       offset);
+                if (offset.isZero()) {
+                    throw new InvalidExpressionException("The value in the offset express '%s' can't be zero.", offsetParseContext.getText());
+                }
 
-                metricExpression.setPredicate(predicate);
-                metricExpression.setExpected(expected);
-                metricExpression.setOffset(offset);
+                if (!(expected instanceof LiteralExpression.ReadablePercentageLiteral)) {
+                    throw new InvalidExpressionException("The absolute value in the offset expression '%s' is not supported. ONLY percentage is supported now.", expectedExpression.literalExpression().getText());
+                }
             }
-            return metricExpression;
+
+            PredicateEnum predicate = getPredicate(predicateExpression.getChild(TerminalNode.class, 0).getSymbol().getType(),
+                                                   expected,
+                                                   offset);
+
+            return predicate.createComparisonExpression(lhs, expected);
         }
 
         private static PredicateEnum getPredicate(int predicateToken,
