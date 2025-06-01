@@ -22,7 +22,9 @@ import feign.Feign;
 import feign.FeignException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.httpclient.ApacheHttpClient;
 import lombok.Getter;
+import org.apache.http.impl.client.HttpClients;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.discovery.declaration.DiscoverableService;
@@ -253,9 +255,11 @@ public class DiscoveredServiceInvoker implements ApplicationContextAware {
         @Override
         public RESP call() {
             Object feignObject = Feign.builder()
+                                      .doNotCloseAfterDecode()
+                                      .client(new ApacheHttpClient(HttpClients.createDefault()))
                                       .contract(applicationContext.getBean(Contract.class))
                                       .encoder(applicationContext.getBean(Encoder.class))
-                                      .decoder(applicationContext.getBean(Decoder.class))
+                                      .decoder(new StreamingResponseBodyDecoder(applicationContext.getBean(Decoder.class)))
                                       .errorDecoder(new ErrorResponseDecoder(objectMapper))
                                       .requestInterceptor(template -> {
                                           if (token != null) {

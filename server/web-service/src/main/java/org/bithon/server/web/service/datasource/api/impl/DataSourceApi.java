@@ -17,18 +17,7 @@
 package org.bithon.server.web.service.datasource.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.component.commons.expression.IExpression;
@@ -43,7 +32,6 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.store.IDataStoreSpec;
-import org.bithon.server.discovery.client.DiscoveredServiceInstance;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
@@ -59,9 +47,7 @@ import org.bithon.server.web.service.datasource.api.QueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -70,8 +56,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +66,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -101,13 +84,11 @@ public class DataSourceApi implements IDataSourceApi {
     private final DataSourceService dataSourceService;
     private final Executor asyncExecutor;
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
-    private final ObjectMapper objectMapper;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          SchemaManager schemaManager,
                          DataSourceService dataSourceService,
-                         DiscoveredServiceInvoker discoveredServiceInvoker,
-                         ObjectMapper objectMapper) {
+                         DiscoveredServiceInvoker discoveredServiceInvoker) {
         this.storageConfig = storageConfig;
         this.schemaManager = schemaManager;
         this.dataSourceService = dataSourceService;
@@ -118,7 +99,6 @@ public class DataSourceApi implements IDataSourceApi {
                                                     new SynchronousQueue<>(),
                                                     NamedThreadFactory.nonDaemonThreadFactory("datasource-async"));
         this.discoveredServiceInvoker = discoveredServiceInvoker;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -265,108 +245,9 @@ public class DataSourceApi implements IDataSourceApi {
                                             "Only input source [span] is supported for now");
         }
 
-        // Instead of using Feign, make a direct HTTP request to proxy the streaming response
-        return proxyTraceSamplerRequest(schema);
-    }
 
-    private ResponseEntity<StreamingResponseBody> proxyTraceSamplerRequest(ISchema schema) {
-        try {
-            List<DiscoveredServiceInstance> instances = discoveredServiceInvoker.getInstanceList(ITraceSampler.class);
-            if (instances.isEmpty()) {
-                throw new HttpMappableException(HttpStatus.SERVICE_UNAVAILABLE.value(), "No pipeline service instances available");
-            }
-            DiscoveredServiceInstance instance = instances.get(ThreadLocalRandom.current().nextInt(instances.size()));
-            String targetUrlString = instance.getURL() + "/api/pipeline/tracing/sample";
-
-            final String body = objectMapper.writeValueAsString(schema);
-
-            // Configure the HttpClient.
-            final CloseableHttpClient httpClient = HttpClients.custom()
-                                                              .setDefaultRequestConfig(RequestConfig.custom()
-                                                                                                    .setConnectTimeout(5000)
-                                                                                                    .setSocketTimeout(15000)
-                                                                                                    .setConnectionRequestTimeout(5000)
-                                                                                                    .build())
-                                                              .build();
-
-            HttpPost httpPost = new HttpPost(targetUrlString);
-            httpPost.setHeader("Content-Type", "application/json");
-            httpPost.setHeader("Connection", "keep-alive");
-            httpPost.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-
-            CloseableHttpResponse httpResponse;
-            try {
-                httpResponse = httpClient.execute(httpPost);
-            } catch (Exception e) {
-                try {
-                    httpClient.close();
-                } catch (Throwable ignored) {
-                }
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                     .body(outputStream -> {
-                                         String errorMessage = "Failed to proxy trace sampler request: " + e.getMessage();
-                                         outputStream.write(errorMessage.getBytes(StandardCharsets.UTF_8));
-                                         outputStream.flush();
-                                     });
-            }
-
-            HttpHeaders headers = new HttpHeaders();
-            Header header = httpResponse.getLastHeader("Content-Type");
-            if (header != null) {
-                headers.setContentType(MediaType.parseMediaType(header.getValue()));
-            }
-
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode != HttpStatus.OK.value()) {
-                byte[] errorBody = EntityUtils.toByteArray(httpResponse.getEntity());
-                try {
-                    httpResponse.close();
-                } catch (Throwable ignored) {
-                }
-                try {
-                    httpClient.close();
-                } catch (Throwable ignored) {
-                }
-                return ResponseEntity.status(statusCode)
-                                     .headers(headers)
-                                     .body(outputStream -> {
-                                         outputStream.write(errorBody);
-                                         outputStream.flush();
-                                     });
-            }
-
-            StreamingResponseBody streamingBody = outputStreamToClient -> {
-                try (CloseableHttpResponse response = httpResponse) {
-                    HttpEntity responseEntity = response.getEntity();
-                    if (responseEntity == null) {
-                        return;
-                    }
-
-                    // Get the content stream from the response entity
-                    try (InputStream inputStreamFromServer = responseEntity.getContent()) {
-                        int bytesRead;
-                        byte[] buffer = new byte[4096];
-                        while ((bytesRead = inputStreamFromServer.read(buffer)) != -1) {
-                            if (bytesRead > 0) {
-                                outputStreamToClient.write(buffer, 0, bytesRead);
-                                outputStreamToClient.flush(); // Important: flush to the client immediately
-                            }
-                        }
-                    }
-                } finally {
-                    httpClient.close();
-                }
-            };
-
-            return ResponseEntity.ok()
-                                 .headers(headers)
-                                 .body(streamingBody);
-
-        } catch (
-            Exception e) {
-            log.error("Failed to proxy request using Apache HttpClient: {}", e.getMessage(), e);
-            throw new HttpMappableException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to proxy trace sampler request (Apache HttpClient): " + e.getMessage());
-        }
+        ITraceSampler sampler = discoveredServiceInvoker.createUnicastApi(ITraceSampler.class);
+        return sampler.sample(schema);
     }
 
     @Override
