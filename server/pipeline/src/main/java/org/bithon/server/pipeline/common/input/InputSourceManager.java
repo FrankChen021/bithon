@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics.input;
+package org.bithon.server.pipeline.common.input;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,16 +39,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/16 21:35
  */
 @Slf4j
-public class MetricInputSourceManager implements SchemaManager.ISchemaChangedListener, IMetricInputSourceManager {
+public class InputSourceManager implements SchemaManager.ISchemaChangedListener, IInputSourceManager {
 
-    private final Map<String, IMetricInputSource> inputSources = new ConcurrentHashMap<>();
+    private final Map<String, IInputSource> inputSources = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
     private final SchemaManager schemaManager;
-    private final Map<String, Class<? extends IMetricInputSource>> subTypes = new HashMap<>();
+    private final Map<String, Class<? extends IInputSource>> subTypes = new HashMap<>();
     private boolean suppressListener;
 
-    public MetricInputSourceManager(SchemaManager schemaManager,
-                                    ObjectMapper objectMapper) {
+    public InputSourceManager(SchemaManager schemaManager,
+                              ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.schemaManager = schemaManager;
         this.schemaManager.addListener(this);
@@ -56,16 +56,16 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangedLis
     }
 
     @Override
-    public void start(Class<? extends IMetricInputSource> inputSourceClazz) {
+    public void start(Class<? extends IInputSource> inputSourceClazz) {
         // Find the registered 'type' property
-        AnnotatedClass superType = AnnotatedClassResolver.resolveWithoutSuperTypes(this.objectMapper.getSerializationConfig(), IMetricInputSource.class);
+        AnnotatedClass superType = AnnotatedClassResolver.resolveWithoutSuperTypes(this.objectMapper.getSerializationConfig(), IInputSource.class);
         Collection<NamedType> registeredSubtypes = this.objectMapper.getSubtypeResolver()
                                                                     .collectAndResolveSubtypesByClass(objectMapper.getSerializationConfig(),
                                                                                                       superType);
         NamedType type = registeredSubtypes.stream()
                                            .filter((namedType) -> namedType.getType().equals(inputSourceClazz))
                                            .findFirst()
-                                           .orElseThrow(() -> new RuntimeException(StringUtils.format("class [%s] does not register as sub type of [%s]", inputSourceClazz.getName(), IMetricInputSource.class.getName())));
+                                           .orElseThrow(() -> new RuntimeException(StringUtils.format("class [%s] does not register as sub type of [%s]", inputSourceClazz.getName(), IInputSource.class.getName())));
 
         // register the type
         subTypes.putIfAbsent(type.getName(), inputSourceClazz);
@@ -95,7 +95,7 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangedLis
         // stop input
         if (oldSchema != null && oldSchema.getInputSourceSpec() != null) {
             log.info("Stop input source for schema [{}]", oldSchema.getName());
-            IMetricInputSource inputSource = inputSources.remove(oldSchema.getSignature());
+            IInputSource inputSource = inputSources.remove(oldSchema.getSignature());
             if (inputSource != null) {
                 inputSource.stop();
             }
@@ -134,13 +134,13 @@ public class MetricInputSourceManager implements SchemaManager.ISchemaChangedLis
             return;
         }
 
-        Class<? extends IMetricInputSource> inputSourceType = this.subTypes.get(type);
+        Class<? extends IInputSource> inputSourceType = this.subTypes.get(type);
         if (inputSourceType == null) {
             return;
         }
 
         log.info("Start input source for schema [{}]", schema.getName());
-        IMetricInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(), inputSourceType);
+        IInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(), inputSourceType);
         inputSource.start(schema);
         inputSources.put(schema.getSignature(), inputSource);
     }

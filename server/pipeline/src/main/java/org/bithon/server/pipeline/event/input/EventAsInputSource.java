@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.event.metrics;
+package org.bithon.server.pipeline.event.input;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -25,12 +25,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -46,7 +46,7 @@ import java.time.Duration;
  */
 @Slf4j
 @JsonTypeName("event")
-public class MetricOverEventInputSource implements IMetricInputSource {
+public class EventAsInputSource implements IInputSource {
 
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
@@ -56,10 +56,10 @@ public class MetricOverEventInputSource implements IMetricInputSource {
     private IEventExporter exporter;
 
     @JsonCreator
-    public MetricOverEventInputSource(@JsonProperty("eventType") String eventType,
-                                      @JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) EventPipeline pipeline,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public EventAsInputSource(@JsonProperty("eventType") String eventType,
+                              @JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                              @JacksonInject(useInput = OptBoolean.FALSE) EventPipeline pipeline,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
         this.pipeline = pipeline;
         this.applicationContext = applicationContext;

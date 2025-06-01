@@ -19,7 +19,7 @@ package org.bithon.server.pipeline.tracing.sampler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.datasource.ISchema;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
+import org.bithon.server.pipeline.common.input.IInputSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,8 +51,8 @@ public class TraceSampler implements ITraceSampler {
                                             "Input source is not specified in the schema");
         }
 
-        IMetricInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(),
-                                                                   IMetricInputSource.class);
+        IInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(),
+                                                             IInputSource.class);
 
         StreamingResponseBody body = inputSource.sample(schema, Duration.ofSeconds(10));
 

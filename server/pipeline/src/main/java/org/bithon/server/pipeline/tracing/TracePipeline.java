@@ -19,12 +19,12 @@ package org.bithon.server.pipeline.tracing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.pipeline.common.input.IInputSourceManager;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.common.transformer.ITransformer;
 import org.bithon.server.pipeline.common.transformer.TransformResult;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.exporter.ITraceExporter;
-import org.bithon.server.pipeline.tracing.metrics.MetricOverTraceInputSource;
+import org.bithon.server.pipeline.tracing.input.TraceSpanAsInputSource;
 import org.bithon.server.pipeline.tracing.receiver.ITraceReceiver;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.slf4j.Logger;
@@ -39,23 +39,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TracePipeline extends AbstractPipeline<ITraceReceiver, ITraceExporter> {
 
-    private final IMetricInputSourceManager metricInputSourceManager;
+    private final IInputSourceManager inputSourceManager;
 
     public TracePipeline(TracePipelineConfig pipelineConfig,
-                         IMetricInputSourceManager metricInputSourceManager,
+                         IInputSourceManager inputSourceManager,
                          ObjectMapper objectMapper) {
         super(ITraceReceiver.class,
               ITraceExporter.class,
               pipelineConfig,
               objectMapper);
 
-        this.metricInputSourceManager = metricInputSourceManager;
+        this.inputSourceManager = inputSourceManager;
     }
 
     @Override
     protected void registerProcessor() {
         // Load all schemas and input sources
-        this.metricInputSourceManager.start(MetricOverTraceInputSource.class);
+        this.inputSourceManager.start(TraceSpanAsInputSource.class);
 
         ITraceProcessor processor = new PipelineProcessor();
         for (ITraceReceiver receiver : this.receivers) {

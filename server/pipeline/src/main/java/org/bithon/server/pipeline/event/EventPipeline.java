@@ -18,12 +18,12 @@ package org.bithon.server.pipeline.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.pipeline.common.input.IInputSourceManager;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.event.exporter.IEventExporter;
 import org.bithon.server.pipeline.event.exporter.MetricOverEventExporter;
-import org.bithon.server.pipeline.event.metrics.MetricOverEventInputSource;
+import org.bithon.server.pipeline.event.input.EventAsInputSource;
 import org.bithon.server.pipeline.event.receiver.IEventReceiver;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.storage.event.EventMessage;
 import org.slf4j.Logger;
 
@@ -39,14 +39,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExporter> {
 
-    private final IMetricInputSourceManager metricInputSourceManager;
+    private final IInputSourceManager inputSourceManager;
     private final Set<String> metricEvents = new ConcurrentSkipListSet<>();
 
     public EventPipeline(EventPipelineConfig pipelineConfig,
-                         IMetricInputSourceManager metricInputSourceManager,
+                         IInputSourceManager inputSourceManager,
                          ObjectMapper objectMapper) {
         super(IEventReceiver.class, IEventExporter.class, pipelineConfig, objectMapper);
-        this.metricInputSourceManager = metricInputSourceManager;
+        this.inputSourceManager = inputSourceManager;
     }
 
     public EventPipelineConfig getPipelineConfig() {
@@ -56,7 +56,7 @@ public class EventPipeline extends AbstractPipeline<IEventReceiver, IEventExport
     @Override
     protected void registerProcessor() {
         // Load schemas and register processor for each schema
-        this.metricInputSourceManager.start(MetricOverEventInputSource.class);
+        this.inputSourceManager.start(EventAsInputSource.class);
 
         IEventProcessor processor = new IEventProcessor() {
             @Override

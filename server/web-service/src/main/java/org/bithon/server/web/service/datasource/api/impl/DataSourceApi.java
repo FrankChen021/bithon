@@ -71,6 +71,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -304,7 +305,7 @@ public class DataSourceApi implements IDataSourceApi {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                      .body(outputStream -> {
                                          String errorMessage = "Failed to proxy trace sampler request: " + e.getMessage();
-                                         outputStream.write(errorMessage.getBytes());
+                                         outputStream.write(errorMessage.getBytes(StandardCharsets.UTF_8));
                                          outputStream.flush();
                                      });
             }

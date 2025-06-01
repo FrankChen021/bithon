@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.tracing.metrics;
+package org.bithon.server.pipeline.tracing.input;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -34,9 +34,9 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.DefaultSchema;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.input.IInputRow;
+import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.exporter.IMetricMessageHandler;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.exporter.MetricOverTraceExporter;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @JsonTypeName("span")
-public class MetricOverTraceInputSource implements IMetricInputSource {
+public class TraceSpanAsInputSource implements IInputSource {
 
     @JsonIgnore
     private final TracePipeline pipeline;
@@ -77,10 +77,10 @@ public class MetricOverTraceInputSource implements IMetricInputSource {
     private MetricOverTraceExporter metricExporter;
 
     @JsonCreator
-    public MetricOverTraceInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) TracePipeline pipeline,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
-                                      @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public TraceSpanAsInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) TracePipeline pipeline,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
+                                  @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
 
         this.transformSpec = transformSpec;

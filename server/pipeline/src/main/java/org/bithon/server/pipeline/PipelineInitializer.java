@@ -20,12 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.spring.EnvironmentBinder;
+import org.bithon.server.pipeline.common.input.IInputSourceManager;
 import org.bithon.server.pipeline.common.pipeline.AbstractPipeline;
 import org.bithon.server.pipeline.event.EventPipeline;
 import org.bithon.server.pipeline.event.EventPipelineConfig;
 import org.bithon.server.pipeline.metrics.MetricPipeline;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSourceManager;
 import org.bithon.server.pipeline.tracing.TracePipeline;
 import org.bithon.server.pipeline.tracing.TracePipelineConfig;
 import org.bithon.server.storage.InvalidConfigurationException;
@@ -54,7 +54,7 @@ public class PipelineInitializer implements SmartLifecycle {
 
     private final List<AbstractPipeline<?, ?>> pipelines = new ArrayList<>();
 
-    public PipelineInitializer(IMetricInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, EnvironmentBinder binder) {
+    public PipelineInitializer(IInputSourceManager metricInputSourceManager, ObjectMapper objectMapper, EnvironmentBinder binder) {
         AllPipelineConfig allPipelineConfig = binder.bind("bithon.pipelines", AllPipelineConfig.class, AllPipelineConfig::new);
 
         for (Map.Entry<String, Map<String, Object>> entry : allPipelineConfig.entrySet()) {
