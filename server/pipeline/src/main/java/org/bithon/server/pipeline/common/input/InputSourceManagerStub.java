@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics.input;
+package org.bithon.server.pipeline.common.input;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
  * @date 31/3/24 7:20 pm
  */
 @Slf4j
-public class MetricInputSourceManagerStub implements IMetricInputSourceManager {
+public class InputSourceManagerStub implements IInputSourceManager {
     @Override
-    public void start(Class<? extends IMetricInputSource> inputSourceClazz) {
+    public void start(Class<? extends IInputSource> inputSourceClazz) {
         log.warn("Starting of input source {} failed due to metric store is not enabled", inputSourceClazz.getSimpleName());
     }
 }

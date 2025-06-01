@@ -30,7 +30,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,6 +39,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
     private final IQueryStep lhs;
     private final IQueryStep rhs;
     private final String resultColumnName;
+
     /**
      * Extra columns that should be retained in the result set after operation apply
      */
@@ -48,18 +48,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
     public static class Add extends BinaryExpressionQueryStep {
         public Add(IQueryStep left, IQueryStep right) {
             super(left, right, null);
-        }
-
-        public Add(IQueryStep left,
-                   IQueryStep right,
-                   String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l + r;
         }
 
         @Override
@@ -81,11 +69,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
 
         @Override
-        double apply(double l, double r) {
-            return l - r;
-        }
-
-        @Override
         int getOperatorIndex() {
             return 1;
         }
@@ -94,18 +77,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
     public static class Mul extends BinaryExpressionQueryStep {
         public Mul(IQueryStep left, IQueryStep right) {
             super(left, right, null);
-        }
-
-        public Mul(IQueryStep left,
-                   IQueryStep right,
-                   String resultColumn,
-                   String... sourceColumns) {
-            super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l * r;
         }
 
         @Override
@@ -124,11 +95,6 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
                    String resultColumn,
                    String... sourceColumns) {
             super(left, right, resultColumn, sourceColumns);
-        }
-
-        @Override
-        double apply(double l, double r) {
-            return l / r;
         }
 
         @Override
@@ -152,30 +118,19 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         CompletableFuture<PipelineQueryResult> leftFuture = this.lhs.execute();
         CompletableFuture<PipelineQueryResult> rightFuture = this.rhs.execute();
 
-        return CompletableFuture.allOf(leftFuture, rightFuture)
-                                .thenApply(v -> {
-                                    try {
-                                        PipelineQueryResult l = leftFuture.get();
-                                        PipelineQueryResult r = rightFuture.get();
-                                        PipelineQueryResult result;
-                                        if (lhs.isScalar()) {
-                                            if (rhs.isScalar()) {
-                                                result = applyScalarOverScalar(l, r);
-                                            } else {
-                                                result = applyScalarOverVector(l, r);
-                                            }
-                                        } else {
-                                            if (rhs.isScalar()) {
-                                                result = applyVectorOverScalar(l, r);
-                                            } else {
-                                                result = applyVectorOverVector(l, r);
-                                            }
-                                        }
-                                        return result;
-                                    } catch (InterruptedException | ExecutionException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                });
+        if (lhs.isScalar()) {
+            if (rhs.isScalar()) {
+                return applyScalarOverScalar(leftFuture, rightFuture);
+            } else {
+                return applyScalarOverVector(leftFuture, rightFuture);
+            }
+        } else {
+            if (rhs.isScalar()) {
+                return applyVectorOverScalar(leftFuture, rightFuture);
+            } else {
+                return applyVectorOverVector(leftFuture, rightFuture);
+            }
+        }
     }
 
     @Override
@@ -183,186 +138,183 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         return this.lhs.isScalar() && this.rhs.isScalar();
     }
 
-    abstract double apply(double l, double r);
-
     abstract int getOperatorIndex();
 
-    private PipelineQueryResult applyScalarOverScalar(PipelineQueryResult left,
-                                                      PipelineQueryResult right) {
-        String leftColName = left.getValColumns().get(0);
-        Column leftColumn = left.getTable().getColumn(leftColName);
+    private CompletableFuture<PipelineQueryResult> applyScalarOverScalar(CompletableFuture<PipelineQueryResult> leftFuture,
+                                                                         CompletableFuture<PipelineQueryResult> rightFuture) {
+        return leftFuture.thenCombine(rightFuture, (left, right) -> {
+            String leftColName = left.getValColumns().get(0);
+            Column leftColumn = left.getTable().getColumn(leftColName);
 
-        String rightColName = right.getValColumns().get(0);
-        Column rightColumn = right.getTable().getColumn(rightColName);
+            String rightColName = right.getValColumns().get(0);
+            Column rightColumn = right.getTable().getColumn(rightColName);
 
-        Column resultColumn = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
+            Column resultColumn = ColumnOperator.ScalarOverScalarOperator.apply(leftColumn, rightColumn, this.resultColumnName, this.getOperatorIndex());
 
-        return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
-                                  .table(ColumnarTable.of(resultColumn))
-                                  .rows(resultColumn.size())
-                                  .keyColumns(left.getKeyColumns())
-                                  .valColumns(List.of(this.resultColumnName))
-                                  .build();
+            return PipelineQueryResult.builder()
+                                      .table(ColumnarTable.of(resultColumn))
+                                      .rows(resultColumn.size())
+                                      .keyColumns(left.getKeyColumns())
+                                      .valColumns(List.of(this.resultColumnName))
+                                      .build();
+        });
     }
 
-    private PipelineQueryResult applyScalarOverVector(PipelineQueryResult left, PipelineQueryResult right) {
-        ColumnarTable table = new ColumnarTable();
+    private CompletableFuture<PipelineQueryResult> applyScalarOverVector(CompletableFuture<PipelineQueryResult> leftFuture,
+                                                                         CompletableFuture<PipelineQueryResult> rightFuture) {
+        return leftFuture.thenCombine(rightFuture, (left, right) -> {
+            ColumnarTable table = new ColumnarTable();
 
-        // Retain all key columns on the right, which is the vector
-        for (String colName : right.getKeyColumns()) {
-            Column col = right.getTable().getColumn(colName);
-            table.addColumn(col);
-        }
+            // Retain all key columns on the right, which is the vector
+            for (String colName : right.getKeyColumns()) {
+                Column col = right.getTable().getColumn(colName);
+                table.addColumn(col);
+            }
 
-        //
-        // Apply operator on ALL value columns on the right
-        //
-        String lName = left.getValColumns().get(0);
-        Column lColumn = left.getTable().getColumn(lName);
+            //
+            // Apply operator on ALL value columns on the right
+            //
+            String lName = left.getValColumns().get(0);
+            Column lColumn = left.getTable().getColumn(lName);
 
-        for (String colName : right.getValColumns()) {
-            Column col = right.getTable().getColumn(colName);
-            Column result = ColumnOperator.ScalarOverVectorOperator.apply(lColumn, col, col.getName(), this.getOperatorIndex());
-            table.addColumn(result);
-        }
+            for (String colName : right.getValColumns()) {
+                Column col = right.getTable().getColumn(colName);
+                Column result = ColumnOperator.ScalarOverVectorOperator.apply(lColumn, col, col.getName(), this.getOperatorIndex());
+                table.addColumn(result);
+            }
 
-        return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
-                                  .table(table)
-                                  .rows(table.rowCount())
-                                  .keyColumns(right.getKeyColumns())
-                                  .valColumns(right.getValColumns())
-                                  .build();
+            return PipelineQueryResult.builder()
+                                      .table(table)
+                                      .rows(table.rowCount())
+                                      .keyColumns(right.getKeyColumns())
+                                      .valColumns(right.getValColumns())
+                                      .build();
+        });
     }
 
-    private PipelineQueryResult applyVectorOverScalar(PipelineQueryResult left, PipelineQueryResult right) {
-        ColumnarTable table = new ColumnarTable();
+    private CompletableFuture<PipelineQueryResult> applyVectorOverScalar(CompletableFuture<PipelineQueryResult> leftFuture,
+                                                                         CompletableFuture<PipelineQueryResult> rightFuture) {
+        return leftFuture.thenCombine(rightFuture, (left, right) -> {
+            ColumnarTable table = new ColumnarTable();
 
-        // Retain all key columns on the right, which is the vector
-        for (String colName : left.getKeyColumns()) {
-            Column col = left.getTable().getColumn(colName);
-            table.addColumn(col);
-        }
+            // Retain all key columns on the right, which is the vector
+            for (String colName : left.getKeyColumns()) {
+                Column col = left.getTable().getColumn(colName);
+                table.addColumn(col);
+            }
 
-        //
-        // Apply operator on ALL value columns on the right
-        //
-        String rName = right.getValColumns().get(0);
-        Column rColumn = right.getTable().getColumn(rName);
+            //
+            // Apply operator on ALL value columns on the right
+            //
+            String rName = right.getValColumns().get(0);
+            Column rColumn = right.getTable().getColumn(rName);
 
-        for (String colName : left.getValColumns()) {
-            Column col = left.getTable().getColumn(colName);
-            Column result = ColumnOperator.VectorOverScalarOperator.apply(col, rColumn, col.getName(), this.getOperatorIndex());
-            table.addColumn(result);
-        }
+            for (String colName : left.getValColumns()) {
+                Column col = left.getTable().getColumn(colName);
+                Column result = ColumnOperator.VectorOverScalarOperator.apply(col, rColumn, col.getName(), this.getOperatorIndex());
+                table.addColumn(result);
+            }
 
-        return PipelineQueryResult.builder()
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .interval(left.getInterval())
-                                  .table(table)
-                                  .rows(table.rowCount())
-                                  .keyColumns(left.getKeyColumns())
-                                  .valColumns(left.getValColumns())
-                                  .build();
+            return PipelineQueryResult.builder()
+                                      .table(table)
+                                      .rows(table.rowCount())
+                                      .keyColumns(left.getKeyColumns())
+                                      .valColumns(left.getValColumns())
+                                      .build();
+        });
     }
 
     /**
      * join these two maps by its keyNames
      */
-    private PipelineQueryResult applyVectorOverVector(PipelineQueryResult left, PipelineQueryResult right) {
-        if (!left.getKeyColumns().equals(right.getKeyColumns())) {
-            return PipelineQueryResult.builder()
-                                      // create an EMPTY table
-                                      .table(new ColumnarTable())
-                                      .build();
-        }
+    private CompletableFuture<PipelineQueryResult> applyVectorOverVector(CompletableFuture<PipelineQueryResult> leftFuture,
+                                                                         CompletableFuture<PipelineQueryResult> rightFuture) {
+        return leftFuture.thenCombine(rightFuture, (left, right) -> {
+            if (!left.getKeyColumns().equals(right.getKeyColumns())) {
+                return PipelineQueryResult.builder()
+                                          // create an EMPTY table
+                                          .table(new ColumnarTable())
+                                          .build();
+            }
 
-        // Join ALL columns together
-        List<Column> columns = HashJoiner.join(left.getTable(),
-                                               right.getTable(),
-                                               left.getKeyColumns(),
-                                               left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
-                                               right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
+            // Join ALL columns together
+            List<Column> columns = HashJoiner.join(left.getTable(),
+                                                   right.getTable(),
+                                                   left.getKeyColumns(),
+                                                   left.getValColumns().stream().map((col) -> left.getTable().getColumn(col)).toList(),
+                                                   right.getValColumns().stream().map((col) -> right.getTable().getColumn(col)).toList());
 
-        // Apply operator on the first column of each table
-        int leftColIndex = left.getKeyColumns().size();
-        int rightColIndex = leftColIndex + left.getValColumns().size();
-        Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex),
-                                                                      columns.get(rightColIndex),
-                                                                      this.resultColumnName,
-                                                                      this.getOperatorIndex());
+            // Apply operator on the first column of each table
+            int leftColIndex = left.getKeyColumns().size();
+            int rightColIndex = leftColIndex + left.getValColumns().size();
+            Column result = ColumnOperator.VectorOverVectorOperator.apply(columns.get(leftColIndex),
+                                                                          columns.get(rightColIndex),
+                                                                          this.resultColumnName,
+                                                                          this.getOperatorIndex());
 
-        ColumnarTable table = new ColumnarTable();
-        List<String> valueColumns = new ArrayList<>();
+            ColumnarTable table = new ColumnarTable();
+            List<String> valueColumns = new ArrayList<>();
 
-        //
-        // Key columns
-        //
-        int i = 0;
-        for (; i < left.getKeyColumns().size(); i++) {
-            table.addColumn(columns.get(i));
-        }
+            //
+            // Key columns
+            //
+            int i = 0;
+            for (; i < left.getKeyColumns().size(); i++) {
+                table.addColumn(columns.get(i));
+            }
 
-        //
-        // Extra Value columns
-        //
-        valueColumns.add(table.addColumn(result).getName());
-        for (
-            // Skip the first value column on the left column
-            i++;
-            i < left.getValColumns().size();
-            i++) {
-            valueColumns.add(table.addColumn(columns.get(i)).getName());
-        }
-        for (
-            // Skip the first value column on the right column
-            i++;
-            i < right.getValColumns().size();
-            i++) {
-            valueColumns.add(table.addColumn(columns.get(i)).getName());
-        }
+            //
+            // Extra Value columns
+            //
+            valueColumns.add(table.addColumn(result).getName());
+            for (
+                // Skip the first value column on the left column
+                i++;
+                i < left.getValColumns().size();
+                i++) {
+                valueColumns.add(table.addColumn(columns.get(i)).getName());
+            }
+            for (
+                // Skip the first value column on the right column
+                i++;
+                i < right.getValColumns().size();
+                i++) {
+                valueColumns.add(table.addColumn(columns.get(i)).getName());
+            }
 
-        //
-        // User defined retained columns
-        //
-        if (!this.retainedColumns.isEmpty()) {
+            //
+            // User defined retained columns
+            //
+            if (!this.retainedColumns.isEmpty()) {
 
-            // Use to check if the column we want to add has already been added
-            Set<String> resultColumns = new HashSet<>();
-            resultColumns.addAll(left.getKeyColumns());
-            resultColumns.addAll(valueColumns);
+                // Use to check if the column we want to add has already been added
+                Set<String> resultColumns = new HashSet<>();
+                resultColumns.addAll(left.getKeyColumns());
+                resultColumns.addAll(valueColumns);
 
-            for (String retainedColumnName : retainedColumns) {
-                if (resultColumns.contains(retainedColumnName)) {
-                    // The column has already been in the result set
-                    continue;
-                }
+                for (String retainedColumnName : retainedColumns) {
+                    if (resultColumns.contains(retainedColumnName)) {
+                        // The column has already been in the result set
+                        continue;
+                    }
 
-                Column col = columns.stream()
-                                    .filter((c) -> c.getName().equals(retainedColumnName))
-                                    .findFirst()
-                                    .orElse(null);
-                if (col != null) {
-                    table.addColumn(col);
-                    valueColumns.add(col.getName());
+                    Column col = columns.stream()
+                                        .filter((c) -> c.getName().equals(retainedColumnName))
+                                        .findFirst()
+                                        .orElse(null);
+                    if (col != null) {
+                        table.addColumn(col);
+                        valueColumns.add(col.getName());
+                    }
                 }
             }
-        }
 
-        return PipelineQueryResult.builder()
-                                  .interval(left.getInterval())
-                                  .startTimestamp(left.getStartTimestamp())
-                                  .endTimestamp(left.getEndTimestamp())
-                                  .table(table)
-                                  .rows(result.size())
-                                  .keyColumns(left.getKeyColumns())
-                                  .valColumns(valueColumns)
-                                  .build();
+            return PipelineQueryResult.builder()
+                                      .table(table)
+                                      .rows(result.size())
+                                      .keyColumns(left.getKeyColumns())
+                                      .valColumns(valueColumns)
+                                      .build();
+        });
     }
 }

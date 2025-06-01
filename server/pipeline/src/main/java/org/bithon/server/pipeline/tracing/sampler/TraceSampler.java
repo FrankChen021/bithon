@@ -19,10 +19,13 @@ package org.bithon.server.pipeline.tracing.sampler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.exception.HttpMappableException;
 import org.bithon.server.datasource.ISchema;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
+import org.bithon.server.pipeline.common.input.IInputSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.time.Duration;
 
@@ -40,7 +43,7 @@ public class TraceSampler implements ITraceSampler {
     }
 
     @Override
-    public IMetricInputSource.SamplingResult sample(ISchema schema) {
+    public ResponseEntity<StreamingResponseBody> sample(ISchema schema) {
         if (schema.getInputSourceSpec() == null
             // or the input source is a null JSON node
             || schema.getInputSourceSpec().isNull()) {
@@ -48,8 +51,13 @@ public class TraceSampler implements ITraceSampler {
                                             "Input source is not specified in the schema");
         }
 
-        IMetricInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(),
-                                                                   IMetricInputSource.class);
-        return inputSource.sample(schema, Duration.ofSeconds(10));
+        IInputSource inputSource = objectMapper.convertValue(schema.getInputSourceSpec(),
+                                                             IInputSource.class);
+
+        StreamingResponseBody body = inputSource.sample(schema, Duration.ofSeconds(10));
+
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_NDJSON)
+                             .body(body);
     }
 }

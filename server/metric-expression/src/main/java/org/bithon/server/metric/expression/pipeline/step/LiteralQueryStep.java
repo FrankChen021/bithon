@@ -19,12 +19,16 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.DoubleColumn;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.LongColumn;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,14 +40,29 @@ import java.util.concurrent.CompletableFuture;
  */
 public class LiteralQueryStep implements IQueryStep {
     private final LiteralExpression<?> expression;
+    private final int size;
 
     public LiteralQueryStep(LiteralExpression<?> expression) {
         this.expression = expression;
+        this.size = 1;
+    }
+
+    public LiteralQueryStep(LiteralExpression<?> expression, Interval interval) {
+        this.expression = expression;
+
+        TimeSpan start = interval.getStartTime();
+        TimeSpan end = interval.getEndTime();
+        long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
+        if (interval.getStep() != null) {
+            size = (int) (intervalLength / interval.getStep().getSeconds());
+        } else {
+            size = 1;
+        }
     }
 
     @Override
     public boolean isScalar() {
-        return true;
+        return size == 1;
     }
 
     @Override
@@ -51,21 +70,26 @@ public class LiteralQueryStep implements IQueryStep {
 
         ColumnarTable table = new ColumnarTable();
         if (expression.getDataType() == IDataType.LONG) {
-            table.addColumn(new LongColumn("value", new long[]{
-                // Convert to Number because it might be Customized Number
-                ((Number) expression.getValue()).longValue()
-            }));
+            Column column = table.addColumn(new LongColumn("value", size));
+
+            long val = ((Number) expression.getValue()).longValue();
+            for (int i = 0; i < size; i++) {
+                column.addLong(val);
+            }
         } else if (expression.getDataType() == IDataType.DOUBLE) {
-            table.addColumn(new DoubleColumn("value", new double[]{
-                // Convert to Number because it might be Customized Number
-                ((Number) expression.getValue()).doubleValue()
-            }));
+            Column column = table.addColumn(new DoubleColumn("value", size));
+
+            double val = ((Number) expression.getValue()).doubleValue();
+            for (int i = 0; i < size; i++) {
+                column.addDouble(val);
+            }
         } else {
             throw new IllegalStateException("Unsupported literal type: " + expression.getDataType());
         }
 
         return CompletableFuture.completedFuture(PipelineQueryResult.builder()
                                                                     .rows(1)
+                                                                    .keyColumns(Collections.emptyList())
                                                                     .valColumns(List.of("value"))
                                                                     .table(table)
                                                                     .build());

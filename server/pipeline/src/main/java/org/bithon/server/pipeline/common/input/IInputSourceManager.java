@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.pipeline.metrics.input;
+package org.bithon.server.pipeline.common.input;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2024/3/29 18:27
  */
-public interface IMetricInputSourceManager {
-    void start(Class<? extends IMetricInputSource> inputSourceClazz);
+public interface IInputSourceManager {
+    void start(Class<? extends IInputSource> inputSourceClazz);
 }

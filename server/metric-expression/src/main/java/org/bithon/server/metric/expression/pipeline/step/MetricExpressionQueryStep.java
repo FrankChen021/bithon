@@ -28,7 +28,6 @@ import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,19 +91,11 @@ public class MetricExpressionQueryStep implements IQueryStep {
                                                                 .map(QueryField::getName)
                                                                 .toList();
 
-                            Duration step = queryRequest.getInterval().calculateStep();
-
-                            TimeSpan start = queryRequest.getInterval().getStartISO8601();
-                            TimeSpan end = queryRequest.getInterval().getEndISO8601();
-
                             return PipelineQueryResult.builder()
                                                       .rows(columnTable.rowCount())
                                                       .keyColumns(keys)
                                                       .valColumns(valNames)
                                                       .table(columnTable)
-                                                      .startTimestamp(start.floor(step).getMilliseconds())
-                                                      .endTimestamp(end.floor(step).getMilliseconds())
-                                                      .interval(step.toMillis())
                                                       .build();
                         } catch (IOException e) {
                             throw new RuntimeException(e);

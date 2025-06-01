@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.pipeline.common.input.IInputSource;
 import org.bithon.server.pipeline.common.transformer.TransformSpec;
 import org.bithon.server.pipeline.metrics.MetricPipelineConfig;
 import org.bithon.server.pipeline.metrics.exporter.MetricMessageHandler;
@@ -32,6 +33,7 @@ import org.bithon.server.storage.datasource.SchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -42,15 +44,15 @@ import java.time.Duration;
  */
 @Slf4j
 @JsonTypeName("metric")
-public class MetricDefaultInputSource implements IMetricInputSource {
+public class DefaultInputSource implements IInputSource {
 
     private final TransformSpec transformSpec;
     private final ApplicationContext applicationContext;
     private String name;
 
     @JsonCreator
-    public MetricDefaultInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
-                                    @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+    public DefaultInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                              @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         this.transformSpec = transformSpec;
         this.applicationContext = applicationContext;
     }
@@ -87,7 +89,7 @@ public class MetricDefaultInputSource implements IMetricInputSource {
     }
 
     @Override
-    public SamplingResult sample(ISchema schema, Duration timeout) {
+    public StreamingResponseBody sample(ISchema schema, Duration timeout) {
         throw new UnsupportedOperationException("Not implemented");
     }
 

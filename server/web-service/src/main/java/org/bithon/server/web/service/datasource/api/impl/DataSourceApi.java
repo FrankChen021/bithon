@@ -33,11 +33,9 @@ import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
-import org.bithon.server.pipeline.metrics.input.IMetricInputSource;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
 import org.bithon.server.storage.common.expiration.ExpirationConfig;
 import org.bithon.server.storage.datasource.SchemaManager;
-import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
@@ -50,10 +48,12 @@ import org.bithon.server.web.service.datasource.api.TimeSeriesQueryResult;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,19 +80,16 @@ import java.util.stream.Collectors;
 @Conditional(WebServiceModuleEnabler.class)
 public class DataSourceApi implements IDataSourceApi {
     private final MetricStorageConfig storageConfig;
-    private final IMetricStorage metricStorage;
     private final SchemaManager schemaManager;
     private final DataSourceService dataSourceService;
     private final Executor asyncExecutor;
     private final DiscoveredServiceInvoker discoveredServiceInvoker;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
-                         IMetricStorage metricStorage,
                          SchemaManager schemaManager,
                          DataSourceService dataSourceService,
                          DiscoveredServiceInvoker discoveredServiceInvoker) {
         this.storageConfig = storageConfig;
-        this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
         this.dataSourceService = dataSourceService;
         this.asyncExecutor = new ThreadPoolExecutor(0,
@@ -231,7 +228,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public IMetricInputSource.SamplingResult testSchema(ISchema schema) {
+    public ResponseEntity<StreamingResponseBody> testSchema(ISchema schema) {
         if (schema.getInputSourceSpec() == null || schema.getInputSourceSpec().isNull()) {
             throw new HttpMappableException(HttpStatus.BAD_REQUEST.value(),
                                             "Input source is not specified in the schema");
@@ -248,8 +245,9 @@ public class DataSourceApi implements IDataSourceApi {
                                             "Only input source [span] is supported for now");
         }
 
-        ITraceSampler pipelineApi = this.discoveredServiceInvoker.createUnicastApi(ITraceSampler.class);
-        return pipelineApi.sample(schema);
+
+        ITraceSampler sampler = discoveredServiceInvoker.createUnicastApi(ITraceSampler.class);
+        return sampler.sample(schema);
     }
 
     @Override
