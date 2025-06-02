@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:49 pm
  */
-public abstract class BinaryExpressionQueryStep implements IQueryStep {
+public abstract class ArithmeticStep implements IQueryStep {
     private final IQueryStep lhs;
     private final IQueryStep rhs;
     private final String resultColumnName;
@@ -45,7 +45,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
      */
     private final Set<String> retainedColumns;
 
-    public static class Add extends BinaryExpressionQueryStep {
+    public static class Add extends ArithmeticStep {
         public Add(IQueryStep left, IQueryStep right) {
             super(left, right, null);
         }
@@ -56,7 +56,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
     }
 
-    public static class Sub extends BinaryExpressionQueryStep {
+    public static class Sub extends ArithmeticStep {
         public Sub(IQueryStep left, IQueryStep right) {
             super(left, right, null);
         }
@@ -74,7 +74,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
     }
 
-    public static class Mul extends BinaryExpressionQueryStep {
+    public static class Mul extends ArithmeticStep {
         public Mul(IQueryStep left, IQueryStep right) {
             super(left, right, null);
         }
@@ -85,7 +85,7 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
     }
 
-    public static class Div extends BinaryExpressionQueryStep {
+    public static class Div extends ArithmeticStep {
         public Div(IQueryStep left, IQueryStep right) {
             super(left, right, null);
         }
@@ -103,10 +103,10 @@ public abstract class BinaryExpressionQueryStep implements IQueryStep {
         }
     }
 
-    protected BinaryExpressionQueryStep(IQueryStep left,
-                                        IQueryStep right,
-                                        String resultColumnName,
-                                        String... retainedColumns) {
+    protected ArithmeticStep(IQueryStep left,
+                             IQueryStep right,
+                             String resultColumnName,
+                             String... retainedColumns) {
         this.lhs = left;
         this.rhs = right;
         this.resultColumnName = resultColumnName == null ? "value" : resultColumnName;

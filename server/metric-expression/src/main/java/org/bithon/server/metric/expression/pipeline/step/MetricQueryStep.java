@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:48 pm
  */
-public class MetricExpressionQueryStep implements IQueryStep {
+public class MetricQueryStep implements IQueryStep {
     private final QueryRequest queryRequest;
     private final IDataSourceApi dataSourceApi;
     private final boolean isScalar;
@@ -45,8 +45,8 @@ public class MetricExpressionQueryStep implements IQueryStep {
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
     private volatile CompletableFuture<PipelineQueryResult> cachedResponse;
 
-    public MetricExpressionQueryStep(QueryRequest queryRequest,
-                                     IDataSourceApi dataSourceApi) {
+    public MetricQueryStep(QueryRequest queryRequest,
+                           IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
         this.isScalar = computeIsScalar(queryRequest);

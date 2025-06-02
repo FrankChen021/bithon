@@ -41,7 +41,7 @@ import org.mockito.Mockito;
  * @date 4/4/25 9:27 pm
  */
 @SuppressWarnings("PointlessArithmeticExpression")
-public class BinaryExpressionQueryStepTest {
+public class ArithmeticStepTest {
     private IDataSourceApi dataSourceApi;
 
     @BeforeEach

@@ -29,10 +29,10 @@ import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
-import org.bithon.server.metric.expression.pipeline.step.BinaryExpressionQueryStep;
+import org.bithon.server.metric.expression.pipeline.step.ArithmeticStep;
 import org.bithon.server.metric.expression.pipeline.step.FilterStep;
 import org.bithon.server.metric.expression.pipeline.step.LiteralQueryStep;
-import org.bithon.server.metric.expression.pipeline.step.MetricExpressionQueryStep;
+import org.bithon.server.metric.expression.pipeline.step.MetricQueryStep;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -97,33 +97,33 @@ public class QueryPipelineBuilder {
                 // Create expression as: ( current - base ) / base
                 QueryField metricField = expression.getMetric();
                 String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
-                MetricExpressionQueryStep curr = new MetricExpressionQueryStep(QueryRequest.builder()
-                                                                                           .dataSource(expression.getFrom())
-                                                                                           .filterExpression(filterExpression)
-                                                                                           .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
-                                                                                           .interval(intervalRequest)
-                                                                                           .build(),
-                                                                               dataSourceApi);
+                MetricQueryStep curr = new MetricQueryStep(QueryRequest.builder()
+                                                                       .dataSource(expression.getFrom())
+                                                                       .filterExpression(filterExpression)
+                                                                       .groupBy(expression.getGroupBy())
+                                                                       .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
+                                                                       .interval(intervalRequest)
+                                                                       .build(),
+                                                           dataSourceApi);
 
-                MetricExpressionQueryStep base = new MetricExpressionQueryStep(QueryRequest.builder()
-                                                                                           .dataSource(expression.getFrom())
-                                                                                           .filterExpression(filterExpression)
-                                                                                           .groupBy(expression.getGroupBy())
-                                                                                           .fields(List.of(new QueryField(
+                MetricQueryStep base = new MetricQueryStep(QueryRequest.builder()
+                                                                       .dataSource(expression.getFrom())
+                                                                       .filterExpression(filterExpression)
+                                                                       .groupBy(expression.getGroupBy())
+                                                                       .fields(List.of(new QueryField(
                                                                                                // Use offset AS the output name
                                                                                                expression.getOffset().toString(),
                                                                                                metricField.getField(),
                                                                                                null,
                                                                                                expr)))
-                                                                                           .interval(intervalRequest)
-                                                                                           .offset(expression.getOffset())
-                                                                                           .build(),
-                                                                               dataSourceApi);
+                                                                       .interval(intervalRequest)
+                                                                       .offset(expression.getOffset())
+                                                                       .build(),
+                                                           dataSourceApi);
 
                 //
-                return new BinaryExpressionQueryStep.Div(
-                    new BinaryExpressionQueryStep.Sub(
+                return new ArithmeticStep.Div(
+                    new ArithmeticStep.Sub(
                         curr,
                         base,
                         "diff",
@@ -138,14 +138,14 @@ public class QueryPipelineBuilder {
                     metricField.getName(), expression.getOffset().toString()
                 );
             } else {
-                return new MetricExpressionQueryStep(QueryRequest.builder()
-                                                                 .dataSource(expression.getFrom())
-                                                                 .filterExpression(filterExpression)
-                                                                 .groupBy(expression.getGroupBy())
-                                                                 .fields(List.of(expression.getMetric()))
-                                                                 .interval(intervalRequest)
-                                                                 .build(),
-                                                     dataSourceApi);
+                return new MetricQueryStep(QueryRequest.builder()
+                                                       .dataSource(expression.getFrom())
+                                                       .filterExpression(filterExpression)
+                                                       .groupBy(expression.getGroupBy())
+                                                       .fields(List.of(expression.getMetric()))
+                                                       .interval(intervalRequest)
+                                                       .build(),
+                                           dataSourceApi);
             }
         }
 
@@ -160,10 +160,10 @@ public class QueryPipelineBuilder {
         @Override
         public IQueryStep visit(ArithmeticExpression expression) {
             return switch (expression.getType()) {
-                case "+" -> new BinaryExpressionQueryStep.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "-" -> new BinaryExpressionQueryStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "*" -> new BinaryExpressionQueryStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                case "/" -> new BinaryExpressionQueryStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "+" -> new ArithmeticStep.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "-" -> new ArithmeticStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "*" -> new ArithmeticStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
+                case "/" -> new ArithmeticStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
             };
         }
