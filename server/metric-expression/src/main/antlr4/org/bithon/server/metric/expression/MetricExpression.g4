@@ -15,7 +15,9 @@ metricExpression
   | numberLiteralExpression #metricLiteralExpression // This allows to use literal expression in arithmetic expression
   | metricQNameExpression labelExpression? durationExpression?  #metricSelectExpression
   | metricExpression metricPredicateExpression metricExpectedExpression #metricFilterExpression
+    // Legacy metric aggregation expression
   | aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
+  | IDENTIFIER LEFT_PARENTHESIS metricExpression RIGHT_PARENTHESIS groupByExpression? #metricCallExpression
   ;
 
 aggregatorExpression

@@ -45,7 +45,7 @@ public class MetricExpressionASTBuilderTest {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu:usage{appName = 'a'}) > 1");
         Assertions.assertNotNull(expression);
 
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("jvm-metrics", metricExpression.getFrom());
         Assertions.assertEquals("avg", metricExpression.getMetric().getAggregator());
         Assertions.assertEquals("cpu:usage", metricExpression.getMetric().getField());
@@ -58,7 +58,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_Expression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'}) > 1");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertNotNull(expression);
         Assertions.assertEquals("jvm-metrics", metricExpression.getFrom());
         Assertions.assertEquals("avg", metricExpression.getMetric().getAggregator());
@@ -69,7 +69,7 @@ public class MetricExpressionASTBuilderTest {
 
     @Test
     public void test_NoPredicateExpression() {
-        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'})");
+        MetricAggregateExpression expression = (MetricAggregateExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName = 'a'})");
         Assertions.assertNotNull(expression);
         Assertions.assertEquals("jvm-metrics", expression.getFrom());
         Assertions.assertEquals("avg", expression.getMetric().getAggregator());
@@ -95,7 +95,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_WithLabelSelectorExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <> 'a'}) > 1");
-        MetricExpression metricSelectExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertNotNull(expression);
         Assertions.assertEquals("jvm-metrics", metricSelectExpression.getFrom());
         Assertions.assertEquals("avg", metricSelectExpression.getMetric().getAggregator());
@@ -115,12 +115,12 @@ public class MetricExpressionASTBuilderTest {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1");
         Assertions.assertNotNull(expression);
 
-        MetricExpression metricSelectExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertEquals(5, metricSelectExpression.getWindow().getDuration().toMinutes());
         Assertions.assertEquals(TimeUnit.MINUTES, metricSelectExpression.getWindow().getUnit());
 
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 1");
-        metricSelectExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        metricSelectExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertNotNull(expression);
         Assertions.assertEquals(5, metricSelectExpression.getWindow().getDuration().toHours());
         Assertions.assertEquals(TimeUnit.HOURS, metricSelectExpression.getWindow().getUnit());
@@ -134,7 +134,7 @@ public class MetricExpressionASTBuilderTest {
     public void test_HumanReadableSizeExpression() {
         // binary format
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5m] > 1MiB");
-        MetricExpression metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         LiteralExpression<?> expected = (LiteralExpression<?>) ((ComparisonExpression) expression).getRhs();
 
         Assertions.assertEquals(5, metricExpression.getWindow().getDuration().toMinutes());
@@ -144,7 +144,7 @@ public class MetricExpressionASTBuilderTest {
 
         // decimal format
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 7K");
-        metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         expected = (LiteralExpression<?>) ((ComparisonExpression) expression).getRhs();
 
         Assertions.assertEquals(5, metricExpression.getWindow().getDuration().toHours());
@@ -153,7 +153,7 @@ public class MetricExpressionASTBuilderTest {
 
         // simplified binary format
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName <= 'a'})[5h] > 100Gi");
-        metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         expected = (LiteralExpression<?>) ((ComparisonExpression) expression).getRhs();
 
         Assertions.assertEquals(5, metricExpression.getWindow().getDuration().toHours());
@@ -181,7 +181,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_ContainsPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName contains 'a'})[5m] is null");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("appName contains 'a'", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // contains require string literal
@@ -191,7 +191,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_StartsWithPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName startsWith 'a'})[5m] is null");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("appName startsWith 'a'", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // startsWith require string literal
@@ -201,7 +201,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_EnsWithPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName endsWith 'a'})[5m] is null");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("appName endsWith 'a'", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // startsWith require string literal
@@ -211,7 +211,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_hasTokenPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName hasToken 'a', instanceName hasToken '192.'})[5m] > 1");
-        MetricExpression metricSelectExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertEquals("(appName hasToken 'a') AND (instanceName hasToken '192.')", metricSelectExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // hasToken require string literal
@@ -221,7 +221,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_RegexMatchPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName =~ '192.'})[5m] > 1");
-        MetricExpression metricSelectExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertEquals("instanceName =~ '192.'", metricSelectExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // hasToken require string literal
@@ -231,7 +231,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_RegexNotMatchPredicateExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{instanceName !~ '192.'})[5m] > 1");
-        MetricExpression metricSelectExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("instanceName !~ '192.'", metricSelectExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // hasToken require string literal
@@ -242,22 +242,22 @@ public class MetricExpressionASTBuilderTest {
     public void test_NotPredicateExpression() {
         // not contains
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not contains 'a'})[5m] is null");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("NOT (appName contains 'a')", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // not startsWith
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not startsWith 'a'})[5m] is null");
-        metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("NOT (appName startsWith 'a')", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // not endsWith
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not endsWith 'a'})[5m] is null");
-        metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("NOT (appName endsWith 'a')", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         // not hasToken
         expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not hasToken 'a'})[5m] is null");
-        metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("NOT (appName hasToken 'a')", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
     }
 
@@ -279,7 +279,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_InExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName in ('a')})[5m] is null");
-        MetricExpression metricSelectExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricSelectExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("appName in ('a')", metricSelectExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName in ('a', 'b')})[5m] is null");
@@ -292,7 +292,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_NotInExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not in ('a')})[5m] is null");
-        MetricExpression metricExpression = (MetricExpression) ((BinaryExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((BinaryExpression) expression).getLhs();
         Assertions.assertEquals("appName not in ('a')", metricExpression.getLabelSelectorExpression().serializeToText(IdentifierQuotaStrategy.NONE));
 
         MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName not in ('a', 'b')})[5m] is null");
@@ -315,7 +315,7 @@ public class MetricExpressionASTBuilderTest {
 
     @Test
     public void test_OffsetExpression() {
-        MetricExpression expression = (MetricExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName contains 'a', instanceName contains '192.'})[5m] > 1%[-7m]");
+        MetricAggregateExpression expression = (MetricAggregateExpression) MetricExpressionASTBuilder.parse("avg(jvm-metrics.cpu{appName contains 'a', instanceName contains '192.'})[5m] > 1%[-7m]");
         Assertions.assertNotNull(expression.getOffset());
         Assertions.assertEquals(-7, expression.getOffset().getDuration().toMinutes());
 
@@ -369,7 +369,7 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_MultipleSelector() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg(http-metrics.responseTime{appName='a', instance='localhost', url='http://localhost/test'})[5m] > 1%[-7m]");
-        MetricExpression metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         IExpression whereExpression = metricExpression.getLabelSelectorExpression();
         Assertions.assertEquals("(appName = 'a') AND (instance = 'localhost') AND (url = 'http://localhost/test')", whereExpression.serializeToText(IdentifierQuotaStrategy.NONE));
     }
@@ -377,16 +377,16 @@ public class MetricExpressionASTBuilderTest {
     @Test
     public void test_ByExpression() {
         IExpression expression = MetricExpressionASTBuilder.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance) > 1");
-        MetricExpression metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        MetricAggregateExpression metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
 
         Assertions.assertEquals(Collections.singleton("instance"), metricExpression.getGroupBy());
 
         expression = MetricExpressionASTBuilder.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url) > 1");
-        metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertEquals(new HashSet<>(Arrays.asList("instance", "url")), metricExpression.getGroupBy());
 
         expression = MetricExpressionASTBuilder.parse("avg (http-metrics.responseTime{appName='a'})[5m] by (instance, url, method) > 1");
-        metricExpression = (MetricExpression) ((ComparisonExpression) expression).getLhs();
+        metricExpression = (MetricAggregateExpression) ((ComparisonExpression) expression).getLhs();
         Assertions.assertEquals(new HashSet<>(Arrays.asList("instance", "url", "method")), metricExpression.getGroupBy());
     }
 
@@ -540,7 +540,7 @@ public class MetricExpressionASTBuilderTest {
 
         Assertions.assertInstanceOf(ArithmeticExpression.MUL.class, ast);
         ArithmeticExpression.MUL mul = (ArithmeticExpression.MUL) ast;
-        Assertions.assertInstanceOf(MetricExpression.class, mul.getLhs());
+        Assertions.assertInstanceOf(MetricAggregateExpression.class, mul.getLhs());
         Assertions.assertInstanceOf(ArithmeticExpression.SUB.class, mul.getRhs());
         Assertions.assertEquals(expr, ast.serializeToText());
     }

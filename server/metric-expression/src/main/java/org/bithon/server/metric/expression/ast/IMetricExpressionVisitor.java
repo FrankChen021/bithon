@@ -28,5 +28,5 @@ public interface IMetricExpressionVisitor<T> extends IExpressionVisitor<T> {
         return null;
     }
 
-    T visit(MetricExpression expression);
+    T visit(MetricAggregateExpression expression);
 }

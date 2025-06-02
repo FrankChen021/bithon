@@ -36,7 +36,7 @@ public class MetricExpressionOptimizer {
         implements IMetricExpressionVisitor<IExpression> {
 
         @Override
-        public IExpression visit(MetricExpression expression) {
+        public IExpression visit(MetricAggregateExpression expression) {
             return expression;
         }
     }
@@ -74,9 +74,16 @@ public class MetricExpressionOptimizer {
      *     └── PostExpression(ConstantExpression)
      *  </pre>
      */
-    private static class OperatorPushingOptimizer extends AbstractOptimizer implements IMetricExpressionVisitor<IExpression> {
+    public static class OperatorPushingOptimizer extends AbstractOptimizer implements IMetricExpressionVisitor<IExpression> {
+        public static IExpression optimize(IExpression expression) {
+            return expression.accept(new OperatorPushingOptimizer());
+        }
+
+        private OperatorPushingOptimizer() {
+        }
+
         @Override
-        public IExpression visit(MetricExpression expression) {
+        public IExpression visit(MetricAggregateExpression expression) {
             return expression;
         }
 
@@ -85,7 +92,7 @@ public class MetricExpressionOptimizer {
             IExpression lhs = expression.getLhs().accept(this);
             IExpression rhs = expression.getRhs().accept(this);
 
-            if (lhs instanceof MetricExpression metricExpression
+            if (lhs instanceof MetricAggregateExpression metricExpression
                 && rhs instanceof LiteralExpression<?> expectedExpression) {
                 metricExpression.setExpected(expectedExpression);
                 if (expression instanceof ComparisonExpression.LT) {

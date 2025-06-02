@@ -56,7 +56,7 @@ import java.util.Set;
  * @date 2020-08-21 14:56:50
  */
 @Data
-public class MetricExpression implements IExpression {
+public class MetricAggregateExpression implements IExpression {
 
     private String from;
     private QueryField metric;

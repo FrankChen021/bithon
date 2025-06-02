@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
-import org.bithon.server.metric.expression.ast.MetricExpression;
+import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.metric.expression.pipeline.step.BinaryExpressionQueryStep;
@@ -88,7 +88,7 @@ public class QueryPipelineBuilder {
 
     private class Builder implements IMetricExpressionVisitor<IQueryStep> {
         @Override
-        public IQueryStep visit(MetricExpression expression) {
+        public IQueryStep visit(MetricAggregateExpression expression) {
             String filterExpression = Stream.of(expression.getWhereText(), condition)
                                             .filter(Objects::nonNull)
                                             .collect(Collectors.joining(" AND "));

@@ -62,10 +62,10 @@ public class MetricSelectExpression implements IExpression {
         this.labelSelectorExpression = labelSelectorExpression;
 
         // The where property holds the internal expression that will be passed to the query module
-        this.whereText = labelSelectorExpression == null ? null : new MetricExpression.SqlStyleSerializer().serialize(labelSelectorExpression);
+        this.whereText = labelSelectorExpression == null ? null : new MetricAggregateExpression.SqlStyleSerializer().serialize(labelSelectorExpression);
 
         // This variable holds the raw text
-        this.labelSelectorText = labelSelectorExpression == null ? "" : "{" + new MetricExpression.LabelSelectorExpressionSerializer().serialize(labelSelectorExpression) + "}";
+        this.labelSelectorText = labelSelectorExpression == null ? "" : "{" + new MetricAggregateExpression.LabelSelectorExpressionSerializer().serialize(labelSelectorExpression) + "}";
     }
 
     @Override

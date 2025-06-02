@@ -102,8 +102,8 @@ public class MetricExpressionOptimizerTest {
         Assertions.assertInstanceOf(ComparisonExpression.class, ast);
         Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
 
-        ast = MetricExpressionOptimizer.optimize(ast);
-        Assertions.assertInstanceOf(MetricExpression.class, ast);
+        ast = MetricExpressionOptimizer.OperatorPushingOptimizer.optimize(ast);
+        Assertions.assertInstanceOf(MetricAggregateExpression.class, ast);
         Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
     }
 }

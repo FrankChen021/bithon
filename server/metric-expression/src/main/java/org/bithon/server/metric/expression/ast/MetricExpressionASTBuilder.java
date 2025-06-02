@@ -174,7 +174,7 @@ public class MetricExpressionASTBuilder {
                                            .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
-            MetricExpression expression = new MetricExpression();
+            MetricAggregateExpression expression = new MetricAggregateExpression();
             expression.setFrom(from);
             expression.setLabelSelectorExpression(whereExpression);
 
