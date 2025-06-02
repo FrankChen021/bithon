@@ -45,7 +45,8 @@ public class MetricExpressionQueryStep implements IQueryStep {
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
     private volatile CompletableFuture<PipelineQueryResult> cachedResponse;
 
-    public MetricExpressionQueryStep(QueryRequest queryRequest, IDataSourceApi dataSourceApi) {
+    public MetricExpressionQueryStep(QueryRequest queryRequest,
+                                     IDataSourceApi dataSourceApi) {
         this.queryRequest = queryRequest;
         this.dataSourceApi = dataSourceApi;
         this.isScalar = computeIsScalar(queryRequest);

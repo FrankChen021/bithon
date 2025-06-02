@@ -20,6 +20,7 @@ package org.bithon.server.metric.expression.pipeline.step;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.datasource.query.pipeline.Column;
+import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 
@@ -50,14 +51,14 @@ public abstract class FilterStep implements IQueryStep {
                          String valColumn = result.getValColumns().get(0);
                          Column column = result.getTable().getColumn(valColumn);
 
-                         int selectionIndex = 0;
-                         int[] selection = new int[result.getTable().rowCount()];
+                         int filteredRowCount = 0;
+                         int[] filteredRows = new int[result.getTable().rowCount()];
                          if (column.getDataType() == IDataType.LONG) {
                              long expectedValue = ((Number) expected.getValue()).longValue();
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getLong(i), expectedValue)) {
-                                     selection[selectionIndex++] = i;
+                                     filteredRows[filteredRowCount++] = i;
                                  }
                              }
                          } else if (column.getDataType() == IDataType.DOUBLE) {
@@ -65,20 +66,27 @@ public abstract class FilterStep implements IQueryStep {
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getDouble(i), expectedValue)) {
-                                     selection[selectionIndex++] = i;
+                                     filteredRows[filteredRowCount++] = i;
                                  }
                              }
                          } else {
                              throw new UnsupportedOperationException("Unsupported data type: " + column.getDataType());
                          }
-                         result.getTable().view(selection, selectionIndex);
 
-                         return PipelineQueryResult.builder()
-                                                   .rows(selectionIndex)
-                                                   .keyColumns(result.getKeyColumns())
-                                                   .valColumns(result.getValColumns())
-                                                   .table(result.getTable().view(selection, selectionIndex))
-                                                   .build();
+                         if (filteredRowCount < filteredRows.length) {
+                             ColumnarTable newTable = result.getTable()
+                                                            .view(filteredRows, filteredRowCount);
+
+                             return PipelineQueryResult.builder()
+                                                       .rows(filteredRowCount)
+                                                       .table(newTable)
+                                                       .keyColumns(result.getKeyColumns())
+                                                       .valColumns(result.getValColumns())
+                                                       .build();
+                         } else {
+                             // All results are filtered out, no need to apply a filter view on top of it
+                             return result;
+                         }
                      });
     }
 
@@ -92,8 +100,77 @@ public abstract class FilterStep implements IQueryStep {
         }
 
         @Override
-        protected boolean filter(long actual, long expected);
-        // Implement filtering logic for LT
+        protected boolean filter(long actual, long expected) {
+            return actual < expected;
+        }
+
+        @Override
+        protected boolean filter(double actual, double expected) {
+            return actual < expected;
+        }
     }
-}
+
+    public static class LTE extends FilterStep {
+        public LTE(IQueryStep source, LiteralExpression<?> expected) {
+            super(source, expected);
+        }
+
+        @Override
+        protected boolean filter(long actual, long expected) {
+            return actual <= expected;
+        }
+
+        @Override
+        protected boolean filter(double actual, double expected) {
+            return actual <= expected;
+        }
+    }
+
+    public static class GT extends FilterStep {
+        public GT(IQueryStep source, LiteralExpression<?> expected) {
+            super(source, expected);
+        }
+
+        @Override
+        protected boolean filter(long actual, long expected) {
+            return actual > expected;
+        }
+
+        @Override
+        protected boolean filter(double actual, double expected) {
+            return actual > expected;
+        }
+    }
+
+    public static class GTE extends FilterStep {
+        public GTE(IQueryStep source, LiteralExpression<?> expected) {
+            super(source, expected);
+        }
+
+        @Override
+        protected boolean filter(long actual, long expected) {
+            return actual >= expected;
+        }
+
+        @Override
+        protected boolean filter(double actual, double expected) {
+            return actual >= expected;
+        }
+    }
+
+    public static class NE extends FilterStep {
+        public NE(IQueryStep source, LiteralExpression<?> expected) {
+            super(source, expected);
+        }
+
+        @Override
+        protected boolean filter(long actual, long expected) {
+            return actual != expected;
+        }
+
+        @Override
+        protected boolean filter(double actual, double expected) {
+            return actual != expected;
+        }
+    }
 }

@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.ast;
 
 
+import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -50,12 +51,12 @@ public class MetricExpressionOptimizerTest {
 
     @Test
     public void test_Optimize_ConstantFolding_2() {
-        String expression = "1 + sum(dataSource.metric) + 2 + 3 + 4";
+        String expression = "1 + sum(dataSource.metric) + 2 * 3 + 4";
         IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assertions.assertEquals("(((1 + sum(dataSource.metric)) + 2) + 3) + 4", ast.serializeToText());
+        Assertions.assertEquals("((1 + sum(dataSource.metric)) + (2 * 3)) + 4", ast.serializeToText());
 
         ast = MetricExpressionOptimizer.optimize(ast);
-        Assertions.assertEquals("sum(dataSource.metric) + 10", ast.serializeToText());
+        Assertions.assertEquals("sum(dataSource.metric) + 11", ast.serializeToText());
     }
 
     @Test
@@ -92,5 +93,17 @@ public class MetricExpressionOptimizerTest {
 
         ast = MetricExpressionOptimizer.optimize(ast);
         Assertions.assertEquals("sum(dataSource.metric) + 86460", ast.serializeToText());
+    }
+
+    @Test
+    public void test_Optimize_PushDownFilterExpression() {
+        String expression = "sum(dataSource.metric) > 5";
+        IExpression ast = MetricExpressionASTBuilder.parse(expression);
+        Assertions.assertInstanceOf(ComparisonExpression.class, ast);
+        Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
+
+        ast = MetricExpressionOptimizer.optimize(ast);
+        Assertions.assertInstanceOf(MetricExpression.class, ast);
+        Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
     }
 }

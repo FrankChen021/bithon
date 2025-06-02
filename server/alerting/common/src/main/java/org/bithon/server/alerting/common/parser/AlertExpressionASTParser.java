@@ -88,7 +88,7 @@ public class AlertExpressionASTParser {
 
         @Override
         public IExpression visitAtomicAlertExpression(MetricExpressionParser.AtomicAlertExpressionContext ctx) {
-            IExpression expression = MetricExpressionASTBuilder.build(ctx.metricExpression());
+            IExpression expression = MetricExpressionASTBuilder.toAST(ctx.metricExpression());
             if (!(expression instanceof MetricExpression metricExpression)) {
                 throw new InvalidExpressionException("Complex expression is not supported now.");
             }

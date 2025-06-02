@@ -87,10 +87,10 @@ public class MetricExpressionASTBuilder {
                                                     "Unexpected token");
         }
 
-        return build(ctx);
+        return toAST(ctx);
     }
 
-    public static IExpression build(MetricExpressionParser.MetricExpressionContext metricExpression) {
+    public static IExpression toAST(MetricExpressionParser.MetricExpressionContext metricExpression) {
         return metricExpression.accept(new BuilderImpl());
     }
 

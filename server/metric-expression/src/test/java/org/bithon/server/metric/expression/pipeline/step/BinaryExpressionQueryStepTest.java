@@ -2690,4 +2690,243 @@ public class BinaryExpressionQueryStepTest {
             Assertions.assertEquals((5.0 - 22) / 22, valCol.getDouble(1), .0000000001);
         }
     }
+
+    @Test
+    public void test_FilterStep_Double_GT() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   return ColumnarTable.of(
+                       LongColumn.of("_timestamp", 1, 2, 3),
+                       StringColumn.of("appName", "app1", "app2", "app3"),
+                       DoubleColumn.of("activeThreads", 3, 4, 5)
+                   );
+               });
+
+        //
+        // Case 1, > 2
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            // all 3 records satisfy the filter condition
+            Assertions.assertEquals(3, response.getRows());
+
+            // Only the overlapped series(app2,app3) will be returned
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(3, valCol.size());
+                Assertions.assertEquals(3, valCol.getDouble(0), .0000000001);
+                Assertions.assertEquals(4, valCol.getDouble(1), .0000000001);
+                Assertions.assertEquals(5, valCol.getDouble(2), .0000000001);
+            }
+        }
+
+        //
+        // Case 2, > 3, tow rows satisfy the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(2, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(2, valCol.size());
+                Assertions.assertEquals(4, valCol.getDouble(0), .0000000001);
+                Assertions.assertEquals(5, valCol.getDouble(1), .0000000001);
+            }
+        }
+
+        //
+        // Case 3, > 4, 1 rows satisfies the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(1, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(1, valCol.size());
+                Assertions.assertEquals(5, valCol.getDouble(0), .0000000001);
+            }
+        }
+
+
+        //
+        // Case 4, > 5, 0 rows satisfies the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(0, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(0, valCol.size());
+            }
+        }
+    }
+
+    @Test
+    public void test_FilterStep_Double_GTE() throws Exception {
+        Mockito.when(dataSourceApi.timeseriesV5(Mockito.any()))
+               .thenAnswer((answer) -> {
+                   return ColumnarTable.of(
+                       LongColumn.of("_timestamp", 1, 2, 3),
+                       StringColumn.of("appName", "app1", "app2", "app3"),
+                       DoubleColumn.of("activeThreads", 3, 4, 5)
+                   );
+               });
+
+        //
+        // Case 1, >= 2, all 3 rows satisfy the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            // all 3 records satisfy the filter condition
+            Assertions.assertEquals(3, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(3, valCol.size());
+                Assertions.assertEquals(3, valCol.getDouble(0), .0000000001);
+                Assertions.assertEquals(4, valCol.getDouble(1), .0000000001);
+                Assertions.assertEquals(5, valCol.getDouble(2), .0000000001);
+            }
+        }
+
+        //
+        // Case 2, >= 3, all 3 rows satisfy the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(3, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(3, valCol.size());
+                Assertions.assertEquals(3, valCol.getDouble(0), .0000000001);
+                Assertions.assertEquals(4, valCol.getDouble(1), .0000000001);
+                Assertions.assertEquals(5, valCol.getDouble(2), .0000000001);
+            }
+        }
+
+        //
+        // Case 3, >= 4, 2 rows satisfies the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(2, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(2, valCol.size());
+                Assertions.assertEquals(4, valCol.getDouble(0), .0000000001);
+                Assertions.assertEquals(5, valCol.getDouble(1), .0000000001);
+            }
+        }
+
+        //
+        // Case 4, >= 5, 1 rows satisfies the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       // BY is given so that it produces a vector
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(1, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(1, valCol.size());
+                Assertions.assertEquals(5, valCol.getDouble(0), .0000000001);
+            }
+        }
+
+        //
+        // Case 5, >= 6, 0 rows satisfies the filter condition
+        //
+        {
+            IQueryStep evaluator = QueryPipelineBuilder.builder()
+                                                       .dataSourceApi(dataSourceApi)
+                                                       .intervalRequest(IntervalRequest.builder()
+                                                                                       .bucketCount(1)
+                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                                       .build())
+                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
+            PipelineQueryResult response = evaluator.execute().get();
+
+            Assertions.assertEquals(0, response.getRows());
+            {
+                Column valCol = response.getTable().getColumn("activeThreads");
+                Assertions.assertEquals(0, valCol.size());
+            }
+        }
+    }
 }
