@@ -559,11 +559,26 @@ public class MetricExpressionASTBuilderTest {
         Assertions.assertEquals("(4 * 5) + 6", ast.serializeToText());
     }
 
-
     @Test
     public void test_MetricArithmeticAndFilter_Precedence() {
         String expr = "sum(jvm-metrics.cpu{appName = 'a'})[5m] + 6 * 4 > 5";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
         Assertions.assertEquals("(sum(jvm-metrics.cpu{appName = \"a\"})[5m] + (6 * 4)) > 5", ast.serializeToText());
+    }
+
+    @Test
+    public void test_MetricSelectExpression() {
+        {
+            String expr = "jvm-metrics. cpu";
+            Assertions.assertEquals("jvm-metrics.cpu", MetricExpressionASTBuilder.parse(expr).serializeToText());
+        }
+        {
+            String expr = "jvm-metrics.cpu{appName  = 'a'}";
+            Assertions.assertEquals("jvm-metrics.cpu{appName = \"a\"}", MetricExpressionASTBuilder.parse(expr).serializeToText());
+        }
+        {
+            String expr = "jvm-metrics.cpu{appName = 'a'}[ 5m ]";
+            Assertions.assertEquals("jvm-metrics.cpu{appName = \"a\"}[5m]", MetricExpressionASTBuilder.parse(expr).serializeToText());
+        }
     }
 }

@@ -24,5 +24,9 @@ import org.bithon.component.commons.expression.IExpressionVisitor;
  * @date 4/4/25 3:55 pm
  */
 public interface IMetricExpressionVisitor<T> extends IExpressionVisitor<T> {
+    default T visit(MetricSelectExpression expression) {
+        return null;
+    }
+
     T visit(MetricExpression expression);
 }

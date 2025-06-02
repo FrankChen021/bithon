@@ -187,6 +187,47 @@ public class MetricExpressionASTBuilder {
         }
 
         @Override
+        public IExpression visitMetricSelectExpression(MetricExpressionParser.MetricSelectExpressionContext ctx) {
+            String[] names = ctx.metricQNameExpression().getText().split("\\.");
+            String from = names[0];
+            String metric = names[1];
+
+            HumanReadableDuration duration = null;
+            MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
+            if (windowExpressionCtx != null) {
+                duration = windowExpressionCtx.accept(new DurationExpressionBuilder());
+                if (duration.isNegative()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+                if (duration.isZero()) {
+                    throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
+                }
+            }
+
+            IExpression whereExpression = null;
+            MetricExpressionParser.LabelExpressionContext where = ctx.labelExpression();
+            if (where != null) {
+                LabelSelectorExpressionBuilder filterASTBuilder = new LabelSelectorExpressionBuilder();
+                List<IExpression> filters = where.labelSelectorExpression()
+                                                 .stream()
+                                                 .map((filter) -> filter.accept(filterASTBuilder))
+                                                 .collect(Collectors.toList());
+                if (filters.size() == 1) {
+                    whereExpression = filters.get(0);
+                } else if (filters.size() > 1) {
+                    whereExpression = new LogicalExpression.AND(filters);
+                }
+            }
+
+            MetricSelectExpression expression = new MetricSelectExpression();
+            expression.setFrom(from);
+            expression.setLabelSelectorExpression(whereExpression);
+            expression.setMetric(metric);
+            expression.setWindow(duration);
+            return expression;
+        }
+
+        @Override
         public IExpression visitMetricFilterExpression(MetricExpressionParser.MetricFilterExpressionContext ctx) {
             IExpression lhs = ctx.metricExpression().accept(this);
 
