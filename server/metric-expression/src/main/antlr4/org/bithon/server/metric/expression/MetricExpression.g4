@@ -12,12 +12,16 @@ metricExpression
   : metricExpression (MUL|DIV) metricExpression       #arithmeticExpression
   | metricExpression (ADD|SUB) metricExpression       #arithmeticExpression
   | '(' metricExpression ')'                          #parenthesisMetricExpression
-  | numberLiteralExpression #metricLiteralExpression // This allows to use literal expression in arithmetic expression
-  | metricQNameExpression labelExpression? durationExpression?  #metricSelectExpression
+  | numberLiteralExpression                           #metricLiteralExpression // This allows to use literal expression in arithmetic expression
+  | metricSelectExpressionDecl                        #metricSelectExpression
   | metricExpression metricPredicateExpression metricExpectedExpression #metricFilterExpression
     // Legacy metric aggregation expression
-  | aggregatorExpression LEFT_PARENTHESIS metricQNameExpression labelExpression? RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
-  | IDENTIFIER LEFT_PARENTHESIS metricExpression RIGHT_PARENTHESIS groupByExpression? #metricCallExpression
+  | aggregatorExpression LEFT_PARENTHESIS metricSelectExpressionDecl RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
+  | IDENTIFIER LEFT_PARENTHESIS metricExpression (',' metricExpression)* RIGHT_PARENTHESIS groupByExpression? #functionCallExpression
+  ;
+
+metricSelectExpressionDecl
+  : metricQNameExpression labelExpression? durationExpression?
   ;
 
 aggregatorExpression

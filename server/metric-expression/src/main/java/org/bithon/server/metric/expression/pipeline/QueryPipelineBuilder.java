@@ -27,6 +27,7 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
+import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.metric.expression.pipeline.step.ArithmeticStep;
@@ -111,11 +112,11 @@ public class QueryPipelineBuilder {
                                                                        .filterExpression(filterExpression)
                                                                        .groupBy(expression.getGroupBy())
                                                                        .fields(List.of(new QueryField(
-                                                                                               // Use offset AS the output name
-                                                                                               expression.getOffset().toString(),
-                                                                                               metricField.getField(),
-                                                                                               null,
-                                                                                               expr)))
+                                                                           // Use offset AS the output name
+                                                                           expression.getOffset().toString(),
+                                                                           metricField.getField(),
+                                                                           null,
+                                                                           expr)))
                                                                        .interval(intervalRequest)
                                                                        .offset(expression.getOffset())
                                                                        .build(),
@@ -149,6 +150,34 @@ public class QueryPipelineBuilder {
             }
         }
 
+        /*
+        @Override
+        public IQueryStep visit(FunctionCallExpression expression) {
+            if (expression.getArguments() instanceof MetricSelectExpression selectExpression) {
+                AggregatorEnum aggregator = AggregatorEnum.fromString(expression.getOperator());
+                if (aggregator != null) {
+                    String filterExpression = Stream.of(selectExpression.getWhereText(), condition)
+                                                    .filter(Objects::nonNull)
+                                                    .collect(Collectors.joining(" AND "));
+                    return new MetricQueryStep(QueryRequest.builder()
+                                                           .dataSource(selectExpression.getFrom())
+                                                           .filterExpression(filterExpression)
+                                                           .groupBy(expression.getGroupBy())
+                                                           .fields(List.of(new QueryField(selectExpression.getMetric(),
+                                                                                          selectExpression.getMetric(),
+                                                                                          aggregator.name())))
+                                                           .interval(intervalRequest)
+                                                           .build(),
+                                               dataSourceApi);
+                } else {
+                    // other functions
+                    throw new UnsupportedOperationException("Unsupported metric call expression: " + expression.getOperator());
+                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported metric call expression: " + expression.getArguments().getClass().getSimpleName());
+            }
+        }*/
+
         @Override
         public IQueryStep visit(LiteralExpression<?> expression) {
             return new LiteralQueryStep(expression, Interval.of(intervalRequest.getStartISO8601(),
@@ -171,34 +200,35 @@ public class QueryPipelineBuilder {
         @Override
         public IQueryStep visit(ConditionalExpression expression) {
             IQueryStep source = expression.getLhs().accept(this);
+
             if (expression instanceof ComparisonExpression.LT) {
                 return new FilterStep.LT(
                     source,
-                    (LiteralExpression<?>) expression.getRhs()
+                    (MetricExpectedExpression) expression.getRhs()
                 );
             }
             if (expression instanceof ComparisonExpression.LTE) {
                 return new FilterStep.LTE(
                     source,
-                    (LiteralExpression<?>) expression.getRhs()
+                    (MetricExpectedExpression) expression.getRhs()
                 );
             }
             if (expression instanceof ComparisonExpression.GT) {
                 return new FilterStep.GT(
                     source,
-                    (LiteralExpression<?>) expression.getRhs()
+                    (MetricExpectedExpression) expression.getRhs()
                 );
             }
             if (expression instanceof ComparisonExpression.GTE) {
                 return new FilterStep.GTE(
                     source,
-                    (LiteralExpression<?>) expression.getRhs()
+                    (MetricExpectedExpression) expression.getRhs()
                 );
             }
             if (expression instanceof ComparisonExpression.NE) {
                 return new FilterStep.NE(
                     source,
-                    (LiteralExpression<?>) expression.getRhs()
+                    (MetricExpectedExpression) expression.getRhs()
                 );
             }
             throw new UnsupportedOperationException("Unsupported conditional expression: " + expression.getType());

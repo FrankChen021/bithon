@@ -28,5 +28,10 @@ public interface IMetricExpressionVisitor<T> extends IExpressionVisitor<T> {
         return null;
     }
 
+    default T visit(MetricExpectedExpression expression) {
+        return null;
+    }
+
     T visit(MetricAggregateExpression expression);
+
 }

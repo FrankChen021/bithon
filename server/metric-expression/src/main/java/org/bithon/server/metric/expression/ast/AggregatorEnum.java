@@ -69,4 +69,13 @@ public enum AggregatorEnum {
     };
 
     public abstract boolean isColumnSupported(IColumn column);
+
+    public static AggregatorEnum fromString(String name) {
+        for (AggregatorEnum aggregator : values()) {
+            if (aggregator.name().equalsIgnoreCase(name)) {
+                return aggregator;
+            }
+        }
+        return null;
+    }
 }

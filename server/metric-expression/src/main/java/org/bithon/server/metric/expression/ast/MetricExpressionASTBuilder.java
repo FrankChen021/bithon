@@ -125,17 +125,13 @@ public class MetricExpressionASTBuilder {
 
         @Override
         public IExpression visitMetricAggregationExpression(MetricExpressionParser.MetricAggregationExpressionContext ctx) {
-            String[] names = ctx.metricQNameExpression().getText().split("\\.");
-            String from = names[0];
-            String metric = names[1];
-
             String aggregatorText = ctx.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
-            AggregatorEnum aggregator;
-            try {
-                aggregator = AggregatorEnum.valueOf(aggregatorText);
-            } catch (RuntimeException ignored) {
+            AggregatorEnum aggregator = AggregatorEnum.fromString(aggregatorText);
+            if (aggregator == null) {
                 throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
             }
+
+            MetricSelectExpression metricSelectExpression = (MetricSelectExpression) ctx.metricSelectExpressionDecl().accept(this);
 
             HumanReadableDuration duration = null;
             MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
@@ -146,21 +142,6 @@ public class MetricExpressionASTBuilder {
                 }
                 if (duration.isZero()) {
                     throw new InvalidExpressionException(StringUtils.format("The integer literal in duration expression '%s' must be greater than zero", windowExpressionCtx.getText()));
-                }
-            }
-
-            IExpression whereExpression = null;
-            MetricExpressionParser.LabelExpressionContext where = ctx.labelExpression();
-            if (where != null) {
-                LabelSelectorExpressionBuilder filterASTBuilder = new LabelSelectorExpressionBuilder();
-                List<IExpression> filters = where.labelSelectorExpression()
-                                                 .stream()
-                                                 .map((filter) -> filter.accept(filterASTBuilder))
-                                                 .collect(Collectors.toList());
-                if (filters.size() == 1) {
-                    whereExpression = filters.get(0);
-                } else if (filters.size() > 1) {
-                    whereExpression = new LogicalExpression.AND(filters);
                 }
             }
 
@@ -175,19 +156,19 @@ public class MetricExpressionASTBuilder {
             }
 
             MetricAggregateExpression expression = new MetricAggregateExpression();
-            expression.setFrom(from);
-            expression.setLabelSelectorExpression(whereExpression);
+            expression.setFrom(metricSelectExpression.getFrom());
+            expression.setLabelSelectorExpression(metricSelectExpression.getLabelSelectorExpression());
 
             // For 'count' aggregator, use the 'count' as output column instead of using the column name as output name
-            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metric, metric, aggregator.name()));
+            expression.setMetric(new QueryField(aggregator.equals(AggregatorEnum.count) ? "count" : metricSelectExpression.getMetric(), metricSelectExpression.getMetric(), aggregator.name()));
             expression.setGroupBy(groupBy);
-            expression.setWindow(duration);
+            expression.setWindow(duration == null ? metricSelectExpression.getWindow() : duration);
 
             return expression;
         }
 
         @Override
-        public IExpression visitMetricSelectExpression(MetricExpressionParser.MetricSelectExpressionContext ctx) {
+        public IExpression visitMetricSelectExpressionDecl(MetricExpressionParser.MetricSelectExpressionDeclContext ctx) {
             String[] names = ctx.metricQNameExpression().getText().split("\\.");
             String from = names[0];
             String metric = names[1];
@@ -259,7 +240,10 @@ public class MetricExpressionASTBuilder {
                                                    expected,
                                                    offset);
 
-            return predicate.createComparisonExpression(lhs, expected);
+            return predicate.createComparisonExpression(lhs, MetricExpectedExpression.builder()
+                                                                                     .expected(expected)
+                                                                                     .offset(offset)
+                                                                                     .build());
         }
 
         private static PredicateEnum getPredicate(int predicateToken,

@@ -23,6 +23,7 @@ import org.bithon.server.datasource.query.pipeline.Column;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -32,9 +33,9 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class FilterStep implements IQueryStep {
     protected final IQueryStep source;
-    protected final LiteralExpression<?> expected;
+    protected final MetricExpectedExpression expected;
 
-    protected FilterStep(IQueryStep source, LiteralExpression<?> expected) {
+    protected FilterStep(IQueryStep source, MetricExpectedExpression expected) {
         this.source = source;
         this.expected = expected;
     }
@@ -54,7 +55,7 @@ public abstract class FilterStep implements IQueryStep {
                          int filteredRowCount = 0;
                          int[] filteredRows = new int[result.getTable().rowCount()];
                          if (column.getDataType() == IDataType.LONG) {
-                             long expectedValue = ((Number) expected.getValue()).longValue();
+                             long expectedValue = ((Number) expected.getExpected().getValue()).longValue();
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getLong(i), expectedValue)) {
@@ -62,7 +63,7 @@ public abstract class FilterStep implements IQueryStep {
                                  }
                              }
                          } else if (column.getDataType() == IDataType.DOUBLE) {
-                             double expectedValue = ((Number) expected.getValue()).doubleValue();
+                             double expectedValue = ((Number) expected.getExpected().getValue()).doubleValue();
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getDouble(i), expectedValue)) {
@@ -95,7 +96,7 @@ public abstract class FilterStep implements IQueryStep {
     protected abstract boolean filter(double actual, double expected);
 
     public static class LT extends FilterStep {
-        public LT(IQueryStep source, LiteralExpression<?> expected) {
+        public LT(IQueryStep source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -111,7 +112,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class LTE extends FilterStep {
-        public LTE(IQueryStep source, LiteralExpression<?> expected) {
+        public LTE(IQueryStep source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -127,7 +128,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class GT extends FilterStep {
-        public GT(IQueryStep source, LiteralExpression<?> expected) {
+        public GT(IQueryStep source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -143,7 +144,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class GTE extends FilterStep {
-        public GTE(IQueryStep source, LiteralExpression<?> expected) {
+        public GTE(IQueryStep source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -159,7 +160,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class NE extends FilterStep {
-        public NE(IQueryStep source, LiteralExpression<?> expected) {
+        public NE(IQueryStep source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 

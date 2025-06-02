@@ -39,6 +39,16 @@ public class MetricExpressionOptimizer {
         public IExpression visit(MetricAggregateExpression expression) {
             return expression;
         }
+
+        @Override
+        public IExpression visit(MetricSelectExpression expression) {
+            return expression;
+        }
+
+        @Override
+        public IExpression visit(MetricExpectedExpression expression) {
+            return expression;
+        }
     }
 
     public static IExpression optimize(IExpression expression) {
