@@ -21,12 +21,12 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.DoubleColumn;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
-import org.bithon.server.datasource.query.pipeline.LongColumn;
-import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.LongColumn;
+import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.util.Collections;
 import java.util.List;

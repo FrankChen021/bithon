@@ -31,8 +31,10 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
@@ -112,6 +114,11 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         this.sqlDialect = sqlDialect;
         this.querySettings = querySettings;
         this.shouldCloseContext = false;
+    }
+
+    @Override
+    public IPhysicalPlan plan(ILogicalPlan plan) {
+        return IDataSourceReader.super.plan(plan);
     }
 
     @Override

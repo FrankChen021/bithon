@@ -19,9 +19,9 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.expression.IDataTypeIndex;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.DoubleColumn;
-import org.bithon.server.datasource.query.pipeline.LongColumn;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
+import org.bithon.server.datasource.query.plan.physical.LongColumn;
 
 /**
  * @author frank.chen021@outlook.com

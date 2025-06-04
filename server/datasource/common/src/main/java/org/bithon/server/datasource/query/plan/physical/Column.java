@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.pipeline;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataType;
@@ -79,7 +79,7 @@ public interface Column {
             return new DoubleColumn(name, initCapacity);
         }
         if (type.equals(IDataType.DATETIME_MILLI.name())) {
-            // DATETIME_MILLI is a long
+            // DATETIME_MILLI is type of LONG at storage layer
             return new LongColumn(name, initCapacity);
         }
         throw new IllegalArgumentException("Unsupported column type: " + type);

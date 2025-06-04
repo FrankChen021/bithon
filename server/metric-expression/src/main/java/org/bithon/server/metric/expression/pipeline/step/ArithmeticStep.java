@@ -17,10 +17,10 @@
 package org.bithon.server.metric.expression.pipeline.step;
 
 
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
-import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;

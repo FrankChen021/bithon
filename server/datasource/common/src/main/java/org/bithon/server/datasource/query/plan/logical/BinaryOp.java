@@ -14,18 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.pipeline;
-
-
-import java.util.concurrent.CompletableFuture;
+package org.bithon.server.datasource.query.plan.logical;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 3:47 pm
+ * @date 2025/6/4 23:33
  */
-public interface IQueryStep {
-
-    boolean isScalar();
-
-    CompletableFuture<PipelineQueryResult> execute() throws Exception;
+public enum BinaryOp {
+    ADD, SUB, MUL, DIV
 }
+

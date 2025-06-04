@@ -19,7 +19,7 @@ package org.bithon.server.web.service.datasource.api;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.bithon.server.datasource.ISchema;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;

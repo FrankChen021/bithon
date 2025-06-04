@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.pipeline;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataType;
@@ -113,7 +113,7 @@ public class LongColumn implements Column {
 
     @Override
     public Column filter(BitSet keep) {
-        org.bithon.server.datasource.query.pipeline.LongColumn filtered = new org.bithon.server.datasource.query.pipeline.LongColumn(this.name, keep.cardinality());
+        LongColumn filtered = new LongColumn(this.name, keep.cardinality());
         for (int i = 0; i < this.size; i++) {
             if (keep.get(i)) {
                 filtered.addLong(this.data[i]);

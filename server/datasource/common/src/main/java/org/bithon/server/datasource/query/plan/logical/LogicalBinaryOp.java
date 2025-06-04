@@ -14,27 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.pipeline;
+package org.bithon.server.datasource.query.plan.logical;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
-
-/// @author frank.chen021@outlook.com
-/// @date 4/4/25 6:23 pm
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PipelineQueryResult {
-    private int rows;
-
-    private List<String> keyColumns;
-    private List<String> valColumns;
-    private ColumnarTable table;
-}
-
+/**
+ * @author frank.chen021@outlook.com
+ * @date 2025/6/4 23:32
+ */
+public record LogicalBinaryOp(
+    ILogicalPlan left,
+    BinaryOp op,
+    ILogicalPlan right
+) implements ILogicalPlan {}

@@ -24,7 +24,7 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;

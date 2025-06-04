@@ -29,7 +29,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpectedExpression;

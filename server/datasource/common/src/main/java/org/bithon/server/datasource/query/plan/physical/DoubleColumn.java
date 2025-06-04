@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.pipeline;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataType;

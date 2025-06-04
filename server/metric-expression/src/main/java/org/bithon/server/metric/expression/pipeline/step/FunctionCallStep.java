@@ -17,8 +17,8 @@
 package org.bithon.server.metric.expression.pipeline.step;
 
 
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
-import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;

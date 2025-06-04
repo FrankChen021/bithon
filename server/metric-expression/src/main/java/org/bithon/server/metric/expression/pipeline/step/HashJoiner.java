@@ -17,9 +17,9 @@
 package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.CompositeKey;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.CompositeKey;
 
 import java.util.ArrayList;
 import java.util.HashMap;

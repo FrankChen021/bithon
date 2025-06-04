@@ -17,8 +17,8 @@
 package org.bithon.server.datasource.reader.jdbc;
 
 
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.reader.jdbc.pipeline.SlidingWindowAggregator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

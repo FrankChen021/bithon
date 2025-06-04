@@ -16,9 +16,9 @@
 
 package org.bithon.server.datasource.reader.jdbc.pipeline;
 
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.CompositeKey;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.CompositeKey;
 
 import java.time.Duration;
 import java.util.ArrayList;

@@ -20,10 +20,10 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.pipeline.Column;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
-import org.bithon.server.datasource.query.pipeline.IQueryStep;
-import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+import org.bithon.server.datasource.query.plan.physical.Column;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.time.Duration;
 import java.util.List;

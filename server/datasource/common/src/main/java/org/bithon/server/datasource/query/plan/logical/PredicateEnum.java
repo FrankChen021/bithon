@@ -1,0 +1,113 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.server.datasource.query.plan.logical;
+
+import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.ConditionalExpression;
+import org.bithon.component.commons.expression.IExpression;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 2024/7/20 17:12
+ */
+public enum PredicateEnum {
+
+    LT {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.LT(left, right);
+        }
+
+        @Override
+        public String toString() {
+            return "<";
+        }
+    },
+
+    LTE {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.LTE(left, right);
+        }
+
+        @Override
+        public String toString() {
+            return "<=";
+        }
+    },
+
+    GT {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.GT(left, right);
+        }
+
+        @Override
+        public String toString() {
+            return ">";
+        }
+    },
+
+    GTE {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.GTE(left, right);
+        }
+
+
+        @Override
+        public String toString() {
+            return ">=";
+        }
+    },
+
+    NE {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.NE(left, right);
+        }
+
+        @Override
+        public String toString() {
+            return "<>";
+        }
+    },
+    EQ {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ComparisonExpression.EQ(left, right);
+        }
+
+        @Override
+        public String toString() {
+            return "=";
+        }
+    },
+    IS_NULL {
+        @Override
+        public IExpression createComparisonExpression(IExpression left, IExpression right) {
+            return new ConditionalExpression.IsNull(left);
+        }
+
+        @Override
+        public String toString() {
+            return "IS NULL";
+        }
+    };
+
+    public abstract IExpression createComparisonExpression(IExpression left, IExpression right);
+}

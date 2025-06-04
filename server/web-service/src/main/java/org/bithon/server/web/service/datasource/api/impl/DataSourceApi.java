@@ -30,7 +30,7 @@ import org.bithon.server.datasource.column.aggregatable.IAggregatableColumn;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Query;
-import org.bithon.server.datasource.query.pipeline.ColumnarTable;
+import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.discovery.client.DiscoveredServiceInvoker;
 import org.bithon.server.pipeline.tracing.sampler.ITraceSampler;
