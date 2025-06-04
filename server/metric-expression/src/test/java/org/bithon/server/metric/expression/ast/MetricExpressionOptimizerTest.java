@@ -17,7 +17,6 @@
 package org.bithon.server.metric.expression.ast;
 
 
-import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -93,17 +92,5 @@ public class MetricExpressionOptimizerTest {
 
         ast = MetricExpressionOptimizer.optimize(ast);
         Assertions.assertEquals("sum(dataSource.metric) + 86460", ast.serializeToText());
-    }
-
-    @Test
-    public void test_Optimize_PushDownFilterExpression() {
-        String expression = "sum(dataSource.metric) > 5";
-        IExpression ast = MetricExpressionASTBuilder.parse(expression);
-        Assertions.assertInstanceOf(ComparisonExpression.class, ast);
-        Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
-
-        ast = MetricExpressionOptimizer.OperatorPushingOptimizer.optimize(ast);
-        Assertions.assertInstanceOf(MetricAggregateExpression.class, ast);
-        Assertions.assertEquals("sum(dataSource.metric) > 5", ast.serializeToText());
     }
 }

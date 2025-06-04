@@ -16,11 +16,42 @@
 
 package org.bithon.server.metric.expression.pipeline.step;
 
+
+import org.bithon.server.datasource.query.pipeline.IQueryStep;
+import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
 /**
- * Plan for the {@link org.bithon.component.commons.expression.FunctionExpression}
+ * Map to the {@link org.bithon.component.commons.expression.FunctionExpression}
  *
  * @author frank.chen021@outlook.com
- * @date 2025/6/4 21:28
+ * @date 2/6/25 9:29 pm
  */
-public class FunctionCallStep {
+public abstract class FunctionCallStep implements IQueryStep {
+    private final IQueryStep source;
+
+    public FunctionCallStep(IQueryStep source) {
+        this.source = source;
+    }
+
+    @Override
+    public boolean isScalar() {
+        return source.isScalar();
+    }
+
+    public static FunctionCallStep apply(IQueryStep source,
+                                         Function<PipelineQueryResult, PipelineQueryResult> function) {
+        return new FunctionCallStep(source) {
+            @Override
+            public CompletableFuture<PipelineQueryResult> execute() throws Exception {
+                return source.execute().thenApply(function);
+            }
+        };
+    }
+
+    public static Function<PipelineQueryResult, PipelineQueryResult> SUM = (result) -> {
+        return result;
+    };
 }

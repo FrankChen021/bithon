@@ -30,6 +30,7 @@ import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
+import org.bithon.server.metric.expression.ast.PredicateEnum;
 import org.bithon.server.metric.expression.pipeline.step.ArithmeticStep;
 import org.bithon.server.metric.expression.pipeline.step.FilterStep;
 import org.bithon.server.metric.expression.pipeline.step.LiteralQueryStep;
@@ -53,6 +54,7 @@ public class QueryPipelineBuilder {
     private IDataSourceApi dataSourceApi;
     private IntervalRequest intervalRequest;
     private String condition;
+    private QueryPipelineBuilderSettings settings = QueryPipelineBuilderSettings.DEFAULT;
 
     public static QueryPipelineBuilder builder() {
         return new QueryPipelineBuilder();
@@ -70,6 +72,11 @@ public class QueryPipelineBuilder {
 
     public QueryPipelineBuilder condition(String condition) {
         this.condition = condition;
+        return this;
+    }
+
+    public QueryPipelineBuilder settings(QueryPipelineBuilderSettings settings) {
+        this.settings = settings;
         return this;
     }
 
@@ -193,12 +200,43 @@ public class QueryPipelineBuilder {
                 case "-" -> new ArithmeticStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 case "*" -> new ArithmeticStep.Mul(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 case "/" -> new ArithmeticStep.Div(expression.getLhs().accept(this), expression.getRhs().accept(this));
-                default -> throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
+                default ->
+                    throw new UnsupportedOperationException("Unsupported arithmetic expression: " + expression.getType());
             };
         }
 
+        /**
+         * Push down the filter condition to the source step.
+         */
         @Override
         public IQueryStep visit(ConditionalExpression expression) {
+            if (settings.isPushdownPostFilter()) {
+                IExpression lhs = expression.getLhs();
+                IExpression rhs = expression.getRhs();
+                if (lhs instanceof MetricAggregateExpression metricExpression
+                    && rhs instanceof MetricExpectedExpression expectedExpression) {
+                    if (expression instanceof ComparisonExpression.LT) {
+                        metricExpression.setPredicate(PredicateEnum.LT);
+                    } else if (expression instanceof ComparisonExpression.GT) {
+                        metricExpression.setPredicate(PredicateEnum.GT);
+                    } else if (expression instanceof ComparisonExpression.LTE) {
+                        metricExpression.setPredicate(PredicateEnum.LTE);
+                    } else if (expression instanceof ComparisonExpression.GTE) {
+                        metricExpression.setPredicate(PredicateEnum.GTE);
+                    } else if (expression instanceof ComparisonExpression.EQ) {
+                        metricExpression.setPredicate(PredicateEnum.EQ);
+                    } else if (expression instanceof ComparisonExpression.NE) {
+                        metricExpression.setPredicate(PredicateEnum.NE);
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported comparison expression: " + expression.getClass().getSimpleName());
+                    }
+
+                    metricExpression.setExpected(expectedExpression.getExpected());
+                    metricExpression.setOffset(expectedExpression.getOffset());
+                    return this.visit(metricExpression);
+                }
+            }
+
             IQueryStep source = expression.getLhs().accept(this);
 
             if (expression instanceof ComparisonExpression.LT) {

@@ -2731,7 +2731,7 @@ public class ArithmeticStepTest {
         }
 
         //
-        // Case 2, > 3, tow rows satisfy the filter condition
+        // Case 2, > 3, two rows satisfy the filter condition
         //
         {
             IQueryStep evaluator = QueryPipelineBuilder.builder()
@@ -2886,7 +2886,7 @@ public class ArithmeticStepTest {
         }
 
         //
-        // Case 4, >= 5, 1 rows satisfies the filter condition
+        // Case 4, >= 5, some rows satisfy the filter condition
         //
         {
             IQueryStep evaluator = QueryPipelineBuilder.builder()

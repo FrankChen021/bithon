@@ -18,12 +18,14 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.pipeline.ColumnarTable;
 import org.bithon.server.datasource.query.pipeline.IQueryStep;
 import org.bithon.server.datasource.query.pipeline.PipelineQueryResult;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
+import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
 import org.bithon.server.web.service.datasource.api.QueryRequest;
 
