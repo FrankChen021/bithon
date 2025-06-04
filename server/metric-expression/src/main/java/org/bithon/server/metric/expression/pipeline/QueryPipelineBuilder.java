@@ -29,7 +29,7 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
@@ -79,7 +79,7 @@ public class QueryPipelineBuilder {
         return this;
     }
 
-    public IQueryStep build(String expression) {
+    public IPhysicalPlan build(String expression) {
         IExpression expr = MetricExpressionASTBuilder.parse(expression);
 
         // Apply optimization like constant folding on parsed expression
@@ -89,13 +89,13 @@ public class QueryPipelineBuilder {
         return this.build(expr);
     }
 
-    public IQueryStep build(IExpression expression) {
+    public IPhysicalPlan build(IExpression expression) {
         return expression.accept(new Builder());
     }
 
-    private class Builder implements IMetricExpressionVisitor<IQueryStep> {
+    private class Builder implements IMetricExpressionVisitor<IPhysicalPlan> {
         @Override
-        public IQueryStep visit(MetricAggregateExpression expression) {
+        public IPhysicalPlan visit(MetricAggregateExpression expression) {
             String filterExpression = Stream.of(expression.getWhereText(), condition)
                                             .filter(Objects::nonNull)
                                             .collect(Collectors.joining(" AND "));
@@ -185,7 +185,7 @@ public class QueryPipelineBuilder {
         }*/
 
         @Override
-        public IQueryStep visit(LiteralExpression<?> expression) {
+        public IPhysicalPlan visit(LiteralExpression<?> expression) {
             return new LiteralQueryStep(expression, Interval.of(intervalRequest.getStartISO8601(),
                                                                 intervalRequest.getEndISO8601(),
                                                                 intervalRequest.calculateStep(),
@@ -193,7 +193,7 @@ public class QueryPipelineBuilder {
         }
 
         @Override
-        public IQueryStep visit(ArithmeticExpression expression) {
+        public IPhysicalPlan visit(ArithmeticExpression expression) {
             return switch (expression.getType()) {
                 case "+" -> new ArithmeticStep.Add(expression.getLhs().accept(this), expression.getRhs().accept(this));
                 case "-" -> new ArithmeticStep.Sub(expression.getLhs().accept(this), expression.getRhs().accept(this));
@@ -208,7 +208,7 @@ public class QueryPipelineBuilder {
          * Push down the filter condition to the source step.
          */
         @Override
-        public IQueryStep visit(ConditionalExpression expression) {
+        public IPhysicalPlan visit(ConditionalExpression expression) {
             if (settings.isPushdownPostFilter()) {
                 IExpression lhs = expression.getLhs();
                 IExpression rhs = expression.getRhs();
@@ -236,7 +236,7 @@ public class QueryPipelineBuilder {
                 }
             }
 
-            IQueryStep source = expression.getLhs().accept(this);
+            IPhysicalPlan source = expression.getLhs().accept(this);
 
             if (expression instanceof ComparisonExpression.LT) {
                 return new FilterStep.LT(

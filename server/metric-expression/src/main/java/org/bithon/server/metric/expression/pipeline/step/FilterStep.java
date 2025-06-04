@@ -20,7 +20,7 @@ package org.bithon.server.metric.expression.pipeline.step;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 
@@ -32,11 +32,11 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 1/6/25 9:06 pm
  */
-public abstract class FilterStep implements IQueryStep {
-    protected final IQueryStep source;
+public abstract class FilterStep implements IPhysicalPlan {
+    protected final IPhysicalPlan source;
     protected final MetricExpectedExpression expected;
 
-    protected FilterStep(IQueryStep source, MetricExpectedExpression expected) {
+    protected FilterStep(IPhysicalPlan source, MetricExpectedExpression expected) {
         this.source = source;
         this.expected = expected;
     }
@@ -97,7 +97,7 @@ public abstract class FilterStep implements IQueryStep {
     protected abstract boolean filter(double actual, double expected);
 
     public static class LT extends FilterStep {
-        public LT(IQueryStep source, MetricExpectedExpression expected) {
+        public LT(IPhysicalPlan source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -113,7 +113,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class LTE extends FilterStep {
-        public LTE(IQueryStep source, MetricExpectedExpression expected) {
+        public LTE(IPhysicalPlan source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -129,7 +129,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class GT extends FilterStep {
-        public GT(IQueryStep source, MetricExpectedExpression expected) {
+        public GT(IPhysicalPlan source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -145,7 +145,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class GTE extends FilterStep {
-        public GTE(IQueryStep source, MetricExpectedExpression expected) {
+        public GTE(IPhysicalPlan source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 
@@ -161,7 +161,7 @@ public abstract class FilterStep implements IQueryStep {
     }
 
     public static class NE extends FilterStep {
-        public NE(IQueryStep source, MetricExpectedExpression expected) {
+        public NE(IPhysicalPlan source, MetricExpectedExpression expected) {
             super(source, expected);
         }
 

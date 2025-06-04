@@ -16,12 +16,16 @@
 
 package org.bithon.server.datasource.query.plan.physical;
 
+
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/6/4 23:49
+ * @date 4/4/25 3:47 pm
  */
 public interface IPhysicalPlan {
-    CompletableFuture<ColumnarTable> execute() throws Exception;
+
+    boolean isScalar();
+
+    CompletableFuture<PipelineQueryResult> execute() throws Exception;
 }

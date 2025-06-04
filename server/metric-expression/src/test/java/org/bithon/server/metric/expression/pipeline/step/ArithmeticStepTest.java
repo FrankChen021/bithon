@@ -23,7 +23,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.LongColumn;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 import org.bithon.server.datasource.query.plan.physical.StringColumn;
@@ -55,14 +55,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -75,14 +75,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -95,14 +95,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 3.7)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -115,14 +115,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -135,14 +135,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -155,14 +155,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -175,14 +175,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -195,14 +195,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -215,14 +215,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -235,14 +235,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -255,14 +255,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 5.5)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -275,14 +275,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 1)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -295,14 +295,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 3.5)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -315,14 +315,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 10)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -335,14 +335,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -355,14 +355,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             LongColumn.of("activeThreads", 10)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -375,14 +375,14 @@ public class ArithmeticStepTest {
                .thenReturn(ColumnarTable.of(LongColumn.of("_timestamp", 1),
                                             DoubleColumn.of("activeThreads", 10.5)));
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
 
         Column valueCol = response.getTable().getColumn("value");
@@ -412,15 +412,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -461,15 +461,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + " 5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -510,15 +510,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -559,15 +559,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "5");
         PipelineQueryResult response = evaluator.execute().get();
@@ -607,15 +607,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -648,15 +648,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -687,15 +687,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -726,15 +726,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -767,15 +767,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -818,15 +818,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -869,15 +869,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -920,15 +920,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -971,15 +971,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1022,15 +1022,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]  by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1071,15 +1071,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1120,15 +1120,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1169,15 +1169,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1218,15 +1218,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1267,15 +1267,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1316,15 +1316,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1365,15 +1365,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1414,15 +1414,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1463,15 +1463,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1513,15 +1513,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1563,15 +1563,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1613,15 +1613,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m]");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1665,15 +1665,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1716,15 +1716,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1768,15 +1768,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1819,15 +1819,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1870,15 +1870,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1921,15 +1921,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -1972,15 +1972,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2023,15 +2023,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2074,15 +2074,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2125,15 +2125,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2177,15 +2177,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2228,15 +2228,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2279,15 +2279,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2330,15 +2330,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2381,15 +2381,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2432,15 +2432,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)");
         PipelineQueryResult response = evaluator.execute().get();
@@ -2491,15 +2491,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -2552,15 +2552,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -2608,15 +2608,15 @@ public class ArithmeticStepTest {
                    throw new IllegalArgumentException("Invalid metric: " + metric);
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "/ "
                                                           + "avg(jvm-metrics.totalThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "* "
@@ -2657,15 +2657,15 @@ public class ArithmeticStepTest {
 
                });
 
-        IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                   .dataSourceApi(dataSourceApi)
-                                                   .intervalRequest(IntervalRequest.builder()
+        IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .intervalRequest(IntervalRequest.builder()
                                                                                    .bucketCount(1)
                                                                                    .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                    .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                    .build())
-                                                   // BY is given so that it produces a vector
-                                                   .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
+                                                      // BY is given so that it produces a vector
+                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
         PipelineQueryResult response = evaluator.execute()
                                                 .get();
         Assertions.assertEquals(2, response.getRows());
@@ -2706,15 +2706,15 @@ public class ArithmeticStepTest {
         // Case 1, > 2
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -2734,15 +2734,15 @@ public class ArithmeticStepTest {
         // Case 2, > 3, two rows satisfy the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -2758,15 +2758,15 @@ public class ArithmeticStepTest {
         // Case 3, > 4, 1 rows satisfies the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -2782,15 +2782,15 @@ public class ArithmeticStepTest {
         // Case 4, > 5, 0 rows satisfies the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());
@@ -2816,14 +2816,14 @@ public class ArithmeticStepTest {
         // Case 1, >= 2, all 3 rows satisfy the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
             PipelineQueryResult response = evaluator.execute().get();
 
             // all 3 records satisfy the filter condition
@@ -2841,14 +2841,14 @@ public class ArithmeticStepTest {
         // Case 2, >= 3, all 3 rows satisfy the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(3, response.getRows());
@@ -2865,15 +2865,15 @@ public class ArithmeticStepTest {
         // Case 3, >= 4, 2 rows satisfies the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(2, response.getRows());
@@ -2889,15 +2889,15 @@ public class ArithmeticStepTest {
         // Case 4, >= 5, some rows satisfy the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       // BY is given so that it produces a vector
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
+                                                          // BY is given so that it produces a vector
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(1, response.getRows());
@@ -2912,14 +2912,14 @@ public class ArithmeticStepTest {
         // Case 5, >= 6, 0 rows satisfies the filter condition
         //
         {
-            IQueryStep evaluator = QueryPipelineBuilder.builder()
-                                                       .dataSourceApi(dataSourceApi)
-                                                       .intervalRequest(IntervalRequest.builder()
+            IPhysicalPlan evaluator = QueryPipelineBuilder.builder()
+                                                          .dataSourceApi(dataSourceApi)
+                                                          .intervalRequest(IntervalRequest.builder()
                                                                                        .bucketCount(1)
                                                                                        .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
                                                                                        .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
                                                                                        .build())
-                                                       .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
+                                                          .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
             PipelineQueryResult response = evaluator.execute().get();
 
             Assertions.assertEquals(0, response.getRows());

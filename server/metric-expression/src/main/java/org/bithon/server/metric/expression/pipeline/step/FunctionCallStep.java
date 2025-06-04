@@ -17,7 +17,7 @@
 package org.bithon.server.metric.expression.pipeline.step;
 
 
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
@@ -29,10 +29,10 @@ import java.util.function.Function;
  * @author frank.chen021@outlook.com
  * @date 2/6/25 9:29 pm
  */
-public abstract class FunctionCallStep implements IQueryStep {
-    private final IQueryStep source;
+public abstract class FunctionCallStep implements IPhysicalPlan {
+    private final IPhysicalPlan source;
 
-    public FunctionCallStep(IQueryStep source) {
+    public FunctionCallStep(IPhysicalPlan source) {
         this.source = source;
     }
 
@@ -41,7 +41,7 @@ public abstract class FunctionCallStep implements IQueryStep {
         return source.isScalar();
     }
 
-    public static FunctionCallStep apply(IQueryStep source,
+    public static FunctionCallStep apply(IPhysicalPlan source,
                                          Function<PipelineQueryResult, PipelineQueryResult> function) {
         return new FunctionCallStep(source) {
             @Override

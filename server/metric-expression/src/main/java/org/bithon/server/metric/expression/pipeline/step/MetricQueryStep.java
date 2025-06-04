@@ -22,7 +22,7 @@ import org.bithon.component.commons.utils.HumanReadableDuration;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:48 pm
  */
-public class MetricQueryStep implements IQueryStep {
+public class MetricQueryStep implements IPhysicalPlan {
     private final String dataSource;
     private final IntervalRequest interval;
     private final String filterExpression;

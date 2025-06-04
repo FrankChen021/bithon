@@ -22,7 +22,7 @@ import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.time.Duration;
@@ -34,14 +34,14 @@ import java.util.concurrent.CompletableFuture;
  * @date 5/5/25 6:20 pm
  */
 @Slf4j
-public class SlidingWindowAggregationStep implements IQueryStep {
+public class SlidingWindowAggregationStep implements IPhysicalPlan {
     private final String tsField;
     private final List<String> keyFields;
     private final List<String> valueFields;
     private final Duration window;
     private final List<String> resultFields;
     private final Interval interval;
-    private final IQueryStep source;
+    private final IPhysicalPlan source;
 
     public SlidingWindowAggregationStep(String tsField,
                                         List<String> keyFields,
@@ -49,7 +49,7 @@ public class SlidingWindowAggregationStep implements IQueryStep {
                                         List<String> resultFields,
                                         Duration window,
                                         Interval interval,
-                                        IQueryStep source) {
+                                        IPhysicalPlan source) {
         this.tsField = tsField;
         this.keyFields = keyFields;
         this.valueFields = valueFields;

@@ -19,7 +19,7 @@ package org.bithon.server.metric.expression.pipeline.step;
 
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
 import java.util.ArrayList;
@@ -35,9 +35,9 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:49 pm
  */
-public abstract class ArithmeticStep implements IQueryStep {
-    private final IQueryStep lhs;
-    private final IQueryStep rhs;
+public abstract class ArithmeticStep implements IPhysicalPlan {
+    private final IPhysicalPlan lhs;
+    private final IPhysicalPlan rhs;
     private final String resultColumnName;
 
     /**
@@ -46,7 +46,7 @@ public abstract class ArithmeticStep implements IQueryStep {
     private final Set<String> retainedColumns;
 
     public static class Add extends ArithmeticStep {
-        public Add(IQueryStep left, IQueryStep right) {
+        public Add(IPhysicalPlan left, IPhysicalPlan right) {
             super(left, right, null);
         }
 
@@ -57,12 +57,12 @@ public abstract class ArithmeticStep implements IQueryStep {
     }
 
     public static class Sub extends ArithmeticStep {
-        public Sub(IQueryStep left, IQueryStep right) {
+        public Sub(IPhysicalPlan left, IPhysicalPlan right) {
             super(left, right, null);
         }
 
-        public Sub(IQueryStep left,
-                   IQueryStep right,
+        public Sub(IPhysicalPlan left,
+                   IPhysicalPlan right,
                    String resultColumn,
                    String... sourceColumns) {
             super(left, right, resultColumn, sourceColumns);
@@ -75,7 +75,7 @@ public abstract class ArithmeticStep implements IQueryStep {
     }
 
     public static class Mul extends ArithmeticStep {
-        public Mul(IQueryStep left, IQueryStep right) {
+        public Mul(IPhysicalPlan left, IPhysicalPlan right) {
             super(left, right, null);
         }
 
@@ -86,12 +86,12 @@ public abstract class ArithmeticStep implements IQueryStep {
     }
 
     public static class Div extends ArithmeticStep {
-        public Div(IQueryStep left, IQueryStep right) {
+        public Div(IPhysicalPlan left, IPhysicalPlan right) {
             super(left, right, null);
         }
 
-        public Div(IQueryStep left,
-                   IQueryStep right,
+        public Div(IPhysicalPlan left,
+                   IPhysicalPlan right,
                    String resultColumn,
                    String... sourceColumns) {
             super(left, right, resultColumn, sourceColumns);
@@ -103,8 +103,8 @@ public abstract class ArithmeticStep implements IQueryStep {
         }
     }
 
-    protected ArithmeticStep(IQueryStep left,
-                             IQueryStep right,
+    protected ArithmeticStep(IPhysicalPlan left,
+                             IPhysicalPlan right,
                              String resultColumnName,
                              String... retainedColumns) {
         this.lhs = left;

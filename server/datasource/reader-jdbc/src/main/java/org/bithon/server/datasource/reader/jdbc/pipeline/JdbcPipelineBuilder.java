@@ -24,7 +24,7 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -75,7 +75,7 @@ public class JdbcPipelineBuilder {
         return this;
     }
 
-    public IQueryStep build() {
+    public IPhysicalPlan build() {
         List<Selector> windowFunctionSelectors = new ArrayList<>();
         List<String> inputColumns = new ArrayList<>();
         List<String> outputColumns = new ArrayList<>();
@@ -116,10 +116,10 @@ public class JdbcPipelineBuilder {
                                        .toList()
                                        .toArray(new OrderByClause[0]));
 
-        IQueryStep readStep = new JdbcReadStep(dslContext,
-                                               dialect,
-                                               subQuery,
-                                               false);
+        IPhysicalPlan readStep = new JdbcReadStep(dslContext,
+                                                  dialect,
+                                                  subQuery,
+                                                  false);
 
         return new SlidingWindowAggregationStep(orderBy.getIdentifier(),
                                                 keys,

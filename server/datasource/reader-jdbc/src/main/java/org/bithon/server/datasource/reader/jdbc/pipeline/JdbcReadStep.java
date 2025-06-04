@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
  * @date 5/5/25 6:14 pm
  */
 @Slf4j
-public class JdbcReadStep implements IQueryStep {
+public class JdbcReadStep implements IPhysicalPlan {
 
     private final DSLContext dslContext;
     private final SelectStatement selectStatement;

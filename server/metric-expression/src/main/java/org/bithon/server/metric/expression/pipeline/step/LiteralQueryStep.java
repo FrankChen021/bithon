@@ -24,7 +24,7 @@ import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
+import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.LongColumn;
 import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
 
@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
  * @author frank.chen021@outlook.com
  * @date 4/4/25 9:36 pm
  */
-public class LiteralQueryStep implements IQueryStep {
+public class LiteralQueryStep implements IPhysicalPlan {
     private final LiteralExpression<?> expression;
     private final int size;
 

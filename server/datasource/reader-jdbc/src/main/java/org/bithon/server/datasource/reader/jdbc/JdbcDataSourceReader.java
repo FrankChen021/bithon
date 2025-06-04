@@ -34,7 +34,6 @@ import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
 import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.IQueryStep;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
@@ -137,16 +136,16 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
         Interval interval = query.getInterval();
 
-        IQueryStep queryStep = JdbcPipelineBuilder.builder()
-                                                  .dslContext(dslContext)
-                                                  .dialect(this.sqlDialect)
-                                                  .selectStatement(selectStatement)
-                                                  .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
+        IPhysicalPlan queryStep = JdbcPipelineBuilder.builder()
+                                                     .dslContext(dslContext)
+                                                     .dialect(this.sqlDialect)
+                                                     .selectStatement(selectStatement)
+                                                     .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
                                                                         interval.getEndTime(),
                                                                         interval.getStep(),
                                                                         null,
                                                                         null))
-                                                  .build();
+                                                     .build();
 
         try {
             return queryStep.execute()
