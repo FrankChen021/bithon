@@ -77,7 +77,7 @@ public class QueryPipelineBuilder {
         IExpression expr = MetricExpressionASTBuilder.parse(expression);
 
         // Apply optimization like constant folding on parsed expression
-        // The optimization is applied here so that above parse can be tested separately
+        // The optimization is applied here so that the above parse can be tested separately
         expr = MetricExpressionOptimizer.optimize(expr);
 
         return this.build(expr);
@@ -95,7 +95,7 @@ public class QueryPipelineBuilder {
                                             .collect(Collectors.joining(" AND "));
 
             if (expression.getOffset() != null) {
-                // Create expression as: ( current - base ) / base
+                // Create expression as: (current - base) / base
                 QueryField metricField = expression.getMetric();
                 String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
                 MetricQueryStep curr = new MetricQueryStep(QueryRequest.builder()

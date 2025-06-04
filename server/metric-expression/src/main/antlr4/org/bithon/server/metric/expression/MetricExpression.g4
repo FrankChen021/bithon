@@ -17,7 +17,7 @@ metricExpression
   | metricExpression metricPredicateExpression metricExpectedExpression #metricFilterExpression
     // Legacy metric aggregation expression
   | aggregatorExpression LEFT_PARENTHESIS metricSelectExpressionDecl RIGHT_PARENTHESIS durationExpression? groupByExpression? #metricAggregationExpression
-  | IDENTIFIER LEFT_PARENTHESIS metricExpression (',' metricExpression)* RIGHT_PARENTHESIS groupByExpression? #functionCallExpression
+  | IDENTIFIER LEFT_PARENTHESIS metricExpression (',' metricExpression)* RIGHT_PARENTHESIS #functionCallExpression
   ;
 
 metricSelectExpressionDecl

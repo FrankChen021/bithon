@@ -27,6 +27,8 @@ import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Plan for the {@link org.bithon.component.commons.expression.ComparisonExpression}
+ *
  * @author frank.chen021@outlook.com
  * @date 1/6/25 9:06 pm
  */

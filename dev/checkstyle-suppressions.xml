@@ -33,6 +33,7 @@
   <suppress files="[/\\]jooq[/\\]" checks=".*"/>
   <suppress files="[/\\]generated-sources[/\\]" checks=".*"/>
   <suppress files="[/\\]ast[/\\]" checks=".*"/>
+  <suppress files="[/\\]thrift-generated[/\\]" checks=".*"/>
 
   <!-- Code copied from TestNG to apply a bugfix -->
   <suppress checks="AvoidStaticImport" files="[\\/]org[\\/]testng[\\/]" />

@@ -19,6 +19,7 @@ package org.bithon.server.metric.expression.ast;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.BinaryExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.expression.expt.InvalidExpressionException;
@@ -533,7 +534,7 @@ public class MetricExpressionASTBuilderTest {
     }
 
     @Test
-    public void test_HybridExpression() {
+    public void test_HybridArithmeticExpression() {
         String expr = "avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * "
                       + "(avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m])";
         IExpression ast = MetricExpressionASTBuilder.parse(expr);
@@ -580,5 +581,14 @@ public class MetricExpressionASTBuilderTest {
             String expr = "jvm-metrics.cpu{appName = 'a'}[ 5m ]";
             Assertions.assertEquals("jvm-metrics.cpu{appName = \"a\"}[5m]", MetricExpressionASTBuilder.parse(expr).serializeToText());
         }
+    }
+
+    @Test
+    public void test_FunctionExpression() {
+        String expr = "irate(jvm-metrics.cpu{appName =    'a'}   [5m]   ) > 1";
+        IExpression ast = MetricExpressionASTBuilder.parse(expr);
+        Assertions.assertInstanceOf(ComparisonExpression.class, ast);
+        Assertions.assertInstanceOf(FunctionExpression.class, ((BinaryExpression) ast).getLhs());
+        Assertions.assertEquals("irate(jvm-metrics.cpu{appName = \"a\"}[5m]) > 1", ast.serializeToText());
     }
 }

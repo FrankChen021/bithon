@@ -25,6 +25,7 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.ExpressionList;
+import org.bithon.component.commons.expression.FunctionExpression;
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.IdentifierExpression;
@@ -128,11 +129,10 @@ public class MetricExpressionASTBuilder {
             String aggregatorText = ctx.aggregatorExpression().getText().toLowerCase(Locale.ENGLISH);
             AggregatorEnum aggregator = AggregatorEnum.fromString(aggregatorText);
             if (aggregator == null) {
-                throw new InvalidExpressionException(StringUtils.format("The aggregator [%s] in the expression is not supported", aggregatorText));
+                return new FunctionExpression(aggregatorText, ctx.metricSelectExpressionDecl().accept(this));
             }
 
             MetricSelectExpression metricSelectExpression = (MetricSelectExpression) ctx.metricSelectExpressionDecl().accept(this);
-
             HumanReadableDuration duration = null;
             MetricExpressionParser.DurationExpressionContext windowExpressionCtx = ctx.durationExpression();
             if (windowExpressionCtx != null) {
@@ -244,6 +244,17 @@ public class MetricExpressionASTBuilder {
                                                                                      .expected(expected)
                                                                                      .offset(offset)
                                                                                      .build());
+        }
+
+        @Override
+        public IExpression visitFunctionCallExpression(MetricExpressionParser.FunctionCallExpressionContext ctx) {
+            String function = ctx.IDENTIFIER().getSymbol().getText();
+            IExpression[] arguments = ctx.metricExpression()
+                                         .stream()
+                                         .map((metricExpression) -> metricExpression.accept(this))
+                                         .toList()
+                                         .toArray(new IExpression[0]);
+            return new FunctionExpression(function, arguments);
         }
 
         private static PredicateEnum getPredicate(int predicateToken,
@@ -394,7 +405,8 @@ public class MetricExpressionASTBuilder {
             return switch (tokenType) {
                 case MetricExpressionParser.DECIMAL_LITERAL -> LiteralExpression.ofDecimal(parseDecimal(text));
                 case MetricExpressionParser.INTEGER_LITERAL -> LiteralExpression.ofLong(Integer.parseInt(text));
-                case MetricExpressionParser.PERCENTAGE_LITERAL -> LiteralExpression.of(new HumanReadablePercentage(text));
+                case MetricExpressionParser.PERCENTAGE_LITERAL ->
+                    LiteralExpression.of(new HumanReadablePercentage(text));
                 case MetricExpressionParser.STRING_LITERAL -> {
                     String input = text;
                     if (!input.isEmpty()) {
