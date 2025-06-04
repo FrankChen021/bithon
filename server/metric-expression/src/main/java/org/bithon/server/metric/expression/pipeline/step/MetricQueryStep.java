@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -40,35 +41,97 @@ import java.util.concurrent.CompletableFuture;
  * @date 4/4/25 3:48 pm
  */
 public class MetricQueryStep implements IQueryStep {
-    private final QueryRequest queryRequest;
+    private final String dataSource;
+    private final IntervalRequest interval;
+    private final String filterExpression;
+    private final List<QueryField> fields;
+    private final Set<String> groupBy;
+    private final HumanReadableDuration offset;
     private final IDataSourceApi dataSourceApi;
     private final boolean isScalar;
 
     // Make sure the evaluation is executed ONLY ONCE when the expression is referenced multiple times
     private volatile CompletableFuture<PipelineQueryResult> cachedResponse;
 
-    public MetricQueryStep(QueryRequest queryRequest,
-                           IDataSourceApi dataSourceApi) {
-        this.queryRequest = queryRequest;
-        this.dataSourceApi = dataSourceApi;
-        this.isScalar = computeIsScalar(queryRequest);
+    private MetricQueryStep(Builder builder) {
+        this.dataSource = builder.dataSource;
+        this.interval = builder.interval;
+        this.filterExpression = builder.filterExpression;
+        this.fields = builder.fields;
+        this.groupBy = builder.groupBy;
+        this.offset = builder.offset;
+        this.dataSourceApi = builder.dataSourceApi;
+        this.isScalar = computeIsScalar();
     }
 
-    private boolean computeIsScalar(QueryRequest queryRequest) {
-        if (CollectionUtils.isNotEmpty(queryRequest.getGroupBy())) {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String dataSource;
+        private IntervalRequest interval;
+        private String filterExpression;
+        private List<QueryField> fields;
+        private Set<String> groupBy;
+        private HumanReadableDuration offset;
+        private IDataSourceApi dataSourceApi;
+
+        public Builder dataSource(String dataSource) {
+            this.dataSource = dataSource;
+            return this;
+        }
+
+        public Builder interval(IntervalRequest interval) {
+            this.interval = interval;
+            return this;
+        }
+
+        public Builder filterExpression(String filterExpression) {
+            this.filterExpression = filterExpression;
+            return this;
+        }
+
+        public Builder fields(List<QueryField> fields) {
+            this.fields = fields;
+            return this;
+        }
+
+        public Builder groupBy(Set<String> groupBy) {
+            this.groupBy = groupBy;
+            return this;
+        }
+
+        public Builder offset(HumanReadableDuration offset) {
+            this.offset = offset;
+            return this;
+        }
+
+        public Builder dataSourceApi(IDataSourceApi dataSourceApi) {
+            this.dataSourceApi = dataSourceApi;
+            return this;
+        }
+
+        public MetricQueryStep build() {
+            return new MetricQueryStep(this);
+        }
+    }
+
+    private boolean computeIsScalar() {
+        if (CollectionUtils.isNotEmpty(groupBy)) {
             // If GROUP-BY is not empty, obviously it is not a scalar because the result set contains multiple rows for different groups
             return false;
         }
 
-        if (queryRequest.getInterval().getBucketCount() != null && queryRequest.getInterval().getBucketCount() == 1) {
+        if (interval.getBucketCount() != null && interval.getBucketCount() == 1) {
             // ONLY one bucket is requested, the result set is a scalar
             return true;
         }
 
-        TimeSpan start = queryRequest.getInterval().getStartISO8601();
-        TimeSpan end = queryRequest.getInterval().getEndISO8601();
+        TimeSpan start = interval.getStartISO8601();
+        TimeSpan end = interval.getEndISO8601();
         long intervalLength = (end.getMilliseconds() - start.getMilliseconds()) / 1000;
-        return queryRequest.getInterval().getStep() != null && queryRequest.getInterval().getStep() == intervalLength;
+        return interval.getStep() != null && interval.getStep() == intervalLength;
     }
 
     @Override
@@ -83,16 +146,24 @@ public class MetricQueryStep implements IQueryStep {
                 if (cachedResponse == null) {
                     cachedResponse = CompletableFuture.supplyAsync(() -> {
                         try {
+                            QueryRequest queryRequest = QueryRequest.builder()
+                                                                    .dataSource(dataSource)
+                                                                    .interval(interval)
+                                                                    .filterExpression(filterExpression)
+                                                                    .fields(fields)
+                                                                    .groupBy(groupBy)
+                                                                    .offset(offset)
+                                                                    .build();
+
                             ColumnarTable columnTable = dataSourceApi.timeseriesV5(queryRequest);
 
                             List<String> keys = new ArrayList<>();
                             keys.add(TimestampSpec.COLUMN_ALIAS);
-                            keys.addAll(queryRequest.getGroupBy() != null ? queryRequest.getGroupBy() : Collections.emptySet());
+                            keys.addAll(groupBy != null ? groupBy : Collections.emptySet());
 
-                            List<String> valNames = queryRequest.getFields()
-                                                                .stream()
-                                                                .map(QueryField::getName)
-                                                                .toList();
+                            List<String> valNames = fields.stream()
+                                                          .map(QueryField::getName)
+                                                          .toList();
 
                             return PipelineQueryResult.builder()
                                                       .rows(columnTable.rowCount())

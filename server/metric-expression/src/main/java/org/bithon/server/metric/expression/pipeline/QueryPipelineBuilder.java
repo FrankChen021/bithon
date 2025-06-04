@@ -17,6 +17,11 @@
 package org.bithon.server.metric.expression.pipeline;
 
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
@@ -38,12 +43,6 @@ import org.bithon.server.metric.expression.pipeline.step.MetricQueryStep;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
-import org.bithon.server.web.service.datasource.api.QueryRequest;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -105,29 +104,29 @@ public class QueryPipelineBuilder {
                 // Create expression as: (current - base) / base
                 QueryField metricField = expression.getMetric();
                 String expr = StringUtils.format("%s(%s) * 1.0", metricField.getAggregator(), metricField.getField());
-                MetricQueryStep curr = new MetricQueryStep(QueryRequest.builder()
-                                                                       .dataSource(expression.getFrom())
-                                                                       .filterExpression(filterExpression)
-                                                                       .groupBy(expression.getGroupBy())
-                                                                       .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
-                                                                       .interval(intervalRequest)
-                                                                       .build(),
-                                                           dataSourceApi);
+                MetricQueryStep curr = MetricQueryStep.builder()
+                                                      .dataSource(expression.getFrom())
+                                                      .filterExpression(filterExpression)
+                                                      .groupBy(expression.getGroupBy())
+                                                      .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
+                                                      .interval(intervalRequest)
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .build();
 
-                MetricQueryStep base = new MetricQueryStep(QueryRequest.builder()
-                                                                       .dataSource(expression.getFrom())
-                                                                       .filterExpression(filterExpression)
-                                                                       .groupBy(expression.getGroupBy())
-                                                                       .fields(List.of(new QueryField(
-                                                                           // Use offset AS the output name
-                                                                           expression.getOffset().toString(),
-                                                                           metricField.getField(),
-                                                                           null,
-                                                                           expr)))
-                                                                       .interval(intervalRequest)
-                                                                       .offset(expression.getOffset())
-                                                                       .build(),
-                                                           dataSourceApi);
+                MetricQueryStep base = MetricQueryStep.builder()
+                                                      .dataSource(expression.getFrom())
+                                                      .filterExpression(filterExpression)
+                                                      .groupBy(expression.getGroupBy())
+                                                      .fields(List.of(new QueryField(
+                                                          // Use offset AS the output name
+                                                          expression.getOffset().toString(),
+                                                          metricField.getField(),
+                                                          null,
+                                                          expr)))
+                                                      .interval(intervalRequest)
+                                                      .offset(expression.getOffset())
+                                                      .dataSourceApi(dataSourceApi)
+                                                      .build();
 
                 //
                 return new ArithmeticStep.Div(
@@ -146,14 +145,14 @@ public class QueryPipelineBuilder {
                     metricField.getName(), expression.getOffset().toString()
                 );
             } else {
-                return new MetricQueryStep(QueryRequest.builder()
-                                                       .dataSource(expression.getFrom())
-                                                       .filterExpression(filterExpression)
-                                                       .groupBy(expression.getGroupBy())
-                                                       .fields(List.of(expression.getMetric()))
-                                                       .interval(intervalRequest)
-                                                       .build(),
-                                           dataSourceApi);
+                return MetricQueryStep.builder()
+                                      .dataSource(expression.getFrom())
+                                      .filterExpression(filterExpression)
+                                      .groupBy(expression.getGroupBy())
+                                      .fields(List.of(expression.getMetric()))
+                                      .interval(intervalRequest)
+                                      .dataSourceApi(dataSourceApi)
+                                      .build();
             }
         }
 
