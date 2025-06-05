@@ -24,4 +24,10 @@ public record LogicalBinaryOp(
     ILogicalPlan left,
     BinaryOp op,
     ILogicalPlan right
-) implements ILogicalPlan {}
+) implements ILogicalPlan {
+
+    @Override
+    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
+        return visitor.visitBinaryOp(this);
+    }
+}

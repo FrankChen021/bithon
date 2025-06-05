@@ -21,7 +21,8 @@ import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
+import org.bithon.server.datasource.query.plan.physical.LiteralQueryStep;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

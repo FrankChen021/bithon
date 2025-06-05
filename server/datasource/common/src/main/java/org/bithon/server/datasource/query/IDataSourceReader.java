@@ -17,9 +17,9 @@
 package org.bithon.server.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 
 import java.util.List;
 

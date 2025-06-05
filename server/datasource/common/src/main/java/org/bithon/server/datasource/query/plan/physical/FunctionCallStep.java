@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.plan.physical;
 
 
-import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;

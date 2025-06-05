@@ -14,15 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataType;
-import org.bithon.server.datasource.query.plan.physical.Column;
-import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
-import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.ColumnarTable;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -34,9 +32,9 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class FilterStep implements IPhysicalPlan {
     protected final IPhysicalPlan source;
-    protected final MetricExpectedExpression expected;
+    protected final Number expected;
 
-    protected FilterStep(IPhysicalPlan source, MetricExpectedExpression expected) {
+    protected FilterStep(IPhysicalPlan source, Number expected) {
         this.source = source;
         this.expected = expected;
     }
@@ -56,7 +54,7 @@ public abstract class FilterStep implements IPhysicalPlan {
                          int filteredRowCount = 0;
                          int[] filteredRows = new int[result.getTable().rowCount()];
                          if (column.getDataType() == IDataType.LONG) {
-                             long expectedValue = ((Number) expected.getExpected().getValue()).longValue();
+                             long expectedValue = this.expected.longValue();
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getLong(i), expectedValue)) {
@@ -64,7 +62,7 @@ public abstract class FilterStep implements IPhysicalPlan {
                                  }
                              }
                          } else if (column.getDataType() == IDataType.DOUBLE) {
-                             double expectedValue = ((Number) expected.getExpected().getValue()).doubleValue();
+                             double expectedValue = this.expected.doubleValue();
 
                              for (int i = 0, size = column.size(); i < size; i++) {
                                  if (filter(column.getDouble(i), expectedValue)) {
@@ -97,7 +95,7 @@ public abstract class FilterStep implements IPhysicalPlan {
     protected abstract boolean filter(double actual, double expected);
 
     public static class LT extends FilterStep {
-        public LT(IPhysicalPlan source, MetricExpectedExpression expected) {
+        public LT(IPhysicalPlan source, Number expected) {
             super(source, expected);
         }
 
@@ -113,7 +111,7 @@ public abstract class FilterStep implements IPhysicalPlan {
     }
 
     public static class LTE extends FilterStep {
-        public LTE(IPhysicalPlan source, MetricExpectedExpression expected) {
+        public LTE(IPhysicalPlan source, Number expected) {
             super(source, expected);
         }
 
@@ -129,7 +127,7 @@ public abstract class FilterStep implements IPhysicalPlan {
     }
 
     public static class GT extends FilterStep {
-        public GT(IPhysicalPlan source, MetricExpectedExpression expected) {
+        public GT(IPhysicalPlan source, Number expected) {
             super(source, expected);
         }
 
@@ -145,7 +143,7 @@ public abstract class FilterStep implements IPhysicalPlan {
     }
 
     public static class GTE extends FilterStep {
-        public GTE(IPhysicalPlan source, MetricExpectedExpression expected) {
+        public GTE(IPhysicalPlan source, Number expected) {
             super(source, expected);
         }
 
@@ -161,7 +159,7 @@ public abstract class FilterStep implements IPhysicalPlan {
     }
 
     public static class NE extends FilterStep {
-        public NE(IPhysicalPlan source, MetricExpectedExpression expected) {
+        public NE(IPhysicalPlan source, Number expected) {
             super(source, expected);
         }
 

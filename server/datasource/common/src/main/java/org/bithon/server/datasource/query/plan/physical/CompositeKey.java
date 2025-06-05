@@ -17,6 +17,8 @@
 package org.bithon.server.datasource.query.plan.physical;
 
 
+import org.bithon.server.datasource.query.result.Column;
+
 import java.util.Arrays;
 import java.util.List;
 

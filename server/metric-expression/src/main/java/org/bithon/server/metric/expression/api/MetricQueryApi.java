@@ -25,10 +25,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.component.commons.Experimental;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.datasource.query.plan.physical.Column;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
-import org.bithon.server.metric.expression.pipeline.QueryPipelineBuilder;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
+import org.bithon.server.metric.expression.pipeline.PhysicalPlanner;
 import org.bithon.server.web.service.WebServiceModuleEnabler;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
@@ -87,11 +87,11 @@ public class MetricQueryApi {
     @Experimental
     @PostMapping("/api/metric/timeseries")
     public QueryResponse<?> timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
-        IPhysicalPlan pipeline = QueryPipelineBuilder.builder()
-                                                     .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(request.getInterval())
-                                                     .condition(request.getCondition())
-                                                     .build(request.getExpression());
+        IPhysicalPlan pipeline = PhysicalPlanner.builder()
+                                                .dataSourceApi(dataSourceApi)
+                                                .intervalRequest(request.getInterval())
+                                                .condition(request.getCondition())
+                                                .build(request.getExpression());
 
         Duration step = request.getInterval().calculateStep();
         TimeSpan start = request.getInterval().getStartISO8601();

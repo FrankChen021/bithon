@@ -17,11 +17,6 @@
 package org.bithon.server.metric.expression.pipeline;
 
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
@@ -29,52 +24,56 @@ import org.bithon.component.commons.expression.IExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.plan.physical.ArithmeticStep;
+import org.bithon.server.datasource.query.plan.physical.FilterStep;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.LiteralQueryStep;
+import org.bithon.server.datasource.query.plan.physical.MetricQueryStep;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.metric.expression.ast.PredicateEnum;
-import org.bithon.server.metric.expression.pipeline.step.ArithmeticStep;
-import org.bithon.server.metric.expression.pipeline.step.FilterStep;
-import org.bithon.server.metric.expression.pipeline.step.LiteralQueryStep;
-import org.bithon.server.metric.expression.pipeline.step.MetricQueryStep;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 4/4/25 3:53 pm
  */
-public class QueryPipelineBuilder {
+public class PhysicalPlanner {
 
     private IDataSourceApi dataSourceApi;
     private IntervalRequest intervalRequest;
     private String condition;
     private QueryPipelineBuilderSettings settings = QueryPipelineBuilderSettings.DEFAULT;
 
-    public static QueryPipelineBuilder builder() {
-        return new QueryPipelineBuilder();
+    public static PhysicalPlanner builder() {
+        return new PhysicalPlanner();
     }
 
-    public QueryPipelineBuilder dataSourceApi(IDataSourceApi dataSourceApi) {
+    public PhysicalPlanner dataSourceApi(IDataSourceApi dataSourceApi) {
         this.dataSourceApi = dataSourceApi;
         return this;
     }
 
-    public QueryPipelineBuilder intervalRequest(IntervalRequest intervalRequest) {
+    public PhysicalPlanner intervalRequest(IntervalRequest intervalRequest) {
         this.intervalRequest = intervalRequest;
         return this;
     }
 
-    public QueryPipelineBuilder condition(String condition) {
+    public PhysicalPlanner condition(String condition) {
         this.condition = condition;
         return this;
     }
 
-    public QueryPipelineBuilder settings(QueryPipelineBuilderSettings settings) {
+    public PhysicalPlanner settings(QueryPipelineBuilderSettings settings) {
         this.settings = settings;
         return this;
     }
@@ -108,15 +107,17 @@ public class QueryPipelineBuilder {
                                                       .dataSource(expression.getFrom())
                                                       .filterExpression(filterExpression)
                                                       .groupBy(expression.getGroupBy())
+                                                      /*
                                                       .fields(List.of(new QueryField(metricField.getName(), metricField.getField(), null, expr)))
                                                       .interval(intervalRequest)
-                                                      .dataSourceApi(dataSourceApi)
+                                                      .dataSourceApi(dataSourceApi)*/
                                                       .build();
 
                 MetricQueryStep base = MetricQueryStep.builder()
                                                       .dataSource(expression.getFrom())
                                                       .filterExpression(filterExpression)
                                                       .groupBy(expression.getGroupBy())
+                                                      /*
                                                       .fields(List.of(new QueryField(
                                                           // Use offset AS the output name
                                                           expression.getOffset().toString(),
@@ -125,7 +126,7 @@ public class QueryPipelineBuilder {
                                                           expr)))
                                                       .interval(intervalRequest)
                                                       .offset(expression.getOffset())
-                                                      .dataSourceApi(dataSourceApi)
+                                                      .dataSourceApi(dataSourceApi)*/
                                                       .build();
 
                 //
@@ -149,9 +150,10 @@ public class QueryPipelineBuilder {
                                       .dataSource(expression.getFrom())
                                       .filterExpression(filterExpression)
                                       .groupBy(expression.getGroupBy())
+                                      /*
                                       .fields(List.of(expression.getMetric()))
                                       .interval(intervalRequest)
-                                      .dataSourceApi(dataSourceApi)
+                                      .dataSourceApi(dataSourceApi)*/
                                       .build();
             }
         }
@@ -241,31 +243,31 @@ public class QueryPipelineBuilder {
             if (expression instanceof ComparisonExpression.LT) {
                 return new FilterStep.LT(
                     source,
-                    (MetricExpectedExpression) expression.getRhs()
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
                 );
             }
             if (expression instanceof ComparisonExpression.LTE) {
                 return new FilterStep.LTE(
                     source,
-                    (MetricExpectedExpression) expression.getRhs()
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
                 );
             }
             if (expression instanceof ComparisonExpression.GT) {
                 return new FilterStep.GT(
                     source,
-                    (MetricExpectedExpression) expression.getRhs()
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
                 );
             }
             if (expression instanceof ComparisonExpression.GTE) {
                 return new FilterStep.GTE(
                     source,
-                    (MetricExpectedExpression) expression.getRhs()
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
                 );
             }
             if (expression instanceof ComparisonExpression.NE) {
                 return new FilterStep.NE(
                     source,
-                    (MetricExpectedExpression) expression.getRhs()
+                    (Number) ((MetricExpectedExpression) expression.getRhs()).getExpected().getValue()
                 );
             }
             throw new UnsupportedOperationException("Unsupported conditional expression: " + expression.getType());

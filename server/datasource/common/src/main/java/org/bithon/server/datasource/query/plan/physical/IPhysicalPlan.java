@@ -17,6 +17,8 @@
 package org.bithon.server.datasource.query.plan.physical;
 
 
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -26,6 +28,17 @@ import java.util.concurrent.CompletableFuture;
 public interface IPhysicalPlan {
 
     boolean isScalar();
+
+    default String serializeToText() {
+        StringBuilder builder = new StringBuilder();
+        serializer(builder);
+        return builder.toString();
+    }
+
+    default void serializer(StringBuilder builder) {
+        builder.append(this.getClass().getSimpleName());
+        builder.append("\n");
+    }
 
     CompletableFuture<PipelineQueryResult> execute() throws Exception;
 }

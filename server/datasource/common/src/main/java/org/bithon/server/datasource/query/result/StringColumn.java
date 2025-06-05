@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.plan.physical;
+package org.bithon.server.datasource.query.result;
 
 
 import org.bithon.component.commons.expression.IDataType;
@@ -23,81 +23,91 @@ import java.util.BitSet;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 6/5/25 10:28 am
+ * @date 6/5/25 10:29 am
  */
-public class DoubleColumn implements Column {
-    private double[] data;
+public class StringColumn implements Column {
+    private String[] data;
     private int size;
     private final String name;
 
-    public static DoubleColumn of(String name, double... data) {
-        return new DoubleColumn(name, data);
+    public static StringColumn of(String name, String... data) {
+        return new StringColumn(name, data);
     }
 
-    public DoubleColumn(String name, int capacity) {
-        this.data = new double[capacity];
+    public StringColumn(String name, int capacity) {
+        this.data = new String[capacity];
         this.size = 0;
         this.name = name;
     }
 
-    public DoubleColumn(String name, double[] data) {
+    public StringColumn(String name, String[] data) {
         this.data = data;
         this.size = data.length;
         this.name = name;
     }
 
-    public DoubleColumn(String name, double[] data, int size) {
+    public StringColumn(String name, String[] data, int size) {
         this.data = data;
         this.size = size;
         this.name = name;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
+    public String get(int row) {
+        return data[row];
+    }
+
     @Override
     public IDataType getDataType() {
-        return IDataType.DOUBLE;
+        return IDataType.STRING;
     }
 
     public void addObject(Object value) {
-        if (value instanceof Number) {
-            addInternal(((Number) value).doubleValue());
+        if (value == null) {
+            addInternal("");
+        } else if (value instanceof String) {
+            addInternal((String) value);
         } else {
-            throw new IllegalArgumentException("Unsupported column type: " + value);
+            addInternal(value.toString());
         }
     }
 
     @Override
     public void addInt(int value) {
-        addInternal(value);
+        addInternal(String.valueOf(value));
     }
 
     @Override
     public void addLong(long value) {
-        addInternal(value);
+        addInternal(String.valueOf(value));
     }
 
     @Override
     public void addDouble(double value) {
-        addInternal(value);
+        addInternal(String.valueOf(value));
     }
 
     @Override
     public double getDouble(int row) {
-        return data[row];
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int getInt(int row) {
-        return (int) data[row];
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public long getLong(int row) {
-        return (long) data[row];
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getString(int row) {
+        return data[row];
     }
 
     @Override
@@ -105,7 +115,7 @@ public class DoubleColumn implements Column {
         return data[row];
     }
 
-    public void set(int index, Double value) {
+    public void set(int index, String value) {
         data[index] = value;
     }
 
@@ -115,30 +125,30 @@ public class DoubleColumn implements Column {
 
     @Override
     public Column filter(BitSet keep) {
-        DoubleColumn filtered = new DoubleColumn(this.name, keep.cardinality());
+        StringColumn filtered = new StringColumn(this.name, keep.cardinality());
         for (int i = 0; i < this.size; i++) {
             if (keep.get(i)) {
-                filtered.addDouble(this.data[i]);
+                filtered.addString(this.data[i]);
             }
         }
         return filtered;
     }
 
-    public double[] getData() {
+    public String[] getData() {
         return data;
     }
 
     @Override
     public Column view(int[] selections, int length) {
-        return new DoubleColumnView(this, selections, length);
+        return new StringColumnView(this, selections, length);
     }
 
-    private static class DoubleColumnView extends DoubleColumn {
-        private final DoubleColumn delegate;
+    private static class StringColumnView extends StringColumn {
+        private final StringColumn delegate;
         private final int[] selections;
         private final int length;
 
-        public DoubleColumnView(DoubleColumn delegate, int[] selections, int length) {
+        public StringColumnView(StringColumn delegate, int[] selections, int length) {
             super(delegate.getName(), delegate.data, delegate.size);
             this.delegate = delegate;
             this.selections = selections;
@@ -146,18 +156,8 @@ public class DoubleColumn implements Column {
         }
 
         @Override
-        public double getDouble(int row) {
-            return delegate.getDouble(selections[row]);
-        }
-
-        @Override
-        public int getInt(int row) {
-            return delegate.getInt(selections[row]);
-        }
-
-        @Override
-        public long getLong(int row) {
-            return delegate.getLong(selections[row]);
+        public String getString(int row) {
+            return delegate.getString(selections[row]);
         }
 
         @Override
@@ -167,10 +167,10 @@ public class DoubleColumn implements Column {
 
         @Override
         public Column filter(BitSet keep) {
-            DoubleColumn filtered = new DoubleColumn(this.getName(), keep.cardinality());
+            StringColumn filtered = new StringColumn(this.getName(), keep.cardinality());
             for (int i = 0; i < this.length; i++) {
                 if (keep.get(i)) {
-                    filtered.addDouble(delegate.getDouble(selections[i]));
+                    filtered.addString(delegate.getString(selections[i]));
                 }
             }
             return filtered;
@@ -182,9 +182,9 @@ public class DoubleColumn implements Column {
         }
     }
 
-    private void addInternal(double value) {
+    private void addInternal(String value) {
         if (size >= data.length) {
-            double[] newData = new double[(data.length * 3 / 2)];
+            String[] newData = new String[(data.length * 3 / 2)];
             System.arraycopy(data, 0, newData, 0, data.length);
             data = newData;
         }

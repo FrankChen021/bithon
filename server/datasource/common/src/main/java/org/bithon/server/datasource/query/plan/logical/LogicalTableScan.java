@@ -17,6 +17,9 @@
 package org.bithon.server.datasource.query.plan.logical;
 
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.server.datasource.query.ast.Selector;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -24,6 +27,12 @@ import org.bithon.component.commons.expression.IExpression;
  */
 public record LogicalTableScan(
     String table,
-    IExpression labelMatchers // = filters like {job="abc"}
+    List<Selector> selectorList,
+    IExpression filter // = filters like {job="abc"}
 ) implements ILogicalPlan {
+
+    @Override
+    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
+        return visitor.visitTableScan(this);
+    }
 }

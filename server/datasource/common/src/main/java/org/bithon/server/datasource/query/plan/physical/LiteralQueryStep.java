@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataType;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.datasource.query.Interval;
-import org.bithon.server.datasource.query.plan.physical.Column;
-import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
-import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.LongColumn;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.ColumnarTable;
+import org.bithon.server.datasource.query.result.DoubleColumn;
+import org.bithon.server.datasource.query.result.LongColumn;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.Collections;
 import java.util.List;

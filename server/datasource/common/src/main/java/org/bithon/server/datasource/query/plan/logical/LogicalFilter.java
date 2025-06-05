@@ -16,8 +16,6 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
-import org.bithon.server.metric.expression.ast.PredicateEnum;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:34
@@ -26,4 +24,10 @@ public record LogicalFilter(
     ILogicalPlan left,
     PredicateEnum op,
     ILogicalPlan right
-) implements ILogicalPlan {}
+) implements ILogicalPlan {
+
+    @Override
+    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
+        return visitor.visitFilter(this);
+    }
+}

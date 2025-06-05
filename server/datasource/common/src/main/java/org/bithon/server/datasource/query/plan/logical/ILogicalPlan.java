@@ -23,5 +23,13 @@ package org.bithon.server.datasource.query.plan.logical;
 public sealed interface ILogicalPlan
     permits LogicalTableScan, LogicalAggregate, LogicalBinaryOp,
     LogicalScalar, LogicalFilter {
+
+    /**
+     * Accept a visitor for the visitor pattern implementation
+     * @param visitor the visitor to accept
+     * @param <T> the return type of the visitor
+     * @return the result of visiting this logical plan
+     */
+    <T> T accept(ILogicalPlanVisitor<T> visitor);
 }
 

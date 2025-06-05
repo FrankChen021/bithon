@@ -16,8 +16,8 @@
 
 package org.bithon.server.datasource.query.pipeline;
 
-import org.bithon.server.datasource.query.plan.physical.Column;
-import org.bithon.server.datasource.query.plan.physical.LongColumn;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.LongColumn;
 import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;

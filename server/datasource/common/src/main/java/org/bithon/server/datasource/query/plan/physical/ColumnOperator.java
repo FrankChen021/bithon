@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.plan.physical;
 
 
 import org.bithon.component.commons.expression.IDataTypeIndex;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.query.plan.physical.Column;
-import org.bithon.server.datasource.query.plan.physical.DoubleColumn;
-import org.bithon.server.datasource.query.plan.physical.LongColumn;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.DoubleColumn;
+import org.bithon.server.datasource.query.result.LongColumn;
 
 /**
  * @author frank.chen021@outlook.com

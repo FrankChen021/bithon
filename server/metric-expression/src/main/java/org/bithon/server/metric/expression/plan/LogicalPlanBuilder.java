@@ -17,6 +17,7 @@
 package org.bithon.server.metric.expression.plan;
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
 import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
 import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
@@ -25,6 +26,7 @@ import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
 import org.bithon.server.metric.expression.ast.MetricSelectExpression;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,6 +37,7 @@ class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
     public ILogicalPlan visit(MetricSelectExpression expression) {
         return new LogicalTableScan(
             expression.getFrom(),
+            List.of(new Selector(expression.getMetric(), expression.getMetric(), expression.getDataType())),
             expression.getLabelSelectorExpression()
         );
     }
@@ -44,8 +47,13 @@ class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
         return new LogicalAggregate(
             expression.getMetric().getAggregator(),
             new LogicalTableScan(expression.getFrom(),
+                                 List.of(new Selector(expression.getMetric().getName(),
+                                                      expression.getMetric().getName(),
+                                                      expression.getDataType())),
                                  expression.getLabelSelectorExpression()),
-            CollectionUtils.isEmpty(expression.getGroupBy()) ? new ArrayList<>() : new ArrayList<>(expression.getGroupBy())
+            null,
+            CollectionUtils.isEmpty(expression.getGroupBy()) ? new ArrayList<>() : new ArrayList<>(expression.getGroupBy()),
+            new ArrayList<>()
         );
     }
 }

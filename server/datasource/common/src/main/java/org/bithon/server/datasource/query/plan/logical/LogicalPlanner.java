@@ -16,17 +16,14 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.metric.expression.plan.ILogicalPlan;
-import org.bithon.server.metric.expression.plan.LogicalPlanBuilder;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:36
  */
 public class LogicalPlanner {
+    /*
     public static ILogicalPlan plan(IExpression expression) {
         return expression.accept(new LogicalPlanBuilder());
-    }
+    }*/
 
 }

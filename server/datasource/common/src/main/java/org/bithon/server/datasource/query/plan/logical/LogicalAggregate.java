@@ -16,6 +16,8 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
+import org.bithon.server.datasource.column.IColumn;
+
 import java.util.List;
 
 /**
@@ -25,7 +27,14 @@ import java.util.List;
 public record LogicalAggregate(
     String func,                 // e.g., "sum", "avg"
     ILogicalPlan input,           // e.g., table scan
-    List<String> groupBy   // e.g., ["appName"]
+    IColumn field,
+    List<String> groupBy,
+    List<String> orderBy
 ) implements ILogicalPlan {
+
+    @Override
+    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
+        return visitor.visitAggregate(this);
+    }
 }
 

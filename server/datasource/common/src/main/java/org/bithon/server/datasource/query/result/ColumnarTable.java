@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.plan.physical;
+package org.bithon.server.datasource.query.result;
 
 
 import java.util.ArrayList;

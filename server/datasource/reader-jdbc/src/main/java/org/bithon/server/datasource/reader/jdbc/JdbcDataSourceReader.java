@@ -32,11 +32,12 @@ import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
-import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
+import org.bithon.server.datasource.reader.jdbc.statement.JdbcPhysicalPlanner;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -117,7 +118,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
 
     @Override
     public IPhysicalPlan plan(ILogicalPlan plan) {
-        return IDataSourceReader.super.plan(plan);
+        return plan.accept(new JdbcPhysicalPlanner(this.dslContext, this.sqlDialect));
     }
 
     @Override
@@ -141,10 +142,10 @@ public class JdbcDataSourceReader implements IDataSourceReader {
                                                      .dialect(this.sqlDialect)
                                                      .selectStatement(selectStatement)
                                                      .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
-                                                                        interval.getEndTime(),
-                                                                        interval.getStep(),
-                                                                        null,
-                                                                        null))
+                                                                           interval.getEndTime(),
+                                                                           interval.getStep(),
+                                                                           null,
+                                                                           null))
                                                      .build();
 
         try {

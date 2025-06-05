@@ -14,13 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.expression.pipeline.step;
+package org.bithon.server.datasource.query.plan.physical;
 
 
-import org.bithon.server.datasource.query.plan.physical.Column;
-import org.bithon.server.datasource.query.plan.physical.ColumnarTable;
-import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
-import org.bithon.server.datasource.query.plan.physical.PipelineQueryResult;
+import org.bithon.server.datasource.query.result.Column;
+import org.bithon.server.datasource.query.result.ColumnarTable;
+import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;

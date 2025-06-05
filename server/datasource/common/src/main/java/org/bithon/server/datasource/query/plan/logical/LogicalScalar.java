@@ -20,4 +20,10 @@ package org.bithon.server.datasource.query.plan.logical;
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:33
  */
-public record LogicalScalar(double value) implements ILogicalPlan {}
+public record LogicalScalar(double value) implements ILogicalPlan {
+
+    @Override
+    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
+        return visitor.visitScalar(this);
+    }
+}
