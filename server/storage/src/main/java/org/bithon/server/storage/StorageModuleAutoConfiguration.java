@@ -160,24 +160,17 @@ public class StorageModuleAutoConfiguration {
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     SchemaInitializer traceSchemaInitializer(ITraceStorage storage, TraceStorageConfig storageConfig) {
-        return new SchemaInitializer() {
-            @Override
-            public void initialize(SchemaManager schemaManager) {
-                schemaManager.addSchema(TraceTableSchema.createSummaryTableSchema(storage), false);
-                schemaManager.addSchema(TraceTableSchema.createIndexTableSchema(storage, storageConfig.getIndexes()), false);
-            }
+        return schemaManager -> {
+            schemaManager.addSchema(TraceTableSchema.createTraceSpanSummaryTableSchema(storage), false);
+            schemaManager.addSchema(TraceTableSchema.createTraceSpanTableSchema(storage), false);
+            schemaManager.addSchema(TraceTableSchema.createIndexTableSchema(storage, storageConfig.getIndexes()), false);
         };
     }
 
     @Bean
     @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
     SchemaInitializer eventSchemaInitializer(IEventStorage storage) {
-        return new SchemaInitializer() {
-            @Override
-            public void initialize(SchemaManager schemaManager) {
-                schemaManager.addSchema(EventTableSchema.createEventTableSchema(storage), false);
-            }
-        };
+        return schemaManager -> schemaManager.addSchema(EventTableSchema.createEventTableSchema(storage), false);
     }
 
     @Bean

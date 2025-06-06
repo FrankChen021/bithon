@@ -22,9 +22,9 @@ import org.bithon.server.commons.time.Period;
 import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.TimestampSpec;
 import org.bithon.server.datasource.column.IColumn;
+import org.bithon.server.datasource.column.LongColumn;
 import org.bithon.server.datasource.column.ObjectColumn;
 import org.bithon.server.datasource.column.StringColumn;
-import org.bithon.server.datasource.column.aggregatable.sum.AggregateLongSumColumn;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.store.IDataStoreSpec;
 import org.bithon.server.storage.tracing.index.TagIndexConfig;
@@ -44,6 +44,7 @@ import java.util.Map;
 public class TraceTableSchema implements ISchema {
 
     public static final String TRACE_SPAN_SUMMARY_SCHEMA_NAME = "trace_span_summary";
+    public static final String TRACE_SPAN_SCHEMA_NAME = "trace_span";
     public static final String TRACE_SPAN_TAG_INDEX_SCHEMA_NAME = "trace_span_tag_index";
     private final TimestampSpec timestampSpec = new TimestampSpec("timestamp");
     private final String name;
@@ -127,31 +128,36 @@ public class TraceTableSchema implements ISchema {
         return true;
     }
 
-    public static TraceTableSchema createSummaryTableSchema(ITraceStorage traceStorage) {
+    public static TraceTableSchema createTraceSpanSummaryTableSchema(ITraceStorage traceStorage) {
         return new TraceTableSchema(TRACE_SPAN_SUMMARY_SCHEMA_NAME,
                                     traceStorage,
-                                    Arrays.asList(new StringColumn("traceId", "traceId"),
-                                                  new StringColumn("appName",
-                                                                   "appName"),
-                                                  new StringColumn("instanceName",
-                                                                   "instanceName"),
-                                                  new StringColumn("status",
-                                                                   "status"),
-                                                  new StringColumn("name", "name"),
-                                                  new StringColumn("clazz", "clazz"),
-                                                  new StringColumn("method", "method"),
-                                                  new StringColumn("normalizedUrl",
-                                                                   "url"),
-                                                  new StringColumn("kind", "kind"),
-                                                  new ObjectColumn("attributes", "tags"),
+                                    getTraceSpanColumns());
+    }
 
-                                                  // microsecond
-                                                  new AggregateLongSumColumn("costTimeMs",
-                                                                             "costTimeMs"),
+    public static TraceTableSchema createTraceSpanTableSchema(ITraceStorage traceStorage) {
+        return new TraceTableSchema(TRACE_SPAN_SCHEMA_NAME,
+                                    traceStorage,
+                                    getTraceSpanColumns());
+    }
 
-                                                  // microsecond
-                                                  new AggregateLongSumColumn("startTimeUs", "startTimeUs"))
-        );
+    private static List<IColumn> getTraceSpanColumns() {
+        return Arrays.asList(new StringColumn("traceId", "traceId"),
+                             new StringColumn("appName",
+                                              "appName"),
+                             new StringColumn("instanceName",
+                                              "instanceName"),
+                             new StringColumn("status",
+                                              "status"),
+                             new StringColumn("name", "name"),
+                             new StringColumn("clazz", "clazz"),
+                             new StringColumn("method", "method"),
+                             new StringColumn("normalizedUrl", "url"),
+                             new StringColumn("kind", "kind"),
+                             new ObjectColumn("attributes", "tags"),
+
+                             // microsecond
+                             new LongColumn("costTimeMs", "costTimeMs"),
+                             new LongColumn("startTimeUs", "startTimeUs"));
     }
 
     public static TraceTableSchema createIndexTableSchema(ITraceStorage traceStorage, TagIndexConfig tagIndexConfig) {
