@@ -18,6 +18,8 @@ package org.bithon.server.datasource.reader.jdbc.statement;
 
 import org.bithon.component.commons.expression.LogicalExpression;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
@@ -26,7 +28,7 @@ import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PhysicalPlanner;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
-import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcTableScanStep;
+import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcReadStep;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.TableIdentifier;
 import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
@@ -41,26 +43,35 @@ import java.util.List;
 public class JdbcPhysicalPlanner extends PhysicalPlanner {
     private final DSLContext dslContext;
     private final ISqlDialect sqlDialect;
+    private final ISchema schema;
+    private Interval interval;
 
-    public JdbcPhysicalPlanner(DSLContext dslContext, ISqlDialect sqlDialect) {
+    public JdbcPhysicalPlanner(DSLContext dslContext,
+                               ISqlDialect sqlDialect,
+                               ISchema schema) {
         this.dslContext = dslContext;
         this.sqlDialect = sqlDialect;
+        this.schema = schema;
     }
 
-    public IPhysicalPlan plan(ILogicalPlan logicalPlan) {
+    public IPhysicalPlan plan(Interval interval, ILogicalPlan logicalPlan) {
+        this.interval = interval;
         return logicalPlan.accept(this);
     }
 
     @Override
     public IPhysicalPlan visitAggregate(LogicalAggregate aggregate) {
         IPhysicalPlan physicalPlan = aggregate.input().accept(this);
-        if (physicalPlan instanceof JdbcTableScanStep tableScan) {
+        if (physicalPlan instanceof JdbcReadStep jdbcReadStep) {
             // PUSH the aggregate down to the table scan step
-            //JdbcTableScanStep tableScanStep
-            return new JdbcTableScanStep(dslContext,
-                                         sqlDialect,
-                                         false,
-                                         plan(sqlDialect, tableScan.getSelectStatement(), aggregate));
+            SelectStatement aggregation = pushdownAggregationOverScan(
+                jdbcReadStep.getSelectStatement(),
+                aggregate
+            );
+
+            return new JdbcReadStep(dslContext,
+                                    sqlDialect,
+                                    aggregation);
         }
 
         return super.visitAggregate(aggregate);
@@ -74,18 +85,20 @@ public class JdbcPhysicalPlanner extends PhysicalPlanner {
         selectStatement.getWhere().and(tableScan.filter());
         selectStatement.getSelectorList().addAll(tableScan.selectorList());
 
-        return new JdbcTableScanStep(
+        return new JdbcReadStep(
             dslContext,
             sqlDialect,
-            false,
             selectStatement
         );
     }
 
-    private SelectStatement plan(ISqlDialect sqlDialect, SelectStatement select, LogicalAggregate aggregate) {
+    private SelectStatement pushdownAggregationOverScan(SelectStatement select, LogicalAggregate aggregate) {
         SelectStatementBuilder builder = new SelectStatementBuilder();
-        return builder.sqlDialect(sqlDialect)
-                      .fields(List.of(new Selector(new ExpressionNode(StringUtils.format("%s(%s)", aggregate.func(), aggregate.field().getName())),
+        return builder.sqlDialect(this.sqlDialect)
+                      .schema(this.schema)
+                      .interval(this.interval)
+                      .fields(List.of(new Selector(new ExpressionNode(this.schema,
+                                                                      StringUtils.format("%s(%s)", aggregate.func(), aggregate.field().getName())),
                                                    aggregate.field().getName(),
                                                    aggregate.field().getDataType())))
                       .filter(LogicalExpression.create(LogicalExpression.AND.OP, select.getWhere().getExpressions()))

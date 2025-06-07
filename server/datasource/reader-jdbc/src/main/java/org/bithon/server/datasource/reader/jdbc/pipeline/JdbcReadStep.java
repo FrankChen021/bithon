@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.reader.jdbc.pipeline;
 
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
@@ -40,19 +41,26 @@ import java.util.concurrent.CompletableFuture;
 public class JdbcReadStep implements IPhysicalPlan {
 
     private final DSLContext dslContext;
-    private final SelectStatement selectStatement;
     private final String sql;
-    private final boolean isScalar;
+
+    @Getter
+    private final SelectStatement selectStatement;
 
     public JdbcReadStep(DSLContext dslContext,
                         ISqlDialect sqlDialect,
-                        SelectStatement selectStatement,
-                        boolean isScalar) {
+                        SelectStatement selectStatement) {
         this.dslContext = dslContext;
         this.selectStatement = selectStatement;
-        this.isScalar = isScalar;
-
         this.sql = selectStatement.toSQL(sqlDialect);
+    }
+
+    @Override
+    public void serializer(StringBuilder builder) {
+        String stepName = this.getClass().getSimpleName();
+        builder.append(stepName).append('\n');
+        for (String line : this.sql.split("\\r?\\n")) {
+            builder.append("    ").append(line).append("\n");
+        }
     }
 
     @Override
@@ -62,7 +70,7 @@ public class JdbcReadStep implements IPhysicalPlan {
 
     @Override
     public boolean isScalar() {
-        return this.isScalar;
+        return false;
     }
 
     @Override

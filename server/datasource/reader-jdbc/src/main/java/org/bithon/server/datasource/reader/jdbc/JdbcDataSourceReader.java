@@ -24,6 +24,7 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -117,8 +118,8 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public IPhysicalPlan plan(ILogicalPlan plan) {
-        return plan.accept(new JdbcPhysicalPlanner(this.dslContext, this.sqlDialect));
+    public IPhysicalPlan plan(ISchema schema, Interval interval, ILogicalPlan plan) {
+        return new JdbcPhysicalPlanner(this.dslContext, this.sqlDialect, schema).plan(interval, plan);
     }
 
     @Override

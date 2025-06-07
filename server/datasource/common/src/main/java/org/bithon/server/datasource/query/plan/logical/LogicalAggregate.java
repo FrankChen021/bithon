@@ -25,8 +25,14 @@ import java.util.List;
  * @date 2025/6/4 23:32
  */
 public record LogicalAggregate(
-    String func,                 // e.g., "sum", "avg"
-    ILogicalPlan input,           // e.g., table scan
+    /**
+     * The function to be applied for aggregation, e.g., "SUM", "AVG", etc.
+     */
+    String func,
+    ILogicalPlan input,
+    /**
+     * The field to be aggregated.
+     */
     IColumn field,
     List<String> groupBy,
     List<String> orderBy

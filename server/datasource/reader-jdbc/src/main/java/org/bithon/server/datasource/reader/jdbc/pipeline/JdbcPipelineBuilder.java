@@ -93,7 +93,7 @@ public class JdbcPipelineBuilder {
         }
 
         if (windowFunctionSelectors.isEmpty()) {
-            return new JdbcReadStep(dslContext, dialect, selectStatement, false);
+            return new JdbcReadStep(dslContext, dialect, selectStatement);
         }
 
         WindowFunctionExpression windowFunctionExpression = (WindowFunctionExpression) ((ExpressionNode) windowFunctionSelectors.get(0).getSelectExpression()).getParsedExpression();
@@ -118,8 +118,8 @@ public class JdbcPipelineBuilder {
 
         IPhysicalPlan readStep = new JdbcReadStep(dslContext,
                                                   dialect,
-                                                  subQuery,
-                                                  false);
+                                                  subQuery
+        );
 
         return new SlidingWindowAggregationStep(orderBy.getIdentifier(),
                                                 keys,
