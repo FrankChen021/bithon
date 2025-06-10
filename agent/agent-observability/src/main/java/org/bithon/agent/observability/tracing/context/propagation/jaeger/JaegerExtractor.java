@@ -67,8 +67,13 @@ public class JaegerExtractor implements ITraceContextExtractor {
         String parentSpanId = parts[1];
         String flags = parts[3];
 
-        // Validate trace-id
-        if (StringUtils.isEmpty(traceId) || StringUtils.isEmpty(parentSpanId)) {
+        // Validate trace-id (must not be empty or all zeros)
+        if (StringUtils.isEmpty(traceId) || isAllZeros(traceId)) {
+            return null;
+        }
+
+        // Validate span-id (must not be empty or all zeros)
+        if (StringUtils.isEmpty(parentSpanId) || isAllZeros(parentSpanId)) {
             return null;
         }
 
@@ -78,6 +83,21 @@ public class JaegerExtractor implements ITraceContextExtractor {
                                               traceId,
                                               parentSpanId,
                                               Tracer.get().spanIdGenerator());
+    }
+
+    /**
+     * Check if a hex string is all zeros
+     */
+    private boolean isAllZeros(String hexString) {
+        if (StringUtils.isEmpty(hexString)) {
+            return true;
+        }
+        for (char c : hexString.toCharArray()) {
+            if (c != '0') {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
