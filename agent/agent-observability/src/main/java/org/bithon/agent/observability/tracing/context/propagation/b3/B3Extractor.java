@@ -50,7 +50,7 @@ public class B3Extractor implements ITraceContextExtractor {
 
     /**
      * 64-bit parent span ID lower-hex encoded into 16 characters (absent on root span).
-     * This is the ID of the caller's parent span, essentially the grandparent of the server's span.
+     * This is the ID of the caller's parent span, essentially the grandparent of the root span in the this server.
      * It is optional and not used here.
      */
     static final String PARENT_SPAN_ID = "X-B3-ParentSpanId";
@@ -66,8 +66,9 @@ public class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        String spanId = getter.get(request, SPAN_ID);
-        if (spanId == null) {
+        // For us, the SPAN_ID is the parent span ID of the new span in this service
+        String parentSpanId = getter.get(request, SPAN_ID);
+        if (parentSpanId == null) {
             return null;
         }
 
@@ -76,7 +77,7 @@ public class B3Extractor implements ITraceContextExtractor {
         if ("1".equals(flags) || "true".equalsIgnoreCase(flags)) {
             return TraceContextFactory.newContext(SamplingMode.FULL,
                                                   traceId,
-                                                  spanId, // This is the parent span id for the new span
+                                                  parentSpanId, // This is the parent span id for the new span
                                                   Tracer.get().spanIdGenerator());
         }
 
@@ -85,13 +86,13 @@ public class B3Extractor implements ITraceContextExtractor {
         if ("0".equals(sampled) || "false".equalsIgnoreCase(sampled)) {
             return TraceContextFactory.newContext(SamplingMode.NONE,
                                                   traceId,
-                                                  spanId, // This is the parent span id for the new span
+                                                  parentSpanId, // This is the parent span id for the new span
                                                   Tracer.get().spanIdGenerator());
         }
 
         return TraceContextFactory.newContext(SamplingMode.FULL,
                                               traceId,
-                                              spanId, // This is the parent span id for the new span
+                                              parentSpanId, // This is the parent span id for the new span
                                               Tracer.get().spanIdGenerator());
     }
 }

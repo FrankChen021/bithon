@@ -40,6 +40,10 @@ public class JaegerExtractor implements ITraceContextExtractor {
      */
     public static final String UBER_TRACE_ID = "uber-trace-id";
 
+    // Bit flags for Jaeger flags field.
+    private static final int SAMPLED_FLAG = 0x01;
+    private static final int DEBUG_FLAG = 0x02;
+
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         if (request == null) {
@@ -58,58 +62,28 @@ public class JaegerExtractor implements ITraceContextExtractor {
         }
 
         String traceId = parts[0];
-        String spanId = parts[1];
-        String parentSpanId = parts[2];
+
+        // For us, the SPAN_ID is the parent span ID of the new span in this service
+        String parentSpanId = parts[1];
         String flags = parts[3];
 
-        // Validate trace-id (must not be empty or all zeros)
-        if (StringUtils.isEmpty(traceId) || isAllZeros(traceId)) {
+        // Validate trace-id
+        if (StringUtils.isEmpty(traceId) || StringUtils.isEmpty(parentSpanId)) {
             return null;
-        }
-
-        // Validate span-id (must not be empty or all zeros)
-        if (StringUtils.isEmpty(spanId) || isAllZeros(spanId)) {
-            return null;
-        }
-
-        // Parent span ID can be 0 for root spans, so we don't validate it as strictly
-        if (StringUtils.isEmpty(parentSpanId)) {
-            return null;
-        }
-
-        // If parent span ID is all zeros (but not single "0"), treat it as empty string (root span)
-        if (isAllZeros(parentSpanId) && parentSpanId.length() > 1) {
-            parentSpanId = "";
         }
 
         // Parse flags to determine sampling mode
         SamplingMode samplingMode = getSamplingMode(flags);
-
         return TraceContextFactory.newContext(samplingMode,
                                               traceId,
                                               parentSpanId,
-                                              spanId,
                                               Tracer.get().spanIdGenerator());
-    }
-
-    /**
-     * Check if a hex string is all zeros
-     */
-    private boolean isAllZeros(String hexString) {
-        if (StringUtils.isEmpty(hexString)) {
-            return true;
-        }
-        for (char c : hexString.toCharArray()) {
-            if (c != '0') {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
      * Parse Jaeger flags to determine sampling mode.
      * Bit 1 (least significant bit, mask 0x01) is the "sampled" flag.
+     * Bit 2 (mask 0x02) is the "debug" flag.
      */
     private SamplingMode getSamplingMode(String flag) {
         if (StringUtils.isEmpty(flag)) {
@@ -118,8 +92,14 @@ public class JaegerExtractor implements ITraceContextExtractor {
 
         try {
             int flags = Integer.parseInt(flag, 16);
+
+            // The debug flag imposes a sampling decision.
+            if ((flags & DEBUG_FLAG) == DEBUG_FLAG) {
+                return SamplingMode.FULL;
+            }
+
             // Check if the sampled flag (bit 1) is set
-            return (flags & 0x01) == 0x01 ? SamplingMode.FULL : SamplingMode.NONE;
+            return (flags & SAMPLED_FLAG) == SAMPLED_FLAG ? SamplingMode.FULL : SamplingMode.NONE;
         } catch (NumberFormatException e) {
             // If flags cannot be parsed, default to not sampled
             return SamplingMode.NONE;
