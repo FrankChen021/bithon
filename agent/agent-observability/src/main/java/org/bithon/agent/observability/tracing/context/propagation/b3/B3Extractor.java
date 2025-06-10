@@ -31,16 +31,27 @@ import org.bithon.agent.observability.tracing.sampler.SamplingMode;
  */
 public class B3Extractor implements ITraceContextExtractor {
     static final String SAMPLED = "X-B3-Sampled";
+
+    /**
+     * Debugging flag. If set, it has higher priority than the above SAMPLED header
+     */
+    static final String FLAGS = "X-B3-Flags";
+
     /**
      * 128 or 64-bit trace ID lower-hex encoded into 32 or 16 characters (required)
      */
     static final String TRACE_ID = "X-B3-TraceId";
+
     /**
-     * 64-bit span ID lower-hex encoded into 16 characters (required)
+     * 64-bit span ID lower-hex encoded into 16 characters (required).
+     * This is the ID of the caller's span, and becomes the parent of the server's span.
      */
     static final String SPAN_ID = "X-B3-SpanId";
+
     /**
-     * 64-bit parent span ID lower-hex encoded into 16 characters (absent on root span)
+     * 64-bit parent span ID lower-hex encoded into 16 characters (absent on root span).
+     * This is the ID of the caller's parent span, essentially the grandparent of the root span in the this server.
+     * It is optional and not used here.
      */
     static final String PARENT_SPAN_ID = "X-B3-ParentSpanId";
 
@@ -50,25 +61,38 @@ public class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        String b3TraceId = getter.get(request, TRACE_ID);
-        if (b3TraceId == null) {
+        String traceId = getter.get(request, TRACE_ID);
+        if (traceId == null) {
             return null;
         }
 
-        String spanId = getter.get(request, SPAN_ID);
-        if (spanId == null) {
-            return null;
-        }
-
-        String parentSpanId = getter.get(request, PARENT_SPAN_ID);
+        // For us, the SPAN_ID is the parent span ID of the new span in this service
+        String parentSpanId = getter.get(request, SPAN_ID);
         if (parentSpanId == null) {
             return null;
         }
 
+        // The debug flag, if present, takes priority over the sampling flag.
+        String flags = getter.get(request, FLAGS);
+        if ("1".equals(flags) || "true".equalsIgnoreCase(flags)) {
+            return TraceContextFactory.newContext(SamplingMode.FULL,
+                                                  traceId,
+                                                  parentSpanId, // This is the parent span id for the new span
+                                                  Tracer.get().spanIdGenerator());
+        }
+
+        // A value of '0' or 'false' means not sampled.
+        String sampled = getter.get(request, SAMPLED);
+        if ("0".equals(sampled) || "false".equalsIgnoreCase(sampled)) {
+            return TraceContextFactory.newContext(SamplingMode.NONE,
+                                                  traceId,
+                                                  parentSpanId, // This is the parent span id for the new span
+                                                  Tracer.get().spanIdGenerator());
+        }
+
         return TraceContextFactory.newContext(SamplingMode.FULL,
-                                              b3TraceId,
-                                              parentSpanId,
-                                              spanId,
+                                              traceId,
+                                              parentSpanId, // This is the parent span id for the new span
                                               Tracer.get().spanIdGenerator());
     }
 }

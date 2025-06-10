@@ -82,7 +82,7 @@ public class JaegerExtractorTest {
         ITraceContext context = extractor.extract(headers, TestPropagationGetter.INSTANCE);
         Assertions.assertNotNull(context);
         Assertions.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
-        Assertions.assertEquals("b7ad6b7169203331", context.currentSpan().parentSpanId());
+        Assertions.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assertions.assertEquals(TraceMode.TRACING, context.traceMode());
     }
 
@@ -96,7 +96,7 @@ public class JaegerExtractorTest {
         ITraceContext context = extractor.extract(headers, TestPropagationGetter.INSTANCE);
         Assertions.assertNotNull(context);
         Assertions.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
-        Assertions.assertEquals("b7ad6b7169203331", context.currentSpan().parentSpanId());
+        Assertions.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assertions.assertEquals(TraceMode.LOGGING, context.traceMode());
     }
 
@@ -110,7 +110,7 @@ public class JaegerExtractorTest {
         ITraceContext context = extractor.extract(headers, TestPropagationGetter.INSTANCE);
         Assertions.assertNotNull(context);
         Assertions.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
-        Assertions.assertEquals("0", context.currentSpan().parentSpanId());
+        Assertions.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assertions.assertEquals(TraceMode.TRACING, context.traceMode());
     }
 
@@ -124,7 +124,7 @@ public class JaegerExtractorTest {
         ITraceContext context = extractor.extract(headers, TestPropagationGetter.INSTANCE);
         Assertions.assertNotNull(context);
         Assertions.assertEquals("4bf92f3577b34da6a3ce929d0e0e4736", context.traceId());
-        Assertions.assertEquals("", context.currentSpan().parentSpanId());
+        Assertions.assertEquals("00f067aa0ba902b7", context.currentSpan().parentSpanId());
         Assertions.assertEquals(TraceMode.TRACING, context.traceMode());
     }
 
@@ -179,12 +179,12 @@ public class JaegerExtractorTest {
     }
 
     @Test
-    public void testExtract_InvalidParentSpanId() {
+    public void testExtract_InvalidGrandParentSpanId() {
         JaegerExtractor extractor = new JaegerExtractor();
 
-        // Empty parent span ID
-        Assertions.assertNull(extractor.extract(ImmutableMap.of(JaegerExtractor.UBER_TRACE_ID, "4bf92f3577b34da6a3ce929d0e0e4736:00f067aa0ba902b7::01"),
-                                                TestPropagationGetter.INSTANCE));
+        // We don't care the grandparent span ID
+        Assertions.assertNotNull(extractor.extract(ImmutableMap.of(JaegerExtractor.UBER_TRACE_ID, "4bf92f3577b34da6a3ce929d0e0e4736:00f067aa0ba902b7::01"),
+                                                   TestPropagationGetter.INSTANCE));
     }
 
     @Test
