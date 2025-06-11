@@ -17,28 +17,31 @@
 package org.bithon.server.datasource.query.plan.physical;
 
 
-import org.bithon.server.datasource.query.result.PipelineQueryResult;
-
-import java.util.concurrent.CompletableFuture;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 4/4/25 3:47 pm
+ * @date 11/6/25 4:20 pm
  */
-public interface IPhysicalPlan {
+public class PhysicalPlanSerializer {
+    private final StringBuilder builder = new StringBuilder(128);
 
-    boolean isScalar();
-
-    default String serializeToText() {
-        PhysicalPlanSerializer serializer = new PhysicalPlanSerializer();
-        serializer(serializer);
-        return serializer.getSerializedPlan();
+    public PhysicalPlanSerializer append(String text) {
+        builder.append(text);
+        return this;
     }
 
-    default void serializer(PhysicalPlanSerializer serializer) {
-        serializer.append(this.getClass().getSimpleName());
-        serializer.append("\n");
+    public PhysicalPlanSerializer append(String indent, String text) {
+        for (String line : text.split("\\r?\\n")) {
+            builder.append(indent).append(line).append("\n");
+        }
+        return this;
     }
 
-    CompletableFuture<PipelineQueryResult> execute() throws Exception;
+    public String getSerializedPlan() {
+        return builder.toString();
+    }
+
+    public PhysicalPlanSerializer append(char c) {
+        builder.append(c);
+        return this;
+    }
 }

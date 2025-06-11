@@ -70,7 +70,7 @@ public class LogicalPlanSerializer implements ILogicalPlanVisitor<String> {
 
     @Override
     public String visitScalar(LogicalScalar scalar) {
-        return indent() + "Scalar(value=" + scalar.value() + ")";
+        return indent() + "Scalar(value=" + scalar.literal().serializeToText() + ")";
     }
 
     @Override

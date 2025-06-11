@@ -60,6 +60,11 @@ public class LiteralQueryStep implements IPhysicalPlan {
     }
 
     @Override
+    public void serializer(PhysicalPlanSerializer serializer) {
+        serializer.append(expression.serializeToText());
+    }
+
+    @Override
     public boolean isScalar() {
         return size == 1;
     }

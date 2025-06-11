@@ -16,10 +16,17 @@
 
 package org.bithon.server.metric.expression.plan;
 
+import org.bithon.component.commons.expression.ArithmeticExpression;
+import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.plan.logical.BinaryOp;
 import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
 import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
+import org.bithon.server.datasource.query.plan.logical.LogicalBinaryOp;
+import org.bithon.server.datasource.query.plan.logical.LogicalScalar;
 import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
 import org.bithon.server.metric.expression.ast.IMetricExpressionVisitor;
 import org.bithon.server.metric.expression.ast.MetricAggregateExpression;
@@ -32,7 +39,13 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:43
  */
-class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
+public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
+    private final ISchema schema;
+
+    public LogicalPlanBuilder(ISchema schema) {
+        this.schema = schema;
+    }
+
     @Override
     public ILogicalPlan visit(MetricSelectExpression expression) {
         return new LogicalTableScan(
@@ -44,6 +57,7 @@ class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
 
     @Override
     public ILogicalPlan visit(MetricAggregateExpression expression) {
+        IColumn col = schema.getColumnByName(expression.getMetric().getName());
         return new LogicalAggregate(
             expression.getMetric().getAggregator(),
             new LogicalTableScan(expression.getFrom(),
@@ -51,9 +65,30 @@ class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
                                                       expression.getMetric().getName(),
                                                       expression.getDataType())),
                                  expression.getLabelSelectorExpression()),
-            null,
+            col,
             CollectionUtils.isEmpty(expression.getGroupBy()) ? new ArrayList<>() : new ArrayList<>(expression.getGroupBy()),
             new ArrayList<>()
         );
+    }
+
+    @Override
+    public ILogicalPlan visit(ArithmeticExpression expression) {
+        BinaryOp op = switch (expression.getOperator()) {
+            case ADD -> BinaryOp.ADD;
+            case SUB -> BinaryOp.SUB;
+            case MUL -> BinaryOp.MUL;
+            case DIV -> BinaryOp.DIV;
+        };
+
+        return new LogicalBinaryOp(
+            expression.getLhs().accept(this),
+            op,
+            expression.getRhs().accept(this)
+        );
+    }
+
+    @Override
+    public ILogicalPlan visit(LiteralExpression<?> expression) {
+        return new LogicalScalar(expression);
     }
 }

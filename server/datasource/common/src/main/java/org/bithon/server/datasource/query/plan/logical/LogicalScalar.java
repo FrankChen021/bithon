@@ -16,11 +16,13 @@
 
 package org.bithon.server.datasource.query.plan.logical;
 
+import org.bithon.component.commons.expression.LiteralExpression;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2025/6/4 23:33
  */
-public record LogicalScalar(double value) implements ILogicalPlan {
+public record LogicalScalar(LiteralExpression<?> literal) implements ILogicalPlan {
 
     @Override
     public <T> T accept(ILogicalPlanVisitor<T> visitor) {

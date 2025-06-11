@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
+import org.bithon.server.datasource.query.plan.physical.PhysicalPlanSerializer;
 import org.bithon.server.datasource.query.result.Column;
 import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
@@ -55,12 +56,10 @@ public class JdbcReadStep implements IPhysicalPlan {
     }
 
     @Override
-    public void serializer(StringBuilder builder) {
+    public void serializer(PhysicalPlanSerializer serializer) {
         String stepName = this.getClass().getSimpleName();
-        builder.append(stepName).append('\n');
-        for (String line : this.sql.split("\\r?\\n")) {
-            builder.append("    ").append(line).append("\n");
-        }
+        serializer.append(stepName).append('\n');
+        serializer.append("    ", this.sql);
     }
 
     @Override

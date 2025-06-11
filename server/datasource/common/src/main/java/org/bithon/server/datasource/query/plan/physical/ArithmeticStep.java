@@ -113,6 +113,17 @@ public abstract class ArithmeticStep implements IPhysicalPlan {
     }
 
     @Override
+    public void serializer(PhysicalPlanSerializer serializer) {
+        serializer.append(this.getClass().getSimpleName()).append("Step")
+                  .append(", Result Column: ").append(resultColumnName)
+                  .append(", Retained Columns: ").append(retainedColumns.toString()).append("\n")
+                  .append("    lhs: \n")
+                  .append("        ", this.lhs.serializeToText())
+                  .append("    rhs: \n")
+                  .append("        ", this.rhs.serializeToText());
+    }
+
+    @Override
     public CompletableFuture<PipelineQueryResult> execute() throws Exception {
         CompletableFuture<PipelineQueryResult> leftFuture = this.lhs.execute();
         CompletableFuture<PipelineQueryResult> rightFuture = this.rhs.execute();
