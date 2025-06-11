@@ -16,6 +16,7 @@
 
 package org.bithon.server.metric.expression.api;
 
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -97,16 +98,17 @@ public class MetricQueryApi {
         TimeSpan start = request.getInterval().getStartISO8601();
         TimeSpan end = request.getInterval().getEndISO8601();
 
-        return toTimeSeriesResultSet(start.floor(step).getMilliseconds(),
-                                     end.floor(step).getMilliseconds(),
-                                     step.toMillis(),
-                                     pipeline.execute().get());
+        return toTimeSeriesQueryResponse(start.floor(step).getMilliseconds(),
+                                         end.floor(step).getMilliseconds(),
+                                         step.toMillis(),
+                                         pipeline.execute().get());
     }
 
-    private QueryResponse<?> toTimeSeriesResultSet(long startTimestamp,
-                                                   long endTimestamp,
-                                                   long interval,
-                                                   PipelineQueryResult queryResult) {
+    @VisibleForTesting
+    static QueryResponse<?> toTimeSeriesQueryResponse(long startTimestamp,
+                                                      long endTimestamp,
+                                                      long interval,
+                                                      PipelineQueryResult queryResult) {
         // Because the end timestamp is inclusive, we need to add 1
         int count = 1 + (int) ((endTimestamp - startTimestamp) / interval);
 
@@ -121,22 +123,22 @@ public class MetricQueryApi {
         List<Column> valCols = queryResult.getTable().getColumns(queryResult.getValColumns());
 
         Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
-        for (int i = 0; i < queryResult.getRows(); i++) {
+        for (int row = 0, rowCount = queryResult.getRows(); row < rowCount; row++) {
 
             // the timestamp is seconds
-            long timestamp = timestampCol.getLong(i) * 1000;
-            long index = (timestamp - startTimestamp) / endTimestamp;
+            long timestamp = timestampCol.getLong(row) * 1000;
+            long index = (timestamp - startTimestamp) / interval;
 
-            for (int j = 0, valColsSize = valCols.size(); j < valColsSize; j++) {
-                Column valCol = valCols.get(j);
+            for (int col = 0, valColCount = valCols.size(); col < valColCount; col++) {
+                Column valCol = valCols.get(col);
                 List<String> series = new ArrayList<>(dimCols.size() + 1);
                 for (Column dimCol : dimCols) {
-                    series.add(dimCol.getObject(i).toString());
+                    series.add(dimCol.getObject(row).toString());
                 }
-                series.add(queryResult.getValColumns().get(j));
+                series.add(queryResult.getValColumns().get(col));
 
                 map.computeIfAbsent(series, k -> new TimeSeriesMetric(series, count))
-                   .set((int) index, valCol.getObject(i));
+                   .set((int) index, valCol.getObject(row));
             }
         }
 
