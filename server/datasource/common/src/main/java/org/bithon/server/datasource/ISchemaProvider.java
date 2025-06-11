@@ -14,26 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.datasource.query.plan.logical;
-
-import org.bithon.component.commons.expression.IExpression;
-import org.bithon.server.datasource.ISchema;
-import org.bithon.server.datasource.query.ast.Selector;
-
-import java.util.List;
+package org.bithon.server.datasource;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2025/6/4 23:31
+ * @date 2025/6/11 20:34
  */
-public record LogicalTableScan(
-    ISchema table,
-    List<Selector> selectorList,
-    IExpression filter // = filters like {job="abc"}
-) implements ILogicalPlan {
-
-    @Override
-    public <T> T accept(ILogicalPlanVisitor<T> visitor) {
-        return visitor.visitTableScan(this);
-    }
+public interface ISchemaProvider {
+    ISchema getSchema(String name) throws SchemaException;
 }

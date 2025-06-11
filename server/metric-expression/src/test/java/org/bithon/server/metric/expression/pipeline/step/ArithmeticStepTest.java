@@ -57,11 +57,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -77,11 +77,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 3.3");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -97,11 +97,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -117,11 +117,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -137,11 +137,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 5Mi");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -157,11 +157,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 90%");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -177,11 +177,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] + 1h");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -197,11 +197,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -217,11 +217,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] - 2.2");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -237,11 +237,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -257,11 +257,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -277,11 +277,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 5.5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -297,11 +297,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] * 3");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -317,11 +317,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 5");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -337,11 +337,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -357,11 +357,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 20.0");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -377,11 +377,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] / 3.0");
         PipelineQueryResult response = evaluator.execute().get();
 
@@ -414,11 +414,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -463,11 +463,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -512,11 +512,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -561,11 +561,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -609,11 +609,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
@@ -650,11 +650,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
@@ -689,11 +689,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
@@ -728,11 +728,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
@@ -769,11 +769,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "+"
@@ -820,11 +820,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "-"
@@ -871,11 +871,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "*"
@@ -922,11 +922,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
@@ -973,11 +973,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
@@ -1024,11 +1024,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m]"
                                                           + "/"
@@ -1073,11 +1073,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1122,11 +1122,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1171,11 +1171,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1220,11 +1220,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1269,11 +1269,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1318,11 +1318,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1367,11 +1367,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -1416,11 +1416,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -1465,11 +1465,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -1515,11 +1515,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -1565,11 +1565,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -1615,11 +1615,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -1667,11 +1667,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1718,11 +1718,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1770,11 +1770,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "+"
@@ -1821,11 +1821,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1872,11 +1872,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1923,11 +1923,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -1974,11 +1974,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "-"
@@ -2025,11 +2025,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -2076,11 +2076,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -2127,11 +2127,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -2179,11 +2179,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "*"
@@ -2230,11 +2230,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2281,11 +2281,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2332,11 +2332,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2383,11 +2383,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2434,11 +2434,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2493,11 +2493,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2554,11 +2554,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName)"
                                                           + "/"
@@ -2610,11 +2610,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) "
                                                           + "/ "
@@ -2659,11 +2659,11 @@ public class ArithmeticStepTest {
 
         IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                  .dataSourceApi(dataSourceApi)
-                                                 .intervalRequest(IntervalRequest.builder()
-                                                                                   .bucketCount(1)
-                                                                                   .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                   .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                   .build())
+                                                 .interval(IntervalRequest.builder()
+                                                                          .bucketCount(1)
+                                                                          .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                          .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                          .build())
                                                  // BY is given so that it produces a vector
                                                  .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] by (appName) > -5%[-1d]");
         PipelineQueryResult response = evaluator.execute()
@@ -2708,11 +2708,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 2");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2736,11 +2736,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 3");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2760,11 +2760,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 4");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2784,11 +2784,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] > 5");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2818,11 +2818,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 2");
             PipelineQueryResult response = evaluator.execute().get();
 
@@ -2843,11 +2843,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 3");
             PipelineQueryResult response = evaluator.execute().get();
 
@@ -2867,11 +2867,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 4");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2891,11 +2891,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      // BY is given so that it produces a vector
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 5");
             PipelineQueryResult response = evaluator.execute().get();
@@ -2914,11 +2914,11 @@ public class ArithmeticStepTest {
         {
             IPhysicalPlan evaluator = PhysicalPlanner.builder()
                                                      .dataSourceApi(dataSourceApi)
-                                                     .intervalRequest(IntervalRequest.builder()
-                                                                                       .bucketCount(1)
-                                                                                       .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
-                                                                                       .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
-                                                                                       .build())
+                                                     .interval(IntervalRequest.builder()
+                                                                              .bucketCount(1)
+                                                                              .startISO8601(TimeSpan.fromISO8601("2023-01-01T00:00:00+08:00"))
+                                                                              .endISO8601(TimeSpan.fromISO8601("2023-01-01T00:01:00+08:00"))
+                                                                              .build())
                                                      .build("avg(jvm-metrics.activeThreads{appName = \"bithon-web-'local\"})[1m] >= 6");
             PipelineQueryResult response = evaluator.execute().get();
 

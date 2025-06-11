@@ -20,6 +20,7 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.ast.ExpressionNode;
@@ -46,6 +47,7 @@ public class JdbcPipelineBuilder {
     private ISqlDialect dialect;
     private SelectStatement selectStatement;
     private Interval interval;
+    private ISchema schema;
 
     private JdbcPipelineBuilder() {
     }
@@ -69,6 +71,10 @@ public class JdbcPipelineBuilder {
         return this;
     }
 
+    public JdbcPipelineBuilder schema(ISchema schema) {
+        this.schema = schema;
+        return this;
+    }
 
     public JdbcPipelineBuilder interval(Interval interval) {
         this.interval = interval;
@@ -93,7 +99,7 @@ public class JdbcPipelineBuilder {
         }
 
         if (windowFunctionSelectors.isEmpty()) {
-            return new JdbcReadStep(dslContext, dialect, selectStatement);
+            return new JdbcReadStep(dslContext, schema, dialect, selectStatement, this.interval);
         }
 
         WindowFunctionExpression windowFunctionExpression = (WindowFunctionExpression) ((ExpressionNode) windowFunctionSelectors.get(0).getSelectExpression()).getParsedExpression();
@@ -117,8 +123,10 @@ public class JdbcPipelineBuilder {
                                        .toArray(new OrderByClause[0]));
 
         IPhysicalPlan readStep = new JdbcReadStep(dslContext,
+                                                  schema,
                                                   dialect,
-                                                  subQuery
+                                                  subQuery,
+                                                  interval
         );
 
         return new SlidingWindowAggregationStep(orderBy.getIdentifier(),

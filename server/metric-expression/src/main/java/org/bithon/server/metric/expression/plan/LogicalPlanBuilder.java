@@ -19,7 +19,9 @@ package org.bithon.server.metric.expression.plan;
 import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.ISchemaProvider;
 import org.bithon.server.datasource.column.IColumn;
 import org.bithon.server.datasource.query.ast.Selector;
 import org.bithon.server.datasource.query.plan.logical.BinaryOp;
@@ -40,16 +42,19 @@ import java.util.List;
  * @date 2025/6/4 23:43
  */
 public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan> {
-    private final ISchema schema;
+    private final ISchemaProvider schemaProvider;
 
-    public LogicalPlanBuilder(ISchema schema) {
-        this.schema = schema;
+    public LogicalPlanBuilder(ISchemaProvider schemaProvider) {
+        this.schemaProvider = schemaProvider;
     }
 
     @Override
     public ILogicalPlan visit(MetricSelectExpression expression) {
+        ISchema schema = Preconditions.checkNotNull(schemaProvider.getSchema(expression.getFrom()),
+                                                    "Schema for %s is not found",
+                                                    expression.getFrom());
         return new LogicalTableScan(
-            expression.getFrom(),
+            schema,
             List.of(new Selector(expression.getMetric(), expression.getMetric(), expression.getDataType())),
             expression.getLabelSelectorExpression()
         );
@@ -57,10 +62,13 @@ public class LogicalPlanBuilder implements IMetricExpressionVisitor<ILogicalPlan
 
     @Override
     public ILogicalPlan visit(MetricAggregateExpression expression) {
+        ISchema schema = Preconditions.checkNotNull(schemaProvider.getSchema(expression.getFrom()),
+                                                    "Schema for %s is not found",
+                                                    expression.getFrom());
         IColumn col = schema.getColumnByName(expression.getMetric().getName());
         return new LogicalAggregate(
             expression.getMetric().getAggregator(),
-            new LogicalTableScan(expression.getFrom(),
+            new LogicalTableScan(schema,
                                  List.of(new Selector(expression.getMetric().getName(),
                                                       expression.getMetric().getName(),
                                                       expression.getDataType())),

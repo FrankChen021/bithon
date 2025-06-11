@@ -89,7 +89,7 @@ public class MetricQueryApi {
     public QueryResponse<?> timeSeries(@Validated @RequestBody MetricQueryRequest request) throws Exception {
         IPhysicalPlan pipeline = PhysicalPlanner.builder()
                                                 .dataSourceApi(dataSourceApi)
-                                                .intervalRequest(request.getInterval())
+                                                .interval(request.getInterval())
                                                 .condition(request.getCondition())
                                                 .build(request.getExpression());
 

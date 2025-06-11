@@ -17,6 +17,7 @@
 package org.bithon.server.datasource.query.plan.physical;
 
 
+import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +27,15 @@ import java.util.concurrent.CompletableFuture;
  * @date 4/4/25 3:47 pm
  */
 public interface IPhysicalPlan {
+
+    default boolean canPushDownAggregate(LogicalAggregate aggregate) {
+        return false;
+    }
+
+    default IPhysicalPlan pushDownAggregate(LogicalAggregate aggregate) {
+        throw new UnsupportedOperationException("Cannot push down aggregate: " + aggregate);
+    }
+
 
     boolean isScalar();
 

@@ -19,7 +19,13 @@ package org.bithon.server.datasource.reader.jdbc.pipeline;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.expression.LogicalExpression;
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchema;
+import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.ast.ExpressionNode;
 import org.bithon.server.datasource.query.ast.Selector;
+import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.plan.physical.PhysicalPlanSerializer;
 import org.bithon.server.datasource.query.result.Column;
@@ -27,6 +33,7 @@ import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.result.PipelineQueryResult;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
+import org.bithon.server.datasource.reader.jdbc.statement.builder.SelectStatementBuilder;
 import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -46,12 +53,21 @@ public class JdbcReadStep implements IPhysicalPlan {
 
     @Getter
     private final SelectStatement selectStatement;
+    private final ISqlDialect sqlDialect;
+    private final ISchema schema;
+    private final Interval interval;
 
     public JdbcReadStep(DSLContext dslContext,
+                        ISchema schema,
                         ISqlDialect sqlDialect,
-                        SelectStatement selectStatement) {
+                        SelectStatement selectStatement,
+                        Interval interval
+    ) {
         this.dslContext = dslContext;
+        this.schema = schema;
         this.selectStatement = selectStatement;
+        this.interval = interval;
+        this.sqlDialect = sqlDialect;
         this.sql = selectStatement.toSQL(sqlDialect);
     }
 
@@ -70,6 +86,27 @@ public class JdbcReadStep implements IPhysicalPlan {
     @Override
     public boolean isScalar() {
         return false;
+    }
+
+    @Override
+    public boolean canPushDownAggregate(LogicalAggregate aggregate) {
+        return true;
+    }
+
+    @Override
+    public IPhysicalPlan pushDownAggregate(LogicalAggregate aggregate) {
+        SelectStatementBuilder builder = new SelectStatementBuilder();
+        SelectStatement select = builder.sqlDialect(this.sqlDialect)
+                                        .schema(this.schema)
+                                        .interval(this.interval)
+                                        .fields(List.of(new Selector(new ExpressionNode(this.schema,
+                                                                                        StringUtils.format("%s(%s)", aggregate.func(), aggregate.field().getName())),
+                                                                     aggregate.field().getName(),
+                                                                     aggregate.field().getDataType())))
+                                        .filter(LogicalExpression.create(LogicalExpression.AND.OP, selectStatement.getWhere().getExpressions()))
+                                        .groupBy(aggregate.groupBy())
+                                        .build();
+        return new JdbcReadStep(dslContext, schema, sqlDialect, select, interval);
     }
 
     @Override

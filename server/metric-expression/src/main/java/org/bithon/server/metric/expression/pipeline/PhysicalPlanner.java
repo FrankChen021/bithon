@@ -21,9 +21,19 @@ import org.bithon.component.commons.expression.ArithmeticExpression;
 import org.bithon.component.commons.expression.ComparisonExpression;
 import org.bithon.component.commons.expression.ConditionalExpression;
 import org.bithon.component.commons.expression.IExpression;
+import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.datasource.ISchemaProvider;
+import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
+import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
+import org.bithon.server.datasource.query.plan.logical.ILogicalPlanVisitor;
+import org.bithon.server.datasource.query.plan.logical.LogicalAggregate;
+import org.bithon.server.datasource.query.plan.logical.LogicalBinaryOp;
+import org.bithon.server.datasource.query.plan.logical.LogicalFilter;
+import org.bithon.server.datasource.query.plan.logical.LogicalScalar;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
 import org.bithon.server.datasource.query.plan.physical.ArithmeticStep;
 import org.bithon.server.datasource.query.plan.physical.FilterStep;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
@@ -35,6 +45,7 @@ import org.bithon.server.metric.expression.ast.MetricExpectedExpression;
 import org.bithon.server.metric.expression.ast.MetricExpressionASTBuilder;
 import org.bithon.server.metric.expression.ast.MetricExpressionOptimizer;
 import org.bithon.server.metric.expression.ast.PredicateEnum;
+import org.bithon.server.metric.expression.plan.LogicalPlanBuilder;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.IntervalRequest;
 import org.bithon.server.web.service.datasource.api.QueryField;
@@ -53,6 +64,7 @@ public class PhysicalPlanner {
     private IntervalRequest intervalRequest;
     private String condition;
     private QueryPipelineBuilderSettings settings = QueryPipelineBuilderSettings.DEFAULT;
+    private ISchemaProvider schemaProvider;
 
     public static PhysicalPlanner builder() {
         return new PhysicalPlanner();
@@ -63,7 +75,7 @@ public class PhysicalPlanner {
         return this;
     }
 
-    public PhysicalPlanner intervalRequest(IntervalRequest intervalRequest) {
+    public PhysicalPlanner interval(IntervalRequest intervalRequest) {
         this.intervalRequest = intervalRequest;
         return this;
     }
@@ -78,6 +90,11 @@ public class PhysicalPlanner {
         return this;
     }
 
+    public PhysicalPlanner schemaProvider(ISchemaProvider schemaProvider) {
+        this.schemaProvider = schemaProvider;
+        return this;
+    }
+
     public IPhysicalPlan build(String expression) {
         IExpression expr = MetricExpressionASTBuilder.parse(expression);
 
@@ -86,6 +103,87 @@ public class PhysicalPlanner {
         expr = MetricExpressionOptimizer.optimize(expr);
 
         return this.build(expr);
+    }
+
+    public IPhysicalPlan timeSeries(String expression) {
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that the above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        ILogicalPlan logicalPlan = expr.accept(new LogicalPlanBuilder(schemaProvider));
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
+                                                                   this.intervalRequest.getEndISO8601(),
+                                                                   this.intervalRequest.calculateStep(),
+                                                                   new IdentifierExpression("timestamp"))));
+    }
+
+    public IPhysicalPlan groupBy(String expression) {
+        IExpression expr = MetricExpressionASTBuilder.parse(expression);
+
+        // Apply optimization like constant folding on parsed expression
+        // The optimization is applied here so that the above parse can be tested separately
+        expr = MetricExpressionOptimizer.optimize(expr);
+
+        ILogicalPlan logicalPlan = expr.accept(new LogicalPlanBuilder(schemaProvider));
+        return logicalPlan.accept(new PhysicalPlanImpl(Interval.of(this.intervalRequest.getStartISO8601(),
+                                                                   this.intervalRequest.getEndISO8601(),
+                                                                   null,
+                                                                   new IdentifierExpression("timestamp"))));
+    }
+
+    static class PhysicalPlanImpl implements ILogicalPlanVisitor<IPhysicalPlan> {
+        private final Interval interval;
+
+        PhysicalPlanImpl(Interval interval) {
+            this.interval = interval;
+        }
+
+        @Override
+        public IPhysicalPlan visitAggregate(LogicalAggregate aggregate) {
+            IPhysicalPlan physicalPlan = aggregate.input().accept(this);
+            if (physicalPlan.canPushDownAggregate(aggregate)) {
+                return physicalPlan.pushDownAggregate(aggregate);
+            } else {
+                throw new UnsupportedOperationException("Aggregate not supported: " + aggregate);
+            }
+        }
+
+        @Override
+        public IPhysicalPlan visitTableScan(LogicalTableScan tableScan) {
+            try {
+                try (IDataSourceReader reader = tableScan.table().getDataStoreSpec().createReader()) {
+                    return reader.plan(tableScan, interval);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create reader for table: " + tableScan.table().getName(), e);
+            }
+        }
+
+        @Override
+        public IPhysicalPlan visitBinaryOp(LogicalBinaryOp binaryOp) {
+            return switch (binaryOp.op()) {
+                case ADD -> new ArithmeticStep.Add(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case SUB -> new ArithmeticStep.Sub(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case MUL -> new ArithmeticStep.Mul(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+                case DIV -> new ArithmeticStep.Div(binaryOp.left().accept(this),
+                                                   binaryOp.right().accept(this));
+            };
+        }
+
+        @Override
+        public IPhysicalPlan visitScalar(LogicalScalar scalar) {
+            return new LiteralQueryStep(scalar.literal());
+        }
+
+        @Override
+        public IPhysicalPlan visitFilter(LogicalFilter filter) {
+            return null;
+        }
     }
 
     public IPhysicalPlan build(IExpression expression) {

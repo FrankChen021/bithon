@@ -24,7 +24,6 @@ import org.bithon.component.commons.expression.IdentifierExpression;
 import org.bithon.component.commons.expression.LiteralExpression;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.ISchema;
 import org.bithon.server.datasource.query.IDataSourceReader;
 import org.bithon.server.datasource.query.Interval;
 import org.bithon.server.datasource.query.Limit;
@@ -32,13 +31,13 @@ import org.bithon.server.datasource.query.Order;
 import org.bithon.server.datasource.query.OrderBy;
 import org.bithon.server.datasource.query.Query;
 import org.bithon.server.datasource.query.ast.Selector;
-import org.bithon.server.datasource.query.plan.logical.ILogicalPlan;
+import org.bithon.server.datasource.query.plan.logical.LogicalTableScan;
 import org.bithon.server.datasource.query.plan.physical.IPhysicalPlan;
 import org.bithon.server.datasource.query.result.ColumnarTable;
 import org.bithon.server.datasource.query.setting.QuerySettings;
 import org.bithon.server.datasource.reader.jdbc.dialect.ISqlDialect;
 import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcPipelineBuilder;
-import org.bithon.server.datasource.reader.jdbc.statement.JdbcPhysicalPlanner;
+import org.bithon.server.datasource.reader.jdbc.pipeline.JdbcReadStep;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.LimitClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.OrderByClause;
 import org.bithon.server.datasource.reader.jdbc.statement.ast.SelectStatement;
@@ -118,8 +117,23 @@ public class JdbcDataSourceReader implements IDataSourceReader {
     }
 
     @Override
-    public IPhysicalPlan plan(ISchema schema, Interval interval, ILogicalPlan plan) {
-        return new JdbcPhysicalPlanner(this.dslContext, this.sqlDialect, schema).plan(interval, plan);
+    public IPhysicalPlan plan(LogicalTableScan tableScan, Interval interval) {
+        SelectStatement selectStatement = new SelectStatement();
+        selectStatement.getFrom().setExpression(new TableIdentifier(tableScan.table().getName()));
+        selectStatement.getFrom().setAlias(tableScan.table().getName());
+        selectStatement.getWhere().and(
+            new ComparisonExpression.GTE(interval.getTimestampColumn(), sqlDialect.toISO8601TimestampExpression(interval.getStartTime())),
+            new ComparisonExpression.LT(interval.getTimestampColumn(), sqlDialect.toISO8601TimestampExpression(interval.getEndTime())),
+            tableScan.filter());
+        selectStatement.getSelectorList().addAll(tableScan.selectorList());
+
+        return new JdbcReadStep(
+            dslContext,
+            tableScan.table(),
+            sqlDialect,
+            selectStatement,
+            interval
+        );
     }
 
     @Override
@@ -141,6 +155,7 @@ public class JdbcDataSourceReader implements IDataSourceReader {
         IPhysicalPlan queryStep = JdbcPipelineBuilder.builder()
                                                      .dslContext(dslContext)
                                                      .dialect(this.sqlDialect)
+                                                     .schema(query.getSchema())
                                                      .selectStatement(selectStatement)
                                                      .interval(Interval.of(interval.getStartTime().floor(query.getInterval().getStep()),
                                                                            interval.getEndTime(),
